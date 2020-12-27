@@ -1,0 +1,46 @@
+<!doctype html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+
+  <title>Brassica</title>
+  <link rel="stylesheet" type="text/css" href="haskell.css"/>
+
+  <style>
+    html, body, .container, textarea {
+        height: 100%;
+    }
+
+    .container {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    textarea {
+        resize: none;
+        width: 20%;
+    }
+  </style>
+
+  <!-- See https://stackoverflow.com/a/37480521  -->
+  <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+  <script src="haskell.js"></script>
+  <script>if (window.module) module = window.module;</script>
+
+  <script type="text/javascript" charset="utf-8">
+    Haskell.initFFI();
+  </script>
+</head>
+<body>
+  <noscript>Please enable JavaScript.</noscript>
+  <div class="container">
+    <textarea id="categories"></textarea>
+    <textarea id="rules"></textarea>
+    <textarea id="words"></textarea>
+    <div>
+      <button id="applyBtn">Apply</button>
+    </div>
+    <textarea id="out" readonly></textarea>
+  </div>
+</body>
+</html>
