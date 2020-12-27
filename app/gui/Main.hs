@@ -3,6 +3,9 @@
 
 module Main where
 
+import System.Environment (getArgs)
+import System.IO
+
 import qualified Graphics.UI.Threepenny as UI
 import Graphics.UI.Threepenny.Core
 
@@ -10,7 +13,14 @@ import SoundChange
 import SoundChange.Parse
 
 main :: IO ()
-main = startGUI defaultConfig { jsCustomHTML = Just "gui.html", jsStatic = Just "static" } setup
+main = do
+    hSetBuffering stdout LineBuffering
+    [port] <- getArgs
+    startGUI defaultConfig {
+          jsCustomHTML = Just "gui.html"
+        , jsStatic = Just "static"
+        , jsPort = Just (read port)
+        } setup
 
 setup :: Window -> UI ()
 setup window = do

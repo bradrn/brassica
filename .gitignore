@@ -1,2 +1,5 @@
 .stack-work/
 *~
+*.exe
+electron/node_modules
+electron/static
