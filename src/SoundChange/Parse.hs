@@ -48,7 +48,7 @@ symbol :: String -> Parser String
 symbol = L.symbol sc
 
 keyChars :: [Char]
-keyChars = "#[]()>\\"
+keyChars = "#[]()>\\/_"
 
 parseGrapheme :: Parser Grapheme
 parseGrapheme = lexeme $ takeWhile1P Nothing (not . ((||) <$> isSpace <*> (`elem` keyChars)))
@@ -147,15 +147,8 @@ instance ParseLexeme 'Env where
         , GraphemeEl <$> parseGrapheme
         ]
 
-parseLexemes :: ParseLexeme a => C.Categories Grapheme -> String -> Maybe [Lexeme a]
-parseLexemes cats s = case flip runReader (Config cats) $ runParserT (sc *> many parseLexeme <* eof) "" s of
-    Right ls -> Just ls
-    Left  _  -> Nothing
-
-splitEnv :: String -> Maybe (String, String)
-splitEnv e = case S.splitOn "_" e of
-    [bef, aft] -> Just (bef, aft)
-    _          -> Nothing
+parseLexemes :: ParseLexeme a => Parser [Lexeme a]
+parseLexemes = many parseLexeme
 
 -- | Parse a 'String' to get a 'Rule'. Returns 'Nothing' if the input
 -- string is malformed.
@@ -163,30 +156,21 @@ parseRule
     :: C.Categories Grapheme    -- ^ A set of categories which have been pre-defined
     -> String                   -- ^ The string to parse
     -> Maybe Rule
-parseRule cats s =
-    case S.splitOn "/" s of
-        [a,b,c,d] -> parseWithException a b c (Just d)
-        [a,b,c]   -> parseWithException a b c Nothing
-        _ -> Nothing
-  where
-    parseWithException :: String -> String -> String -> Maybe String -> Maybe Rule
-    parseWithException a b c d = do
-        (c1,c2) <- splitEnv c
-
-        target      <- parseLexemes cats a
-        replacement <- parseLexemes cats b
-        env1        <- parseLexemes cats c1
-        env2        <- parseLexemes cats c2
-
-        exception <- case d of
-            Nothing -> return Nothing
-            Just d' -> do
-                (d1,d2) <- splitEnv d'
-                ex1     <- parseLexemes cats d1
-                ex2     <- parseLexemes cats d2
-                return $ Just (ex1, ex2)
-
-        return Rule{environment=(env1,env2), ..}
+parseRule cats s = case flip runReader (Config cats) $ runParserT (sc *> go <* eof) "" s of
+   Right ls -> Just ls
+   Left  _  -> Nothing
+ where
+   go :: Parser Rule
+   go = do
+       target <- parseLexemes
+       _ <- symbol "/"
+       replacement <- parseLexemes
+       _ <- symbol "/"
+       env1 <- parseLexemes
+       _ <- symbol "_"
+       env2 <- parseLexemes
+       exception <- optional $ (,) <$> (symbol "/" *> parseLexemes) <* symbol "_" <*> parseLexemes
+       return Rule{environment=(env1,env2), ..}
 
 -- | Parse a list of rules. Defined as 'mapMaybe' of 'parseRule'.
 parseRules :: C.Categories Grapheme -> [String] -> [Rule]
