@@ -7,13 +7,23 @@
   <link rel="stylesheet" type="text/css" href="haskell.css"/>
 
   <style>
-    html, body, .container, textarea {
-        height: 100%;
+    * {
+        box-sizing: border-box;
+    }
+
+    body, .container {
+        margin: 0;
+    }
+
+    body {
+        height: 100vh;
+        padding: 8px;
     }
 
     .container {
         display: flex;
         justify-content: space-between;
+        height: 100%;
     }
 
     textarea {
