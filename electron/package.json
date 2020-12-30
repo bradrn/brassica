@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "prestart": "stack exec -- bash -c \"stack install brassica:exe:brassica-gui --local-bin-path . && cp ../static ./static -r\""
+    "prestart": "stack exec -- bash -c \"stack install brassica:exe:brassica-gui --local-bin-path . && rm ./static -rf && cp ../static ./static -r\""
   },
   "keywords": [],
   "author": "",
