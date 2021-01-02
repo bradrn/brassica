@@ -11,6 +11,7 @@ module SoundChange.Parse
     , parseCategorySpec
     , parseCategoriesSpec
     , tokeniseWord
+    , tokeniseWords
     ) where
 
 import Data.Char (isSpace)
@@ -204,3 +205,6 @@ tokeniseWord gs = go [] ""
         in if seen' `elem` gs
             then go result        seen' xs
             else go (seen:result) [x]   xs
+
+tokeniseWords :: [Grapheme] -> String -> [[Grapheme]]
+tokeniseWords gs = fmap (tokeniseWord gs) . words

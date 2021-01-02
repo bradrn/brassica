@@ -6,7 +6,7 @@ import SoundChange.Parse
 import SoundChange.Types
 
 tokeniseAndApplyRules :: Categories Grapheme -> [Rule] -> String -> String
-tokeniseAndApplyRules cats rs = concat . applyRules rs . tokeniseWord (values cats)
+tokeniseAndApplyRules cats rs = unwords . fmap (concat . applyRules rs) . tokeniseWords (values cats)
 
 applyRules :: [Rule] -> [Grapheme] -> [Grapheme]
 applyRules [] = id
