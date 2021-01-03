@@ -35,7 +35,7 @@ module SoundChange.Apply
 import Control.Applicative ((<|>))
 import Data.Function (on, (&))
 import Data.List (sortBy)
-import Data.Maybe (catMaybes, listToMaybe, maybeToList)
+import Data.Maybe (catMaybes, listToMaybe, maybeToList, fromJust)
 import Data.Ord (Down(Down))
 
 import Control.Monad.State
@@ -48,6 +48,7 @@ data RuleTag
     = AppStart     -- ^ The start of a rule application
     | TargetStart  -- ^ The start of the target
     | TargetEnd    -- ^ The end of the target
+    | Exception Int  -- ^ Exceptional position where rule should not be applied ('Int' argument is just an identifier to keep tags unique)
     deriving (Eq, Ord, Show)
 
 -- | A monad in which to process a 'MultiZipper' over
@@ -171,37 +172,43 @@ exceptionAppliesAtPoint target (ex1, ex2) mz = fmap fst $ flip runRuleAp mz $ do
 -- In addition, a list of exceptional positions may be given. If the
 -- target begins at one of the exceptional positions, the match will
 -- fail automatically, even if the rest of the match would succeed.
-matchRuleAtPoint :: [Int] -> Rule -> RuleAp ([Int], [Grapheme])
-matchRuleAtPoint exs Rule{environment = (env1, env2), ..} = do
+matchRuleAtPoint ::  Rule -> RuleAp ([Int], [Grapheme])
+matchRuleAtPoint Rule{environment = (env1, env2), ..} = do
     _ <- RuleAp $ matchMany Nothing env1
     modify $ tag TargetStart
-    gets curPos >>= \pos -> when (pos `elem` exs) $ fail ""
+    -- gets curPos >>= \pos -> when (pos `elem` exs) $ fail ""
+    gets getTags >>= \ts -> when (hasException ts) $ fail ""
     matchResult@(_,gs) <- RuleAp $ matchMany Nothing target
     modify $ tag TargetEnd
     _ <- RuleAp $ matchMany (listToMaybe gs) env2
     return matchResult
+  where
+    hasException = any (\case { Exception _ -> True ; _ -> False })
 
 -- | Given a list of exceptions and a 'Rule', determine if the rule
 -- matches at the current point; if so, apply the rule, and advance
 -- the current index to the next 'Grapheme' after the rule
 -- application.
-applyOnce :: [Int] -> Rule -> RuleAp Bool
-applyOnce exs r@Rule{target, replacement} = do
+applyOnce :: Rule -> RuleAp Bool
+applyOnce r@Rule{target, replacement} = do
     modify $ tag AppStart
-    try (matchRuleAtPoint exs r) >>= modifyMay . \case
+    try (matchRuleAtPoint r) >>= modifyMay . \case
         Nothing -> seek AppStart >=> fwd
         Just (cats, gs) ->
             modifyBetween (TargetStart, TargetEnd) (const $ mkReplacement cats gs replacement)
             >=> seek TargetEnd
             -- need to move forward if applying an epenthesis rule to avoid an infinite loop
             >=> whenFn (null target) fwd
-    modify untag
+    modify $ untagWhen $ \case { Exception _ -> False ; _ -> True }
     
     gets (not . atEnd)
   where
     whenFn :: Applicative m => Bool -> (a -> m a) -> (a -> m a)
     whenFn True  = id
     whenFn False = const pure
+
+withExceptions :: MultiZipper RuleTag a -> [Int] -> MultiZipper RuleTag a
+withExceptions mz = fromJust . foldM (\mz ex -> tagAt (Exception ex) ex mz) mz
 
 -- | Apply a 'Rule' to a 'MultiZipper'. The application will start at
 -- the beginning of the 'MultiZipper', and will be repeated as many
@@ -212,7 +219,7 @@ apply r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
             Nothing -> []
             Just ex -> catMaybes $ toList $
                 extend (exceptionAppliesAtPoint (target r) ex) mz
-    in whileTrue (applyOnce exs r) $ toBeginning mz
+    in whileTrue (applyOnce r) $ flip withExceptions exs $ toBeginning mz
   where
     whileTrue :: RuleAp Bool -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme 
     whileTrue m mz = case runRuleAp m mz of

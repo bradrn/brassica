@@ -12,6 +12,7 @@ module MultiZipper
        , atBoundary
        , value
        , valueN
+       , locationOf
        -- * Movement
        , move
        , fwd
@@ -21,7 +22,10 @@ module MultiZipper
        , toEnd
        -- * Modification
        , tag
+       , tagAt
+       , getTags
        , untag
+       , untagWhen
        , modifyBetween
        , extend
        ) where
@@ -153,6 +157,21 @@ toEnd (MultiZipper as _ ts) = MultiZipper as (length as) ts
 tag :: Ord t => t -> MultiZipper t a -> MultiZipper t a
 tag t (MultiZipper as pos ts) = MultiZipper as pos $ M.insert t pos ts
 
+-- | Set a tag at a given position if possible, otherwise return 'Nothing'.
+tagAt :: Ord t => t -> Int -> MultiZipper t a -> Maybe (MultiZipper t a)
+tagAt t i (MultiZipper as pos ts) =
+    if (i > length as) || (i < 0)
+    then Nothing
+    else Just $ MultiZipper as pos $ M.insert t i ts
+
+getTags :: Ord t => MultiZipper t a -> [t]
+-- adapted from https://stackoverflow.com/a/58263579/7345298
+getTags (MultiZipper _ pos ts) = M.foldrWithKey (\k v l -> if v == pos then k:l else l) [] ts
+
+-- | Remove tags satisfying predicate
+untagWhen :: (t -> Bool) -> MultiZipper t a -> MultiZipper t a
+untagWhen p (MultiZipper as pos ts) = MultiZipper as pos $ snd $ M.partitionWithKey (flip $ const p) ts
+
 -- | Remove all tags.
 untag :: MultiZipper t a -> MultiZipper t a
 untag (MultiZipper as pos _) = MultiZipper as pos M.empty
@@ -174,9 +193,11 @@ modifyBetween (t1, t2) f mz@(MultiZipper as pos ts) = do
         (cut_part, after_t2) = splitAt (i2-i1) after_t1
         insert = f cut_part
         dEnd = length insert - length cut_part
-    return $ MultiZipper (before_t1 ++ insert ++ after_t2) pos (M.adjust (+dEnd) t2 ts)
+    return $ MultiZipper (before_t1 ++ insert ++ after_t2) pos (correctIxsFrom i2 (+dEnd) ts) -- (M.adjust (+dEnd) t2 ts)
   where
     correctOrder (m, n) = if m <= n then (m, n) else (n, m)
+
+    correctIxsFrom i f = M.map $ \pos -> if pos >= i then f pos else pos
 
 -- | Given a function to compute a value from a 'MultiZipper' starting
 -- at a particular point, apply that function to all possible starting
