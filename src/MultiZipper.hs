@@ -83,7 +83,7 @@ atStart (MultiZipper _ pos _) = pos <= 0
 -- | Determine whether the 'MultiZipper' is positioned at the end of
 -- its list.
 atEnd :: MultiZipper t a -> Bool
-atEnd (MultiZipper as pos _) = pos > (length as - 1)
+atEnd (MultiZipper as pos _) = pos >= length as
 
 -- | Determine whether the 'MultiZipper' is positioned at the start or
 -- end of its list.
@@ -96,7 +96,7 @@ atBoundary = (||) <$> atStart <*> atEnd
 -- positioned /after/ the last element of its list).
 value :: MultiZipper t a -> Maybe a
 value (MultiZipper as pos _) =
-    if pos >= length as
+    if atNonvalue pos as
     then Nothing
     else Just $ as !! pos
 
@@ -109,7 +109,7 @@ value (MultiZipper as pos _) =
 valueN :: Int -> MultiZipper t a -> Maybe ([a], MultiZipper t a)
 valueN i (MultiZipper as pos ts) =
     let pos' = pos + i in
-        if pos' > length as || i < 0
+        if invalid pos' as || i < 0
         then Nothing
         else Just (take i $ drop pos as, MultiZipper as pos' ts)
 
@@ -128,7 +128,7 @@ locationOf t (MultiZipper _ _ ts) = M.lookup t ts
 
 seekIx :: Int -> MultiZipper t a -> Maybe (MultiZipper t a)
 seekIx i (MultiZipper as _ ts) =
-    if (i > length as) || (i < 0)
+    if invalid i as
     then Nothing
     else Just (MultiZipper as i ts)
 
@@ -169,7 +169,7 @@ tag t (MultiZipper as pos ts) = MultiZipper as pos $ M.insert t pos ts
 -- | Set a tag at a given position if possible, otherwise return 'Nothing'.
 tagAt :: Ord t => t -> Int -> MultiZipper t a -> Maybe (MultiZipper t a)
 tagAt t i (MultiZipper as pos ts) =
-    if (i > length as) || (i < 0)
+    if invalid i as
     then Nothing
     else Just $ MultiZipper as pos $ M.insert t i ts
 
@@ -219,3 +219,10 @@ extend :: (MultiZipper t a -> b) -> MultiZipper t a -> MultiZipper t b
 extend f (MultiZipper as pos ts) = MultiZipper as' pos ts
   where
     as' = fmap (\i -> f $ MultiZipper as i ts) [0 .. length as - 1]
+
+-- Utility functions for checking indices in lists:
+invalid :: Int -> [a] -> Bool
+invalid pos as = (pos < 0) || (pos > length as)
+
+atNonvalue :: Int -> [a] -> Bool
+atNonvalue pos as = (pos < 0) || (pos >= length as)
