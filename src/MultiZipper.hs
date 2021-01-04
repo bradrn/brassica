@@ -4,6 +4,7 @@ module MultiZipper
        ( MultiZipper
        -- * Conversion
        , fromListStart
+       , fromListPos
        , toList
        -- * Querying
        , curPos
@@ -57,6 +58,14 @@ data MultiZipper t a = MultiZipper [a] Int (M.Map t Int)
 -- list.
 fromListStart :: [a] -> MultiZipper t a
 fromListStart as = MultiZipper as 0 M.empty
+
+-- | Convert a list to a 'MultiZipper' at a specific position in the
+-- list. Returns 'Nothing' if the index is invalid.
+fromListPos :: [a] -> Int -> Maybe (MultiZipper t a)
+fromListPos as pos =
+    if invalid pos as
+    then Nothing
+    else Just $ MultiZipper as pos M.empty
 
 -- | Get the list stored in a 'MultiZipper'.
 toList :: MultiZipper t a -> [a]
