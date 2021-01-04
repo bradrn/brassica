@@ -177,7 +177,7 @@ matchRuleAtPoint Rule{environment = (env1, env2), ..} = do
     _ <- RuleAp $ matchMany Nothing env1
     modify $ tag TargetStart
     -- gets curPos >>= \pos -> when (pos `elem` exs) $ fail ""
-    gets getTags >>= \ts -> when (hasException ts) $ fail ""
+    gets query >>= \ts -> when (hasException ts) $ fail ""
     matchResult@(_,gs) <- RuleAp $ matchMany Nothing target
     modify $ tag TargetEnd
     _ <- RuleAp $ matchMany (listToMaybe gs) env2

@@ -24,7 +24,7 @@ module MultiZipper
        -- * Modification
        , tag
        , tagAt
-       , getTags
+       , query
        , untag
        , untagWhen
        , modifyBetween
@@ -116,15 +116,9 @@ valueN i (MultiZipper as pos ts) =
 locationOf :: Ord t => t -> MultiZipper t a -> Maybe Int
 locationOf t (MultiZipper _ _ ts) = M.lookup t ts
 
--- These functions don't seem to be as useful as I thought they would,
--- but I'm keeping them here in case they do turn out to be useful at
--- some point
---
--- queryAt :: Ord t => Int -> MultiZipper t a -> [t]
--- queryAt i (MultiZipper _ _ ts) = M.keys $ M.filter (==i) ts
---
--- query :: Ord t => MultiZipper t a -> [t]
--- query mz@(MultiZipper _ pos _) = queryAt pos mz
+-- | Get all tags at the current position
+query :: Ord t => MultiZipper t a -> [t]
+query mz@(MultiZipper _ pos ts) = M.keys $ M.filter (==pos) ts
 
 seekIx :: Int -> MultiZipper t a -> Maybe (MultiZipper t a)
 seekIx i (MultiZipper as _ ts) =
@@ -172,10 +166,6 @@ tagAt t i (MultiZipper as pos ts) =
     if invalid i as
     then Nothing
     else Just $ MultiZipper as pos $ M.insert t i ts
-
-getTags :: Ord t => MultiZipper t a -> [t]
--- adapted from https://stackoverflow.com/a/58263579/7345298
-getTags (MultiZipper _ pos ts) = M.foldrWithKey (\k v l -> if v == pos then k:l else l) [] ts
 
 -- | Remove tags satisfying predicate
 untagWhen :: (t -> Bool) -> MultiZipper t a -> MultiZipper t a
