@@ -192,7 +192,8 @@ modifyBetween (t1, t2) f mz@(MultiZipper as pos ts) = do
         (cut_part, after_t2) = splitAt (i2-i1) after_t1
         insert = f cut_part
         dEnd = length insert - length cut_part
-    return $ MultiZipper (before_t1 ++ insert ++ after_t2) pos (correctIxsFrom i2 (+dEnd) ts) -- (M.adjust (+dEnd) t2 ts)
+        pos' = pos + dEnd
+    return $ MultiZipper (before_t1 ++ insert ++ after_t2) pos' (correctIxsFrom i2 (+dEnd) ts) -- (M.adjust (+dEnd) t2 ts)
   where
     correctOrder (m, n) = if m <= n then (m, n) else (n, m)
 
