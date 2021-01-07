@@ -35,7 +35,7 @@ module SoundChange.Apply
 import Control.Applicative ((<|>))
 import Data.Function (on, (&))
 import Data.List (sortBy)
-import Data.Maybe (catMaybes, listToMaybe, maybeToList, fromJust)
+import Data.Maybe (isJust, catMaybes, listToMaybe, maybeToList, fromJust)
 import Data.Ord (Down(Down))
 
 import Control.Monad.State
@@ -192,20 +192,15 @@ matchRuleAtPoint Rule{environment = (env1, env2), ..} = do
 applyOnce :: Rule -> RuleAp Bool
 applyOnce r@Rule{target, replacement} = do
     modify $ tag AppStart
-    try (matchRuleAtPoint r) >>= modifyMay . \case
+    result <- try (matchRuleAtPoint r)
+    modifyMay $ case result of
         Nothing -> seek AppStart >=> fwd
         Just (cats, gs) ->
             modifyBetween (TargetStart, TargetEnd) (const $ mkReplacement cats gs replacement)
             >=> seek TargetEnd
-            -- need to move forward if applying an epenthesis rule to avoid an infinite loop
-            >=> whenFn (null target) fwd
     modify $ untagWhen $ \case { Exception _ -> False ; _ -> True }
-    
-    gets (not . atEnd)
-  where
-    whenFn :: Applicative m => Bool -> (a -> m a) -> (a -> m a)
-    whenFn True  = id
-    whenFn False = const pure
+
+    return $ isJust result
 
 withExceptions :: MultiZipper RuleTag a -> [Int] -> MultiZipper RuleTag a
 withExceptions mz = fromJust . foldM (\mz ex -> tagAt (Exception ex) ex mz) mz
@@ -219,13 +214,18 @@ apply r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
             Nothing -> []
             Just ex -> catMaybes $ toList $
                 extend (exceptionAppliesAtPoint (target r) ex) mz
-    in whileTrue (applyOnce r) $ flip withExceptions exs $ toBeginning mz
+    in repeatRule (applyOnce r) $ flip withExceptions exs $ toBeginning mz
   where
-    whileTrue :: RuleAp Bool -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme 
-    whileTrue m mz = case runRuleAp m mz of
-        Just (True,  mz') -> whileTrue m mz'
-        Just (False, mz') -> mz'
-        _                 -> mz
+    repeatRule :: RuleAp Bool -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme 
+    repeatRule m mz = case runRuleAp m mz of
+        Just (success, mz') ->
+            if success && null (target r)
+            then -- need to move forward if applying an epenthesis rule to avoid an infinite loop
+                case fwd mz' of
+                    Just mz'advanced -> repeatRule m mz'advanced
+                    Nothing          -> mz'
+            else repeatRule m mz'
+        _ -> mz
 
 -- | Apply a 'Rule' to a word, represented as a 'String'. This is a
 -- simple wrapper around 'apply'.
