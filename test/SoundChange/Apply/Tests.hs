@@ -18,6 +18,12 @@ occurs needle (splitAt (length needle) -> (start, rest))
     | null rest       = 0
     | otherwise       = occurs needle rest
 
+shouldResultIn :: [Grapheme] -> [Grapheme] -> Rule -> Assertion
+shouldResultIn str result rule = applyStr rule str @?= result
+
+shouldResultIn' :: String -> String -> Rule -> Assertion
+shouldResultIn' str result = shouldResultIn (pure <$> str) (pure <$> result)
+
 tests :: TestTree
 tests = testGroup "SoundChange.Apply"
     [ testGroup "simple unconditional sound changes (Grapheme only)"
@@ -50,5 +56,38 @@ tests = testGroup "SoundChange.Apply"
           let rule = Rule [] (Grapheme <$> repl) ([],[]) Nothing
           let result = applyStr rule str
           length result === length str + (length repl * (1 + length str))
+      ]
+    , testGroup "simple conditional sound changes (Grapheme only)"
+      [ testCase "‘before’ condition applies correctly" $ do
+          "aacaababcax" `shouldResultIn'` "aacaababcax" $
+              Rule [Grapheme "a"] [Grapheme "b"] ([Grapheme "x"],[]) Nothing
+
+          "xaacaxabxabcax" `shouldResultIn'` "xbacaxbbxbbcax" $
+              Rule [Grapheme "a"] [Grapheme "b"] ([Grapheme "x"],[]) Nothing
+
+          "xaabcaxabxabcax" `shouldResultIn'` "xaabcaxbxxbxcax" $
+              Rule [Grapheme "a", Grapheme "b"] [Grapheme "b", Grapheme "x"] ([Grapheme "x"],[]) Nothing
+
+          "xaacaxabxabcax" `shouldResultIn'` "xbxacaxbxbxbxbcax" $
+              Rule [Grapheme "a"] [Grapheme "b", Grapheme "x"] ([Grapheme "x"],[]) Nothing
+
+          "xyaayacaxbxaxyabcayx" `shouldResultIn'` "xybayacaxbxaxybbcayx" $
+              Rule [Grapheme "a"] [Grapheme "b"] ([Grapheme "x",Grapheme "y"],[]) Nothing
+
+      , testCase "‘after’ condition applies correctly" $ do
+          "xaacaababca" `shouldResultIn'` "xaacaababca" $
+              Rule [Grapheme "a"] [Grapheme "b"] ([],[Grapheme "x"]) Nothing
+
+          "aaxcaxabxabcax" `shouldResultIn'` "abxcbxabxabcbx" $
+              Rule [Grapheme "a"] [Grapheme "b"] ([],[Grapheme "x"]) Nothing
+
+          "aaxbcaxabxabcabx" `shouldResultIn'` "aaxbcaxbxxabcbxx" $
+              Rule [Grapheme "a", Grapheme "b"] [Grapheme "b", Grapheme "x"] ([],[Grapheme "x"]) Nothing
+
+          "aaxcaxabxabcax" `shouldResultIn'` "abxxcbxxabxabcbxx" $
+              Rule [Grapheme "a"] [Grapheme "b", Grapheme "x"] ([],[Grapheme "x"]) Nothing
+
+          "xyaayacaxbxaxyabcaxy" `shouldResultIn'` "xyaayacaxbxbxyabcbxy" $
+              Rule [Grapheme "a"] [Grapheme "b"] ([],[Grapheme "x",Grapheme "y"]) Nothing
       ]
     ]
