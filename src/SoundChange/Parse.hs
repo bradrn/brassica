@@ -3,6 +3,7 @@
 {-# LANGUAGE KindSignatures   #-}
 {-# LANGUAGE RecordWildCards  #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns     #-}
 
 module SoundChange.Parse
     ( ParseLexeme
@@ -16,7 +17,10 @@ module SoundChange.Parse
 
 import Data.Char (isSpace)
 import Data.Foldable (asum)
-import Data.Maybe (mapMaybe)
+import Data.Function (on)
+import Data.List (sortBy)
+import Data.Maybe (fromJust, mapMaybe)
+import Data.Ord (Down(..))
 import Data.Void (Void)
 
 import Control.Monad.Reader
@@ -197,14 +201,8 @@ parseCategoriesSpec = flip foldl M.empty $ \cs s -> case parseCategorySpec cs s 
     Just (k,c) -> M.insert k c cs
 
 tokeniseWord :: [Grapheme] -> String -> [Grapheme]
-tokeniseWord gs = go [] ""
-  where
-    go result seen [] = reverse $ seen:result
-    go result seen (x:xs) =
-        let seen' = seen ++ [x]
-        in if seen' `elem` gs
-            then go result        seen' xs
-            else go (seen:result) [x]   xs
+tokeniseWord (sortBy (compare `on` Down . length) -> gs) =
+    fromJust . parseMaybe @Void (many $ choice (chunk <$> gs) <|> (pure <$> anySingle))
 
 tokeniseWords :: [Grapheme] -> String -> [[Grapheme]]
 tokeniseWords gs = fmap (tokeniseWord gs) . words
