@@ -47,6 +47,7 @@ executable brassica-gui
   build-depends:
       base            >=4.7  && <5
     , brassica
+    , containers       >=0.6  && <0.7
     , threepenny-gui
 
   default-language: Haskell2010

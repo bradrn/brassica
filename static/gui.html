@@ -6,6 +6,21 @@
   <title>Brassica</title>
   <link rel="stylesheet" type="text/css" href="haskell.css"/>
 
+  <!-- See https://stackoverflow.com/a/37480521  -->
+  <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+  <script src="haskell.js"></script>
+  <script>if (window.module) module = window.module;</script>
+
+  <script type="text/javascript" charset="utf-8">
+    window.hs = {};
+    Haskell.initFFI();
+  </script>
+
+  <script src="static/codemirror/lib/codemirror.js"></script>
+  <script src="static/codemirror/addon/mode/simple.js"></script>
+  <link rel="stylesheet" href="static/codemirror/lib/codemirror.css"/>
+  <link rel="stylesheet" href="static/custom-highlighters.css"/>
+
   <style>
     * {
         box-sizing: border-box;
@@ -26,21 +41,16 @@
         height: 100%;
     }
 
-    textarea {
+    textarea, .CodeMirror {
         resize: none;
         width: 20%;
     }
+
+    .CodeMirror {
+        height: 100%;
+        border: 1px solid rgb(118,118,118);  /* colour copied from default style */
+    }
   </style>
-
-  <!-- See https://stackoverflow.com/a/37480521  -->
-  <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
-  <script src="haskell.js"></script>
-  <script>if (window.module) module = window.module;</script>
-
-  <script type="text/javascript" charset="utf-8">
-    window.hs = {};
-    Haskell.initFFI();
-  </script>
 
   <script src="static/app.js"></script>
 </head>
@@ -55,5 +65,6 @@
     </div>
     <textarea id="out" readonly></textarea>
   </div>
+  <script src="static/setupcodemirror.js"></script>
 </body>
 </html>
