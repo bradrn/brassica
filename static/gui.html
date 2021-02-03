@@ -41,14 +41,20 @@
         height: 100%;
     }
 
-    textarea, .CodeMirror {
+    textarea, .CodeMirror, #out {
         resize: none;
         width: 20%;
     }
 
-    .CodeMirror {
+    .CodeMirror, #out {
         height: 100%;
         border: 1px solid rgb(118,118,118);  /* colour copied from default style */
+    }
+
+    #out {
+        margin-top: 0px;
+        margin-bottom: 0px;
+        overflow: scroll;
     }
   </style>
 
@@ -60,10 +66,21 @@
     <textarea id="categories"></textarea>
     <textarea id="rules"></textarea>
     <textarea id="words"></textarea>
-    <div>
-      <button id="applyBtn">Apply</button>
-    </div>
-    <textarea id="out" readonly></textarea>
+    <form onsubmit="return false;">
+      <button type="button" id="applyBtn">Apply</button>
+      <fieldset>
+        <legend>Output highlighting</legend>
+        <input id="hl-none" value="hl-none" name="hl-options" type="radio" checked/>
+        <label for="hl-none">None</label>
+        <br/>
+        <input id="hl-run" value="hl-run" name="hl-options" type="radio"/>
+        <label for="hl-run">Changed from last run</label>
+        <br/>
+        <input id="hl-input" value="hl-input" name="hl-options" type="radio"/>
+        <label for="hl-input">Changed from input</label>
+      </fieldset>
+    </form>
+    <pre id="out"></pre>
   </div>
   <script src="static/setupcodemirror.js"></script>
 </body>
