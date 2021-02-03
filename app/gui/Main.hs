@@ -87,7 +87,7 @@ decodeRules = bimap unlines (unlines.tail) . span (/="[rules]") . lines
 saveRules :: Element -> Element -> FilePath -> UI ()
 saveRules cats rules path = do
     catsText <- get value cats
-    rulesText <- get value rules
+    rulesText <- callFunction $ ffi "rulesCodeMirror.getValue()"
 
     liftIO $ writeFile path $ encodeRules catsText rulesText
 
