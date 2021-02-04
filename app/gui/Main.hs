@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections     #-}
@@ -20,6 +21,8 @@ import SoundChange.Apply (applyStr)
 import SoundChange.Category (values)
 import SoundChange.Parse
 import SoundChange.Types (Grapheme, Rule)
+import Data.List (intercalate)
+import Data.Maybe (mapMaybe)
 
 main :: IO ()
 main = do
@@ -38,6 +41,7 @@ setup window = do
     rules    <- getElementById' "rules"
     words    <- getElementById' "words"
     applyBtn <- getElementById' "applyBtn"
+    reportBtn <- getElementById' "reportBtn"
     out      <- getElementById' "out"
 
     -- A 'Behaviour' to keep track of the previous output.
@@ -70,6 +74,18 @@ setup window = do
 
         element out # set html (unlines results')
 
+    on UI.click reportBtn $ const $ do
+        catsText  <- lines <$> get value cats
+        rulesText <- fmap lines $ callFunction $ ffi "rulesCodeMirror.getValue()"
+        wordsText <- lines <$> get value words
+
+        let cats = parseCategoriesSpec catsText
+            rules = mapMaybe (\ruleText -> (ruleText,) <$> parseRule cats ruleText) rulesText
+
+            results = fmap (applyRulesWithLog rules) . tokeniseWords (values cats) <$> wordsText
+
+        element out # set html (unlines $ fmap formatLog $ concat $ concat results)
+
     _ <- exportAs "openRules" $ runUI window . openRules cats rules
     _ <- exportAs "saveRules" $ runUI window . saveRules cats rules
     _ <- exportAs "openLexicon" $ runUI window . openLexicon words
@@ -83,6 +99,11 @@ setup window = do
 
     surroundBold False w = w
     surroundBold True  w = "<b>" ++ w ++ "</b>"
+
+    formatLog RuleApplied{..} =
+        let input' = intercalate "·" input
+            output' = intercalate "·" output
+        in "<b>" ++ rule ++ "</b> changed <b>" ++ input' ++ "</b> to <b>" ++ output' ++ "</b>"
 
     zipWith2' :: [[a]] -> [[b]] -> b -> (a -> b -> c) -> [[c]]
     zipWith2' ass bss bd f = zipWith' ass bss [] $ \as bs -> zipWith' as bs bd f
@@ -99,6 +120,21 @@ applyRulesWithChanges = flip (go . (,False))
     go (gs,w) (r:rs) =
         let gs' = applyStr r gs
         in go (gs', w || (gs/=gs')) rs
+
+data LogItem = RuleApplied
+    { rule :: String
+    , input :: [Grapheme]
+    , output :: [Grapheme]
+    } deriving (Show)
+
+applyRulesWithLog :: [(String, Rule)] -> [Grapheme] -> [LogItem]
+applyRulesWithLog = go []
+  where
+    go log []     _ = log
+    go log ((rstr,r):rs) gs =
+        let gs'  = applyStr r gs
+            log' = if gs == gs' then log else RuleApplied rstr gs gs' : log
+        in go log' rs gs
 
 data HlMode = HlNone | HlRun | HlInput deriving (Show)
 
