@@ -20,7 +20,7 @@ import Foreign.JavaScript (IsHandler, JSObject)
 import SoundChange.Apply (applyStr)
 import SoundChange.Category (values)
 import SoundChange.Parse
-import SoundChange.Types (Grapheme, Rule)
+import SoundChange.Types (Grapheme, Rule(..), Flags(..))
 import Data.List (intercalate)
 import Data.Maybe (mapMaybe)
 
@@ -119,7 +119,7 @@ applyRulesWithChanges = flip (go . (,False))
     go gs [] = gs
     go (gs,w) (r:rs) =
         let gs' = applyStr r gs
-        in go (gs', w || (gs/=gs')) rs
+        in go (gs', w || (not (highlightChanges $ flags r) && (gs/=gs'))) rs
 
 data LogItem = RuleApplied
     { rule :: String

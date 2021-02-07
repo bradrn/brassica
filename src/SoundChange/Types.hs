@@ -72,10 +72,19 @@ deriving instance Ord (CategoryElement a)
 -- Note that an empty environment is just @([], [])@.
 type Environment = ([Lexeme 'Env], [Lexeme 'Env])
 
--- | A sound change rule: ‘target → replacement \/ environment \/ exception’.
+-- | Flags which can be enabled on a 'Rule'
+data Flags = Flags
+  { highlightChanges :: Bool
+  } deriving (Show)
+
+defFlags :: Flags
+defFlags = Flags True
+
+-- | A sound change rule: ‘-flags target → replacement \/ environment \/ exception’.
 data Rule = Rule
   { target      :: [Lexeme 'Target]
   , replacement :: [Lexeme 'Replacement]
   , environment :: Environment
   , exception   :: Maybe Environment
+  , flags       :: Flags
   } deriving (Show)

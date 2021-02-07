@@ -33,7 +33,7 @@ tests = testGroup "SoundChange.Apply"
               [ (3, pure <$> Gen.string (Range.linear 1 3) Gen.lower)
               , (1, Gen.constant targ)
               ]
-          let rule = Rule (Grapheme <$> targ) (Grapheme <$> targ) ([],[]) Nothing
+          let rule = Rule (Grapheme <$> targ) (Grapheme <$> targ) ([],[]) Nothing defFlags
           let result = applyStr rule str
           str === result
       , testProperty "replaces every occurence" $ property $ do
@@ -43,51 +43,51 @@ tests = testGroup "SoundChange.Apply"
               [ (3, pure <$> Gen.string (Range.linear 1 3) Gen.lower)
               , (1, Gen.constant targ)
               ]
-          let rule = Rule (Grapheme <$> targ) (Grapheme <$> repl) ([],[]) Nothing
+          let rule = Rule (Grapheme <$> targ) (Grapheme <$> repl) ([],[]) Nothing defFlags
           let result = applyStr rule str
           occurs targ result === occurs targ repl * occurs targ str
       , testCase "handles overlapping targets" $
-          let rule = Rule (Grapheme . pure <$> "aba") (Grapheme . pure <$> "xxxx") ([],[]) Nothing
+          let rule = Rule (Grapheme . pure <$> "aba") (Grapheme . pure <$> "xxxx") ([],[]) Nothing defFlags
               str = pure <$> "ababababa"
           in applyStr rule str @?= pure <$> "xxxxbxxxxba"
       , testProperty "adds to every possible position in epenthesis" $ property $ do
           repl <- forAll $ Gen.list (Range.linear 1 3) $ Gen.string (Range.linear 1 3) Gen.lower
           str  <- forAll $ fmap concat $ Gen.list (Range.linear 1 30) $ pure <$> Gen.string (Range.linear 1 3) Gen.lower
-          let rule = Rule [] (Grapheme <$> repl) ([],[]) Nothing
+          let rule = Rule [] (Grapheme <$> repl) ([],[]) Nothing defFlags
           let result = applyStr rule str
           length result === length str + (length repl * (1 + length str))
       ]
     , testGroup "simple conditional sound changes (Grapheme only)"
       [ testCase "‘before’ condition applies correctly" $ do
           "aacaababcax" `shouldResultIn'` "aacaababcax" $
-              Rule [Grapheme "a"] [Grapheme "b"] ([Grapheme "x"],[]) Nothing
+              Rule [Grapheme "a"] [Grapheme "b"] ([Grapheme "x"],[]) Nothing defFlags
 
           "xaacaxabxabcax" `shouldResultIn'` "xbacaxbbxbbcax" $
-              Rule [Grapheme "a"] [Grapheme "b"] ([Grapheme "x"],[]) Nothing
+              Rule [Grapheme "a"] [Grapheme "b"] ([Grapheme "x"],[]) Nothing defFlags
 
           "xaabcaxabxabcax" `shouldResultIn'` "xaabcaxbxxbxcax" $
-              Rule [Grapheme "a", Grapheme "b"] [Grapheme "b", Grapheme "x"] ([Grapheme "x"],[]) Nothing
+              Rule [Grapheme "a", Grapheme "b"] [Grapheme "b", Grapheme "x"] ([Grapheme "x"],[]) Nothing defFlags
 
           "xaacaxabxabcax" `shouldResultIn'` "xbxacaxbxbxbxbcax" $
-              Rule [Grapheme "a"] [Grapheme "b", Grapheme "x"] ([Grapheme "x"],[]) Nothing
+              Rule [Grapheme "a"] [Grapheme "b", Grapheme "x"] ([Grapheme "x"],[]) Nothing defFlags
 
           "xyaayacaxbxaxyabcayx" `shouldResultIn'` "xybayacaxbxaxybbcayx" $
-              Rule [Grapheme "a"] [Grapheme "b"] ([Grapheme "x",Grapheme "y"],[]) Nothing
+              Rule [Grapheme "a"] [Grapheme "b"] ([Grapheme "x",Grapheme "y"],[]) Nothing defFlags
 
       , testCase "‘after’ condition applies correctly" $ do
           "xaacaababca" `shouldResultIn'` "xaacaababca" $
-              Rule [Grapheme "a"] [Grapheme "b"] ([],[Grapheme "x"]) Nothing
+              Rule [Grapheme "a"] [Grapheme "b"] ([],[Grapheme "x"]) Nothing defFlags
 
           "aaxcaxabxabcax" `shouldResultIn'` "abxcbxabxabcbx" $
-              Rule [Grapheme "a"] [Grapheme "b"] ([],[Grapheme "x"]) Nothing
+              Rule [Grapheme "a"] [Grapheme "b"] ([],[Grapheme "x"]) Nothing defFlags
 
           "aaxbcaxabxabcabx" `shouldResultIn'` "aaxbcaxbxxabcbxx" $
-              Rule [Grapheme "a", Grapheme "b"] [Grapheme "b", Grapheme "x"] ([],[Grapheme "x"]) Nothing
+              Rule [Grapheme "a", Grapheme "b"] [Grapheme "b", Grapheme "x"] ([],[Grapheme "x"]) Nothing defFlags
 
           "aaxcaxabxabcax" `shouldResultIn'` "abxxcbxxabxabcbxx" $
-              Rule [Grapheme "a"] [Grapheme "b", Grapheme "x"] ([],[Grapheme "x"]) Nothing
+              Rule [Grapheme "a"] [Grapheme "b", Grapheme "x"] ([],[Grapheme "x"]) Nothing defFlags
 
           "xyaayacaxbxaxyabcaxy" `shouldResultIn'` "xyaayacaxbxbxyabcbxy" $
-              Rule [Grapheme "a"] [Grapheme "b"] ([],[Grapheme "x",Grapheme "y"]) Nothing
+              Rule [Grapheme "a"] [Grapheme "b"] ([],[Grapheme "x",Grapheme "y"]) Nothing defFlags
       ]
     ]

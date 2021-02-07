@@ -19,7 +19,7 @@ import Data.Char (isSpace)
 import Data.Foldable (asum)
 import Data.Function (on)
 import Data.List (sortBy)
-import Data.Maybe (fromJust, mapMaybe)
+import Data.Maybe (isJust, fromJust, mapMaybe)
 import Data.Ord (Down(..))
 import Data.Void (Void)
 
@@ -155,6 +155,9 @@ instance ParseLexeme 'Env where
 parseLexemes :: ParseLexeme a => Parser [Lexeme a]
 parseLexemes = many parseLexeme
 
+parseFlags :: Parser Flags
+parseFlags = Flags . isJust <$> optional (symbol "-x")
+
 -- | Parse a 'String' to get a 'Rule'. Returns 'Nothing' if the input
 -- string is malformed.
 parseRule
@@ -167,6 +170,7 @@ parseRule cats s = case flip runReader (Config cats) $ runParserT (sc *> go <* e
  where
    go :: Parser Rule
    go = do
+       flags <- parseFlags
        target <- parseLexemes
        _ <- symbol "/"
        replacement <- parseLexemes
