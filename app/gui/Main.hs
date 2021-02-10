@@ -45,7 +45,7 @@ setup window = do
     out      <- getElementById' "out"
 
     -- A 'Behaviour' to keep track of the previous output.
-    (prevOutE, setPrevOut) <- liftIO $ newEvent @[[[Grapheme]]]
+    (prevOutE, setPrevOut) <- liftIO $ newEvent @[[Component [Grapheme]]]
     prevOut <- stepper [] prevOutE
 
     on UI.keydown cats $ const $ do
@@ -60,12 +60,12 @@ setup window = do
         let cats = parseCategoriesSpec catsText
             rules = parseRules cats rulesText
 
-            results = fmap (applyRulesWithChanges rules) . tokeniseWords (values cats) <$> wordsText
+            results = fmap (fmap $ applyRulesWithChanges rules) . tokeniseWords (values cats) <$> wordsText
 
         prevResults <- liftIO $ currentValue prevOut
-        liftIO $ setPrevOut $ (fmap.fmap) fst results
+        liftIO $ setPrevOut $ (fmap.fmap.fmap) fst results
 
-        results' <- getHlMode <&> \mode -> fmap unwords $
+        results' <- getHlMode <&> \mode -> fmap (detokeniseWords' id) $
             zipWith2' results prevResults [] $ \(word, hasBeenAltered) prevWord ->
                 case mode of
                     HlNone -> concat word
@@ -82,9 +82,9 @@ setup window = do
         let cats = parseCategoriesSpec catsText
             rules = mapMaybe (\ruleText -> (ruleText,) <$> parseRule cats ruleText) rulesText
 
-            results = fmap (applyRulesWithLog rules) . tokeniseWords (values cats) <$> wordsText
+            results = fmap (fmap $ applyRulesWithLog rules) . tokeniseWords (values cats) <$> wordsText
 
-        element out # set html (unlines $ fmap formatLog $ concat $ concat results)
+        element out # set html (unlines $ fmap formatLog $ concat $ concat $ getWords <$> results)
 
     _ <- exportAs "openRules" $ runUI window . openRules cats rules
     _ <- exportAs "saveRules" $ runUI window . saveRules cats rules
@@ -105,13 +105,21 @@ setup window = do
             output' = intercalate "·" output
         in "<b>" ++ rule ++ "</b> changed <b>" ++ input' ++ "</b> to <b>" ++ output' ++ "</b>"
 
-    zipWith2' :: [[a]] -> [[b]] -> b -> (a -> b -> c) -> [[c]]
-    zipWith2' ass bss bd f = zipWith' ass bss [] $ \as bs -> zipWith' as bs bd f
+    zipWith2' :: [[Component a]] -> [[Component b]] -> b -> (a -> b -> c) -> [[Component c]]
+    zipWith2' ass bss bd f = zipWith' ass bss [] $ \as bs -> zipWithComponents as bs bd f
 
     zipWith' :: [a] -> [b] -> b -> (a -> b -> c) -> [c]
     zipWith' []      _     _ _ = []
     zipWith' as     []     bd f = fmap (`f` bd) as
     zipWith' (a:as) (b:bs) bd f = f a b : zipWith' as bs bd f
+
+    zipWithComponents :: [Component a] -> [Component b] -> b -> (a -> b -> c) -> [Component c]
+    zipWithComponents []             _            _  _ = []
+    zipWithComponents as            []            bd f = (fmap.fmap) (`f` bd) as
+    zipWithComponents (Word a:as)   (Word b:bs)   bd f = Word (f a b) : zipWithComponents as bs bd f
+    zipWithComponents as@(Word _:_) (_:bs)        bd f = zipWithComponents as bs bd f
+    zipWithComponents (a:as)        bs@(Word _:_) bd f = unsafeCastComponent a : zipWithComponents as bs bd f
+    zipWithComponents (a:as)        (_:bs)        bd f = unsafeCastComponent a : zipWithComponents as bs bd f
 
 applyRulesWithChanges :: [Rule] -> [Grapheme] -> ([Grapheme], Bool)
 applyRulesWithChanges = flip (go . (,False))

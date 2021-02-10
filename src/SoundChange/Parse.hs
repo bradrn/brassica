@@ -1,6 +1,8 @@
 {-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE DeriveFunctor    #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE KindSignatures   #-}
+{-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE RecordWildCards  #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ViewPatterns     #-}
@@ -11,8 +13,12 @@ module SoundChange.Parse
     , parseRules
     , parseCategorySpec
     , parseCategoriesSpec
-    , tokeniseWord
+    , Component(..)
+    , getWords
+    , unsafeCastComponent
     , tokeniseWords
+    , detokeniseWords
+    , detokeniseWords'
     ) where
 
 import Data.Char (isSpace)
@@ -204,9 +210,31 @@ parseCategoriesSpec = flip foldl M.empty $ \cs s -> case parseCategorySpec cs s 
     Nothing    -> cs
     Just (k,c) -> M.insert k c cs
 
-tokeniseWord :: [Grapheme] -> String -> [Grapheme]
-tokeniseWord (sortBy (compare `on` Down . length) -> gs) =
-    fromJust . parseMaybe @Void (many $ choice (chunk <$> gs) <|> (pure <$> anySingle))
+-- | Represents a component of a parsed input string. The type
+-- variable will usually be something like '[Grapheme]', though it
+-- depends on the type of words you’re parsing.
+data Component a = Word a | Whitespace String
+    deriving (Show, Functor)
 
-tokeniseWords :: [Grapheme] -> String -> [[Grapheme]]
-tokeniseWords gs = fmap (tokeniseWord gs) . words
+getWords :: [Component a] -> [a]
+getWords = mapMaybe $ \case
+    Word a -> Just a
+    _ -> Nothing
+
+unsafeCastComponent :: Component a -> Component b
+unsafeCastComponent (Word _) = error "unsafeCastComponent: attempted to cast a word!"
+unsafeCastComponent (Whitespace s) = Whitespace s
+
+tokeniseWords :: [Grapheme] -> String -> [Component [Grapheme]]
+tokeniseWords (sortBy (compare `on` Down . length) -> gs) =
+    fromJust . parseMaybe @Void (many $ (Whitespace <$> takeWhile1P Nothing isSpace) <|> (Word <$> parseWord))
+  where
+    parseWord = some $ choice (chunk <$> gs) <|> (pure <$> satisfy (not . isSpace))
+
+detokeniseWords :: [Component [Grapheme]] -> String
+detokeniseWords = detokeniseWords' concat
+
+detokeniseWords' :: (a -> String) -> [Component a] -> String
+detokeniseWords' f = concatMap $ \case
+    Word gs -> f gs
+    Whitespace w -> w
