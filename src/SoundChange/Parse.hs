@@ -213,7 +213,7 @@ parseCategoriesSpec = flip foldl M.empty $ \cs s -> case parseCategorySpec cs s 
 -- | Represents a component of a parsed input string. The type
 -- variable will usually be something like '[Grapheme]', though it
 -- depends on the type of words you’re parsing.
-data Component a = Word a | Whitespace String
+data Component a = Word a | Whitespace String | Gloss String
     deriving (Show, Functor)
 
 getWords :: [Component a] -> [a]
@@ -224,10 +224,14 @@ getWords = mapMaybe $ \case
 unsafeCastComponent :: Component a -> Component b
 unsafeCastComponent (Word _) = error "unsafeCastComponent: attempted to cast a word!"
 unsafeCastComponent (Whitespace s) = Whitespace s
+unsafeCastComponent (Gloss s) = Gloss s
 
 tokeniseWords :: [Grapheme] -> String -> [Component [Grapheme]]
 tokeniseWords (sortBy (compare `on` Down . length) -> gs) =
-    fromJust . parseMaybe @Void (many $ (Whitespace <$> takeWhile1P Nothing isSpace) <|> (Word <$> parseWord))
+    fromJust . parseMaybe @Void (many $
+        (Whitespace <$> takeWhile1P Nothing isSpace) <|>
+        (Gloss <$> (char '[' *> takeWhileP Nothing (/=']') <* char ']')) <|>
+        (Word <$> parseWord))
   where
     parseWord = some $ choice (chunk <$> gs) <|> (pure <$> satisfy (not . isSpace))
 
@@ -238,3 +242,4 @@ detokeniseWords' :: (a -> String) -> [Component a] -> String
 detokeniseWords' f = concatMap $ \case
     Word gs -> f gs
     Whitespace w -> w
+    Gloss g -> '[':(g ++ "]")
