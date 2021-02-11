@@ -22,6 +22,6 @@ main = do
 
     wordsText <- (unpack . decodeUtf8) <$> B.readFile wordsFile
 
-    let outWordsText = unlines $ fmap (tokeniseAndApplyRules cats rules) $ lines wordsText
+    let outWordsText = tokeniseAndApplyRules cats rules wordsText
 
     B.writeFile outFile $ encodeUtf8 $ pack outWordsText
