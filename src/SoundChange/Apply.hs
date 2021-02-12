@@ -102,6 +102,9 @@ match _ Boundary mz = if atBoundary mz then Just ((Nothing, Nothing), mz) else N
 match prev (Optional l) mz = case matchMany prev l mz of
     Just (_, mz') -> Just ((Nothing, Nothing), mz')
     Nothing       -> Just ((Nothing, Nothing), mz)
+match prev w@(Wildcard l) mz = case match prev l mz of
+    Just r -> Just r
+    Nothing -> fwd mz >>= match prev w
 match prev Geminate mz = case prev of
     Nothing -> Nothing
     Just prev' -> ((Nothing,Just prev'),) <$> matchGrapheme prev' mz
