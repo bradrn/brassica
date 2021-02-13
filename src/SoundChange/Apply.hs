@@ -230,9 +230,7 @@ apply r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
         Just (success, mz') ->
             if success && null (target r)
             then -- need to move forward if applying an epenthesis rule to avoid an infinite loop
-                case fwd mz' of
-                    Just mz'advanced -> repeatRule m mz'advanced
-                    Nothing          -> mz'
+                maybe mz' (repeatRule m) $ fwd mz'
             else repeatRule m mz'
         _ -> mz
 
