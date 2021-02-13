@@ -205,10 +205,14 @@ applyOnce r@Rule{target, replacement} = do
 
 -- | Remove tags and advance the current index to the next 'Grapheme'
 -- after the rule application.
-setupForNextApplication :: Bool -> MultiZipper RuleTag Grapheme -> Maybe (MultiZipper RuleTag Grapheme)
-setupForNextApplication success = fmap (untagWhen $ \case { Exception _ -> False ; _ -> True }) .
+setupForNextApplication :: Bool -> Rule -> MultiZipper RuleTag Grapheme -> Maybe (MultiZipper RuleTag Grapheme)
+setupForNextApplication success r = fmap (untagWhen $ \case { Exception _ -> False ; _ -> True }) .
     if success
-    then seek TargetEnd
+    then
+        if null (target r)
+        then -- need to move forward if applying an epenthesis rule to avoid an infinite loop
+            seek TargetEnd >=> fwd
+        else seek TargetEnd
     else seek AppStart >=> fwd
 
 withExceptions :: MultiZipper RuleTag a -> [Int] -> MultiZipper RuleTag a
@@ -226,17 +230,10 @@ apply r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
     in repeatRule (applyOnce r) $ flip withExceptions exs $ toBeginning mz
   where
     repeatRule :: State (MultiZipper RuleTag Grapheme) Bool -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme
-    repeatRule m mz = case runStateAndSetup m mz of
-        Just (success, mz') ->
-            if success && null (target r)
-            then -- need to move forward if applying an epenthesis rule to avoid an infinite loop
-                maybe mz' (repeatRule m) $ fwd mz'
-            else repeatRule m mz'
-        _ -> mz
-
-    runStateAndSetup m mz =
-        let (success, mz') = runState m mz
-        in (success,) <$> setupForNextApplication success mz'
+    repeatRule m mz = case runState m mz of
+        (success, mz') -> case setupForNextApplication success r mz' of
+            Just mz'' -> repeatRule m mz''
+            Nothing -> mz'
 
 -- | Apply a 'Rule' to a word, represented as a 'String'. This is a
 -- simple wrapper around 'apply'.
