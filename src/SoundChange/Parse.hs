@@ -29,6 +29,7 @@ import Data.Maybe (isJust, fromJust, mapMaybe)
 import Data.Ord (Down(..))
 import Data.Void (Void)
 
+import Control.Applicative.Permutations
 import Control.Monad.Reader
 import qualified Data.List.Split as S
 import qualified Data.Map.Strict as M
@@ -167,7 +168,9 @@ parseLexemes :: ParseLexeme a => Parser [Lexeme a]
 parseLexemes = many parseLexeme
 
 parseFlags :: Parser Flags
-parseFlags = Flags . isJust <$> optional (symbol "-x")
+parseFlags = runPermutation $ Flags
+    <$> toPermutation (isJust <$> optional (symbol "-x"))
+    <*> toPermutationWithDefault LTR ((LTR <$ symbol "-ltr") <|> (RTL <$ symbol "-rtl"))
 
 -- | Parse a 'String' to get a 'Rule'. Returns 'Nothing' if the input
 -- string is malformed.

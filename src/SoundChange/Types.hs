@@ -73,13 +73,18 @@ deriving instance Ord (CategoryElement a)
 -- Note that an empty environment is just @([], [])@.
 type Environment = ([Lexeme 'Env], [Lexeme 'Env])
 
+-- | Specifies application direction of rule — either left-to-right or right-to-left.
+data Direction = LTR | RTL
+    deriving (Eq, Show)
+
 -- | Flags which can be enabled on a 'Rule'
 data Flags = Flags
   { highlightChanges :: Bool
+  , applyDirection   :: Direction
   } deriving (Show)
 
 defFlags :: Flags
-defFlags = Flags True
+defFlags = Flags True LTR
 
 -- | A sound change rule: ‘-flags target → replacement \/ environment \/ exception’.
 data Rule = Rule

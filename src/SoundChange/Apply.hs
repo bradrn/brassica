@@ -206,14 +206,14 @@ applyOnce r@Rule{target, replacement} = do
 -- | Remove tags and advance the current index to the next 'Grapheme'
 -- after the rule application.
 setupForNextApplication :: Bool -> Rule -> MultiZipper RuleTag Grapheme -> Maybe (MultiZipper RuleTag Grapheme)
-setupForNextApplication success r = fmap (untagWhen $ \case { Exception _ -> False ; _ -> True }) .
+setupForNextApplication success r@Rule{flags=Flags{applyDirection}} = fmap (untagWhen $ \case { Exception _ -> False ; _ -> True }) .
     if success
     then
         if null (target r)
         then -- need to move forward if applying an epenthesis rule to avoid an infinite loop
-            seek TargetEnd >=> fwd
+            seek TargetEnd >=> case applyDirection of { LTR -> fwd ; RTL -> pure }
         else seek TargetEnd
-    else seek AppStart >=> fwd
+    else seek AppStart >=> case applyDirection of { LTR -> fwd ; RTL -> bwd }
 
 withExceptions :: MultiZipper RuleTag a -> [Int] -> MultiZipper RuleTag a
 withExceptions mz = fromJust . foldM (\mz ex -> tagAt (Exception ex) ex mz) mz
@@ -227,7 +227,10 @@ apply r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
             Nothing -> []
             Just ex -> catMaybes $ toList $
                 extend (exceptionAppliesAtPoint (target r) ex) mz
-    in repeatRule (applyOnce r) $ flip withExceptions exs $ toBeginning mz
+        startingPos = case applyDirection $ flags r of
+            LTR -> toBeginning
+            RTL -> toEnd
+    in repeatRule (applyOnce r) $ flip withExceptions exs $ startingPos mz
   where
     repeatRule :: State (MultiZipper RuleTag Grapheme) Bool -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme
     repeatRule m mz = case runState m mz of
