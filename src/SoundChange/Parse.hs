@@ -219,7 +219,7 @@ parseCategoriesSpec = flip foldl M.empty $ \cs s -> case parseCategorySpec cs s 
 -- variable will usually be something like '[Grapheme]', though it
 -- depends on the type of words you’re parsing.
 data Component a = Word a | Whitespace String | Gloss String
-    deriving (Show, Functor)
+    deriving (Eq, Show, Functor)
 
 getWords :: [Component a] -> [a]
 getWords = mapMaybe $ \case

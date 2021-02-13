@@ -18,13 +18,13 @@ tests = testGroup "SoundChange.Parse"
     [ testGroup "tokeniseWord"
       [ testProperty "tokenises word to single characters by default" $ property $ do
           word <- forAll $ Gen.string (Range.linear 1 30) Gen.alpha
-          tokeniseWord [] word === fmap pure word
+          tokeniseWords [] word === [Word $ fmap pure word]
       , testProperty "round-trips correctly" $ property $ do
           let gMaxLen = 4
           gs <- forAll $ fmap toList $ Gen.set (Range.linear 1 40) $ Gen.string (Range.linear 1 gMaxLen) Gen.alpha
           word <- forAll $ Gen.list (Range.linear 1 30) $ Gen.element gs
           -- precondition: no contiguous set of graphemes in 'word' can make up a larger grapheme
-          let precondition = flip any [1..gMaxLen] $ \gLen -> any (`elem` gs) (concat <$> divvy gLen 1 word)
-          when precondition $ word === tokeniseWord gs (concat word)
+          let precondition = not $ flip any [2..gMaxLen] $ \gLen -> any (`elem` gs) (concat <$> divvy gLen 1 word)
+          when precondition $ [Word word] === tokeniseWords gs (concat word)
       ]
     ]
