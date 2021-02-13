@@ -17,9 +17,6 @@
 module SoundChange.Apply
        ( -- * Types
          RuleTag(..)
-       , RuleAp(..)
-       , modifyMay
-       , try
        -- * Lexeme matching
        , match
        , matchMany
@@ -35,7 +32,7 @@ module SoundChange.Apply
 import Control.Applicative ((<|>))
 import Data.Function (on, (&))
 import Data.List (sortBy)
-import Data.Maybe (isJust, catMaybes, listToMaybe, maybeToList, fromJust)
+import Data.Maybe (fromMaybe, isJust, catMaybes, listToMaybe, maybeToList, fromJust)
 import Data.Ord (Down(Down))
 
 import Control.Monad.State
@@ -59,17 +56,19 @@ newtype RuleAp a = RuleAp { runRuleAp :: MultiZipper RuleTag Grapheme -> Maybe (
     deriving (Functor, Applicative, Monad, MonadFail, MonadState (MultiZipper RuleTag Grapheme))
       via (StateT (MultiZipper RuleTag Grapheme) Maybe)
 
--- | Lift a partial modification function into a 'RuleAp'.
-modifyMay :: (MultiZipper RuleTag Grapheme -> Maybe (MultiZipper RuleTag Grapheme)) -> RuleAp ()
-modifyMay f = RuleAp $ fmap ((),) . f
+-- | Lift a partial modification function into a 'State'. Update state
+-- if it succeeds, otherwise rollback.
+modifyMay :: (s -> Maybe s) -> State s ()
+modifyMay f = modify $ \s -> fromMaybe s (f s)
 
--- | Given a 'RuleAp' which may fail, modify it to always succeed,
--- returning 'Nothing' when the original action would have failed.
-try :: RuleAp a -> RuleAp (Maybe a)
-try (RuleAp p) = RuleAp $ \s ->
+-- | Given a partial stateful function, lift it into a 'State'
+-- computation which returns 'Nothing' when the original action would
+-- have failed.
+try :: (s -> Maybe (a, s)) -> State s (Maybe a)
+try p = state $ \s ->
     case p s of
-        Just (a, s') -> Just (Just a,  s')
-        Nothing      -> Just (Nothing, s)
+        Just (a, s') -> (Just a,  s')
+        Nothing      -> (Nothing, s)
 
 -- | Match a single 'Lexeme' against a 'MultiZipper', and advance the
 -- 'MultiZipper' past the match. Returns 'Nothing' if it does not
@@ -170,13 +169,16 @@ exceptionAppliesAtPoint target (ex1, ex2) mz = fmap fst $ flip runRuleAp mz $ do
 -- appropriate 'RuleTag's and return a tuple of @(is, gs)@, where @gs@
 -- is a list of matched 'Grapheme's, and @is@ is a list of indices,
 -- one for each 'Category' lexeme matched. If the rule does not match,
--- the computation fails.
+-- return 'Nothing.
 --
 -- In addition, a list of exceptional positions may be given. If the
 -- target begins at one of the exceptional positions, the match will
 -- fail automatically, even if the rest of the match would succeed.
-matchRuleAtPoint ::  Rule -> RuleAp ([Int], [Grapheme])
-matchRuleAtPoint Rule{environment = (env1, env2), ..} = do
+matchRuleAtPoint
+    :: Rule
+    -> MultiZipper RuleTag Grapheme
+    -> Maybe (([Int], [Grapheme]), MultiZipper RuleTag Grapheme)
+matchRuleAtPoint Rule{environment = (env1, env2), ..} mz = flip runRuleAp mz $ do
     _ <- RuleAp $ matchMany Nothing env1
     modify $ tag TargetStart
     -- gets curPos >>= \pos -> when (pos `elem` exs) $ fail ""
@@ -189,21 +191,25 @@ matchRuleAtPoint Rule{environment = (env1, env2), ..} = do
     hasException = any (\case { Exception _ -> True ; _ -> False })
 
 -- | Given a list of exceptions and a 'Rule', determine if the rule
--- matches at the current point; if so, apply the rule, and advance
--- the current index to the next 'Grapheme' after the rule
--- application.
-applyOnce :: Rule -> RuleAp Bool
+-- matches at the current point; if so, apply the rule, adding
+-- appropriate tags.
+applyOnce :: Rule -> State (MultiZipper RuleTag Grapheme) Bool
 applyOnce r@Rule{target, replacement} = do
     modify $ tag AppStart
     result <- try (matchRuleAtPoint r)
     modifyMay $ case result of
-        Nothing -> seek AppStart >=> fwd
+        Nothing -> pure
         Just (cats, gs) ->
             modifyBetween (TargetStart, TargetEnd) (const $ mkReplacement cats gs replacement)
-            >=> seek TargetEnd
-    modify $ untagWhen $ \case { Exception _ -> False ; _ -> True }
-
     return $ isJust result
+
+-- | Remove tags and advance the current index to the next 'Grapheme'
+-- after the rule application.
+setupForNextApplication :: Bool -> MultiZipper RuleTag Grapheme -> Maybe (MultiZipper RuleTag Grapheme)
+setupForNextApplication success = fmap (untagWhen $ \case { Exception _ -> False ; _ -> True }) .
+    if success
+    then seek TargetEnd
+    else seek AppStart >=> fwd
 
 withExceptions :: MultiZipper RuleTag a -> [Int] -> MultiZipper RuleTag a
 withExceptions mz = fromJust . foldM (\mz ex -> tagAt (Exception ex) ex mz) mz
@@ -219,8 +225,8 @@ apply r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
                 extend (exceptionAppliesAtPoint (target r) ex) mz
     in repeatRule (applyOnce r) $ flip withExceptions exs $ toBeginning mz
   where
-    repeatRule :: RuleAp Bool -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme 
-    repeatRule m mz = case runRuleAp m mz of
+    repeatRule :: State (MultiZipper RuleTag Grapheme) Bool -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme
+    repeatRule m mz = case runStateAndSetup m mz of
         Just (success, mz') ->
             if success && null (target r)
             then -- need to move forward if applying an epenthesis rule to avoid an infinite loop
@@ -229,6 +235,10 @@ apply r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
                     Nothing          -> mz'
             else repeatRule m mz'
         _ -> mz
+
+    runStateAndSetup m mz =
+        let (success, mz') = runState m mz
+        in (success,) <$> setupForNextApplication success mz'
 
 -- | Apply a 'Rule' to a word, represented as a 'String'. This is a
 -- simple wrapper around 'apply'.
