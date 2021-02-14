@@ -234,9 +234,12 @@ apply r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
   where
     repeatRule :: State (MultiZipper RuleTag Grapheme) Bool -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme
     repeatRule m mz = case runState m mz of
-        (success, mz') -> case setupForNextApplication success r mz' of
-            Just mz'' -> repeatRule m mz''
-            Nothing -> mz'
+        (success, mz') ->
+            if success && applyOnceOnly (flags r)
+            then mz'
+            else case setupForNextApplication success r mz' of
+                Just mz'' -> repeatRule m mz''
+                Nothing -> mz'
 
 -- | Apply a 'Rule' to a word, represented as a 'String'. This is a
 -- simple wrapper around 'apply'.

@@ -81,10 +81,11 @@ data Direction = LTR | RTL
 data Flags = Flags
   { highlightChanges :: Bool
   , applyDirection   :: Direction
+  , applyOnceOnly    :: Bool
   } deriving (Show)
 
 defFlags :: Flags
-defFlags = Flags True LTR
+defFlags = Flags True LTR False
 
 -- | A sound change rule: ‘-flags target → replacement \/ environment \/ exception’.
 data Rule = Rule

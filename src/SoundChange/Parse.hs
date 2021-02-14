@@ -171,6 +171,7 @@ parseFlags :: Parser Flags
 parseFlags = runPermutation $ Flags
     <$> toPermutation (isJust <$> optional (symbol "-x"))
     <*> toPermutationWithDefault LTR ((LTR <$ symbol "-ltr") <|> (RTL <$ symbol "-rtl"))
+    <*> toPermutation (isJust <$> optional (symbol "-1"))
 
 -- | Parse a 'String' to get a 'Rule'. Returns 'Nothing' if the input
 -- string is malformed.
