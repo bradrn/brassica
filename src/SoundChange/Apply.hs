@@ -45,7 +45,6 @@ data RuleTag
     = AppStart     -- ^ The start of a rule application
     | TargetStart  -- ^ The start of the target
     | TargetEnd    -- ^ The end of the target
-    | Exception Int  -- ^ Exceptional position where rule should not be applied ('Int' argument is just an identifier to keep tags unique)
     deriving (Eq, Ord, Show)
 
 -- | A monad in which to process a 'MultiZipper' over
@@ -170,10 +169,6 @@ exceptionAppliesAtPoint target (ex1, ex2) mz = fmap fst $ flip runRuleAp mz $ do
 -- is a list of matched 'Grapheme's, and @is@ is a list of indices,
 -- one for each 'Category' lexeme matched. If the rule does not match,
 -- return 'Nothing.
---
--- In addition, a list of exceptional positions may be given. If the
--- target begins at one of the exceptional positions, the match will
--- fail automatically, even if the rest of the match would succeed.
 matchRuleAtPoint
     :: Rule
     -> MultiZipper RuleTag Grapheme
@@ -181,32 +176,35 @@ matchRuleAtPoint
 matchRuleAtPoint Rule{environment = (env1, env2), ..} mz = flip runRuleAp mz $ do
     _ <- RuleAp $ matchMany Nothing env1
     modify $ tag TargetStart
-    -- gets curPos >>= \pos -> when (pos `elem` exs) $ fail ""
-    gets query >>= \ts -> when (hasException ts) $ fail ""
     matchResult@(_,gs) <- RuleAp $ matchMany Nothing target
     modify $ tag TargetEnd
     _ <- RuleAp $ matchMany (listToMaybe gs) env2
     return matchResult
-  where
-    hasException = any (\case { Exception _ -> True ; _ -> False })
 
--- | Given a list of exceptions and a 'Rule', determine if the rule
--- matches at the current point; if so, apply the rule, adding
--- appropriate tags.
+-- | Given a 'Rule', determine if the rule matches at the current
+-- point; if so, apply the rule, adding appropriate tags.
 applyOnce :: Rule -> State (MultiZipper RuleTag Grapheme) Bool
-applyOnce r@Rule{target, replacement} = do
+applyOnce r@Rule{target, replacement, exception} = do
     modify $ tag AppStart
     result <- try (matchRuleAtPoint r)
-    modifyMay $ case result of
-        Nothing -> pure
-        Just (cats, gs) ->
-            modifyBetween (TargetStart, TargetEnd) (const $ mkReplacement cats gs replacement)
-    return $ isJust result
+    case result of
+        Just (cats, gs) -> do
+            exs <- case exception of
+                Nothing -> pure []
+                Just ex -> gets $ catMaybes . toList .
+                    extend (exceptionAppliesAtPoint target ex)
+            gets (locationOf TargetStart) >>= \p ->
+                if maybe True (`elem` exs) p
+                then return False
+                else do
+                    modifyMay $ modifyBetween (TargetStart, TargetEnd) (const $ mkReplacement cats gs replacement)
+                    return True
+        Nothing -> return False
 
 -- | Remove tags and advance the current index to the next 'Grapheme'
 -- after the rule application.
 setupForNextApplication :: Bool -> Rule -> MultiZipper RuleTag Grapheme -> Maybe (MultiZipper RuleTag Grapheme)
-setupForNextApplication success r@Rule{flags=Flags{applyDirection}} = fmap (untagWhen $ \case { Exception _ -> False ; _ -> True }) .
+setupForNextApplication success r@Rule{flags=Flags{applyDirection}} = fmap untag .
     if success
     then
         if null (target r)
@@ -215,22 +213,15 @@ setupForNextApplication success r@Rule{flags=Flags{applyDirection}} = fmap (unta
         else seek TargetEnd
     else seek AppStart >=> case applyDirection of { LTR -> fwd ; RTL -> bwd }
 
-withExceptions :: MultiZipper RuleTag a -> [Int] -> MultiZipper RuleTag a
-withExceptions mz = fromJust . foldM (\mz ex -> tagAt (Exception ex) ex mz) mz
-
 -- | Apply a 'Rule' to a 'MultiZipper'. The application will start at
 -- the beginning of the 'MultiZipper', and will be repeated as many
 -- times as possible.
 apply :: Rule -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme
 apply r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
-    let exs = case exception r of
-            Nothing -> []
-            Just ex -> catMaybes $ toList $
-                extend (exceptionAppliesAtPoint (target r) ex) mz
-        startingPos = case applyDirection $ flags r of
-            LTR -> toBeginning
-            RTL -> toEnd
-    in repeatRule (applyOnce r) $ flip withExceptions exs $ startingPos mz
+    let startingPos = case applyDirection $ flags r of
+            LTR -> toBeginning mz
+            RTL -> toEnd mz
+    in repeatRule (applyOnce r) startingPos
   where
     repeatRule :: State (MultiZipper RuleTag Grapheme) Bool -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme
     repeatRule m mz = case runState m mz of
