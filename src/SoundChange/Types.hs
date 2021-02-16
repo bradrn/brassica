@@ -75,7 +75,7 @@ data Lexeme (a :: LexemeType) where
     Grapheme :: Grapheme -> Lexeme a
     Category :: [CategoryElement a] -> Lexeme a
     Boundary :: Lexeme 'Env
-    Optional :: OneOf a 'Target 'Env => [Lexeme a] -> Lexeme a
+    Optional :: [Lexeme a] -> Lexeme a
     Metathesis :: Lexeme 'Replacement
     Geminate :: Lexeme a
     Wildcard :: OneOf a 'Target 'Env => Lexeme a -> Lexeme a

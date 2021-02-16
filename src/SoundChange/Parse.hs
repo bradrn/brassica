@@ -117,7 +117,7 @@ toCategory = go C.Empty
     go c (Intersect e:es) = go (C.Intersect c (C.Node e)) es
     go c (Subtract e :es) = go (C.Subtract  c (C.Node e)) es
 
-parseOptional :: (ParseLexeme a, OneOf a 'Target 'Env) => Parser (Lexeme a)
+parseOptional :: ParseLexeme a => Parser (Lexeme a)
 parseOptional = Optional <$> between (symbol "(") (symbol ")") (some parseLexeme)
 
 parseGeminate :: Parser (Lexeme a)
@@ -149,6 +149,7 @@ instance ParseLexeme 'Target where
 instance ParseLexeme 'Replacement where
     parseLexeme = asum
         [ parseCategory
+        , parseOptional
         , parseMetathesis
         , parseGeminate
         , parseSyllable
