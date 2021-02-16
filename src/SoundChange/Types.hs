@@ -39,9 +39,33 @@ type family OneOf a x y :: Constraint where
 -- one) can be considered to be a @[Grapheme]@.
 type Grapheme = [Char]
 
+-- | Represents the beginning of a new syllable.
+data SyllableBoundary = SyllableBoundary
+    deriving (Eq, Show)
+
+-- | A single part of a word: either a grapheme or a syllable
+-- boundary.
+type WordPart = Either SyllableBoundary Grapheme
+
+-- | Small utility function: return 'Nothing' if the 'WordPart' is a
+-- 'SyllableBoundary', else return the wrapped 'Grapheme'.
+getGrapheme :: WordPart -> Maybe Grapheme
+getGrapheme (Left  _) = Nothing
+getGrapheme (Right g) = Just g
+
 -- | The part of a 'Rule' in which a 'Lexeme' may occur: either the
 -- target, the replacement or the environment.
 data LexemeType = Target | Replacement | Env
+
+data SLexemeType :: LexemeType -> * where
+    STarget      :: SLexemeType 'Target
+    SReplacement :: SLexemeType 'Replacement
+    SEnv         :: SLexemeType 'Env
+
+class SingLT lt where singLT :: SLexemeType lt
+instance SingLT 'Target      where singLT = STarget
+instance SingLT 'Replacement where singLT = SReplacement
+instance SingLT 'Env         where singLT = SEnv
 
 -- | A 'Lexeme' is the smallest component of a sound change,
 -- specifying either a match or a replacement. The phantom type
@@ -55,6 +79,7 @@ data Lexeme (a :: LexemeType) where
     Metathesis :: Lexeme 'Replacement
     Geminate :: Lexeme a
     Wildcard :: OneOf a 'Target 'Env => Lexeme a -> Lexeme a
+    Syllable :: Lexeme a
 
 deriving instance Show (Lexeme a)
 

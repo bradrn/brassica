@@ -22,6 +22,7 @@ module SoundChange.Parse
     ) where
 
 import Data.Char (isSpace)
+import Data.Either (fromRight)
 import Data.Foldable (asum)
 import Data.Function (on)
 import Data.List (sortBy)
@@ -60,7 +61,7 @@ symbol :: String -> Parser String
 symbol = L.symbol sc
 
 keyChars :: [Char]
-keyChars = "#[]()>\\/_^"
+keyChars = "#[]()>\\/_^%"
 
 parseGrapheme :: Parser Grapheme
 parseGrapheme = lexeme $ takeWhile1P Nothing (not . ((||) <$> isSpace <*> (`elem` keyChars)))
@@ -131,12 +132,16 @@ parseWildcard = Wildcard <$> (symbol "^" *> parseLexeme)
 parseBoundary :: Parser ()
 parseBoundary = () <$ symbol "#"
 
+parseSyllable :: Parser (Lexeme a)
+parseSyllable = Syllable <$ symbol "%"
+
 instance ParseLexeme 'Target where
     parseLexeme = asum
         [ parseCategory
         , parseOptional
         , parseGeminate
         , parseWildcard
+        , parseSyllable
         , parseGraphemeOrCategory
         ]
     parseCategoryElement = GraphemeEl <$> parseGrapheme
@@ -146,6 +151,7 @@ instance ParseLexeme 'Replacement where
         [ parseCategory
         , parseMetathesis
         , parseGeminate
+        , parseSyllable
         , parseGraphemeOrCategory
         ]
     parseCategoryElement = GraphemeEl <$> parseGrapheme
@@ -157,6 +163,7 @@ instance ParseLexeme 'Env where
         , parseOptional
         , parseGeminate
         , parseWildcard
+        , parseSyllable
         , parseGraphemeOrCategory
         ]
     parseCategoryElement = asum
@@ -244,8 +251,8 @@ tokeniseWords (sortBy (compare `on` Down . length) -> gs) =
   where
     parseWord = some $ choice (chunk <$> gs) <|> (pure <$> satisfy (not . isSpace))
 
-detokeniseWords :: [Component [Grapheme]] -> String
-detokeniseWords = detokeniseWords' concat
+detokeniseWords :: [Component [WordPart]] -> String
+detokeniseWords = detokeniseWords' $ concatMap $ fromRight ""
 
 detokeniseWords' :: (a -> String) -> [Component a] -> String
 detokeniseWords' f = concatMap $ \case

@@ -20,9 +20,10 @@ import Foreign.JavaScript (IsHandler, JSObject)
 import SoundChange.Apply (applyStr)
 import SoundChange.Category (values)
 import SoundChange.Parse
-import SoundChange.Types (Grapheme, Rule(..), Flags(..))
+import SoundChange.Types (getGrapheme, Grapheme, WordPart, Rule(..), Flags(..))
 import Data.List (intercalate)
 import Data.Maybe (mapMaybe)
+import Data.Either (fromRight)
 
 main :: IO ()
 main = do
@@ -45,7 +46,7 @@ setup window = do
     out      <- getElementById' "out"
 
     -- A 'Behaviour' to keep track of the previous output.
-    (prevOutE, setPrevOut) <- liftIO $ newEvent @[Component [Grapheme]]
+    (prevOutE, setPrevOut) <- liftIO $ newEvent @[Component [WordPart]]
     prevOut <- stepper [] prevOutE
 
     on UI.keydown cats $ const $ do
@@ -60,7 +61,7 @@ setup window = do
         let cats = parseCategoriesSpec catsText
             rules = parseRules cats rulesText
 
-            results = fmap (fmap $ applyRulesWithChanges rules) . tokeniseWords (values cats) $ wordsText
+            results = fmap (fmap $ applyRulesWithChanges rules . fmap Right) . tokeniseWords (values cats) $ wordsText
 
         prevResults <- liftIO $ currentValue prevOut
         liftIO $ setPrevOut $ (fmap.fmap) fst results
@@ -68,9 +69,9 @@ setup window = do
         results' <- getHlMode <&> \mode -> detokeniseWords' id $
             zipWithComponents results prevResults [] $ \(word, hasBeenAltered) prevWord ->
                 case mode of
-                    HlNone -> concat word
-                    HlRun -> surroundBold (word /= prevWord) $ concat word
-                    HlInput -> surroundBold hasBeenAltered $ concat word
+                    HlNone -> concat $ mapMaybe getGrapheme word
+                    HlRun -> surroundBold (word /= prevWord) $ concat $ mapMaybe getGrapheme word
+                    HlInput -> surroundBold hasBeenAltered $ concat $ mapMaybe getGrapheme word
 
         element out # set html results'
 
@@ -82,7 +83,7 @@ setup window = do
         let cats = parseCategoriesSpec catsText
             rules = mapMaybe (\ruleText -> (ruleText,) <$> parseRule cats ruleText) rulesText
 
-            results = fmap (fmap $ applyRulesWithLog rules) . tokeniseWords (values cats) <$> wordsText
+            results = fmap (fmap $ applyRulesWithLog rules . fmap Right) . tokeniseWords (values cats) <$> wordsText
 
         element out # set html (unlines $ fmap formatLog $ concat $ concat $ getWords <$> results)
 
@@ -101,8 +102,8 @@ setup window = do
     surroundBold True  w = "<b>" ++ w ++ "</b>"
 
     formatLog RuleApplied{..} =
-        let input' = intercalate "·" input
-            output' = intercalate "·" output
+        let input'  = intercalate "·" $ fromRight "%" <$> input
+            output' = intercalate "·" $ fromRight "%" <$> output
         in "<b>" ++ rule ++ "</b> changed <b>" ++ input' ++ "</b> to <b>" ++ output' ++ "</b>"
 
     zipWith2' :: [[Component a]] -> [[Component b]] -> b -> (a -> b -> c) -> [[Component c]]
@@ -121,7 +122,7 @@ setup window = do
     zipWithComponents (a:as)        bs@(Word _:_) bd f = unsafeCastComponent a : zipWithComponents as bs bd f
     zipWithComponents (a:as)        (_:bs)        bd f = unsafeCastComponent a : zipWithComponents as bs bd f
 
-applyRulesWithChanges :: [Rule] -> [Grapheme] -> ([Grapheme], Bool)
+applyRulesWithChanges :: [Rule] -> [WordPart] -> ([WordPart], Bool)
 applyRulesWithChanges = flip (go . (,False))
   where
     go gs [] = gs
@@ -131,11 +132,11 @@ applyRulesWithChanges = flip (go . (,False))
 
 data LogItem = RuleApplied
     { rule :: String
-    , input :: [Grapheme]
-    , output :: [Grapheme]
+    , input :: [WordPart]
+    , output :: [WordPart]
     } deriving (Show)
 
-applyRulesWithLog :: [(String, Rule)] -> [Grapheme] -> [LogItem]
+applyRulesWithLog :: [(String, Rule)] -> [WordPart] -> [LogItem]
 applyRulesWithLog = go []
   where
     go log []     _ = log
