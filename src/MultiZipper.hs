@@ -18,6 +18,7 @@ module MultiZipper
        , move
        , fwd
        , bwd
+       , consume
        , seek
        , toBeginning
        , toEnd
@@ -140,6 +141,14 @@ fwd = move 1
 -- | Move one position backwards if possible, otherwise return 'Nothing'.
 bwd :: MultiZipper t a -> Maybe (MultiZipper t a)
 bwd = move (-1)
+
+-- | If possible, move one position forward, returning the value moved
+-- over
+consume :: MultiZipper t a -> Maybe (a, MultiZipper t a)
+consume (MultiZipper as pos ts) =
+    if invalid (pos+1) as
+    then Nothing
+    else Just (as!!pos, MultiZipper as (pos+1) ts)
 
 -- | Move the 'MultiZipper' to be at the specified tag. Returns
 -- 'Nothing' if that tag is not present.
