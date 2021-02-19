@@ -118,7 +118,7 @@ match prev w@(Wildcard l) mz = case match prev l mz of
     Nothing -> consume mz >>= \(g, mz') -> match prev w mz' <&> first (prependGrapheme g)
 match prev l            mz
     -- pass over 'SyllableBoundary', but only in the environment, and
-    -- only when the current lexeme is a 'Syllable' (which should
+    -- only when the current lexeme is not a 'Syllable' (which should
     -- match) or else an 'Optional' or 'Wildcard' (which should
     -- recurse without consuming anything)
     | SEnv <- singLT @a
