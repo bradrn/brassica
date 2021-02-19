@@ -33,16 +33,19 @@ module SoundChange.Apply
 
 import Control.Applicative ((<|>))
 import Data.Function (on, (&))
+import qualified Data.Foldable as F
 import Data.List (sortBy)
-import Data.Maybe (mapMaybe, fromMaybe, isJust, catMaybes, listToMaybe, maybeToList, fromJust)
+import Data.Maybe (maybeToList, mapMaybe, fromMaybe, catMaybes, listToMaybe)
 import Data.Ord (Down(Down))
 
 import Control.Monad.State
+import qualified Data.Map.Strict as Map
 
 import MultiZipper
 import SoundChange.Types
 import Data.Functor ((<&>))
 import Data.Bifunctor (Bifunctor(first))
+import Data.Either (isLeft)
 
 -- | Defines the tags used when applying a 'Rule'.
 data RuleTag
@@ -87,6 +90,9 @@ data MatchOutput = MatchOutput
 modifyMatchedGraphemes :: ([WordPart] -> [WordPart]) -> MatchOutput -> MatchOutput
 modifyMatchedGraphemes f MatchOutput{..} = MatchOutput{matchedGraphemes=f matchedGraphemes, ..}
 
+prependGrapheme :: WordPart -> MatchOutput -> MatchOutput
+prependGrapheme g = modifyMatchedGraphemes (g:)
+
 instance Semigroup MatchOutput where
     (MatchOutput a1 b1 c1) <> (MatchOutput a2 b2 c2) = MatchOutput (a1++a2) (b1++b2) (c1++c2)
 
@@ -103,12 +109,12 @@ match :: forall a t.
       -> MultiZipper t WordPart   -- ^ The 'MultiZipper' to match against.
       -> Maybe (MatchOutput, MultiZipper t WordPart)
       -- ^ The output: a tuple @((i, g), mz)@ as described below.
-match _    Syllable     mz = (MatchOutput [] [] [],) <$> matchWordPart (Left SyllableBoundary) mz
+match _    Syllable     mz = (MatchOutput [] [] [],) <$> matchWordPart isLeft mz
 match prev l            mz
     -- pass over 'SyllableBoundary', but only in the environment
     | SEnv <- singLT @a
-    , Just mz' <- matchWordPart (Left SyllableBoundary) mz
-    = match prev l mz' <&> first (modifyMatchedGraphemes (Left SyllableBoundary:))
+    , Just mz' <- matchWordPart isLeft mz
+    = match prev l mz' <&> first (prependGrapheme $ Left (SyllableBoundary Map.empty))
 match _ (Grapheme g) mz = (MatchOutput [] [] [Right g],) <$> matchGrapheme g mz
 match _ (Category gs) mz =
     gs
@@ -129,16 +135,20 @@ match prev (Optional l) mz = case matchMany prev l mz of
     Nothing         -> Just (MatchOutput [] [False] [], mz)
 match prev w@(Wildcard l) mz = case match prev l mz of
     Just r -> Just r
-    Nothing -> consume mz >>= \(g, mz') -> match prev w mz' <&> first (modifyMatchedGraphemes (g:))
+    Nothing -> consume mz >>= \(g, mz') -> match prev w mz' <&> first (prependGrapheme g)
 match prev Geminate mz = case prev of
     Nothing -> Nothing
     Just prev' -> (MatchOutput [] [] [Right prev'],) <$> matchGrapheme prev' mz
+match _ (Supra ss) mz = yank getSupras mz >>= \ssGiven ->
+    if all (\(k, a) -> Map.lookup k ssGiven == Just a) ss
+    then Just (MatchOutput [] [] [], mz)
+    else Nothing
 
 matchGrapheme :: Grapheme -> MultiZipper t WordPart -> Maybe (MultiZipper t WordPart)
-matchGrapheme g = matchWordPart (Right g)
+matchGrapheme g = matchWordPart (==Right g)
 
-matchWordPart :: WordPart -> MultiZipper t WordPart -> Maybe (MultiZipper t WordPart)
-matchWordPart g mz = value mz >>= \cs -> if cs == g then fwd mz else Nothing
+matchWordPart :: (WordPart -> Bool) -> MultiZipper t WordPart -> Maybe (MultiZipper t WordPart)
+matchWordPart p mz = value mz >>= \cs -> if p cs then fwd mz else Nothing
 
 -- | Match a list of several 'Lexeme's against a
 -- 'MultiZipper'. Arguments and output are the same as with 'match',
@@ -168,32 +178,42 @@ lastMay l = if null l then Nothing else Just (last l)
 mkReplacement
     :: MatchOutput              -- ^ The result of matching against the target
     -> [Lexeme 'Replacement]    -- ^ The 'Lexeme's specifying the replacement.
-    -> [WordPart]
-mkReplacement = \out ls -> snd $ go Nothing [] out ls
+    -> MultiZipper t WordPart
+    -> MultiZipper t WordPart
+mkReplacement = \out@MatchOutput{matchedGraphemes=matched} ls ->
+    snd . go matched out ls
   where
-    go :: Maybe WordPart -> [WordPart] -> MatchOutput -> [Lexeme 'Replacement] -> (MatchOutput, [WordPart])
-    go _    result out []      = (out, result)
-    go prev result (MatchOutput is os ins) (l:ls) =
-        let (is', os', r) = replaceLex is os ins (prev <|> lastMay result) l
-        in go Nothing (result ++ r) (MatchOutput is' os' ins) ls
+    go _       out []     mz = (out, mz)
+    go matched out (l:ls) mz =
+        let (out', mz') = replaceLex out matched l mz
+        in go matched out' ls mz'
 
 
-    replaceLex :: [Int] -> [Bool] -> [WordPart] -> Maybe WordPart -> Lexeme 'Replacement -> ([Int], [Bool], [WordPart])
-    replaceLex is     os     _   _    (Grapheme g)  = (is, os, [Right g])
-    replaceLex (i:is) os     _   _    (Category gs) = (is, os,) $ pure $
+    replaceLex
+        :: MatchOutput
+        -> [WordPart]
+        -> Lexeme 'Replacement
+        -> MultiZipper t WordPart
+        -> (MatchOutput, MultiZipper t WordPart)
+    replaceLex out _ (Grapheme g) mz = (out, insert (Right g) mz)
+    replaceLex out@MatchOutput{matchedCatIxs=(i:is)} _ (Category gs) mz = (out{matchedCatIxs=is},) $ flip insert mz $
         if i < length gs
         then case gs !! i of GraphemeEl g -> Right g
         else Right "\xfffd"  -- Unicode replacement character
-    replaceLex []     _      _   _    (Category _)  = ([], [], [])   -- silently discard unmatchable categories
-    replaceLex is     (o:os) ins prev (Optional ls) =
-        if o
-        then case go prev [] (MatchOutput is os ins) ls of
-            (MatchOutput{..}, replacement) -> (matchedCatIxs, matchedOptionals, replacement)
-        else ([], [], [])
-    replaceLex _      []     _   _    (Optional _)  = ([], [], [])   -- silently discard unmatchable optionals
-    replaceLex is     os     ins _    Metathesis    = (is, os, reverse ins)
-    replaceLex is     os     _   prev Geminate      = (is, os, maybeToList prev)
-    replaceLex is     os     _   _    Syllable      = (is, os, [Left SyllableBoundary])
+    replaceLex out@MatchOutput{matchedCatIxs=[]} _ (Category _) mz = (out,mz)   -- silently discard unmatchable categories
+    replaceLex MatchOutput{matchedOptionals=(o:os), ..} matched (Optional ls) mz =
+        let out' = MatchOutput{matchedOptionals=os, ..}
+        in if o
+           then go matched out' ls mz
+           else (out', mz)
+    replaceLex out@MatchOutput{matchedOptionals=[]} _ (Optional _) mz = (out,mz)   -- silently discard unmatchable optionals
+    replaceLex out     matched Metathesis    mz = (out,) $ flip insertMany mz $ reverse matched
+    replaceLex out     _       Geminate      mz = (out,) $ flip insertMany mz $ maybeToList $ lastMay $ matchedGraphemes out
+    replaceLex out     _       Syllable      mz = (out,) $ flip insert mz $ Left (SyllableBoundary Map.empty)
+    replaceLex out     _       (Supra ss)    mz = (out,) $
+        flip zap mz $ \case
+            Right _ -> Nothing
+            Left (SyllableBoundary ss') -> Just $ Left $ SyllableBoundary $ Map.union (Map.fromList ss) ss'
 
 -- | Given a 'Rule' and a 'MultiZipper', determines whether the
 -- 'exception' of that rule (if any) applies starting at the current
@@ -240,7 +260,9 @@ applyOnce r@Rule{target, replacement, exception} = do
                 if maybe True (`elem` exs) p
                 then return False
                 else do
-                    modifyMay $ modifyBetween (TargetStart, TargetEnd) (const $ mkReplacement out replacement)
+                    modifyMay $ modifyBetween (TargetStart, TargetEnd) $ const []
+                    modifyMay $ seek TargetStart
+                    modify $ mkReplacement out replacement
                     return True
         Nothing -> return False
 

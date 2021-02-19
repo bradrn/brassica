@@ -19,6 +19,8 @@ module SoundChange.Parse
     , tokeniseWords
     , detokeniseWords
     , detokeniseWords'
+    , parseSupra
+    , Config(..)
     ) where
 
 import Data.Char (isSpace)
@@ -61,7 +63,7 @@ symbol :: String -> Parser String
 symbol = L.symbol sc
 
 keyChars :: [Char]
-keyChars = "#[]()>\\/_^%"
+keyChars = "#[](){}>\\/_^%"
 
 parseGrapheme :: Parser Grapheme
 parseGrapheme = lexeme $ takeWhile1P Nothing (not . ((||) <$> isSpace <*> (`elem` keyChars)))
@@ -135,6 +137,12 @@ parseBoundary = () <$ symbol "#"
 parseSyllable :: Parser (Lexeme a)
 parseSyllable = Syllable <$ symbol "%"
 
+parseSupra :: Parser (Lexeme a)
+parseSupra = Supra <$> between (symbol "{") (symbol "}") (some $ try kvpair)
+  where
+    kvpair :: Parser (String, String)
+    kvpair = (,) <$> parseGrapheme' <* symbol "=" <*> parseGrapheme
+
 instance ParseLexeme 'Target where
     parseLexeme = asum
         [ parseCategory
@@ -142,6 +150,7 @@ instance ParseLexeme 'Target where
         , parseGeminate
         , parseWildcard
         , parseSyllable
+        , parseSupra
         , parseGraphemeOrCategory
         ]
     parseCategoryElement = GraphemeEl <$> parseGrapheme
@@ -153,6 +162,7 @@ instance ParseLexeme 'Replacement where
         , parseMetathesis
         , parseGeminate
         , parseSyllable
+        , parseSupra
         , parseGraphemeOrCategory
         ]
     parseCategoryElement = GraphemeEl <$> parseGrapheme
@@ -165,6 +175,7 @@ instance ParseLexeme 'Env where
         , parseGeminate
         , parseWildcard
         , parseSyllable
+        , parseSupra
         , parseGraphemeOrCategory
         ]
     parseCategoryElement = asum

@@ -14,6 +14,7 @@ module MultiZipper
        , value
        , valueN
        , locationOf
+       , yank
        -- * Movement
        , move
        , fwd
@@ -23,6 +24,9 @@ module MultiZipper
        , toBeginning
        , toEnd
        -- * Modification
+       , insert
+       , insertMany
+       , zap
        , tag
        , tagAt
        , query
@@ -32,6 +36,8 @@ module MultiZipper
        , extend
        ) where
 
+import Control.Applicative (Alternative((<|>)))
+import Data.Foldable (Foldable(foldl'))
 import qualified Data.Map.Strict as M
 
 -- | A 'MultiZipper' is a list zipper (list+current index), with the
@@ -165,6 +171,36 @@ toBeginning (MultiZipper as _ ts) = MultiZipper as 0 ts
 toEnd :: MultiZipper t a -> MultiZipper t a
 toEnd (MultiZipper as _ ts) = MultiZipper as (length as) ts
 
+-- | Find first element at or before point which returns 'Just' when
+-- queried, if any, returning the result of the query function.
+yank :: (a -> Maybe b) -> MultiZipper t a -> Maybe b
+yank p mz = (value mz >>= p) <|> (bwd mz >>= yank p)
+
+-- | Insert a new element at point and move forward by one position.
+insert :: a -> MultiZipper t a -> MultiZipper t a
+insert a (MultiZipper as pos ts) =
+    case splitAt pos as of
+        (as1, as2) -> MultiZipper (as1 ++ [a] ++ as2) (pos+1) $ correctIxsFrom pos (+1) ts
+
+insertMany :: [a] -> MultiZipper t a -> MultiZipper t a
+insertMany = flip $ foldl' $ flip insert
+
+-- | Modify the first element at or before point to which the
+-- modification function returns 'Just'.
+zap :: (a -> Maybe a) -> MultiZipper t a -> MultiZipper t a
+zap p = \mz@(MultiZipper as pos ts) -> case go as pos of
+    Nothing  -> mz
+    Just as' -> MultiZipper as' pos ts
+  where
+    go _ (-1) = Nothing
+    go as pos
+      | pos == length as = go as (pos-1)
+      | otherwise = case p (as !! pos) of
+        Nothing -> go as (pos-1)
+        Just a' -> case splitAt pos as of
+            (as1, _:as2) -> Just $ as1 ++ (a':as2)
+            _ -> error "error in zap: impossible case reached"
+
 -- | Set a tag at the current position.
 tag :: Ord t => t -> MultiZipper t a -> MultiZipper t a
 tag t (MultiZipper as pos ts) = MultiZipper as pos $ M.insert t pos ts
@@ -206,8 +242,6 @@ modifyBetween (t1, t2) f mz@(MultiZipper as pos ts) = do
   where
     correctOrder (m, n) = if m <= n then (m, n) else (n, m)
 
-    correctIxsFrom i f = M.map $ \pos -> if pos >= i then f pos else pos
-
 -- | Given a function to compute a value from a 'MultiZipper' starting
 -- at a particular point, apply that function to all possible starting
 -- points and collect the results. Tags are left unchanged.
@@ -220,9 +254,12 @@ extend f (MultiZipper as pos ts) = MultiZipper as' pos ts
   where
     as' = fmap (\i -> f $ MultiZipper as i ts) [0 .. length as - 1]
 
--- Utility functions for checking indices in lists:
+-- Utility functions for checking and modifying indices in lists:
 invalid :: Int -> [a] -> Bool
 invalid pos as = (pos < 0) || (pos > length as)
 
 atNonvalue :: Int -> [a] -> Bool
 atNonvalue pos as = (pos < 0) || (pos >= length as)
+
+correctIxsFrom :: Int -> (Int -> Int) -> M.Map t Int -> M.Map t Int
+correctIxsFrom i f = M.map $ \pos -> if pos >= i then f pos else pos
