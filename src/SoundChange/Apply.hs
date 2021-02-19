@@ -110,8 +110,17 @@ match :: forall a t.
       -> Maybe (MatchOutput, MultiZipper t WordPart)
       -- ^ The output: a tuple @((i, g), mz)@ as described below.
 match _    Syllable     mz = (MatchOutput [] [] [],) <$> matchWordPart isLeft mz
+match prev (Optional l) mz = case matchMany prev l mz of
+    Just (out, mz') -> Just (MatchOutput [] [True]  [] <> out, mz')
+    Nothing         -> Just (MatchOutput [] [False] [], mz)
+match prev w@(Wildcard l) mz = case match prev l mz of
+    Just r -> Just r
+    Nothing -> consume mz >>= \(g, mz') -> match prev w mz' <&> first (prependGrapheme g)
 match prev l            mz
-    -- pass over 'SyllableBoundary', but only in the environment
+    -- pass over 'SyllableBoundary', but only in the environment, and
+    -- only when the current lexeme is a 'Syllable' (which should
+    -- match) or else an 'Optional' or 'Wildcard' (which should
+    -- recurse without consuming anything)
     | SEnv <- singLT @a
     , Just mz' <- matchWordPart isLeft mz
     = match prev l mz' <&> first (prependGrapheme $ Left (SyllableBoundary Map.empty))
@@ -130,12 +139,6 @@ match _ (Category gs) mz =
     & (join . listToMaybe)
     & fmap (\(i, (g, mz')) -> (MatchOutput [i] [] g, mz'))
 match _ Boundary mz = if atBoundary mz then Just (MatchOutput [] [] [], mz) else Nothing
-match prev (Optional l) mz = case matchMany prev l mz of
-    Just (out, mz') -> Just (MatchOutput [] [True]  [] <> out, mz')
-    Nothing         -> Just (MatchOutput [] [False] [], mz)
-match prev w@(Wildcard l) mz = case match prev l mz of
-    Just r -> Just r
-    Nothing -> consume mz >>= \(g, mz') -> match prev w mz' <&> first (prependGrapheme g)
 match prev Geminate mz = case prev of
     Nothing -> Nothing
     Just prev' -> (MatchOutput [] [] [Right prev'],) <$> matchGrapheme prev' mz
