@@ -34,6 +34,7 @@ module MultiZipper
        , untagWhen
        , modifyBetween
        , extend
+       , extend'
        ) where
 
 import Control.Applicative (Alternative((<|>)))
@@ -253,6 +254,13 @@ extend :: (MultiZipper t a -> b) -> MultiZipper t a -> MultiZipper t b
 extend f (MultiZipper as pos ts) = MultiZipper as' pos ts
   where
     as' = fmap (\i -> f $ MultiZipper as i ts) [0 .. length as - 1]
+
+-- | Like 'extend', but includes the end position of the zipper, thus
+-- increasing the 'MultiZipper' length by one when called.
+extend' :: (MultiZipper t a -> b) -> MultiZipper t a -> MultiZipper t b
+extend' f (MultiZipper as pos ts) = MultiZipper as' pos ts
+  where
+    as' = fmap (\i -> f $ MultiZipper as i ts) [0 .. length as]
 
 -- Utility functions for checking and modifying indices in lists:
 invalid :: Int -> [a] -> Bool

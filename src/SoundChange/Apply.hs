@@ -255,7 +255,7 @@ applyOnce r@Rule{target, replacement, exception} = do
             exs <- case exception of
                 Nothing -> pure []
                 Just ex -> gets $ catMaybes . toList .
-                    extend (exceptionAppliesAtPoint target ex)
+                    extend' (exceptionAppliesAtPoint target ex)
             gets (locationOf TargetStart) >>= \p ->
                 if maybe True (`elem` exs) p
                 then return False
