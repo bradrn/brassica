@@ -91,7 +91,7 @@ data Lexeme (a :: LexemeType) where
     Wildcard :: OneOf a 'Target 'Env => Lexeme a -> Lexeme a
     WithinSyllable :: OneOf a 'Target 'Env => Lexeme a -> Lexeme a
     Syllable :: Lexeme a
-    Supra    :: [(String, String)] -> Lexeme a
+    Supra    :: [(String, Maybe String)] -> Lexeme a
 
 deriving instance Show (Lexeme a)
 

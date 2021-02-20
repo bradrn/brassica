@@ -4,6 +4,7 @@
 {-# LANGUAGE KindSignatures   #-}
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE RecordWildCards  #-}
+{-# LANGUAGE TupleSections    #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ViewPatterns     #-}
 
@@ -141,10 +142,13 @@ parseSyllable :: Parser (Lexeme a)
 parseSyllable = Syllable <$ symbol "%"
 
 parseSupra :: Parser (Lexeme a)
-parseSupra = Supra <$> between (symbol "{") (symbol "}") (some $ try kvpair)
+parseSupra = Supra <$> between (symbol "{") (symbol "}") (some $ absence <|> try kvpair)
   where
-    kvpair :: Parser (String, String)
-    kvpair = (,) <$> parseGrapheme' <* symbol "=" <*> parseGrapheme
+    absence :: Parser (String, Maybe String)
+    absence = (,Nothing) <$> (char '!' *> parseGrapheme)
+
+    kvpair :: Parser (String, Maybe String)
+    kvpair = (.Just) . (,) <$> parseGrapheme' <* symbol "=" <*> parseGrapheme
 
 instance ParseLexeme 'Target where
     parseLexeme = asum

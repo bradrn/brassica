@@ -122,7 +122,7 @@ match prev w@(WithinSyllable l) mz = case match prev l mz of
         (Left _, _) -> Nothing
         (g@(Right _), mz') -> match prev w mz' <&> first (prependGrapheme g)
 match _ (Supra ss) mz = yank getSupras mz >>= \ssGiven ->
-    if all (\(k, a) -> Map.lookup k ssGiven == Just a) ss
+    if all (\(k, a) -> Map.lookup k ssGiven == a) ss
     then Just (MatchOutput [] [] [], mz)
     else Nothing
 match prev l            mz
@@ -222,7 +222,8 @@ mkReplacement = \out@MatchOutput{matchedGraphemes=matched} ls ->
     replaceLex out     _       (Supra ss)    mz = (out,) $
         flip zap mz $ \case
             Right _ -> Nothing
-            Left (SyllableBoundary ss') -> Just $ Left $ SyllableBoundary $ Map.union (Map.fromList ss) ss'
+            Left (SyllableBoundary ss') -> Just $ Left $ SyllableBoundary $
+                foldr (\(k, v) -> Map.alter (const v) k) ss' ss
 
 -- | Given a 'Rule' and a 'MultiZipper', determines whether the
 -- 'exception' of that rule (if any) applies starting at the current
