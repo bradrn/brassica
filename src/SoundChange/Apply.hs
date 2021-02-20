@@ -121,11 +121,16 @@ match prev w@(WithinSyllable l) mz = case match prev l mz of
     Nothing -> consume mz >>= \case
         (Left _, _) -> Nothing
         (g@(Right _), mz') -> match prev w mz' <&> first (prependGrapheme g)
+match _ (Supra ss) mz = yank getSupras mz >>= \ssGiven ->
+    if all (\(k, a) -> Map.lookup k ssGiven == Just a) ss
+    then Just (MatchOutput [] [] [], mz)
+    else Nothing
 match prev l            mz
     -- pass over 'SyllableBoundary', but only in the environment, and
     -- only when the current lexeme is not a 'Syllable' (which should
-    -- match) or else an 'Optional' or 'Wildcard'/'WithinSyllable'
-    -- (which should recurse without consuming anything)
+    -- match) or else an 'Optional', 'Supra' or
+    -- 'Wildcard'/'WithinSyllable' (which should try to match without
+    -- consuming anything)
     | SEnv <- singLT @a
     , Just mz' <- matchWordPart isLeft mz
     = match prev l mz' <&> first (prependGrapheme $ Left (SyllableBoundary Map.empty))
@@ -147,10 +152,6 @@ match _ Boundary mz = if atBoundary mz then Just (MatchOutput [] [] [], mz) else
 match prev Geminate mz = case prev of
     Nothing -> Nothing
     Just prev' -> (MatchOutput [] [] [Right prev'],) <$> matchGrapheme prev' mz
-match _ (Supra ss) mz = yank getSupras mz >>= \ssGiven ->
-    if all (\(k, a) -> Map.lookup k ssGiven == Just a) ss
-    then Just (MatchOutput [] [] [], mz)
-    else Nothing
 
 matchGrapheme :: Grapheme -> MultiZipper t WordPart -> Maybe (MultiZipper t WordPart)
 matchGrapheme g = matchWordPart (==Right g)
