@@ -89,6 +89,7 @@ data Lexeme (a :: LexemeType) where
     Metathesis :: Lexeme 'Replacement
     Geminate :: Lexeme a
     Wildcard :: OneOf a 'Target 'Env => Lexeme a -> Lexeme a
+    WithinSyllable :: OneOf a 'Target 'Env => Lexeme a -> Lexeme a
     Syllable :: Lexeme a
     Supra    :: [(String, String)] -> Lexeme a
 

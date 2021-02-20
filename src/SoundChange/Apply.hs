@@ -116,11 +116,16 @@ match prev (Optional l) mz = case matchMany prev l mz of
 match prev w@(Wildcard l) mz = case match prev l mz of
     Just r -> Just r
     Nothing -> consume mz >>= \(g, mz') -> match prev w mz' <&> first (prependGrapheme g)
+match prev w@(WithinSyllable l) mz = case match prev l mz of
+    Just r -> Just r
+    Nothing -> consume mz >>= \case
+        (Left _, _) -> Nothing
+        (g@(Right _), mz') -> match prev w mz' <&> first (prependGrapheme g)
 match prev l            mz
     -- pass over 'SyllableBoundary', but only in the environment, and
     -- only when the current lexeme is not a 'Syllable' (which should
-    -- match) or else an 'Optional' or 'Wildcard' (which should
-    -- recurse without consuming anything)
+    -- match) or else an 'Optional' or 'Wildcard'/'WithinSyllable'
+    -- (which should recurse without consuming anything)
     | SEnv <- singLT @a
     , Just mz' <- matchWordPart isLeft mz
     = match prev l mz' <&> first (prependGrapheme $ Left (SyllableBoundary Map.empty))

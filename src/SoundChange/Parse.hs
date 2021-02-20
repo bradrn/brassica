@@ -131,6 +131,9 @@ parseMetathesis = Metathesis <$ symbol "\\"
 parseWildcard :: (ParseLexeme a, OneOf a 'Target 'Env) => Parser (Lexeme a)
 parseWildcard = Wildcard <$> (symbol "^" *> parseLexeme)
 
+parseWithinSyllable :: (ParseLexeme a, OneOf a 'Target 'Env) => Parser (Lexeme a)
+parseWithinSyllable = WithinSyllable <$> (symbol "^^" *> parseLexeme)
+
 parseBoundary :: Parser ()
 parseBoundary = () <$ symbol "#"
 
@@ -148,6 +151,7 @@ instance ParseLexeme 'Target where
         [ parseCategory
         , parseOptional
         , parseGeminate
+        , parseWithinSyllable
         , parseWildcard
         , parseSyllable
         , parseSupra
@@ -173,6 +177,7 @@ instance ParseLexeme 'Env where
         , Boundary <$ parseBoundary
         , parseOptional
         , parseGeminate
+        , parseWithinSyllable
         , parseWildcard
         , parseSyllable
         , parseSupra
