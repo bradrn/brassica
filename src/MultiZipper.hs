@@ -172,10 +172,10 @@ toBeginning (MultiZipper as _ ts) = MultiZipper as 0 ts
 toEnd :: MultiZipper t a -> MultiZipper t a
 toEnd (MultiZipper as _ ts) = MultiZipper as (length as) ts
 
--- | Find first element at or before point which returns 'Just' when
+-- | Find first element before point which returns 'Just' when
 -- queried, if any, returning the result of the query function.
 yank :: (a -> Maybe b) -> MultiZipper t a -> Maybe b
-yank p mz = (value mz >>= p) <|> (bwd mz >>= yank p)
+yank p mz = bwd mz >>= \mz' -> (value mz' >>= p) <|> yank p mz'
 
 -- | Insert a new element at point and move forward by one position.
 insert :: a -> MultiZipper t a -> MultiZipper t a
@@ -186,10 +186,10 @@ insert a (MultiZipper as pos ts) =
 insertMany :: [a] -> MultiZipper t a -> MultiZipper t a
 insertMany = flip $ foldl' $ flip insert
 
--- | Modify the first element at or before point to which the
--- modification function returns 'Just'.
+-- | Modify the first element before point to which the modification
+-- function returns 'Just'.
 zap :: (a -> Maybe a) -> MultiZipper t a -> MultiZipper t a
-zap p = \mz@(MultiZipper as pos ts) -> case go as pos of
+zap p = \mz@(MultiZipper as pos ts) -> case go as (pos-1) of
     Nothing  -> mz
     Just as' -> MultiZipper as' pos ts
   where
