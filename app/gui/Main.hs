@@ -139,11 +139,11 @@ data LogItem = RuleApplied
 applyRulesWithLog :: [(String, Rule)] -> [WordPart] -> [LogItem]
 applyRulesWithLog = go []
   where
-    go log []     _ = log
+    go log []     _ = reverse log
     go log ((rstr,r):rs) gs =
         let gs'  = applyStr r gs
             log' = if gs == gs' then log else RuleApplied rstr gs gs' : log
-        in go log' rs gs
+        in go log' rs gs'
 
 data HlMode = HlNone | HlRun | HlInput deriving (Show)
 
