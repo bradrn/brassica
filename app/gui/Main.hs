@@ -59,21 +59,22 @@ setup window = do
         wordsText <- get value words
 
         let cats = parseCategoriesSpec catsText
-            rules = parseRules cats rulesText
+        case parseRules cats rulesText of
+            Left err -> element out # set html (errorBundlePretty err)
+            Right rules -> do
+                let results = fmap (fmap $ applyRulesWithChanges rules . fmap Right) . tokeniseWords (values cats) $ wordsText
 
-            results = fmap (fmap $ applyRulesWithChanges rules . fmap Right) . tokeniseWords (values cats) $ wordsText
+                prevResults <- liftIO $ currentValue prevOut
+                liftIO $ setPrevOut $ (fmap.fmap) fst results
 
-        prevResults <- liftIO $ currentValue prevOut
-        liftIO $ setPrevOut $ (fmap.fmap) fst results
+                results' <- getHlMode <&> \mode -> detokeniseWords' id $
+                    zipWithComponents results prevResults [] $ \(word, hasBeenAltered) prevWord ->
+                        case mode of
+                            HlNone -> concat $ mapMaybe getGrapheme word
+                            HlRun -> surroundBold (word /= prevWord) $ concat $ mapMaybe getGrapheme word
+                            HlInput -> surroundBold hasBeenAltered $ concat $ mapMaybe getGrapheme word
 
-        results' <- getHlMode <&> \mode -> detokeniseWords' id $
-            zipWithComponents results prevResults [] $ \(word, hasBeenAltered) prevWord ->
-                case mode of
-                    HlNone -> concat $ mapMaybe getGrapheme word
-                    HlRun -> surroundBold (word /= prevWord) $ concat $ mapMaybe getGrapheme word
-                    HlInput -> surroundBold hasBeenAltered $ concat $ mapMaybe getGrapheme word
-
-        element out # set html results'
+                element out # set html results'
 
     on UI.click reportBtn $ const $ do
         catsText  <- lines <$> get value cats
@@ -81,11 +82,11 @@ setup window = do
         wordsText <- lines <$> get value words
 
         let cats = parseCategoriesSpec catsText
-            rules = mapMaybe (\ruleText -> (ruleText,) <$> parseRule cats ruleText) rulesText
-
-            results = fmap (fmap $ applyRulesWithLog rules . fmap Right) . tokeniseWords (values cats) <$> wordsText
-
-        element out # set html (unlines $ fmap formatLog $ concat $ concat $ getWords <$> results)
+        case traverse (\ruleText -> (ruleText,) <$> parseRule cats ruleText) rulesText of
+            Left err -> element out # set html (errorBundlePretty err)
+            Right rules -> do
+                let results = fmap (fmap $ applyRulesWithLog rules . fmap Right) . tokeniseWords (values cats) <$> wordsText
+                element out # set html (unlines $ fmap formatLog $ concat $ concat $ getWords <$> results)
 
     _ <- exportAs "openRules" $ runUI window . openRules cats rules
     _ <- exportAs "saveRules" $ runUI window . saveRules cats rules

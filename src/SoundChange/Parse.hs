@@ -22,6 +22,8 @@ module SoundChange.Parse
     , detokeniseWords'
     , parseSupra
     , Config(..)
+      -- * Re-exports
+    , errorBundlePretty
     ) where
 
 import Data.Char (isSpace)
@@ -206,10 +208,8 @@ parseFlags = runPermutation $ Flags
 parseRule
     :: C.Categories Grapheme    -- ^ A set of categories which have been pre-defined
     -> String                   -- ^ The string to parse
-    -> Maybe Rule
-parseRule cats s = case flip runReader (Config cats) $ runParserT (sc *> go <* eof) "" s of
-   Right ls -> Just ls
-   Left  _  -> Nothing
+    -> Either (ParseErrorBundle String Void) Rule
+parseRule cats s = flip runReader (Config cats) $ runParserT (sc *> go <* eof) "" s
  where
    go :: Parser Rule
    go = do
@@ -225,8 +225,8 @@ parseRule cats s = case flip runReader (Config cats) $ runParserT (sc *> go <* e
        return Rule{environment=(env1,env2), ..}
 
 -- | Parse a list of rules. Defined as 'mapMaybe' of 'parseRule'.
-parseRules :: C.Categories Grapheme -> [String] -> [Rule]
-parseRules cats = mapMaybe (parseRule cats)
+parseRules :: C.Categories Grapheme -> [String] -> Either (ParseErrorBundle String Void) [Rule]
+parseRules cats = traverse (parseRule cats)
 
 -- | Parse a category specification, yielding the name of that
 -- category as well as a list of elements present in that
