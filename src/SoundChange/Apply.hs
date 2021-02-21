@@ -209,13 +209,13 @@ mkReplacement = \out@MatchOutput{matchedGraphemes=matched} ls ->
         if i < length gs
         then case gs !! i of GraphemeEl g -> Right g
         else Right "\xfffd"  -- Unicode replacement character
-    replaceLex out@MatchOutput{matchedCatIxs=[]} _ (Category _) mz = (out,mz)   -- silently discard unmatchable categories
+    replaceLex out@MatchOutput{matchedCatIxs=[]} _ (Category _) mz = (out, insert (Right "\xfffd") mz)
     replaceLex MatchOutput{matchedOptionals=(o:os), ..} matched (Optional ls) mz =
         let out' = MatchOutput{matchedOptionals=os, ..}
         in if o
            then go matched out' ls mz
            else (out', mz)
-    replaceLex out@MatchOutput{matchedOptionals=[]} _ (Optional _) mz = (out,mz)   -- silently discard unmatchable optionals
+    replaceLex out@MatchOutput{matchedOptionals=[]} _ (Optional _) mz = (out, insert (Right "\xfffd") mz)
     replaceLex out     matched Metathesis    mz = (out,) $ flip insertMany mz $ reverse matched
     replaceLex out     _       Geminate      mz = (out,) $ flip insertMany mz $ maybeToList $ lastMay $ matchedGraphemes out
     replaceLex out     _       Syllable      mz = (out,) $ flip insert mz $ Left (SyllableBoundary Map.empty)
