@@ -31,7 +31,7 @@ module SoundChange.Apply
        , applyStr
        ) where
 
-import Control.Applicative ((<|>))
+import Control.Applicative (Applicative(liftA2), (<|>))
 import Data.Function (on, (&))
 import qualified Data.Foldable as F
 import Data.List (sortBy)
@@ -279,16 +279,19 @@ applyOnce r@Rule{target, replacement, exception} = do
 -- | Remove tags and advance the current index to the next 'Grapheme'
 -- after the rule application.
 setupForNextApplication :: Bool -> Rule -> MultiZipper RuleTag WordPart -> Maybe (MultiZipper RuleTag WordPart)
-setupForNextApplication success r@Rule{flags=Flags{applyDirection}} = fmap untag .
+setupForNextApplication success Rule{flags=Flags{applyDirection}} = fmap untag .
     case applyDirection of
         RTL -> seek AppStart >=> bwd
         LTR ->
             if success
-            then
-                if null (target r)
-                then -- need to move forward if applying an epenthesis rule to avoid an infinite loop
-                    seek TargetEnd >=> fwd
-                else seek TargetEnd
+            then \mz -> do
+                ts <- locationOf TargetStart mz
+                te <- locationOf TargetEnd mz
+                if ts == te
+                    then -- need to move forward if applying an epenthesis rule to avoid an infinite loop
+                        seek TargetEnd mz >>= fwd
+                    else
+                        seek TargetEnd mz
             else seek AppStart >=> fwd
 
 -- | Apply a 'Rule' to a 'MultiZipper'. The application will start at
