@@ -55,7 +55,7 @@ setup window = do
 
     on UI.click applyBtn $ const $ do
         catsText  <- lines <$> get value cats
-        rulesText <- fmap lines $ callFunction $ ffi "rulesCodeMirror.getValue()"
+        rulesText <- callFunction $ ffi "rulesCodeMirror.getValue()"
         wordsText <- get value words
 
         let cats = parseCategoriesSpec catsText

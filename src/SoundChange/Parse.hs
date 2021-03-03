@@ -56,8 +56,17 @@ class ParseLexeme (a :: LexemeType) where
     parseLexeme :: Parser (Lexeme a)
     parseCategoryElement :: Parser (CategoryElement a)
 
+-- space consumer which does not match newlines
 sc :: Parser ()
-sc = L.space space1 (L.skipLineComment "*") empty
+sc = L.space space1' (L.skipLineComment "*") empty
+  where
+    -- adapted from megaparsec source: like 'space1', but does not
+    -- consume newlines (which are important for rule separation)
+    space1' = void $ takeWhile1P (Just "white space") ((&&) <$> isSpace <*> (/='\n'))
+
+-- space consumer which matches newlines
+scn :: Parser ()
+scn = L.space space1 (L.skipLineComment "*") empty
 
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
@@ -203,30 +212,31 @@ parseFlags = runPermutation $ Flags
     <*> toPermutationWithDefault LTR ((LTR <$ symbol "-ltr") <|> (RTL <$ symbol "-rtl"))
     <*> toPermutation (isJust <$> optional (symbol "-1"))
 
+ruleParser :: Parser Rule
+ruleParser = do
+    flags <- parseFlags
+    target <- parseLexemes
+    _ <- symbol "/"
+    replacement <- parseLexemes
+    _ <- symbol "/"
+    env1 <- parseLexemes
+    _ <- symbol "_"
+    env2 <- parseLexemes
+    exception <- optional $ (,) <$> (symbol "/" *> parseLexemes) <* symbol "_" <*> parseLexemes
+    _ <- optional scn   -- consume newline after rule if present
+    return Rule{environment=(env1,env2), ..}
+
 -- | Parse a 'String' to get a 'Rule'. Returns 'Nothing' if the input
 -- string is malformed.
 parseRule
     :: C.Categories Grapheme    -- ^ A set of categories which have been pre-defined
     -> String                   -- ^ The string to parse
     -> Either (ParseErrorBundle String Void) Rule
-parseRule cats s = flip runReader (Config cats) $ runParserT (sc *> go <* eof) "" s
- where
-   go :: Parser Rule
-   go = do
-       flags <- parseFlags
-       target <- parseLexemes
-       _ <- symbol "/"
-       replacement <- parseLexemes
-       _ <- symbol "/"
-       env1 <- parseLexemes
-       _ <- symbol "_"
-       env2 <- parseLexemes
-       exception <- optional $ (,) <$> (symbol "/" *> parseLexemes) <* symbol "_" <*> parseLexemes
-       return Rule{environment=(env1,env2), ..}
+parseRule cats s = flip runReader (Config cats) $ runParserT (scn *> ruleParser <* eof) "" s
 
--- | Parse a list of rules. Defined as 'mapMaybe' of 'parseRule'.
-parseRules :: C.Categories Grapheme -> [String] -> Either (ParseErrorBundle String Void) [Rule]
-parseRules cats = traverse (parseRule cats)
+-- | Parse a list of rules.
+parseRules :: C.Categories Grapheme -> String -> Either (ParseErrorBundle String Void) [Rule]
+parseRules cats s = flip runReader (Config cats) $ runParserT (scn *> many ruleParser <* eof) "" s
 
 -- | Parse a category specification, yielding the name of that
 -- category as well as a list of elements present in that
