@@ -27,6 +27,8 @@ library
                  , SoundChange.Category
                  , SoundChange.Parse
                  , SoundChange.Types
+                 , SoundChange.Paradigm
+                 , SoundChange.Paradigm.Parse
                  , MultiZipper
   hs-source-dirs:   src
   ghc-options:      -Wall
