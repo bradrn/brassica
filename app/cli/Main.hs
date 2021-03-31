@@ -1,3 +1,5 @@
+{-# LANGUAGE ViewPatterns #-}
+
 module Main where
 
 import System.Environment (getArgs)
@@ -16,7 +18,7 @@ main = do
     [inputFile, wordsFile, outFile] <- getArgs
     inputText <- readFile inputFile
 
-    let (catsText, rulesText) = span ('=' `elem`) $ lines inputText
+    let (catsText, unlines -> rulesText) = span ('=' `elem`) $ lines inputText
         cats = parseCategoriesSpec catsText
 
     wordsText <- (unpack . decodeUtf8) <$> B.readFile wordsFile
@@ -25,5 +27,5 @@ main = do
         Left err ->
             putStrLn $ errorBundlePretty err
         Right rules -> do
-            let outWordsText = tokeniseAndApplyRules cats rules wordsText
-            B.writeFile outFile $ encodeUtf8 $ pack outWordsText
+            let outWordsText = tokeniseAnd applyRules cats rules wordsText
+            B.writeFile outFile $ encodeUtf8 $ pack $ detokeniseWords outWordsText

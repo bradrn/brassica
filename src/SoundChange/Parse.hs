@@ -31,7 +31,7 @@ import Data.Either (fromRight)
 import Data.Foldable (asum)
 import Data.Function (on)
 import Data.List (sortBy)
-import Data.Maybe (isJust, fromJust, mapMaybe)
+import Data.Maybe (isNothing, isJust, fromJust, mapMaybe)
 import Data.Ord (Down(..))
 import Data.Void (Void)
 
@@ -208,12 +208,18 @@ parseLexemes = many parseLexeme
 
 parseFlags :: Parser Flags
 parseFlags = runPermutation $ Flags
-    <$> toPermutation (isJust <$> optional (symbol "-x"))
+    <$> toPermutation (isNothing <$> optional (symbol "-x"))
     <*> toPermutationWithDefault LTR ((LTR <$ symbol "-ltr") <|> (RTL <$ symbol "-rtl"))
     <*> toPermutation (isJust <$> optional (symbol "-1"))
 
 ruleParser :: Parser Rule
 ruleParser = do
+    -- This is an inlined version of 'match' from @megaparsec@;
+    -- 'match' itself would be tricky to use here, since it would need
+    -- to wrap multiple parsers rather than just one
+    o <- getOffset
+    s <- getInput
+
     flags <- parseFlags
     target <- parseLexemes
     _ <- symbol "/"
@@ -224,6 +230,9 @@ ruleParser = do
     env2 <- parseLexemes
     exception <- optional $ (,) <$> (symbol "/" *> parseLexemes) <* symbol "_" <*> parseLexemes
     _ <- optional scn   -- consume newline after rule if present
+
+    o' <- getOffset
+    let plaintext = (fst . fromJust) (takeN_ (o' - o) s)
     return Rule{environment=(env1,env2), ..}
 
 -- | Parse a 'String' to get a 'Rule'. Returns 'Nothing' if the input

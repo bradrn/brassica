@@ -17,6 +17,7 @@ import qualified Graphics.UI.Threepenny as UI
 import Graphics.UI.Threepenny.Core
 import Foreign.JavaScript (IsHandler, JSObject)
 
+import SoundChange
 import SoundChange.Apply (applyStr)
 import SoundChange.Category (values)
 import SoundChange.Parse
@@ -62,7 +63,7 @@ setup window = do
         case parseRules cats rulesText of
             Left err -> element out # set html (errorBundlePretty err)
             Right rules -> do
-                let results = fmap (fmap $ applyRulesWithChanges rules . fmap Right) . tokeniseWords (values cats) $ wordsText
+                let results = tokeniseAnd applyRulesWithChanges cats rules wordsText
 
                 prevResults <- liftIO $ currentValue prevOut
                 liftIO $ setPrevOut $ (fmap.fmap) fst results
@@ -79,14 +80,14 @@ setup window = do
     on UI.click reportBtn $ const $ do
         catsText  <- lines <$> get value cats
         rulesText <- fmap lines $ callFunction $ ffi "rulesCodeMirror.getValue()"
-        wordsText <- lines <$> get value words
+        wordsText <- get value words
 
         let cats = parseCategoriesSpec catsText
-        case traverse (\ruleText -> (ruleText,) <$> parseRule cats ruleText) rulesText of
+        case traverse (parseRule cats) rulesText of
             Left err -> element out # set html (errorBundlePretty err)
             Right rules -> do
-                let results = fmap (fmap $ applyRulesWithLog rules . fmap Right) . tokeniseWords (values cats) <$> wordsText
-                element out # set html (unlines $ fmap formatLog $ concat $ concat $ getWords <$> results)
+                let results = tokeniseAnd applyRulesWithLog cats rules wordsText
+                element out # set html (unlines $ fmap formatLog $ concat $ getWords $ results)
 
     _ <- exportAs "openRules" $ runUI window . openRules cats rules
     _ <- exportAs "saveRules" $ runUI window . saveRules cats rules
@@ -105,7 +106,7 @@ setup window = do
     formatLog RuleApplied{..} =
         let input'  = intercalate "·" $ fromRight "%" <$> input
             output' = intercalate "·" $ fromRight "%" <$> output
-        in "<b>" ++ rule ++ "</b> changed <b>" ++ input' ++ "</b> to <b>" ++ output' ++ "</b>"
+        in "<b>" ++ plaintext rule ++ "</b> changed <b>" ++ input' ++ "</b> to <b>" ++ output' ++ "</b>"
 
     zipWith2' :: [[Component a]] -> [[Component b]] -> b -> (a -> b -> c) -> [[Component c]]
     zipWith2' ass bss bd f = zipWith' ass bss [] $ \as bs -> zipWithComponents as bs bd f
@@ -123,28 +124,6 @@ setup window = do
     zipWithComponents (a:as)        bs@(Word _:_) bd f = unsafeCastComponent a : zipWithComponents as bs bd f
     zipWithComponents (a:as)        (_:bs)        bd f = unsafeCastComponent a : zipWithComponents as bs bd f
 
-applyRulesWithChanges :: [Rule] -> [WordPart] -> ([WordPart], Bool)
-applyRulesWithChanges = flip (go . (,False))
-  where
-    go gs [] = gs
-    go (gs,w) (r:rs) =
-        let gs' = applyStr r gs
-        in go (gs', w || (not (highlightChanges $ flags r) && (gs/=gs'))) rs
-
-data LogItem = RuleApplied
-    { rule :: String
-    , input :: [WordPart]
-    , output :: [WordPart]
-    } deriving (Show)
-
-applyRulesWithLog :: [(String, Rule)] -> [WordPart] -> [LogItem]
-applyRulesWithLog = go []
-  where
-    go log []     _ = reverse log
-    go log ((rstr,r):rs) gs =
-        let gs'  = applyStr r gs
-            log' = if gs == gs' then log else RuleApplied rstr gs gs' : log
-        in go log' rs gs'
 
 data HlMode = HlNone | HlRun | HlInput deriving (Show)
 

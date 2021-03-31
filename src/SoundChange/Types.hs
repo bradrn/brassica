@@ -131,4 +131,5 @@ data Rule = Rule
   , environment :: Environment
   , exception   :: Maybe Environment
   , flags       :: Flags
+  , plaintext   :: String
   } deriving (Show)
