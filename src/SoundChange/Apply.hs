@@ -279,12 +279,12 @@ applyOnce r@Rule{target, replacement, exception} = do
 -- | Remove tags and advance the current index to the next 'Grapheme'
 -- after the rule application.
 setupForNextApplication :: Bool -> Rule -> MultiZipper RuleTag WordPart -> Maybe (MultiZipper RuleTag WordPart)
-setupForNextApplication success Rule{flags=Flags{applyDirection}} = fmap untag .
-    case applyDirection of
-        RTL -> seek AppStart >=> bwd
+setupForNextApplication success Rule{flags=Flags{applyDirection}} mz =
+    fmap untag $ case applyDirection of
+        RTL -> seek AppStart mz >>= bwd
         LTR ->
             if success
-            then \mz -> do
+            then do
                 ts <- locationOf TargetStart mz
                 te <- locationOf TargetEnd mz
                 if ts == te
@@ -292,7 +292,7 @@ setupForNextApplication success Rule{flags=Flags{applyDirection}} = fmap untag .
                         seek TargetEnd mz >>= fwd
                     else
                         seek TargetEnd mz
-            else seek AppStart >=> fwd
+            else seek AppStart mz >>= fwd
 
 -- | Apply a 'Rule' to a 'MultiZipper'. The application will start at
 -- the beginning of the 'MultiZipper', and will be repeated as many
