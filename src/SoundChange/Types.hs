@@ -17,8 +17,6 @@ module SoundChange.Types where
 import Data.Kind (Constraint)
 import GHC.TypeLits
 
-import Data.Map.Strict (Map)
-
 -- | The constraint @OneOf a x y@ is satisfied if @a ~ x@ or @a ~ y@.
 --
 -- (Note: the strange @() ~ Bool@ constraint is just a simple
@@ -40,28 +38,6 @@ type family OneOf a x y :: Constraint where
 -- grapheme is a sequence of characters. A word (or a subsequence of
 -- one) can be considered to be a @[Grapheme]@.
 type Grapheme = [Char]
-
--- | Represents the beginning of a new syllable, along with the
--- suprasegmentals assigned to that syllable.
-newtype SyllableBoundary = SyllableBoundary (Map String String)
-    deriving (Eq, Show)
-
--- | A single part of a word: either a grapheme or a syllable
--- boundary.
-type WordPart = Either SyllableBoundary Grapheme
-
--- | Small utility function: return 'Nothing' if the 'WordPart' is a
--- 'SyllableBoundary', else return the wrapped 'Grapheme'.
-getGrapheme :: WordPart -> Maybe Grapheme
-getGrapheme (Left  _) = Nothing
-getGrapheme (Right g) = Just g
-
--- | Another small utility function: return 'Nothing' if the
--- 'WordPart' is a 'Grapheme', else return the wrapped
--- suprasegmentals.
-getSupras :: WordPart -> Maybe (Map String String)
-getSupras (Left (SyllableBoundary ss)) = Just ss
-getSupras (Right _) = Nothing
 
 -- | The part of a 'Rule' in which a 'Lexeme' may occur: either the
 -- target, the replacement or the environment.
@@ -89,9 +65,6 @@ data Lexeme (a :: LexemeType) where
     Metathesis :: Lexeme 'Replacement
     Geminate :: Lexeme a
     Wildcard :: OneOf a 'Target 'Env => Lexeme a -> Lexeme a
-    WithinSyllable :: OneOf a 'Target 'Env => Lexeme a -> Lexeme a
-    Syllable :: Lexeme a
-    Supra    :: [(String, Maybe String)] -> Lexeme a
 
 deriving instance Show (Lexeme a)
 

@@ -20,7 +20,6 @@ module SoundChange.Parse
     , tokeniseWords
     , detokeniseWords
     , detokeniseWords'
-    , parseSupra
     , Config(..)
       -- * Re-exports
     , errorBundlePretty
@@ -143,33 +142,15 @@ parseMetathesis = Metathesis <$ symbol "\\"
 parseWildcard :: (ParseLexeme a, OneOf a 'Target 'Env) => Parser (Lexeme a)
 parseWildcard = Wildcard <$> (symbol "^" *> parseLexeme)
 
-parseWithinSyllable :: (ParseLexeme a, OneOf a 'Target 'Env) => Parser (Lexeme a)
-parseWithinSyllable = WithinSyllable <$> (symbol "^^" *> parseLexeme)
-
 parseBoundary :: Parser ()
 parseBoundary = () <$ symbol "#"
-
-parseSyllable :: Parser (Lexeme a)
-parseSyllable = Syllable <$ symbol "%"
-
-parseSupra :: Parser (Lexeme a)
-parseSupra = Supra <$> between (symbol "{") (symbol "}") (some $ absence <|> try kvpair)
-  where
-    absence :: Parser (String, Maybe String)
-    absence = (,Nothing) <$> (char '!' *> parseGrapheme)
-
-    kvpair :: Parser (String, Maybe String)
-    kvpair = (.Just) . (,) <$> parseGrapheme' <* symbol "=" <*> parseGrapheme
 
 instance ParseLexeme 'Target where
     parseLexeme = asum
         [ parseCategory
         , parseOptional
         , parseGeminate
-        , parseWithinSyllable
         , parseWildcard
-        , parseSyllable
-        , parseSupra
         , parseGraphemeOrCategory
         ]
     parseCategoryElement = GraphemeEl <$> parseGrapheme
@@ -180,8 +161,6 @@ instance ParseLexeme 'Replacement where
         , parseOptional
         , parseMetathesis
         , parseGeminate
-        , parseSyllable
-        , parseSupra
         , parseGraphemeOrCategory
         ]
     parseCategoryElement = GraphemeEl <$> parseGrapheme
@@ -192,10 +171,7 @@ instance ParseLexeme 'Env where
         , Boundary <$ parseBoundary
         , parseOptional
         , parseGeminate
-        , parseWithinSyllable
         , parseWildcard
-        , parseSyllable
-        , parseSupra
         , parseGraphemeOrCategory
         ]
     parseCategoryElement = asum
@@ -291,8 +267,8 @@ tokeniseWords (sortBy (compare `on` Down . length) -> gs) =
   where
     parseWord = some $ choice (chunk <$> gs) <|> (pure <$> satisfy (not . isSpace))
 
-detokeniseWords :: [Component [WordPart]] -> String
-detokeniseWords = detokeniseWords' $ concatMap $ fromRight ""
+detokeniseWords :: [Component [Grapheme]] -> String
+detokeniseWords = detokeniseWords' concat
 
 detokeniseWords' :: (a -> String) -> [Component a] -> String
 detokeniseWords' f = concatMap $ \case

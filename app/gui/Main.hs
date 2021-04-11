@@ -18,13 +18,9 @@ import Graphics.UI.Threepenny.Core
 import Foreign.JavaScript (IsHandler, JSObject)
 
 import SoundChange
-import SoundChange.Apply (applyStr)
-import SoundChange.Category (values)
 import SoundChange.Parse
-import SoundChange.Types (getGrapheme, Grapheme, WordPart, Rule(..), Flags(..))
+import SoundChange.Types (Grapheme, Rule(..))
 import Data.List (intercalate)
-import Data.Maybe (mapMaybe)
-import Data.Either (fromRight)
 
 main :: IO ()
 main = do
@@ -47,7 +43,7 @@ setup window = do
     out      <- getElementById' "out"
 
     -- A 'Behaviour' to keep track of the previous output.
-    (prevOutE, setPrevOut) <- liftIO $ newEvent @[Component [WordPart]]
+    (prevOutE, setPrevOut) <- liftIO $ newEvent @[Component [Grapheme]]
     prevOut <- stepper [] prevOutE
 
     on UI.keydown cats $ const $ do
@@ -71,9 +67,9 @@ setup window = do
                 results' <- getHlMode <&> \mode -> detokeniseWords' id $
                     zipWithComponents results prevResults [] $ \(word, hasBeenAltered) prevWord ->
                         case mode of
-                            HlNone -> concat $ mapMaybe getGrapheme word
-                            HlRun -> surroundBold (word /= prevWord) $ concat $ mapMaybe getGrapheme word
-                            HlInput -> surroundBold hasBeenAltered $ concat $ mapMaybe getGrapheme word
+                            HlNone -> concat word
+                            HlRun -> surroundBold (word /= prevWord) $ concat word
+                            HlInput -> surroundBold hasBeenAltered $ concat word
 
                 element out # set html results'
 
@@ -87,7 +83,7 @@ setup window = do
             Left err -> element out # set html (errorBundlePretty err)
             Right rules -> do
                 let results = tokeniseAnd applyRulesWithLog cats rules wordsText
-                element out # set html (unlines $ fmap formatLog $ concat $ getWords $ results)
+                element out # set html (unlines $ fmap formatLog $ concat $ getWords results)
 
     _ <- exportAs "openRules" $ runUI window . openRules cats rules
     _ <- exportAs "saveRules" $ runUI window . saveRules cats rules
@@ -104,8 +100,8 @@ setup window = do
     surroundBold True  w = "<b>" ++ w ++ "</b>"
 
     formatLog RuleApplied{..} =
-        let input'  = intercalate "·" $ fromRight "%" <$> input
-            output' = intercalate "·" $ fromRight "%" <$> output
+        let input'  = intercalate "·" input
+            output' = intercalate "·" output
         in "<b>" ++ plaintext rule ++ "</b> changed <b>" ++ input' ++ "</b> to <b>" ++ output' ++ "</b>"
 
     zipWith2' :: [[Component a]] -> [[Component b]] -> b -> (a -> b -> c) -> [[Component c]]

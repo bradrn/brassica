@@ -58,9 +58,9 @@ data RuleTag
 -- 'Char's. Essentially a @StateT (MultiZipper RuleTag Grapheme) Maybe@:
 -- it stores the 'MultiZipper' as state, and allows the possibility of
 -- failure if a match attempt fails.
-newtype RuleAp a = RuleAp { runRuleAp :: MultiZipper RuleTag WordPart -> Maybe (a, MultiZipper RuleTag WordPart) }
-    deriving (Functor, Applicative, Monad, MonadFail, MonadState (MultiZipper RuleTag WordPart))
-      via (StateT (MultiZipper RuleTag WordPart) Maybe)
+newtype RuleAp a = RuleAp { runRuleAp :: MultiZipper RuleTag Grapheme -> Maybe (a, MultiZipper RuleTag Grapheme) }
+    deriving (Functor, Applicative, Monad, MonadFail, MonadState (MultiZipper RuleTag Grapheme))
+      via (StateT (MultiZipper RuleTag Grapheme) Maybe)
 
 -- | Lift a partial modification function into a 'State'. Update state
 -- if it succeeds, otherwise rollback.
@@ -84,13 +84,13 @@ data MatchOutput = MatchOutput
       -- | For each optional group whether it matched or not
     , matchedOptionals :: [Bool]
       -- | The graphemes which were matched
-    , matchedGraphemes :: [WordPart]
+    , matchedGraphemes :: [Grapheme]
     } deriving (Show)
 
-modifyMatchedGraphemes :: ([WordPart] -> [WordPart]) -> MatchOutput -> MatchOutput
+modifyMatchedGraphemes :: ([Grapheme] -> [Grapheme]) -> MatchOutput -> MatchOutput
 modifyMatchedGraphemes f MatchOutput{..} = MatchOutput{matchedGraphemes=f matchedGraphemes, ..}
 
-prependGrapheme :: WordPart -> MatchOutput -> MatchOutput
+prependGrapheme :: Grapheme -> MatchOutput -> MatchOutput
 prependGrapheme g = modifyMatchedGraphemes (g:)
 
 instance Semigroup MatchOutput where
@@ -106,41 +106,22 @@ match :: forall a t.
        )
       => Maybe Grapheme       -- ^ The previously-matched grapheme, if any. (Used to match a 'Geminate'.)
       -> Lexeme a             -- ^ The lexeme to match.
-      -> MultiZipper t WordPart   -- ^ The 'MultiZipper' to match against.
-      -> Maybe (MatchOutput, MultiZipper t WordPart)
+      -> MultiZipper t Grapheme   -- ^ The 'MultiZipper' to match against.
+      -> Maybe (MatchOutput, MultiZipper t Grapheme)
       -- ^ The output: a tuple @((i, g), mz)@ as described below.
-match _    Syllable     mz = (MatchOutput [] [] [],) <$> matchWordPart isLeft mz
 match prev (Optional l) mz = case matchMany prev l mz of
     Just (out, mz') -> Just (MatchOutput [] [True]  [] <> out, mz')
     Nothing         -> Just (MatchOutput [] [False] [], mz)
 match prev w@(Wildcard l) mz = case match prev l mz of
     Just r -> Just r
     Nothing -> consume mz >>= \(g, mz') -> match prev w mz' <&> first (prependGrapheme g)
-match prev w@(WithinSyllable l) mz = case match prev l mz of
-    Just r -> Just r
-    Nothing -> consume mz >>= \case
-        (Left _, _) -> Nothing
-        (g@(Right _), mz') -> match prev w mz' <&> first (prependGrapheme g)
-match _ (Supra ss) mz = yank getSupras mz >>= \ssGiven ->
-    if all (\(k, a) -> Map.lookup k ssGiven == a) ss
-    then Just (MatchOutput [] [] [], mz)
-    else Nothing
-match prev l            mz
-    -- pass over 'SyllableBoundary', but only in the environment, and
-    -- only when the current lexeme is not a 'Syllable' (which should
-    -- match) or else an 'Optional', 'Supra' or
-    -- 'Wildcard'/'WithinSyllable' (which should try to match without
-    -- consuming anything)
-    | SEnv <- singLT @a
-    , Just mz' <- matchWordPart isLeft mz
-    = match prev l mz' <&> first (prependGrapheme $ Left (SyllableBoundary Map.empty))
-match _ (Grapheme g) mz = (MatchOutput [] [] [Right g],) <$> matchGrapheme g mz
+match _ (Grapheme g) mz = (MatchOutput [] [] [g],) <$> matchGrapheme g mz
 match _ (Category gs) mz =
     gs
     -- Attempt to match each option in category...
     & fmap (\case
                BoundaryEl -> if atBoundary mz then Just ([], mz) else Nothing
-               GraphemeEl g -> ([Right g],) <$> matchGrapheme g mz)
+               GraphemeEl g -> ([g],) <$> matchGrapheme g mz)
     -- ...get the index of each match...
     & zipWith (\i m -> fmap (i,) m) [0..]
     -- ...sort by match length descending...
@@ -151,13 +132,13 @@ match _ (Category gs) mz =
 match _ Boundary mz = if atBoundary mz then Just (MatchOutput [] [] [], mz) else Nothing
 match prev Geminate mz = case prev of
     Nothing -> Nothing
-    Just prev' -> (MatchOutput [] [] [Right prev'],) <$> matchGrapheme prev' mz
+    Just prev' -> (MatchOutput [] [] [prev'],) <$> matchGrapheme prev' mz
 
-matchGrapheme :: Grapheme -> MultiZipper t WordPart -> Maybe (MultiZipper t WordPart)
-matchGrapheme g = matchWordPart (==Right g)
+matchGrapheme :: Grapheme -> MultiZipper t Grapheme -> Maybe (MultiZipper t Grapheme)
+matchGrapheme g = matchGraphemeP (==g)
 
-matchWordPart :: (WordPart -> Bool) -> MultiZipper t WordPart -> Maybe (MultiZipper t WordPart)
-matchWordPart p mz = value mz >>= \cs -> if p cs then fwd mz else Nothing
+matchGraphemeP :: (Grapheme -> Bool) -> MultiZipper t Grapheme -> Maybe (MultiZipper t Grapheme)
+matchGraphemeP p mz = value mz >>= \cs -> if p cs then fwd mz else Nothing
 
 -- | Match a list of several 'Lexeme's against a
 -- 'MultiZipper'. Arguments and output are the same as with 'match',
@@ -169,14 +150,14 @@ matchMany ::
            )
           => Maybe Grapheme
           -> [Lexeme a]
-          -> MultiZipper t WordPart
-          -> Maybe (MatchOutput, MultiZipper t WordPart)
+          -> MultiZipper t Grapheme
+          -> Maybe (MatchOutput, MultiZipper t Grapheme)
 matchMany = go (MatchOutput [] [] [])
   where
     go out _ [] mz = Just (out, mz)
     go out prev (l:ls) mz = match prev l mz >>= \case
         (out', mz') ->
-            go (out <> out') ((lastMay (matchedGraphemes out') >>= getGrapheme) <|> prev) ls mz'
+            go (out <> out') (lastMay (matchedGraphemes out') <|> prev) ls mz'
 
 -- Small utility function, not exported
 lastMay :: [a] -> Maybe a
@@ -187,8 +168,8 @@ lastMay l = if null l then Nothing else Just (last l)
 mkReplacement
     :: MatchOutput              -- ^ The result of matching against the target
     -> [Lexeme 'Replacement]    -- ^ The 'Lexeme's specifying the replacement.
-    -> MultiZipper t WordPart
-    -> MultiZipper t WordPart
+    -> MultiZipper t Grapheme
+    -> MultiZipper t Grapheme
 mkReplacement = \out@MatchOutput{matchedGraphemes=matched} ls ->
     snd . go matched out ls
   where
@@ -200,41 +181,35 @@ mkReplacement = \out@MatchOutput{matchedGraphemes=matched} ls ->
 
     replaceLex
         :: MatchOutput
-        -> [WordPart]
+        -> [Grapheme]
         -> Lexeme 'Replacement
-        -> MultiZipper t WordPart
-        -> (MatchOutput, MultiZipper t WordPart)
-    replaceLex out _ (Grapheme g) mz = (out, insert (Right g) mz)
+        -> MultiZipper t Grapheme
+        -> (MatchOutput, MultiZipper t Grapheme)
+    replaceLex out _ (Grapheme g) mz = (out, insert g mz)
     replaceLex out@MatchOutput{matchedCatIxs=(i:is)} _ (Category gs) mz = (out{matchedCatIxs=is},) $ flip insert mz $
         if i < length gs
-        then case gs !! i of GraphemeEl g -> Right g
-        else Right "\xfffd"  -- Unicode replacement character
-    replaceLex out@MatchOutput{matchedCatIxs=[]} _ (Category _) mz = (out, insert (Right "\xfffd") mz)
+        then case gs !! i of GraphemeEl g -> g
+        else "\xfffd"  -- Unicode replacement character
+    replaceLex out@MatchOutput{matchedCatIxs=[]} _ (Category _) mz = (out, insert "\xfffd" mz)
     replaceLex MatchOutput{matchedOptionals=(o:os), ..} matched (Optional ls) mz =
         let out' = MatchOutput{matchedOptionals=os, ..}
         in if o
            then go matched out' ls mz
            else (out', mz)
-    replaceLex out@MatchOutput{matchedOptionals=[]} _ (Optional _) mz = (out, insert (Right "\xfffd") mz)
+    replaceLex out@MatchOutput{matchedOptionals=[]} _ (Optional _) mz = (out, insert "\xfffd" mz)
     replaceLex out     matched Metathesis    mz = (out,) $ flip insertMany mz $ reverse matched
     replaceLex out     _       Geminate      mz = (out,) $ flip insertMany mz $ maybeToList $ lastMay $ matchedGraphemes out
-    replaceLex out     _       Syllable      mz = (out,) $ flip insert mz $ Left (SyllableBoundary Map.empty)
-    replaceLex out     _       (Supra ss)    mz = (out,) $
-        flip zap mz $ \case
-            Right _ -> Nothing
-            Left (SyllableBoundary ss') -> Just $ Left $ SyllableBoundary $
-                foldr (\(k, v) -> Map.alter (const v) k) ss' ss
 
 -- | Given a 'Rule' and a 'MultiZipper', determines whether the
 -- 'exception' of that rule (if any) applies starting at the current
 -- position of the 'MultiZipper'; if it does, returns the index of the
 -- first element of the matching 'target'.
-exceptionAppliesAtPoint :: [Lexeme 'Target] -> Environment -> MultiZipper RuleTag WordPart -> Maybe Int
+exceptionAppliesAtPoint :: [Lexeme 'Target] -> Environment -> MultiZipper RuleTag Grapheme -> Maybe Int
 exceptionAppliesAtPoint target (ex1, ex2) mz = fmap fst $ flip runRuleAp mz $ do
     _ <- RuleAp $ matchMany Nothing ex1
     pos <- gets curPos
     MatchOutput{matchedGraphemes} <- RuleAp $ matchMany Nothing target
-    _ <- RuleAp $ matchMany (listToMaybe $ mapMaybe getGrapheme matchedGraphemes) ex2
+    _ <- RuleAp $ matchMany (listToMaybe matchedGraphemes) ex2
     return pos
 
 -- | Given a 'Rule', determine if that rule matches. If so, set the
@@ -244,19 +219,19 @@ exceptionAppliesAtPoint target (ex1, ex2) mz = fmap fst $ flip runRuleAp mz $ do
 -- return 'Nothing'.
 matchRuleAtPoint
     :: Rule
-    -> MultiZipper RuleTag WordPart
-    -> Maybe (MatchOutput, MultiZipper RuleTag WordPart)
+    -> MultiZipper RuleTag Grapheme
+    -> Maybe (MatchOutput, MultiZipper RuleTag Grapheme)
 matchRuleAtPoint Rule{environment = (env1, env2), ..} mz = flip runRuleAp mz $ do
     _ <- RuleAp $ matchMany Nothing env1
     modify $ tag TargetStart
     matchResult <- RuleAp $ matchMany Nothing target
     modify $ tag TargetEnd
-    _ <- RuleAp $ matchMany (listToMaybe $ mapMaybe getGrapheme $ matchedGraphemes matchResult) env2
+    _ <- RuleAp $ matchMany (listToMaybe $ matchedGraphemes matchResult) env2
     return matchResult
 
 -- | Given a 'Rule', determine if the rule matches at the current
 -- point; if so, apply the rule, adding appropriate tags.
-applyOnce :: Rule -> State (MultiZipper RuleTag WordPart) Bool
+applyOnce :: Rule -> State (MultiZipper RuleTag Grapheme) Bool
 applyOnce r@Rule{target, replacement, exception} = do
     modify $ tag AppStart
     result <- try (matchRuleAtPoint r)
@@ -278,7 +253,7 @@ applyOnce r@Rule{target, replacement, exception} = do
 
 -- | Remove tags and advance the current index to the next 'Grapheme'
 -- after the rule application.
-setupForNextApplication :: Bool -> Rule -> MultiZipper RuleTag WordPart -> Maybe (MultiZipper RuleTag WordPart)
+setupForNextApplication :: Bool -> Rule -> MultiZipper RuleTag Grapheme -> Maybe (MultiZipper RuleTag Grapheme)
 setupForNextApplication success r@Rule{flags=Flags{applyDirection}} = fmap untag .
     case applyDirection of
         RTL -> seek AppStart >=> bwd
@@ -294,14 +269,14 @@ setupForNextApplication success r@Rule{flags=Flags{applyDirection}} = fmap untag
 -- | Apply a 'Rule' to a 'MultiZipper'. The application will start at
 -- the beginning of the 'MultiZipper', and will be repeated as many
 -- times as possible.
-apply :: Rule -> MultiZipper RuleTag WordPart -> MultiZipper RuleTag WordPart
+apply :: Rule -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme
 apply r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
     let startingPos = case applyDirection $ flags r of
             LTR -> toBeginning mz
             RTL -> toEnd mz
     in repeatRule (applyOnce r) startingPos
   where
-    repeatRule :: State (MultiZipper RuleTag WordPart) Bool -> MultiZipper RuleTag WordPart -> MultiZipper RuleTag WordPart
+    repeatRule :: State (MultiZipper RuleTag Grapheme) Bool -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme
     repeatRule m mz = case runState m mz of
         (success, mz') ->
             if success && applyOnceOnly (flags r)
@@ -311,7 +286,7 @@ apply r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
                 Nothing -> mz'
 
 -- | Apply a 'Rule' to a word, represented as a list of
--- 'WordPart's. This is a simple wrapper around 'apply'.
-applyStr :: Rule -> [WordPart] -> [WordPart]
+-- 'Grapheme's. This is a simple wrapper around 'apply'.
+applyStr :: Rule -> [Grapheme] -> [Grapheme]
 -- Note: 'fromJust' is safe here as 'apply' should always succeed
 applyStr r s = toList $ apply r $ fromListStart s
