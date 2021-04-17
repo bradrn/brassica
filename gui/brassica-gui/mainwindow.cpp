@@ -164,10 +164,17 @@ void MainWindow::openRules()
     QTextStream in(&file);
     in.setCodec(QTextCodec::codecForName("UTF-8"));
     QString line;
+
+    QString categories;
+    QString rules;
+
     while (!in.atEnd() && (line = in.readLine()) != "[rules]")
-        categoriesEdit->appendPlainText(line);
+        categories.append(line + "\n");
     while (in.readLineInto(&line))
-        rulesEdit->appendPlainText(line);
+        rules.append(line + "\n");
+
+    categoriesEdit->setPlainText(categories);
+    rulesEdit->setPlainText(rules);
 }
 
 void MainWindow::saveRules()
