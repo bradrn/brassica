@@ -5,17 +5,14 @@
 
 module BrassicaInterop where
 
-import Data.Either (fromRight)
-import Data.Functor ((<&>))
 import Data.IORef
-import Data.List (intercalate)
 import Foreign.C
 import Foreign.StablePtr
 
 import SoundChange
 import SoundChange.Parse
 import SoundChange.Types
-import Data.Maybe (fromMaybe, mapMaybe)
+import Data.Maybe (fromMaybe)
 
 parseTokeniseAndApplyRules_hs
     :: CString     -- ^ categories
@@ -40,9 +37,7 @@ parseTokeniseAndApplyRules_hs catsRaw rulesRaw wsRaw (CBool report) hlMode prevP
             if report == 1 then do
                 let result = tokeniseAnd applyRulesWithLog cats rules wsText
                 writeIORef prevRef Nothing
-                newCString $ intercalate "<br>" $ concat (getWords result) <&> \RuleApplied{..} ->
-                    "<b>" ++ concat input ++ "</b> &rarr;\
-                    \<b>" ++ concat output ++ "</b> (" ++ plaintext rule ++ ")"
+                newCString $ surroundTable $ formatLog $ concat (getWords result)
             else case hlMode of
                 1 -> do
                     let result = tokeniseAnd applyRules cats rules wsText
@@ -65,6 +60,23 @@ parseTokeniseAndApplyRules_hs catsRaw rulesRaw wsRaw (CBool report) hlMode prevP
                     writeIORef prevRef $ Just result
                     newCString $ escape $ detokeniseWords result
   where
+    formatLog :: [LogItem Rule] -> String
+    formatLog = concat . go Nothing
+      where
+        go :: Maybe [Grapheme] -> [LogItem Rule] -> [String]
+        go _ [] = []
+        go prev (RuleApplied{..} : ls) =
+            let cell1 = case prev of
+                    Just input' | input == input' -> ""
+                    _ -> concat input
+            in
+                ("<tr><td>" ++ cell1 ++ "</td><td>&rarr;</td>\
+                \<td>" ++ concat output ++ "</td><td>(" ++ plaintext rule ++ ")</td></tr>")
+                : go (Just output) ls
+
+    surroundTable :: String -> String
+    surroundTable s = "<table>" ++ s ++ "</table>"
+
     escape :: String -> String
     escape = concatMap $ \case
         '\n' -> "<br/>"
