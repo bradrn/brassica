@@ -1,5 +1,9 @@
 .stack-work/
 *~
 *.exe
+*.a
 electron/node_modules
 electron/static
+gui/build*
+gui/brassica-interop/stub/
+CMakeLists.txt.user
