@@ -17,4 +17,4 @@ library
   build-depends:       base >= 4.7 && < 5
                      , brassica
   default-language:    Haskell2010
-  ghc-options:         -stubdir stub -o brassica-interop.a -static -optl-static -staticlib
+  ghc-options:         -stubdir stub -o brassica-interop.a -static -optl-static -staticlib -Wall

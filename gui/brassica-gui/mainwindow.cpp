@@ -3,9 +3,11 @@
 
 #include <QFileDialog>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QLabel>
 #include <QMenu>
 #include <QMenuBar>
+#include <QRadioButton>
 #include <QTextCodec>
 #include <QTextStream>
 #include <Qt>
@@ -14,6 +16,8 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
     setWindowTitle("Brassica");
+
+    hsResults = initResults();
 
     QWidget *window = new QWidget;
     setCentralWidget(window);
@@ -71,6 +75,20 @@ void MainWindow::setupWidgets(QWidget *central)
     reportRulesBtn = new QPushButton("Report rules applied");
     midLayout->addWidget(reportRulesBtn);
 
+    QGroupBox *highlightBox = new QGroupBox("Output highlighting");
+    QVBoxLayout *highlightLayout = new QVBoxLayout(highlightBox);
+    midLayout->addWidget(highlightBox);
+
+    nohighlightBtn = new QRadioButton("No highlighting");
+    nohighlightBtn->setChecked(true);
+    highlightLayout->addWidget(nohighlightBtn);
+
+    diffhighlightBtn = new QRadioButton("Different to last run");
+    highlightLayout->addWidget(diffhighlightBtn);
+
+    inputhighlightBtn = new QRadioButton("Different to input");
+    highlightLayout->addWidget(inputhighlightBtn);
+
     QLabel *outputLbl = new QLabel("Output lexicon:");
     outputEdit = new QTextEdit;
     outputEdit->setReadOnly(true);
@@ -104,7 +122,17 @@ void MainWindow::applySoundChanges()
 
     //QString output = proc->applyRules(categories, rules, words);
 
-    QByteArray output = QByteArray((char*) parseTokeniseAndApplyRules_hs(categories.toUtf8().data(), rules.toUtf8().data(), words.toUtf8().data(), false));
+    int checkedHl = 0;
+    if (diffhighlightBtn->isChecked()) checkedHl = 1;
+    else if (inputhighlightBtn->isChecked()) checkedHl = 2;
+
+    QByteArray output = QByteArray((char*) parseTokeniseAndApplyRules_hs(
+                                       categories.toUtf8().data(),
+                                       rules.toUtf8().data(),
+                                       words.toUtf8().data(),
+                                       false,
+                                       checkedHl,
+                                       hsResults));
     outputEdit->setHtml(output);
 }
 
@@ -116,7 +144,13 @@ void MainWindow::reportRulesApplied()
 
     //QString output = proc->applyRules(categories, rules, words);
 
-    QByteArray output = QByteArray((char*) parseTokeniseAndApplyRules_hs(categories.toUtf8().data(), rules.toUtf8().data(), words.toUtf8().data(), true));
+    QByteArray output = QByteArray((char*) parseTokeniseAndApplyRules_hs(
+                                       categories.toUtf8().data(),
+                                       rules.toUtf8().data(),
+                                       words.toUtf8().data(),
+                                       true,
+                                       0,
+                                       hsResults));
     outputEdit->setHtml(output);
 }
 

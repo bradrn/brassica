@@ -17,6 +17,7 @@ module SoundChange.Parse
     , Component(..)
     , getWords
     , unsafeCastComponent
+    , zipWithComponents
     , tokeniseWords
     , detokeniseWords
     , detokeniseWords'
@@ -299,3 +300,11 @@ detokeniseWords' f = concatMap $ \case
     Word gs -> f gs
     Whitespace w -> w
     Gloss g -> '[':(g ++ "]")
+
+zipWithComponents :: [Component a] -> [Component b] -> b -> (a -> b -> c) -> [Component c]
+zipWithComponents []             _            _  _ = []
+zipWithComponents as            []            bd f = (fmap.fmap) (`f` bd) as
+zipWithComponents (Word a:as)   (Word b:bs)   bd f = Word (f a b) : zipWithComponents as bs bd f
+zipWithComponents as@(Word _:_) (_:bs)        bd f = zipWithComponents as bs bd f
+zipWithComponents (a:as)        bs@(Word _:_) bd f = unsafeCastComponent a : zipWithComponents as bs bd f
+zipWithComponents (a:as)        (_:bs)        bd f = unsafeCastComponent a : zipWithComponents as bs bd f

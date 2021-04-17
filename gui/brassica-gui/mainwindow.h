@@ -1,12 +1,14 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "HsFFI.h"
 #include "ruleshighlighter.h"
 
 #include <QMainWindow>
 #include <QPlainTextEdit>
 #include <QProcess>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QSplitter>
 #include <QVBoxLayout>
 
@@ -23,6 +25,9 @@ private:
     QPlainTextEdit *rulesEdit;
     QPlainTextEdit *wordsEdit;
     QPushButton *applyBtn;
+    QRadioButton *nohighlightBtn;
+    QRadioButton *diffhighlightBtn;
+    QRadioButton *inputhighlightBtn;
     QPushButton *reportRulesBtn;
     QTextEdit *outputEdit;
 
@@ -34,6 +39,8 @@ private:
     void setupMenuBar();
 
     QVBoxLayout *mkLayoutWithContainer(QSplitter *splitter);
+
+    HsStablePtr hsResults;
 
 private slots:
     void applySoundChanges();
