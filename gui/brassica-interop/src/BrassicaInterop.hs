@@ -35,7 +35,7 @@ parseTokeniseAndApplyRules_hs catsRaw rulesRaw wsRaw (CBool report) hlMode prevP
     let cats = parseCategoriesSpec $ lines catsText
 
     case parseRules cats rulesText of
-        Left e -> newCString $ errorBundlePretty e
+        Left e -> newCString $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
         Right rules ->
             if report == 1 then do
                 let result = tokeniseAnd applyRulesWithLog cats rules wsText
