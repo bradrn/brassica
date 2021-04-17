@@ -41,21 +41,9 @@ library
 
   default-language: Haskell2010
 
-executable brassica-gui
-  main-is:          Main.hs
-  hs-source-dirs:   app/gui
-  ghc-options:      -threaded -rtsopts -with-rtsopts=-N -Wall
-  build-depends:
-      base            >=4.7  && <5
-    , brassica
-    , containers       >=0.6  && <0.7
-    , threepenny-gui
-
-  default-language: Haskell2010
-
 executable brassica-cli
   main-is:          Main.hs
-  hs-source-dirs:   app/cli
+  hs-source-dirs:   cli
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       base            >=4.7  && <5
