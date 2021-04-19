@@ -65,6 +65,7 @@ data Lexeme (a :: LexemeType) where
     Metathesis :: Lexeme 'Replacement
     Geminate :: Lexeme a
     Wildcard :: OneOf a 'Target 'Env => Lexeme a -> Lexeme a
+    Discard  :: Lexeme 'Replacement
 
 deriving instance Show (Lexeme a)
 

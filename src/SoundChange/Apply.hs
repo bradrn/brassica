@@ -199,6 +199,8 @@ mkReplacement = \out@MatchOutput{matchedGraphemes=matched} ls ->
     replaceLex out@MatchOutput{matchedOptionals=[]} _ (Optional _) mz = (out, insert "\xfffd" mz)
     replaceLex out     matched Metathesis    mz = (out,) $ flip insertMany mz $ reverse matched
     replaceLex out     _       Geminate      mz = (out,) $ flip insertMany mz $ maybeToList $ lastMay $ matchedGraphemes out
+    replaceLex out@MatchOutput{matchedCatIxs=(_:is)} _ Discard mz = (out{matchedCatIxs=is}, mz)
+    replaceLex out@MatchOutput{matchedCatIxs=[]} _ Discard mz = (out, insert "\xfffd" mz)
 
 -- | Given a 'Rule' and a 'MultiZipper', determines whether the
 -- 'exception' of that rule (if any) applies starting at the current

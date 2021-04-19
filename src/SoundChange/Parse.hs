@@ -75,7 +75,7 @@ symbol :: String -> Parser String
 symbol = L.symbol sc
 
 keyChars :: [Char]
-keyChars = "#[](){}>\\/_^%"
+keyChars = "#[](){}>\\/_^%~"
 
 parseGrapheme :: Parser Grapheme
 parseGrapheme = lexeme $ takeWhile1P Nothing (not . ((||) <$> isSpace <*> (`elem` keyChars)))
@@ -146,6 +146,9 @@ parseWildcard = Wildcard <$> (symbol "^" *> parseLexeme)
 parseBoundary :: Parser ()
 parseBoundary = () <$ symbol "#"
 
+parseDiscard :: Parser (Lexeme 'Replacement)
+parseDiscard = Discard <$ symbol "~"
+
 instance ParseLexeme 'Target where
     parseLexeme = asum
         [ parseCategory
@@ -161,6 +164,7 @@ instance ParseLexeme 'Replacement where
         [ parseCategory
         , parseOptional
         , parseMetathesis
+        , parseDiscard
         , parseGeminate
         , parseGraphemeOrCategory
         ]
