@@ -170,35 +170,38 @@ mkReplacement
     -> [Lexeme 'Replacement]    -- ^ The 'Lexeme's specifying the replacement.
     -> MultiZipper t Grapheme
     -> MultiZipper t Grapheme
-mkReplacement = \out ls -> snd . go out ls
+mkReplacement = \out ls -> fst . snd . go out ls . (,Nothing)
   where
-    go out []     mz = (out, mz)
-    go out (l:ls) mz =
-        let (out', mz') = replaceLex out l mz
-        in go out' ls mz'
+    go out []     (mz, prev) = (out, (mz, prev))
+    go out (l:ls) (mz, prev) =
+        let (out', (mz', prev')) = replaceLex out l mz prev
+        in go out' ls (mz', prev')
 
 
     replaceLex
         :: MatchOutput
         -> Lexeme 'Replacement
         -> MultiZipper t Grapheme
-        -> (MatchOutput, MultiZipper t Grapheme)
-    replaceLex out (Grapheme g) mz = (out, insert g mz)
-    replaceLex out@MatchOutput{matchedCatIxs=(i:is)} (Category gs) mz = (out{matchedCatIxs=is},) $ flip insert mz $
+        -> Maybe Grapheme
+        -> (MatchOutput, (MultiZipper t Grapheme, Maybe Grapheme))
+    replaceLex out (Grapheme g) mz _prev = (out, (insert g mz, Just g))
+    replaceLex out@MatchOutput{matchedCatIxs=(i:is)} (Category gs) mz _prev = (out{matchedCatIxs=is},) $
         if i < length gs
-        then case gs !! i of GraphemeEl g -> g
-        else "\xfffd"  -- Unicode replacement character
-    replaceLex out@MatchOutput{matchedCatIxs=[]} (Category _) mz = (out, insert "\xfffd" mz)
-    replaceLex MatchOutput{matchedOptionals=(o:os), ..} (Optional ls) mz =
+        then case gs !! i of GraphemeEl g -> (insert g mz, Just g)
+        else (insert "\xfffd" mz, Nothing)  -- Unicode replacement character
+    replaceLex out@MatchOutput{matchedCatIxs=[]} (Category _) mz _prev = (out, (insert "\xfffd" mz, Nothing))
+    replaceLex MatchOutput{matchedOptionals=(o:os), ..} (Optional ls) mz prev =
         let out' = MatchOutput{matchedOptionals=os, ..}
         in if o
-           then go out' ls mz
-           else (out', mz)
-    replaceLex out@MatchOutput{matchedOptionals=[]} (Optional _) mz = (out, insert "\xfffd" mz)
-    replaceLex out@MatchOutput{matchedGraphemes}     Metathesis  mz = (out,) $ flip insertMany mz $ reverse matchedGraphemes
-    replaceLex out@MatchOutput{matchedGraphemes}     Geminate    mz = (out,) $ flip insertMany mz $ maybeToList $ lastMay matchedGraphemes
-    replaceLex out@MatchOutput{matchedCatIxs=(_:is)} Discard mz = (out{matchedCatIxs=is}, mz)
-    replaceLex out@MatchOutput{matchedCatIxs=[]} Discard mz = (out, insert "\xfffd" mz)
+           then go out' ls (mz, prev)
+           else (out', (mz, Nothing))
+    replaceLex out@MatchOutput{matchedOptionals=[]} (Optional _) mz _prev = (out, (insert "\xfffd" mz, Nothing))
+    replaceLex out@MatchOutput{matchedGraphemes}     Metathesis  mz _prev =
+        (out, (flip insertMany mz $ reverse matchedGraphemes, listToMaybe matchedGraphemes))
+    replaceLex out                                   Geminate    mz prev =
+        (out, (flip insertMany mz $ maybeToList prev, prev))
+    replaceLex out@MatchOutput{matchedCatIxs=(_:is)} Discard mz prev = (out{matchedCatIxs=is}, (mz, prev))
+    replaceLex out@MatchOutput{matchedCatIxs=[]} Discard mz prev = (out, (insert "\xfffd" mz, prev))
 
 -- | Given a 'Rule' and a 'MultiZipper', determines whether the
 -- 'exception' of that rule (if any) applies starting at the current
