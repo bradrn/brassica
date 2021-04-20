@@ -115,6 +115,11 @@ match prev (Optional l) mz = case matchMany prev l mz of
 match prev w@(Wildcard l) mz = case match prev l mz of
     Just r -> Just r
     Nothing -> consume mz >>= \(g, mz') -> match prev w mz' <&> first (prependGrapheme g)
+match prev k@(Kleene l) mz = case match prev l mz of
+    Nothing -> Just (MatchOutput [] [] [], mz)
+    Just (out, mz') -> case match prev k mz' of
+        Nothing -> error "match: Kleene should never fail"
+        Just (out', mz'') -> Just (out <> out', mz'')
 match _ (Grapheme g) mz = (MatchOutput [] [] [g],) <$> matchGrapheme g mz
 match _ (Category gs) mz =
     gs

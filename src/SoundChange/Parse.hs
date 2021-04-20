@@ -58,7 +58,7 @@ class ParseLexeme (a :: LexemeType) where
 
 -- space consumer which does not match newlines
 sc :: Parser ()
-sc = L.space space1' (L.skipLineComment "*") empty
+sc = L.space space1' (L.skipLineComment ";") empty
   where
     -- adapted from megaparsec source: like 'space1', but does not
     -- consume newlines (which are important for rule separation)
@@ -66,7 +66,7 @@ sc = L.space space1' (L.skipLineComment "*") empty
 
 -- space consumer which matches newlines
 scn :: Parser ()
-scn = L.space space1 (L.skipLineComment "*") empty
+scn = L.space space1 (L.skipLineComment ";") empty
 
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
@@ -75,7 +75,7 @@ symbol :: String -> Parser String
 symbol = L.symbol sc
 
 keyChars :: [Char]
-keyChars = "#[](){}>\\/_^%~"
+keyChars = "#[](){}>\\/_^%~*"
 
 parseGrapheme :: Parser Grapheme
 parseGrapheme = lexeme $ takeWhile1P Nothing (not . ((||) <$> isSpace <*> (`elem` keyChars)))
@@ -149,6 +149,9 @@ parseBoundary = () <$ symbol "#"
 parseDiscard :: Parser (Lexeme 'Replacement)
 parseDiscard = Discard <$ symbol "~"
 
+parseKleene :: OneOf a 'Target 'Env => Lexeme a -> Parser (Lexeme a)
+parseKleene l = (Kleene l <$ symbol "*") <|> pure l
+
 instance ParseLexeme 'Target where
     parseLexeme = asum
         [ parseCategory
@@ -156,7 +159,7 @@ instance ParseLexeme 'Target where
         , parseGeminate
         , parseWildcard
         , parseGraphemeOrCategory
-        ]
+        ] >>= parseKleene
     parseCategoryElement = GraphemeEl <$> parseGrapheme
 
 instance ParseLexeme 'Replacement where
@@ -178,7 +181,7 @@ instance ParseLexeme 'Env where
         , parseGeminate
         , parseWildcard
         , parseGraphemeOrCategory
-        ]
+        ] >>= parseKleene
     parseCategoryElement = asum
         [ BoundaryEl <$  parseBoundary
         , GraphemeEl <$> parseGrapheme

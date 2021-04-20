@@ -6,7 +6,7 @@ RulesHighlighter::RulesHighlighter(QTextDocument *parent)
     QTextCharFormat specialCharsFormat;
     specialCharsFormat.setForeground(QColor(0, 0, 255));
     formats.append(specialCharsFormat);
-    patterns.append(QRegularExpression(R"(>|#|\(|\)|{|}|\\|^|%|~)"));
+    patterns.append(QRegularExpression(R"(>|#|\(|\)|{|}|\\|^|%|~|\*)"));
 
     QTextCharFormat separatorFormat;
     separatorFormat.setFontWeight(QFont::Bold);
@@ -17,7 +17,7 @@ RulesHighlighter::RulesHighlighter(QTextDocument *parent)
     commentFormat.setForeground(QColor(0, 128, 0));
     commentFormat.setFontItalic(true);
     formats.append(commentFormat);
-    patterns.append(QRegularExpression(R"(\*.*)"));
+    patterns.append(QRegularExpression(R"(;.*)"));
 
     categoryFormat = QTextCharFormat();
     categoryFormat.setBackground(QColor(245, 245, 220));
