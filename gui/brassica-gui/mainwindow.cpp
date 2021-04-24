@@ -133,7 +133,7 @@ void MainWindow::applySoundChanges()
                                        false,
                                        checkedHl,
                                        hsResults));
-    outputEdit->setHtml(output);
+    outputEdit->setHtml(QString::fromUtf8(output));
 }
 
 void MainWindow::reportRulesApplied()
@@ -151,7 +151,7 @@ void MainWindow::reportRulesApplied()
                                        true,
                                        0,
                                        hsResults));
-    outputEdit->setHtml(output);
+    outputEdit->setHtml(QString::fromUtf8(output));
 }
 
 void MainWindow::openRules()

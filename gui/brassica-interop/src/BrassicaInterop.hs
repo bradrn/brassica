@@ -13,6 +13,8 @@ import SoundChange
 import SoundChange.Parse
 import SoundChange.Types
 import Data.Maybe (fromMaybe)
+import Data.ByteString (packCString)
+import qualified Data.ByteString.UTF8 as B8
 
 parseTokeniseAndApplyRules_hs
     :: CString     -- ^ categories
@@ -23,9 +25,9 @@ parseTokeniseAndApplyRules_hs
     -> StablePtr (IORef (Maybe [Component [Grapheme]]))  -- ^ previous results
     -> IO CString  -- ^ output (either wordlist or parse error)
 parseTokeniseAndApplyRules_hs catsRaw rulesRaw wsRaw (CBool report) hlMode prevPtr = do
-    catsText <- peekCString catsRaw
-    rulesText <- peekCString rulesRaw
-    wsText <- peekCString wsRaw
+    catsText  <- B8.toString <$> packCString catsRaw
+    rulesText <- B8.toString <$> packCString rulesRaw
+    wsText    <- B8.toString <$> packCString wsRaw
 
     prevRef <- deRefStablePtr prevPtr
 
