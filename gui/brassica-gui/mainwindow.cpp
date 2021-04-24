@@ -27,7 +27,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(applyBtn, &QPushButton::clicked, this, &MainWindow::applySoundChanges);
     connect(reportRulesBtn, &QPushButton::clicked, this, &MainWindow::reportRulesApplied);
-    connect(categoriesEdit, &QPlainTextEdit::textChanged, this, &MainWindow::reparseCategories);
+    connect(rulesEdit, &QPlainTextEdit::textChanged, this, &MainWindow::reparseCategories);
 }
 
 MainWindow::~MainWindow()
@@ -41,7 +41,6 @@ void MainWindow::setupWidgets(QWidget *central)
     QSplitter *mainSplitter = new QSplitter(Qt::Horizontal);
     mainLayout->addWidget(mainSplitter);
 
-    QVBoxLayout *categoriesLayout = mkLayoutWithContainer(mainSplitter);
     QVBoxLayout *rulesLayout      = mkLayoutWithContainer(mainSplitter);
     QVBoxLayout *wordsLayout      = mkLayoutWithContainer(mainSplitter);
     QVBoxLayout *midLayout        = mkLayoutWithContainer(mainSplitter);
@@ -50,12 +49,6 @@ void MainWindow::setupWidgets(QWidget *central)
     midLayout->setAlignment(Qt::AlignTop);
 
     const QFont fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-
-    QLabel *categoriesLbl = new QLabel("Categories:");
-    categoriesEdit = new QPlainTextEdit;
-    categoriesEdit->setFont(fixedFont);
-    categoriesLayout->addWidget(categoriesLbl);
-    categoriesLayout->addWidget(categoriesEdit);
 
     QLabel *rulesLbl = new QLabel("Rules:");
     rulesEdit = new QPlainTextEdit;
@@ -116,7 +109,6 @@ QVBoxLayout *MainWindow::mkLayoutWithContainer(QSplitter *splitter)
 
 void MainWindow::applySoundChanges()
 {
-    QString categories = categoriesEdit->toPlainText();
     QString rules      = rulesEdit     ->toPlainText();
     QString words      = wordsEdit     ->toPlainText();
 
@@ -127,7 +119,6 @@ void MainWindow::applySoundChanges()
     else if (inputhighlightBtn->isChecked()) checkedHl = 2;
 
     QByteArray output = QByteArray((char*) parseTokeniseAndApplyRules_hs(
-                                       categories.toUtf8().data(),
                                        rules.toUtf8().data(),
                                        words.toUtf8().data(),
                                        false,
@@ -138,14 +129,12 @@ void MainWindow::applySoundChanges()
 
 void MainWindow::reportRulesApplied()
 {
-    QString categories = categoriesEdit->toPlainText();
     QString rules      = rulesEdit     ->toPlainText();
     QString words      = wordsEdit     ->toPlainText();
 
     //QString output = proc->applyRules(categories, rules, words);
 
     QByteArray output = QByteArray((char*) parseTokeniseAndApplyRules_hs(
-                                       categories.toUtf8().data(),
                                        rules.toUtf8().data(),
                                        words.toUtf8().data(),
                                        true,
@@ -161,20 +150,7 @@ void MainWindow::openRules()
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         return;
 
-    QTextStream in(&file);
-    in.setCodec(QTextCodec::codecForName("UTF-8"));
-    QString line;
-
-    QString categories;
-    QString rules;
-
-    while (!in.atEnd() && (line = in.readLine()) != "[rules]")
-        categories.append(line + "\n");
-    while (in.readLineInto(&line))
-        rules.append(line + "\n");
-
-    categoriesEdit->setPlainText(categories);
-    rulesEdit->setPlainText(rules);
+    rulesEdit->setPlainText(QString::fromUtf8(file.readAll()));
 }
 
 void MainWindow::saveRules()
@@ -184,13 +160,8 @@ void MainWindow::saveRules()
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
         return;
 
-    QString categories = categoriesEdit->toPlainText();
-    QString rules      = rulesEdit     ->toPlainText();
-    QString words      = wordsEdit     ->toPlainText();
+    QString rules = rulesEdit->toPlainText();
 
-    file.write(categories.toUtf8());
-    if (!categories.endsWith('\n')) file.write("\n");
-    file.write("[rules]\n");
     file.write(rules.toUtf8());
 }
 
@@ -217,23 +188,32 @@ void MainWindow::saveLexicon()
 
 void MainWindow::reparseCategories()
 {
-    const QString categoriesText = categoriesEdit->toPlainText();
+    QString changesText = rulesEdit->toPlainText();
+
+    /* A very simple state machine. Starts recording categories when
+     * `categories` is read. After this, split each line at the equals sign and
+     * add to `categories`. When `end' is reached, read to next `categories`.
+     */
 
     QStringList categories;
 
-    /* A very simple state machine. When a newline is reached, the next
-     * character starts a category name. When an equals sign is reached,
-     * everything from that character to the previous character is retrrieved
-     * and added to `categories`.
-     */
-
-    int curCatStart;
-    for (int i=0; i<categoriesText.length(); ++i)
     {
-        if (categoriesText[i] == '=')
-            categories.append(categoriesText.mid(curCatStart, i-curCatStart).trimmed());
-        else if (categoriesText[i] == '\n')
-            curCatStart = i+1;
+        QTextStream stream;
+        stream.setString(&changesText, QIODevice::ReadOnly);
+        QString line;
+        QStringList lineParts;
+        bool inCategories;
+        while(stream.readLineInto(&line))
+        {
+            if (line.contains("categories")) inCategories = true;
+            else if (line == "end") inCategories = false;
+            else if (inCategories)
+            {
+                lineParts = line.split('=');
+                if (lineParts.length() > 1)
+                    categories.append(lineParts[0].trimmed());
+            }
+        }
     }
 
     rulesHl->setCategories(categories);

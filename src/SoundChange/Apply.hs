@@ -27,8 +27,10 @@ module SoundChange.Apply
        , matchRuleAtPoint
        -- * Sound change application
        , applyOnce
-       , apply
-       , applyStr
+       , applyRule
+       , applyStatement
+       , applyRuleStr
+       , applyStatementStr
        ) where
 
 import Control.Applicative ((<|>))
@@ -277,8 +279,8 @@ setupForNextApplication success r@Rule{flags=Flags{applyDirection}} = fmap untag
 -- | Apply a 'Rule' to a 'MultiZipper'. The application will start at
 -- the beginning of the 'MultiZipper', and will be repeated as many
 -- times as possible.
-apply :: Rule -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme
-apply r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
+applyRule :: Rule -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme
+applyRule r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
     let startingPos = case applyDirection $ flags r of
             LTR -> toBeginning mz
             RTL -> toEnd mz
@@ -293,8 +295,18 @@ apply r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
                 Just mz'' -> repeatRule m mz''
                 Nothing -> mz'
 
+checkGraphemes :: CategoriesDecl -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme
+checkGraphemes (CategoriesDecl gs) = fmap $ \g -> if g `elem` gs then g else "\xfffd"
+
+applyStatement :: Statement -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme
+applyStatement (RuleS r) mz = applyRule r mz
+applyStatement (CategoriesDeclS gs) mz = checkGraphemes gs mz
+
 -- | Apply a 'Rule' to a word, represented as a list of
 -- 'Grapheme's. This is a simple wrapper around 'apply'.
-applyStr :: Rule -> [Grapheme] -> [Grapheme]
+applyRuleStr :: Rule -> [Grapheme] -> [Grapheme]
 -- Note: 'fromJust' is safe here as 'apply' should always succeed
-applyStr r s = toList $ apply r $ fromListStart s
+applyRuleStr r s = toList $ applyRule r $ fromListStart s
+
+applyStatementStr :: Statement -> [Grapheme] -> [Grapheme]
+applyStatementStr st s = toList $ applyStatement st $ fromListStart s

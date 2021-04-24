@@ -16,6 +16,7 @@ module SoundChange.Types where
 
 import Data.Kind (Constraint)
 import GHC.TypeLits
+import SoundChange.Category (Categories)
 
 -- | The constraint @OneOf a x y@ is satisfied if @a ~ x@ or @a ~ y@.
 --
@@ -108,3 +109,11 @@ data Rule = Rule
   , flags       :: Flags
   , plaintext   :: String
   } deriving (Show)
+
+newtype CategoriesDecl = CategoriesDecl { graphemes :: [Grapheme] }
+  deriving (Show)
+
+data Statement = RuleS Rule | CategoriesDeclS CategoriesDecl
+    deriving (Show)
+
+type SoundChanges = [Statement]

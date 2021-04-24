@@ -21,7 +21,6 @@ public:
     ~MainWindow();
 
 private:
-    QPlainTextEdit *categoriesEdit;
     QPlainTextEdit *rulesEdit;
     QPlainTextEdit *wordsEdit;
     QPushButton *applyBtn;

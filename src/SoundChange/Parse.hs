@@ -11,9 +11,7 @@
 module SoundChange.Parse
     ( ParseLexeme
     , parseRule
-    , parseRules
-    , parseCategorySpec
-    , parseCategoriesSpec
+    , parseSoundChanges
     , Component(..)
     , getWords
     , unsafeCastComponent
@@ -36,21 +34,22 @@ import Data.Ord (Down(..))
 import Data.Void (Void)
 
 import Control.Applicative.Permutations
-import Control.Monad.Reader
+import Control.Monad.State
 import qualified Data.List.Split as S
 import qualified Data.Map.Strict as M
 
-import Text.Megaparsec
+import Text.Megaparsec hiding (State)
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
 import SoundChange.Types
 import qualified SoundChange.Category as C
+import Control.Applicative (Alternative)
 
 data Config = Config
     { categories :: C.Categories Grapheme
     }
-type Parser = ParsecT Void String (Reader Config)
+type Parser = ParsecT Void String (State Config)
 
 class ParseLexeme (a :: LexemeType) where
     parseLexeme :: Parser (Lexeme a)
@@ -91,7 +90,7 @@ data CategoryModification a
 parseGraphemeOrCategory :: ParseLexeme a => Parser (Lexeme a)
 parseGraphemeOrCategory = do
     g <- parseGrapheme
-    cats <- asks categories
+    cats <- gets categories
     return $ case C.lookup g cats of
         Nothing -> Grapheme g
         Just c  -> Category $ C.bake $ GraphemeEl <$> c
@@ -99,7 +98,7 @@ parseGraphemeOrCategory = do
 parseCategory :: ParseLexeme a => Parser (Lexeme a)
 parseCategory = do
     mods <- symbol "[" *> someTill parseCategoryModification (symbol "]")
-    cats <- asks categories
+    cats <- gets categories
     return $ Category $ C.bake $
         C.expand (C.mapCategories GraphemeEl cats) (toCategory mods)
 
@@ -108,12 +107,26 @@ parseCategoryStandalone = do
     g <- parseGrapheme'
     _ <- symbol "="
     mods <- some (parseCategoryModification @'Target)
-    cats <- asks categories
+    cats <- gets categories
     return (g, C.expand cats $ toGrapheme <$> toCategory mods)
   where
     -- Use Target here because it only allows graphemes, not boundaries
     toGrapheme :: CategoryElement 'Target -> Grapheme
     toGrapheme (GraphemeEl g) = g
+
+categoriesDeclParse :: Parser CategoriesDecl
+categoriesDeclParse = do
+    overwrite <- isJust <$> optional (symbol "new")
+    _ <- symbol "categories" <* scn
+    catsNew <- foldMany (\(k,c) cs -> M.insert k c cs) M.empty (try parseCategoryStandalone <* scn)
+    _ <- symbol "end" <* scn
+    Config catsOld <- get
+    let categoriesDecl = if overwrite then catsNew else M.union catsNew catsOld
+    put $ Config categoriesDecl
+    return $ CategoriesDecl $ C.values categoriesDecl
+  where
+    foldMany :: (Monad m, Alternative m) => (a -> b -> b) -> b -> m a -> m b
+    foldMany f b ma = f <$> ma <*> (foldMany f b ma <|> pure b)
 
 parseCategoryModification :: ParseLexeme a => Parser (CategoryModification a)
 parseCategoryModification = parsePrefix <*> parseCategoryElement
@@ -221,34 +234,16 @@ ruleParser = do
 
 -- | Parse a 'String' to get a 'Rule'. Returns 'Nothing' if the input
 -- string is malformed.
-parseRule
-    :: C.Categories Grapheme    -- ^ A set of categories which have been pre-defined
-    -> String                   -- ^ The string to parse
-    -> Either (ParseErrorBundle String Void) Rule
-parseRule cats s = flip runReader (Config cats) $ runParserT (scn *> ruleParser <* eof) "" s
+parseRule :: String -> Either (ParseErrorBundle String Void) Rule
+parseRule s = flip evalState (Config M.empty) $ runParserT (scn *> ruleParser <* eof) "" s
 
--- | Parse a list of rules.
-parseRules :: C.Categories Grapheme -> String -> Either (ParseErrorBundle String Void) [Rule]
-parseRules cats s = flip runReader (Config cats) $ runParserT (scn *> many ruleParser <* eof) "" s
-
--- | Parse a category specification, yielding the name of that
--- category as well as a list of elements present in that
--- category. Returns 'Nothing' if the specification cannot be parsed.
-parseCategorySpec
-    :: C.Categories Grapheme   -- ^ A set of categories which have been pre-defined
-    -> String                  -- ^ The string to parse
-    -> Maybe (Grapheme, C.Category 'C.Expanded Grapheme)
-parseCategorySpec cats s =
-    case flip runReader (Config cats) $ runParserT (parseCategoryStandalone <* eof) "" s of
-        Right es -> Just es
-        Left  _  -> Nothing
-
--- | Parse a list of category specifications, accumulating them into
--- a list of 'Categories'.
-parseCategoriesSpec :: [String] -> C.Categories Grapheme
-parseCategoriesSpec = flip foldl M.empty $ \cs s -> case parseCategorySpec cs s of
-    Nothing    -> cs
-    Just (k,c) -> M.insert k c cs
+-- | Parse a list of 'SoundChanges'.
+parseSoundChanges :: String -> Either (ParseErrorBundle String Void) SoundChanges
+parseSoundChanges s = flip evalState (Config M.empty) $ runParserT (scn *> parser <* eof) "" s
+  where
+    parser = many $
+        CategoriesDeclS <$> categoriesDeclParse
+        <|> RuleS <$> ruleParser
 
 -- | Represents a component of a parsed input string. The type
 -- variable will usually be something like '[Grapheme]', though it

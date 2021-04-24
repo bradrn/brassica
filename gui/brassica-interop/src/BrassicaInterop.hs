@@ -17,32 +17,28 @@ import Data.ByteString (packCString)
 import qualified Data.ByteString.UTF8 as B8
 
 parseTokeniseAndApplyRules_hs
-    :: CString     -- ^ categories
-    -> CString     -- ^ rules
+    :: CString     -- ^ changes
     -> CString     -- ^ words
     -> CBool       -- ^ report rules applied?
     -> CInt        -- ^ highlighting mode
     -> StablePtr (IORef (Maybe [Component [Grapheme]]))  -- ^ previous results
     -> IO CString  -- ^ output (either wordlist or parse error)
-parseTokeniseAndApplyRules_hs catsRaw rulesRaw wsRaw (CBool report) hlMode prevPtr = do
-    catsText  <- B8.toString <$> packCString catsRaw
-    rulesText <- B8.toString <$> packCString rulesRaw
+parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) hlMode prevPtr = do
+    changesText <- B8.toString <$> packCString changesRaw
     wsText    <- B8.toString <$> packCString wsRaw
 
     prevRef <- deRefStablePtr prevPtr
 
-    let cats = parseCategoriesSpec $ lines catsText
-
-    case parseRules cats rulesText of
+    case parseSoundChanges changesText of
         Left e -> newCString $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
-        Right rules ->
+        Right statements ->
             if report == 1 then do
-                let result = tokeniseAnd applyRulesWithLog cats rules wsText
+                let result = tokeniseAnd applyChangesWithLog statements wsText
                 writeIORef prevRef Nothing
                 newCString $ surroundTable $ formatLog $ concat (getWords result)
             else case hlMode of
                 1 -> do
-                    let result = tokeniseAnd applyRules cats rules wsText
+                    let result = tokeniseAnd applyChanges statements wsText
                     prev <- readIORef prevRef
                     writeIORef prevRef $ Just result
                     newCString $ escape $ detokeniseWords' id $
@@ -52,29 +48,33 @@ parseTokeniseAndApplyRules_hs catsRaw rulesRaw wsRaw (CBool report) hlMode prevP
                                 then thisWordStr
                                 else "<b>" ++ thisWordStr ++ "</b>"
                 2 -> do
-                    let result = tokeniseAnd applyRulesWithChanges cats rules wsText
+                    let result = tokeniseAnd applyChangesWithChanges statements wsText
                     writeIORef prevRef $ Just $ (fmap.fmap) fst result
                     newCString $ escape $ flip detokeniseWords' result $ \case
                         (w, False) -> concat w
                         (w, True) -> "<b>" ++ concat w ++ "</b>"
                 _ -> do
-                    let result = tokeniseAnd applyRules cats rules wsText
+                    let result = tokeniseAnd applyChanges statements wsText
                     writeIORef prevRef $ Just result
                     newCString $ escape $ detokeniseWords result
   where
-    formatLog :: [LogItem Rule] -> String
+    formatLog :: [LogItem Statement] -> String
     formatLog = concat . go Nothing
       where
-        go :: Maybe [Grapheme] -> [LogItem Rule] -> [String]
+        go :: Maybe [Grapheme] -> [LogItem Statement] -> [String]
         go _ [] = []
-        go prev (RuleApplied{..} : ls) =
+        go prev (ActionApplied{..} : ls) =
             let cell1 = case prev of
                     Just input' | input == input' -> ""
                     _ -> concat input
             in
                 ("<tr><td>" ++ cell1 ++ "</td><td>&rarr;</td>\
-                \<td>" ++ concat output ++ "</td><td>(" ++ plaintext rule ++ ")</td></tr>")
+                \<td>" ++ concat output ++ "</td><td>(" ++ plaintext' action ++ ")</td></tr>")
                 : go (Just output) ls
+
+        plaintext' :: Statement -> String
+        plaintext' (RuleS r) = plaintext r
+        plaintext' (CategoriesDeclS _) = "categories … end"
 
     surroundTable :: String -> String
     surroundTable s = "<table>" ++ s ++ "</table>"
@@ -90,7 +90,6 @@ initResults = newIORef Nothing >>= newStablePtr
 
 foreign export ccall parseTokeniseAndApplyRules_hs
     :: CString
-    -> CString
     -> CString
     -> CBool
     -> CInt

@@ -16,16 +16,13 @@ import SoundChange.Parse
 main :: IO ()
 main = do
     [inputFile, wordsFile, outFile] <- getArgs
-    inputText <- readFile inputFile
-
-    let (catsText, unlines -> rulesText) = span ('=' `elem`) $ lines inputText
-        cats = parseCategoriesSpec catsText
+    changesText <- readFile inputFile
 
     wordsText <- (unpack . decodeUtf8) <$> B.readFile wordsFile
 
-    case parseRules cats rulesText of
+    case parseSoundChanges changesText of
         Left err ->
             putStrLn $ errorBundlePretty err
         Right rules -> do
-            let outWordsText = tokeniseAnd applyRules cats rules wordsText
+            let outWordsText = tokeniseAnd applyChanges rules wordsText
             B.writeFile outFile $ encodeUtf8 $ pack $ detokeniseWords outWordsText
