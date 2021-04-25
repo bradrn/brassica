@@ -6,15 +6,15 @@
 module BrassicaInterop where
 
 import Data.IORef
-import Foreign.C
+import Foreign.C hiding (newCString, peekCString) -- hide these so we don't accidentally use them
 import Foreign.StablePtr
+import qualified GHC.Foreign as GHC
+import GHC.IO.Encoding (utf8)
 
 import SoundChange
 import SoundChange.Parse
 import SoundChange.Types
 import Data.Maybe (fromMaybe)
-import Data.ByteString (packCString)
-import qualified Data.ByteString.UTF8 as B8
 
 parseTokeniseAndApplyRules_hs
     :: CString     -- ^ changes
@@ -24,24 +24,24 @@ parseTokeniseAndApplyRules_hs
     -> StablePtr (IORef (Maybe [Component [Grapheme]]))  -- ^ previous results
     -> IO CString  -- ^ output (either wordlist or parse error)
 parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) hlMode prevPtr = do
-    changesText <- B8.toString <$> packCString changesRaw
-    wsText    <- B8.toString <$> packCString wsRaw
+    changesText <- GHC.peekCString utf8 changesRaw
+    wsText      <- GHC.peekCString utf8 wsRaw
 
     prevRef <- deRefStablePtr prevPtr
 
     case parseSoundChanges changesText of
-        Left e -> newCString $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
+        Left e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
         Right statements ->
             if report == 1 then do
                 let result = tokeniseAnd applyChangesWithLog statements wsText
                 writeIORef prevRef Nothing
-                newCString $ surroundTable $ formatLog $ concat (getWords result)
+                GHC.newCString utf8 $ surroundTable $ formatLog $ concat (getWords result)
             else case hlMode of
                 1 -> do
                     let result = tokeniseAnd applyChanges statements wsText
                     prev <- readIORef prevRef
                     writeIORef prevRef $ Just result
-                    newCString $ escape $ detokeniseWords' id $
+                    GHC.newCString utf8 $ escape $ detokeniseWords' id $
                         zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
                             let thisWordStr = concat thisWord in
                                 if thisWord == prevWord
@@ -50,13 +50,13 @@ parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) hlMode prevPtr = d
                 2 -> do
                     let result = tokeniseAnd applyChangesWithChanges statements wsText
                     writeIORef prevRef $ Just $ (fmap.fmap) fst result
-                    newCString $ escape $ flip detokeniseWords' result $ \case
+                    GHC.newCString utf8 $ escape $ flip detokeniseWords' result $ \case
                         (w, False) -> concat w
                         (w, True) -> "<b>" ++ concat w ++ "</b>"
                 _ -> do
                     let result = tokeniseAnd applyChanges statements wsText
                     writeIORef prevRef $ Just result
-                    newCString $ escape $ detokeniseWords result
+                    GHC.newCString utf8 $ escape $ detokeniseWords result
   where
     formatLog :: [LogItem Statement] -> String
     formatLog = concat . go Nothing
