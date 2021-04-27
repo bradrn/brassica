@@ -117,16 +117,16 @@ parseCategoryStandalone = do
 categoriesDeclParse :: Parser CategoriesDecl
 categoriesDeclParse = do
     overwrite <- isJust <$> optional (symbol "new")
+    when overwrite $ put $ Config M.empty
     _ <- symbol "categories" <* scn
-    catsNew <- foldMany (\(k,c) cs -> M.insert k c cs) M.empty (try parseCategoryStandalone <* scn)
+    -- parse category declarations, adding to the set of known
+    -- categories as each is parsed
+    _ <- some $ do
+        (k, c) <- try parseCategoryStandalone <* scn
+        modify $ \(Config cs) -> Config $ M.insert k c cs
     _ <- symbol "end" <* scn
-    Config catsOld <- get
-    let categoriesDecl = if overwrite then catsNew else M.union catsNew catsOld
-    put $ Config categoriesDecl
-    return $ CategoriesDecl $ C.values categoriesDecl
-  where
-    foldMany :: (Monad m, Alternative m) => (a -> b -> b) -> b -> m a -> m b
-    foldMany f b ma = f <$> ma <*> (foldMany f b ma <|> pure b)
+    Config catsNew <- get
+    return $ CategoriesDecl $ C.values catsNew
 
 parseCategoryModification :: ParseLexeme a => Parser (CategoryModification a)
 parseCategoryModification = parsePrefix <*> parseCategoryElement
