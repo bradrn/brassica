@@ -11,16 +11,14 @@
 module SoundChange.Parse
     ( ParseLexeme
     , parseRule
-    , parseRules
-    , parseCategorySpec
-    , parseCategoriesSpec
+    , parseSoundChanges
     , Component(..)
     , getWords
     , unsafeCastComponent
+    , zipWithComponents
     , tokeniseWords
     , detokeniseWords
     , detokeniseWords'
-    , parseSupra
     , Config(..)
       -- * Re-exports
     , errorBundlePretty
@@ -31,26 +29,27 @@ import Data.Either (fromRight)
 import Data.Foldable (asum)
 import Data.Function (on)
 import Data.List (sortBy)
-import Data.Maybe (isJust, fromJust, mapMaybe)
+import Data.Maybe (isNothing, isJust, fromJust, mapMaybe)
 import Data.Ord (Down(..))
 import Data.Void (Void)
 
 import Control.Applicative.Permutations
-import Control.Monad.Reader
+import Control.Monad.State
 import qualified Data.List.Split as S
 import qualified Data.Map.Strict as M
 
-import Text.Megaparsec
+import Text.Megaparsec hiding (State)
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
 import SoundChange.Types
 import qualified SoundChange.Category as C
+import Control.Applicative (Alternative)
 
 data Config = Config
     { categories :: C.Categories Grapheme
     }
-type Parser = ParsecT Void String (Reader Config)
+type Parser = ParsecT Void String (State Config)
 
 class ParseLexeme (a :: LexemeType) where
     parseLexeme :: Parser (Lexeme a)
@@ -58,7 +57,7 @@ class ParseLexeme (a :: LexemeType) where
 
 -- space consumer which does not match newlines
 sc :: Parser ()
-sc = L.space space1' (L.skipLineComment "*") empty
+sc = L.space space1' (L.skipLineComment ";") empty
   where
     -- adapted from megaparsec source: like 'space1', but does not
     -- consume newlines (which are important for rule separation)
@@ -66,7 +65,7 @@ sc = L.space space1' (L.skipLineComment "*") empty
 
 -- space consumer which matches newlines
 scn :: Parser ()
-scn = L.space space1 (L.skipLineComment "*") empty
+scn = L.space space1 (L.skipLineComment ";") empty
 
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
@@ -75,7 +74,7 @@ symbol :: String -> Parser String
 symbol = L.symbol sc
 
 keyChars :: [Char]
-keyChars = "#[](){}>\\/_^%"
+keyChars = "#[](){}>\\/_^%~*"
 
 parseGrapheme :: Parser Grapheme
 parseGrapheme = lexeme $ takeWhile1P Nothing (not . ((||) <$> isSpace <*> (`elem` keyChars)))
@@ -91,7 +90,7 @@ data CategoryModification a
 parseGraphemeOrCategory :: ParseLexeme a => Parser (Lexeme a)
 parseGraphemeOrCategory = do
     g <- parseGrapheme
-    cats <- asks categories
+    cats <- gets categories
     return $ case C.lookup g cats of
         Nothing -> Grapheme g
         Just c  -> Category $ C.bake $ GraphemeEl <$> c
@@ -99,7 +98,7 @@ parseGraphemeOrCategory = do
 parseCategory :: ParseLexeme a => Parser (Lexeme a)
 parseCategory = do
     mods <- symbol "[" *> someTill parseCategoryModification (symbol "]")
-    cats <- asks categories
+    cats <- gets categories
     return $ Category $ C.bake $
         C.expand (C.mapCategories GraphemeEl cats) (toCategory mods)
 
@@ -108,12 +107,26 @@ parseCategoryStandalone = do
     g <- parseGrapheme'
     _ <- symbol "="
     mods <- some (parseCategoryModification @'Target)
-    cats <- asks categories
+    cats <- gets categories
     return (g, C.expand cats $ toGrapheme <$> toCategory mods)
   where
     -- Use Target here because it only allows graphemes, not boundaries
     toGrapheme :: CategoryElement 'Target -> Grapheme
     toGrapheme (GraphemeEl g) = g
+
+categoriesDeclParse :: Parser CategoriesDecl
+categoriesDeclParse = do
+    overwrite <- isJust <$> optional (symbol "new")
+    when overwrite $ put $ Config M.empty
+    _ <- symbol "categories" <* scn
+    -- parse category declarations, adding to the set of known
+    -- categories as each is parsed
+    _ <- some $ do
+        (k, c) <- try parseCategoryStandalone <* scn
+        modify $ \(Config cs) -> Config $ M.insert k c cs
+    _ <- symbol "end" <* scn
+    Config catsNew <- get
+    return $ CategoriesDecl $ C.values catsNew
 
 parseCategoryModification :: ParseLexeme a => Parser (CategoryModification a)
 parseCategoryModification = parsePrefix <*> parseCategoryElement
@@ -143,35 +156,23 @@ parseMetathesis = Metathesis <$ symbol "\\"
 parseWildcard :: (ParseLexeme a, OneOf a 'Target 'Env) => Parser (Lexeme a)
 parseWildcard = Wildcard <$> (symbol "^" *> parseLexeme)
 
-parseWithinSyllable :: (ParseLexeme a, OneOf a 'Target 'Env) => Parser (Lexeme a)
-parseWithinSyllable = WithinSyllable <$> (symbol "^^" *> parseLexeme)
-
 parseBoundary :: Parser ()
 parseBoundary = () <$ symbol "#"
 
-parseSyllable :: Parser (Lexeme a)
-parseSyllable = Syllable <$ symbol "%"
+parseDiscard :: Parser (Lexeme 'Replacement)
+parseDiscard = Discard <$ symbol "~"
 
-parseSupra :: Parser (Lexeme a)
-parseSupra = Supra <$> between (symbol "{") (symbol "}") (some $ absence <|> try kvpair)
-  where
-    absence :: Parser (String, Maybe String)
-    absence = (,Nothing) <$> (char '!' *> parseGrapheme)
-
-    kvpair :: Parser (String, Maybe String)
-    kvpair = (.Just) . (,) <$> parseGrapheme' <* symbol "=" <*> parseGrapheme
+parseKleene :: OneOf a 'Target 'Env => Lexeme a -> Parser (Lexeme a)
+parseKleene l = (Kleene l <$ symbol "*") <|> pure l
 
 instance ParseLexeme 'Target where
     parseLexeme = asum
         [ parseCategory
         , parseOptional
         , parseGeminate
-        , parseWithinSyllable
         , parseWildcard
-        , parseSyllable
-        , parseSupra
         , parseGraphemeOrCategory
-        ]
+        ] >>= parseKleene
     parseCategoryElement = GraphemeEl <$> parseGrapheme
 
 instance ParseLexeme 'Replacement where
@@ -179,9 +180,8 @@ instance ParseLexeme 'Replacement where
         [ parseCategory
         , parseOptional
         , parseMetathesis
+        , parseDiscard
         , parseGeminate
-        , parseSyllable
-        , parseSupra
         , parseGraphemeOrCategory
         ]
     parseCategoryElement = GraphemeEl <$> parseGrapheme
@@ -192,12 +192,9 @@ instance ParseLexeme 'Env where
         , Boundary <$ parseBoundary
         , parseOptional
         , parseGeminate
-        , parseWithinSyllable
         , parseWildcard
-        , parseSyllable
-        , parseSupra
         , parseGraphemeOrCategory
-        ]
+        ] >>= parseKleene
     parseCategoryElement = asum
         [ BoundaryEl <$  parseBoundary
         , GraphemeEl <$> parseGrapheme
@@ -208,12 +205,18 @@ parseLexemes = many parseLexeme
 
 parseFlags :: Parser Flags
 parseFlags = runPermutation $ Flags
-    <$> toPermutation (isJust <$> optional (symbol "-x"))
+    <$> toPermutation (isNothing <$> optional (symbol "-x"))
     <*> toPermutationWithDefault LTR ((LTR <$ symbol "-ltr") <|> (RTL <$ symbol "-rtl"))
     <*> toPermutation (isJust <$> optional (symbol "-1"))
 
 ruleParser :: Parser Rule
 ruleParser = do
+    -- This is an inlined version of 'match' from @megaparsec@;
+    -- 'match' itself would be tricky to use here, since it would need
+    -- to wrap multiple parsers rather than just one
+    o <- getOffset
+    s <- getInput
+
     flags <- parseFlags
     target <- parseLexemes
     _ <- symbol "/"
@@ -224,38 +227,23 @@ ruleParser = do
     env2 <- parseLexemes
     exception <- optional $ (,) <$> (symbol "/" *> parseLexemes) <* symbol "_" <*> parseLexemes
     _ <- optional scn   -- consume newline after rule if present
+
+    o' <- getOffset
+    let plaintext = (fst . fromJust) (takeN_ (o' - o) s)
     return Rule{environment=(env1,env2), ..}
 
 -- | Parse a 'String' to get a 'Rule'. Returns 'Nothing' if the input
 -- string is malformed.
-parseRule
-    :: C.Categories Grapheme    -- ^ A set of categories which have been pre-defined
-    -> String                   -- ^ The string to parse
-    -> Either (ParseErrorBundle String Void) Rule
-parseRule cats s = flip runReader (Config cats) $ runParserT (scn *> ruleParser <* eof) "" s
+parseRule :: String -> Either (ParseErrorBundle String Void) Rule
+parseRule s = flip evalState (Config M.empty) $ runParserT (scn *> ruleParser <* eof) "" s
 
--- | Parse a list of rules.
-parseRules :: C.Categories Grapheme -> String -> Either (ParseErrorBundle String Void) [Rule]
-parseRules cats s = flip runReader (Config cats) $ runParserT (scn *> many ruleParser <* eof) "" s
-
--- | Parse a category specification, yielding the name of that
--- category as well as a list of elements present in that
--- category. Returns 'Nothing' if the specification cannot be parsed.
-parseCategorySpec
-    :: C.Categories Grapheme   -- ^ A set of categories which have been pre-defined
-    -> String                  -- ^ The string to parse
-    -> Maybe (Grapheme, C.Category 'C.Expanded Grapheme)
-parseCategorySpec cats s =
-    case flip runReader (Config cats) $ runParserT (parseCategoryStandalone <* eof) "" s of
-        Right es -> Just es
-        Left  _  -> Nothing
-
--- | Parse a list of category specifications, accumulating them into
--- a list of 'Categories'.
-parseCategoriesSpec :: [String] -> C.Categories Grapheme
-parseCategoriesSpec = flip foldl M.empty $ \cs s -> case parseCategorySpec cs s of
-    Nothing    -> cs
-    Just (k,c) -> M.insert k c cs
+-- | Parse a list of 'SoundChanges'.
+parseSoundChanges :: String -> Either (ParseErrorBundle String Void) SoundChanges
+parseSoundChanges s = flip evalState (Config M.empty) $ runParserT (scn *> parser <* eof) "" s
+  where
+    parser = many $
+        CategoriesDeclS <$> categoriesDeclParse
+        <|> RuleS <$> ruleParser
 
 -- | Represents a component of a parsed input string. The type
 -- variable will usually be something like '[Grapheme]', though it
@@ -282,11 +270,19 @@ tokeniseWords (sortBy (compare `on` Down . length) -> gs) =
   where
     parseWord = some $ choice (chunk <$> gs) <|> (pure <$> satisfy (not . isSpace))
 
-detokeniseWords :: [Component [WordPart]] -> String
-detokeniseWords = detokeniseWords' $ concatMap $ fromRight ""
+detokeniseWords :: [Component [Grapheme]] -> String
+detokeniseWords = detokeniseWords' concat
 
 detokeniseWords' :: (a -> String) -> [Component a] -> String
 detokeniseWords' f = concatMap $ \case
     Word gs -> f gs
     Whitespace w -> w
     Gloss g -> '[':(g ++ "]")
+
+zipWithComponents :: [Component a] -> [Component b] -> b -> (a -> b -> c) -> [Component c]
+zipWithComponents []             _            _  _ = []
+zipWithComponents as            []            bd f = (fmap.fmap) (`f` bd) as
+zipWithComponents (Word a:as)   (Word b:bs)   bd f = Word (f a b) : zipWithComponents as bs bd f
+zipWithComponents as@(Word _:_) (_:bs)        bd f = zipWithComponents as bs bd f
+zipWithComponents (a:as)        bs@(Word _:_) bd f = unsafeCastComponent a : zipWithComponents as bs bd f
+zipWithComponents (a:as)        (_:bs)        bd f = unsafeCastComponent a : zipWithComponents as bs bd f
