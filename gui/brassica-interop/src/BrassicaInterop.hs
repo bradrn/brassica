@@ -34,31 +34,36 @@ parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) hlMode prevPtr = d
     case parseSoundChanges changesText of
         Left e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
         Right statements ->
-            if report == 1 then do
-                let result = tokeniseAnd applyChangesWithLog statements wsText
-                writeIORef prevRef Nothing
-                GHC.newCString utf8 $ surroundTable $ formatLog $ concat (getWords result)
+            if report == 1 then
+                case tokeniseAnd applyChangesWithLog statements wsText of
+                    Left e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
+                    Right result -> do
+                        writeIORef prevRef Nothing
+                        GHC.newCString utf8 $ surroundTable $ formatLog $ concat (getWords result)
             else case hlMode of
-                1 -> do
-                    let result = tokeniseAnd applyChanges statements wsText
-                    prev <- readIORef prevRef
-                    writeIORef prevRef $ Just result
-                    GHC.newCString utf8 $ escape $ detokeniseWords' id $
-                        zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
-                            let thisWordStr = concat thisWord in
-                                if thisWord == prevWord
-                                then thisWordStr
-                                else "<b>" ++ thisWordStr ++ "</b>"
-                2 -> do
-                    let result = tokeniseAnd applyChangesWithChanges statements wsText
-                    writeIORef prevRef $ Just $ (fmap.fmap) fst result
-                    GHC.newCString utf8 $ escape $ flip detokeniseWords' result $ \case
-                        (w, False) -> concat w
-                        (w, True) -> "<b>" ++ concat w ++ "</b>"
-                _ -> do
-                    let result = tokeniseAnd applyChanges statements wsText
-                    writeIORef prevRef $ Just result
-                    GHC.newCString utf8 $ escape $ detokeniseWords result
+                1 -> case tokeniseAnd applyChanges statements wsText of
+                    Left e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
+                    Right result -> do
+                        prev <- readIORef prevRef
+                        writeIORef prevRef $ Just result
+                        GHC.newCString utf8 $ escape $ detokeniseWords' id $
+                            zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
+                                let thisWordStr = concat thisWord in
+                                    if thisWord == prevWord
+                                    then thisWordStr
+                                    else "<b>" ++ thisWordStr ++ "</b>"
+                2 -> case tokeniseAnd applyChangesWithChanges statements wsText of
+                    Left e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
+                    Right result -> do
+                        writeIORef prevRef $ Just $ (fmap.fmap) fst result
+                        GHC.newCString utf8 $ escape $ flip detokeniseWords' result $ \case
+                            (w, False) -> concat w
+                            (w, True) -> "<b>" ++ concat w ++ "</b>"
+                _ -> case tokeniseAnd applyChanges statements wsText of
+                    Left e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
+                    Right result -> do
+                        writeIORef prevRef $ Just result
+                        GHC.newCString utf8 $ escape $ detokeniseWords result
   where
     formatLog :: [LogItem Statement] -> String
     formatLog = concat . go Nothing

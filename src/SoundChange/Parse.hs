@@ -261,12 +261,14 @@ unsafeCastComponent (Word _) = error "unsafeCastComponent: attempted to cast a w
 unsafeCastComponent (Whitespace s) = Whitespace s
 unsafeCastComponent (Gloss s) = Gloss s
 
-tokeniseWords :: [Grapheme] -> String -> [Component [Grapheme]]
+tokeniseWords :: [Grapheme] -> String -> Either (ParseErrorBundle String Void) [Component [Grapheme]]
 tokeniseWords (sortBy (compare `on` Down . length) -> gs) =
-    fromJust . parseMaybe @Void (many $
-        (Whitespace <$> takeWhile1P Nothing isSpace) <|>
-        (Gloss <$> (char '[' *> takeWhileP Nothing (/=']') <* char ']')) <|>
-        (Word <$> parseWord))
+    parse @Void
+        (many $
+            (Whitespace <$> takeWhile1P Nothing isSpace) <|>
+            (Gloss <$> (char '[' *> takeWhileP Nothing (/=']') <* char ']')) <|>
+            (Word <$> parseWord))
+        ""
   where
     parseWord = some $ choice (chunk <$> gs) <|> (pure <$> satisfy (not . isSpace))
 

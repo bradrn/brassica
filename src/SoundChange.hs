@@ -3,6 +3,10 @@
 
 module SoundChange where
 
+import Data.Void (Void)
+
+import Text.Megaparsec (ParseErrorBundle)
+
 import SoundChange.Apply
 import SoundChange.Parse
 import SoundChange.Types
@@ -17,11 +21,11 @@ import SoundChange.Types
 --     let ts = (fmap.fmap.fmap) Right $ tokeniseWords (values cats) ws
 --     in (fmap.fmap) (applyRules rs) ts
 
-tokeniseAnd :: (SoundChanges -> [Grapheme] -> a) -> SoundChanges -> String -> [Component a]
+tokeniseAnd :: (SoundChanges -> [Grapheme] -> a) -> SoundChanges -> String -> Either (ParseErrorBundle String Void) [Component a]
 tokeniseAnd applyFn sts ws =
     let gs = findFirstCategoriesDecl sts
         ts = tokeniseWords gs ws
-    in (fmap.fmap) (applyFn sts) ts
+    in (fmap.fmap.fmap) (applyFn sts) ts
   where
     findFirstCategoriesDecl (CategoriesDeclS (CategoriesDecl gs):_) = gs
     findFirstCategoriesDecl (_:ss) = findFirstCategoriesDecl ss

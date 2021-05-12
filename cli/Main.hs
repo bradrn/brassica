@@ -24,5 +24,8 @@ main = do
         Left err ->
             putStrLn $ errorBundlePretty err
         Right rules -> do
-            let outWordsText = tokeniseAnd applyChanges rules wordsText
-            B.writeFile outFile $ encodeUtf8 $ pack $ detokeniseWords outWordsText
+            case tokeniseAnd applyChanges rules wordsText of
+                Left err ->
+                    putStrLn $ errorBundlePretty err
+                Right outWordsText ->
+                    B.writeFile outFile $ encodeUtf8 $ pack $ detokeniseWords outWordsText
