@@ -50,6 +50,7 @@ void MainWindow::setupWidgets(QWidget *central)
     midLayout->setAlignment(Qt::AlignTop);
 
     const QFont fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    const QFont textFont = QFont("Microsoft Sans Serif");
 
     QLabel *rulesLbl = new QLabel("Rules:");
     rulesEdit = new QPlainTextEdit;
@@ -60,6 +61,7 @@ void MainWindow::setupWidgets(QWidget *central)
 
     QLabel *wordsLbl = new QLabel("Input lexicon:");
     wordsEdit = new QPlainTextEdit;
+    wordsEdit->setFont(textFont);
     wordsLayout->addWidget(wordsLbl);
     wordsLayout->addWidget(wordsEdit);
 
@@ -86,6 +88,7 @@ void MainWindow::setupWidgets(QWidget *central)
     QLabel *outputLbl = new QLabel("Output lexicon:");
     outputEdit = new QTextEdit;
     outputEdit->setReadOnly(true);
+    outputEdit->setFont(textFont);
     outputLayout->addWidget(outputLbl);
     outputLayout->addWidget(outputEdit);
 }
