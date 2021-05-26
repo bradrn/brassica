@@ -10,7 +10,7 @@ class RulesHighlighter : public QSyntaxHighlighter
 public:
     RulesHighlighter(QTextDocument *parent);
 
-    void setCategories(QStringList categories);
+    void setCategories(QStringList categories, bool forceUpdate = false);
 
 protected:
     void highlightBlock(const QString &text) override;

@@ -6,7 +6,7 @@ RulesHighlighter::RulesHighlighter(QTextDocument *parent)
     QTextCharFormat specialCharsFormat;
     specialCharsFormat.setForeground(QColor(0, 0, 255));
     formats.append(specialCharsFormat);
-    patterns.append(QRegularExpression(R"(>|#|\(|\)|{|}|\\|^|%|~|\*|categories|end|new)"));
+    patterns.append(QRegularExpression(R"(>|#|\(|\)|{|}|\\|\^|%|~|\*|categories|end|new)"));
 
     QTextCharFormat separatorFormat;
     separatorFormat.setFontWeight(QFont::Bold);
@@ -21,12 +21,12 @@ RulesHighlighter::RulesHighlighter(QTextDocument *parent)
 
     categoryFormat = QTextCharFormat();
     categoryFormat.setBackground(QColor(245, 245, 220));
-    setCategories(QStringList());
+    setCategories(QStringList(), true);
 }
 
-void RulesHighlighter::setCategories(QStringList categories)
+void RulesHighlighter::setCategories(QStringList categories, bool forceUpdate /*= false*/)
 {
-    if (m_categories != categories)
+    if (forceUpdate || m_categories != categories)
     {
         m_categories = categories;
 
