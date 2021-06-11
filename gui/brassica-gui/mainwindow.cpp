@@ -1,5 +1,6 @@
 #include "BrassicaInterop_stub.h"
 #include "mainwindow.h"
+#include "paradigmwindow.h"
 
 #include <QFileDialog>
 #include <QGridLayout>
@@ -96,6 +97,9 @@ void MainWindow::setupMenuBar()
     fileMenu->addAction("Save rules", this, &MainWindow::saveRules, QKeySequence::Save);
     fileMenu->addAction("Open lexicon", this, &MainWindow::openLexicon);
     fileMenu->addAction("Save lexicon", this, &MainWindow::saveLexicon);
+
+    QMenu *toolsMenu = menuBar()->addMenu("&Tools");
+    toolsMenu->addAction("Paradigm builder", this, &MainWindow::showParadigmBuilder);
 }
 
 QVBoxLayout *MainWindow::mkLayoutWithContainer(QSplitter *splitter)
@@ -184,6 +188,12 @@ void MainWindow::saveLexicon()
 
     QString lexicon = wordsEdit->toPlainText();
     file.write(lexicon.toUtf8());
+}
+
+void MainWindow::showParadigmBuilder()
+{
+    ParadigmWindow *pw = new ParadigmWindow(this);
+    pw->show();
 }
 
 void MainWindow::reparseCategories()

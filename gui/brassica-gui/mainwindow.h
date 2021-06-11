@@ -50,6 +50,8 @@ private slots:
     void openLexicon();
     void saveLexicon();
 
+    void showParadigmBuilder();
+
     void reparseCategories();
 };
 #endif // MAINWINDOW_H

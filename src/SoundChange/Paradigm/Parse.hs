@@ -1,4 +1,8 @@
-module SoundChange.Paradigm.Parse where
+module SoundChange.Paradigm.Parse
+       ( parseParadigm
+         -- * Re-exports
+       , errorBundlePretty
+       ) where
 
 import Control.Monad (void)
 import Data.Char (isSpace)
@@ -48,5 +52,8 @@ feature = Feature <$> optional (name <* symbol "=") <*> some grammeme <* optiona
 mapping :: Parser ([String], Affix)
 mapping = (,) <$> manyTill name (symbol ">") <*> affix <* optional eol
 
-parse :: Parser Paradigm
-parse = Paradigm <$> some feature <*> many mapping
+paradigm :: Parser Paradigm
+paradigm = Paradigm <$> some feature <*> many mapping
+
+parseParadigm :: String -> Either (ParseErrorBundle String Void) Paradigm
+parseParadigm = runParser paradigm ""

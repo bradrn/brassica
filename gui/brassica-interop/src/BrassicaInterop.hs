@@ -12,6 +12,8 @@ import qualified GHC.Foreign as GHC
 import GHC.IO.Encoding (utf8)
 
 import SoundChange
+import SoundChange.Paradigm
+import SoundChange.Paradigm.Parse
 import SoundChange.Parse
 import SoundChange.Types
 import Data.Maybe (fromMaybe)
@@ -79,14 +81,26 @@ parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) hlMode prevPtr = d
     surroundTable :: String -> String
     surroundTable s = "<table>" ++ s ++ "</table>"
 
-    escape :: String -> String
-    escape = concatMap $ \case
-        '\n' -> "<br/>"
-        -- '\t' -> "&#9;"  -- this doesn't seem to do anything - keeping it here in case I eventually figure out how to do tabs in Qt
-        c    -> pure c
+initResults = newIORef Nothing >>= newStablePtr
+
+parseAndBuildParadigm_hs
+    :: CString -- ^ paradigm
+    -> CString -- ^ roots
+    -> IO CString
+parseAndBuildParadigm_hs pRaw wsRaw = do
+    pText <- GHC.peekCString utf8 pRaw
+    wsText <- GHC.peekCString utf8 wsRaw
+    case parseParadigm pText of
+        Left e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
+        Right p -> GHC.newCString utf8 $ escape $ unlines $ build p $ lines wsText
+
+escape :: String -> String
+escape = concatMap $ \case
+    '\n' -> "<br/>"
+    -- '\t' -> "&#9;"  -- this doesn't seem to do anything - keeping it here in case I eventually figure out how to do tabs in Qt
+    c    -> pure c
 
 initResults :: IO (StablePtr (IORef (Maybe [Component [Grapheme]])))
-initResults = newIORef Nothing >>= newStablePtr
 
 foreign export ccall parseTokeniseAndApplyRules_hs
     :: CString
@@ -97,3 +111,8 @@ foreign export ccall parseTokeniseAndApplyRules_hs
     -> IO CString
 
 foreign export ccall initResults :: IO (StablePtr (IORef (Maybe [Component [Grapheme]])))
+
+foreign export ccall parseAndBuildParadigm_hs
+    :: CString -- ^ paradigm
+    -> CString -- ^ words
+    -> IO CString
