@@ -26,7 +26,10 @@ MainWindow::MainWindow(QWidget *parent)
     setupWidgets(window);
     setupMenuBar();
 
-    connect(applyBtn, &QPushButton::clicked, this, &MainWindow::applySoundChanges);
+    connect(applyBtn , &QPushButton::clicked       , [this] { applySoundChanges(false); });
+    connect(rulesEdit, &QPlainTextEdit::textChanged, [this] { applySoundChanges(true); });
+    connect(wordsEdit, &QPlainTextEdit::textChanged, [this] { applySoundChanges(true); });
+
     connect(reportRulesBtn, &QPushButton::clicked, this, &MainWindow::reportRulesApplied);
     connect(rulesEdit, &QPlainTextEdit::textChanged, this, &MainWindow::reparseCategories);
 }
@@ -85,6 +88,9 @@ void MainWindow::setupWidgets(QWidget *central)
     inputhighlightBtn = new QRadioButton("Different to input");
     highlightLayout->addWidget(inputhighlightBtn);
 
+    viewLive = new QCheckBox("View results live");
+    midLayout->addWidget(viewLive);
+
     QLabel *outputLbl = new QLabel("Output lexicon:");
     outputEdit = new QTextEdit;
     outputEdit->setReadOnly(true);
@@ -114,8 +120,10 @@ QVBoxLayout *MainWindow::mkLayoutWithContainer(QSplitter *splitter)
     return layout;
 }
 
-void MainWindow::applySoundChanges()
+void MainWindow::applySoundChanges(bool live)
 {
+    if (live && !viewLive->isChecked()) return;
+
     QString rules      = rulesEdit     ->toPlainText();
     QString words      = wordsEdit     ->toPlainText();
 

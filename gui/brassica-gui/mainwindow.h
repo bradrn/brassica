@@ -4,6 +4,7 @@
 #include "HsFFI.h"
 #include "ruleshighlighter.h"
 
+#include <QCheckBox>
 #include <QMainWindow>
 #include <QPlainTextEdit>
 #include <QProcess>
@@ -28,6 +29,7 @@ private:
     QRadioButton *diffhighlightBtn;
     QRadioButton *inputhighlightBtn;
     QPushButton *reportRulesBtn;
+    QCheckBox *viewLive;
     QTextEdit *outputEdit;
 
     RulesHighlighter *rulesHl;
@@ -42,7 +44,7 @@ private:
     HsStablePtr hsResults;
 
 private slots:
-    void applySoundChanges();
+    void applySoundChanges(bool live);
     void reportRulesApplied();
 
     void openRules();
