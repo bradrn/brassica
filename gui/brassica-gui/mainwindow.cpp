@@ -26,11 +26,11 @@ MainWindow::MainWindow(QWidget *parent)
     setupWidgets(window);
     setupMenuBar();
 
-    connect(applyBtn , &QPushButton::clicked       , [this] { applySoundChanges(false); });
-    connect(rulesEdit, &QPlainTextEdit::textChanged, [this] { applySoundChanges(true); });
-    connect(wordsEdit, &QPlainTextEdit::textChanged, [this] { applySoundChanges(true); });
+    connect(applyBtn      , &QPushButton::clicked  , [this] { applySoundChanges(false, false); });
+    connect(reportRulesBtn, &QPushButton::clicked  , [this] { applySoundChanges(false, true); } );
+    connect(rulesEdit, &QPlainTextEdit::textChanged, [this] { applySoundChanges(true, false); });
+    connect(wordsEdit, &QPlainTextEdit::textChanged, [this] { applySoundChanges(true, false); });
 
-    connect(reportRulesBtn, &QPushButton::clicked, this, &MainWindow::reportRulesApplied);
     connect(rulesEdit, &QPlainTextEdit::textChanged, this, &MainWindow::reparseCategories);
 }
 
@@ -120,7 +120,7 @@ QVBoxLayout *MainWindow::mkLayoutWithContainer(QSplitter *splitter)
     return layout;
 }
 
-void MainWindow::applySoundChanges(bool live)
+void MainWindow::applySoundChanges(bool live, bool reportRules)
 {
     if (live && !viewLive->isChecked()) return;
 
@@ -136,24 +136,8 @@ void MainWindow::applySoundChanges(bool live)
     QByteArray output = QByteArray((char*) parseTokeniseAndApplyRules_hs(
                                        rules.toUtf8().data(),
                                        words.toUtf8().data(),
-                                       false,
+                                       reportRules,
                                        checkedHl,
-                                       hsResults));
-    outputEdit->setHtml(QString::fromUtf8(output));
-}
-
-void MainWindow::reportRulesApplied()
-{
-    QString rules      = rulesEdit     ->toPlainText();
-    QString words      = wordsEdit     ->toPlainText();
-
-    //QString output = proc->applyRules(categories, rules, words);
-
-    QByteArray output = QByteArray((char*) parseTokeniseAndApplyRules_hs(
-                                       rules.toUtf8().data(),
-                                       words.toUtf8().data(),
-                                       true,
-                                       0,
                                        hsResults));
     outputEdit->setHtml(QString::fromUtf8(output));
 }

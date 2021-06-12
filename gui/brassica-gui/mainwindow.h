@@ -44,8 +44,7 @@ private:
     HsStablePtr hsResults;
 
 private slots:
-    void applySoundChanges(bool live);
-    void reportRulesApplied();
+    void applySoundChanges(bool live, bool reportRules);
 
     void openRules();
     void saveRules();
