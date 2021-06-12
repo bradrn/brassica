@@ -47,7 +47,7 @@ grammeme :: Parser Grammeme
 grammeme = Concrete <$> affix <|> Abstract <$> name
 
 feature :: Parser Feature
-feature = Feature <$> optional (name <* symbol "=") <*> some grammeme <* optional eol
+feature = Feature <$> optional (try $ name <* symbol "=") <*> some grammeme <* optional eol
 
 mapping :: Parser ([String], Affix)
 mapping = (,) <$> manyTill name (symbol ">") <*> affix <* optional eol
