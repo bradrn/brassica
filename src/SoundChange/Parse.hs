@@ -28,7 +28,7 @@ import Data.Char (isSpace)
 import Data.Either (fromRight)
 import Data.Foldable (asum)
 import Data.Function (on)
-import Data.List (sortBy)
+import Data.List (sortBy, transpose)
 import Data.Maybe (isNothing, isJust, fromJust, mapMaybe)
 import Data.Ord (Down(..))
 import Data.Void (Void)
@@ -106,13 +106,13 @@ parseCategoryStandalone :: Parser (Grapheme, C.Category 'C.Expanded Grapheme)
 parseCategoryStandalone = do
     g <- parseGrapheme'
     _ <- symbol "="
+    -- Use Target here because it only allows graphemes, not boundaries
     mods <- some (parseCategoryModification @'Target)
     cats <- gets categories
     return (g, C.expand cats $ toGrapheme <$> toCategory mods)
-  where
-    -- Use Target here because it only allows graphemes, not boundaries
-    toGrapheme :: CategoryElement 'Target -> Grapheme
-    toGrapheme (GraphemeEl g) = g
+
+toGrapheme :: CategoryElement 'Target -> Grapheme
+toGrapheme (GraphemeEl g) = g
 
 categoriesDeclParse :: Parser CategoriesDecl
 categoriesDeclParse = do
@@ -121,12 +121,27 @@ categoriesDeclParse = do
     _ <- symbol "categories" <* scn
     -- parse category declarations, adding to the set of known
     -- categories as each is parsed
-    _ <- some $ do
-        (k, c) <- try parseCategoryStandalone <* scn
-        modify $ \(Config cs) -> Config $ M.insert k c cs
+    _ <- some $ parseFeature <|> parseCategoryDecl
     _ <- symbol "end" <* scn
     Config catsNew <- get
-    return $ CategoriesDecl $ C.values catsNew
+    return $ CategoriesDecl (C.values catsNew)
+  where
+    parseFeature = do
+        _ <- symbol "feature"
+        modsPlain <- some (parseCategoryModification @'Target)
+        cats <- gets categories
+        let plain = C.bake $ C.expand cats $ toGrapheme <$> toCategory modsPlain
+        modifiedCats <- some (symbol "/" *> parseCategoryStandalone) <* scn
+        let modified = C.bake . snd <$> modifiedCats
+            syns = zipWith (\a b -> (a, C.UnionOf [C.Node a, C.categorise b])) plain $ transpose modified
+        modify $ \(Config cs) -> Config $ M.unions
+                [ M.fromList syns
+                , M.fromList modifiedCats
+                , cs
+                ]
+    parseCategoryDecl = do
+        (k, c) <- try parseCategoryStandalone <* scn
+        modify $ \(Config cs) -> Config (M.insert k c cs)
 
 parseCategoryModification :: ParseLexeme a => Parser (CategoryModification a)
 parseCategoryModification = parsePrefix <*> parseCategoryElement

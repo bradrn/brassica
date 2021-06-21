@@ -29,6 +29,9 @@ lookup = M.lookup
 mapCategories :: Ord b => (a -> b) -> Categories a -> Categories b
 mapCategories f = M.map (fmap f) . M.mapKeys f
 
+categorise :: Ord a => [a] -> Category 'Expanded a
+categorise = UnionOf . fmap Node
+
 expand :: Ord a => Categories a -> Category 'Unexpanded a -> Category 'Expanded a
 expand _  Empty           = Empty
 expand cs n@(Node a)      = fromMaybe (coerce n) $ M.lookup a cs

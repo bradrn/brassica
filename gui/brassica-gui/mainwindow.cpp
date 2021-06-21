@@ -198,6 +198,7 @@ void MainWindow::reparseCategories()
     /* A very simple state machine. Starts recording categories when
      * `categories` is read. After this, split each line at the equals sign and
      * add to `categories`. When `end' is reached, read to next `categories`.
+     * Feature lines need their own processing.
      */
 
     QStringList categories;
@@ -212,6 +213,12 @@ void MainWindow::reparseCategories()
         {
             if (line.contains("categories")) inCategories = true;
             else if (line == "end") inCategories = false;
+            else if (line.contains("feature"))
+            {
+                lineParts = line.split(QRegularExpression("=|/"));
+                for (int i = 1; i<lineParts.length(); i+=2)
+                    categories.append(lineParts[i].trimmed());
+            }
             else if (inCategories)
             {
                 lineParts = line.split('=');
