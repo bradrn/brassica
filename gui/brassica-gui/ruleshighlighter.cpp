@@ -44,6 +44,15 @@ void RulesHighlighter::setCategories(QStringList categories, bool forceUpdate /*
 
 void RulesHighlighter::highlightBlock(const QString &text)
 {
+    {
+        QRegularExpressionMatchIterator itr = categoriesPattern.globalMatch(text);
+        while (itr.hasNext())
+        {
+            QRegularExpressionMatch m = itr.next();
+            setFormat(m.capturedStart(), m.capturedLength(), categoryFormat);
+        }
+    }
+
     for (int i = 0; i < patterns.length(); i++)
     {
         QRegularExpressionMatchIterator itr = patterns[i].globalMatch(text);
@@ -51,15 +60,6 @@ void RulesHighlighter::highlightBlock(const QString &text)
         {
             QRegularExpressionMatch m = itr.next();
             setFormat(m.capturedStart(), m.capturedLength(), formats[i]);
-        }
-    }
-
-    {
-        QRegularExpressionMatchIterator itr = categoriesPattern.globalMatch(text);
-        while (itr.hasNext())
-        {
-            QRegularExpressionMatch m = itr.next();
-            setFormat(m.capturedStart(), m.capturedLength(), categoryFormat);
         }
     }
 }
