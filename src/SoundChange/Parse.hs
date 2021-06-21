@@ -76,8 +76,8 @@ symbol = L.symbol sc
 keyChars :: [Char]
 keyChars = "#[](){}>\\/_^%~*"
 
-parseGrapheme :: Parser Grapheme
-parseGrapheme = lexeme $ takeWhile1P Nothing (not . ((||) <$> isSpace <*> (`elem` keyChars)))
+parseGrapheme :: Parser (Grapheme, Bool)
+parseGrapheme = lexeme $ (,) <$> takeWhile1P Nothing (not . ((||) <$> isSpace <*> (`elem` keyChars))) <*> (isJust <$> optional (char '~'))
 
 parseGrapheme' :: Parser Grapheme
 parseGrapheme' = lexeme $ takeWhile1P Nothing (not . ((||) <$> isSpace <*> (=='=')))
@@ -89,11 +89,14 @@ data CategoryModification a
 
 parseGraphemeOrCategory :: ParseLexeme a => Parser (Lexeme a)
 parseGraphemeOrCategory = do
-    g <- parseGrapheme
-    cats <- gets categories
-    return $ case C.lookup g cats of
-        Nothing -> Grapheme g
-        Just c  -> Category $ C.bake $ GraphemeEl <$> c
+    (g, isntCat) <- parseGrapheme
+    if isntCat
+        then return $ Grapheme g
+        else do
+            cats <- gets categories
+            return $ case C.lookup g cats of
+                Nothing -> Grapheme g
+                Just c  -> Category $ C.bake $ GraphemeEl <$> c
 
 parseCategory :: ParseLexeme a => Parser (Lexeme a)
 parseCategory = do
@@ -188,7 +191,7 @@ instance ParseLexeme 'Target where
         , parseWildcard
         , parseGraphemeOrCategory
         ] >>= parseKleene
-    parseCategoryElement = GraphemeEl <$> parseGrapheme
+    parseCategoryElement = GraphemeEl . fst <$> parseGrapheme
 
 instance ParseLexeme 'Replacement where
     parseLexeme = asum
@@ -199,7 +202,7 @@ instance ParseLexeme 'Replacement where
         , parseGeminate
         , parseGraphemeOrCategory
         ]
-    parseCategoryElement = GraphemeEl <$> parseGrapheme
+    parseCategoryElement = GraphemeEl . fst <$> parseGrapheme
 
 instance ParseLexeme 'Env where
     parseLexeme = asum
@@ -211,8 +214,8 @@ instance ParseLexeme 'Env where
         , parseGraphemeOrCategory
         ] >>= parseKleene
     parseCategoryElement = asum
-        [ BoundaryEl <$  parseBoundary
-        , GraphemeEl <$> parseGrapheme
+        [ BoundaryEl <$ parseBoundary
+        , GraphemeEl . fst <$> parseGrapheme
         ]
 
 parseLexemes :: ParseLexeme a => Parser [Lexeme a]
