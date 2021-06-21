@@ -28,10 +28,11 @@ void RulesHighlighter::setCategories(QStringList categories, bool forceUpdate /*
 {
     if (forceUpdate || m_categories != categories)
     {
-        m_categories = categories;
+        m_categories = QStringList(categories);
 
         QString regexpText(R"(\[.*?\])");  // start with regexp for ad-hoc category
-        for (int i = 0; i < categories.length(); ++i)
+        categories.sort();
+        for (int i = categories.length()-1; i >= 0; --i)  // add custom categories in reverse order to get longest match
         {
             regexpText += '|' + QRegularExpression::escape(categories[i]);
         }
