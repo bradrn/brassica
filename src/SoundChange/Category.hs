@@ -44,7 +44,9 @@ bake Empty           = []
 bake (Node    a)     = [a]
 bake (UnionOf u)     = concatMap bake u
 bake (Intersect a b) = bake a `intersect` bake b
-bake (Subtract  a b) = bake a \\ bake b
+bake (Subtract  a b) = bake a `difference` bake b
+  where
+    difference l m = filter (not . (`elem` m)) l
 
 values :: Ord a => Categories a -> [a]
 values = nubOrd . concatMap go . M.elems
