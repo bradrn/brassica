@@ -239,11 +239,17 @@ ruleParser = do
     target <- parseLexemes
     _ <- lexeme $ oneOf "/→"
     replacement <- parseLexemes
-    _ <- symbol "/"
-    env1 <- parseLexemes
-    _ <- symbol "_"
-    env2 <- parseLexemes
-    exception <- optional $ (,) <$> (symbol "/" *> parseLexemes) <* symbol "_" <*> parseLexemes
+
+    let parseEnvironment = do
+            _ <- symbol "/"
+            env1 <- parseLexemes
+            _ <- symbol "_"
+            env2 <- parseLexemes
+            exception <- optional $ (,) <$> (symbol "/" *> parseLexemes) <* symbol "_" <*> parseLexemes
+            return (env1, env2, exception)
+
+    (env1, env2, exception) <- parseEnvironment <|> pure ([], [], Nothing)
+
     _ <- optional scn   -- consume newline after rule if present
 
     o' <- getOffset
