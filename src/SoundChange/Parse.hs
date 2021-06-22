@@ -74,7 +74,7 @@ symbol :: String -> Parser String
 symbol = L.symbol sc
 
 keyChars :: [Char]
-keyChars = "#[](){}>\\/_^%~*"
+keyChars = "#[](){}>\\→/_^%~*"
 
 parseGrapheme :: Parser (Grapheme, Bool)
 parseGrapheme = lexeme $ (,) <$> takeWhile1P Nothing (not . ((||) <$> isSpace <*> (`elem` keyChars))) <*> (isJust <$> optional (char '~'))
@@ -237,7 +237,7 @@ ruleParser = do
 
     flags <- parseFlags
     target <- parseLexemes
-    _ <- symbol "/"
+    _ <- lexeme $ oneOf "/→"
     replacement <- parseLexemes
     _ <- symbol "/"
     env1 <- parseLexemes

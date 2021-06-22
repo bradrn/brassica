@@ -11,7 +11,7 @@ RulesHighlighter::RulesHighlighter(QTextDocument *parent)
     QTextCharFormat separatorFormat;
     separatorFormat.setFontWeight(QFont::Bold);
     formats.append(separatorFormat);
-    patterns.append(QRegularExpression("/|_"));
+    patterns.append(QRegularExpression("/|_|→"));
 
     QTextCharFormat commentFormat;
     commentFormat.setForeground(QColor(0, 128, 0));
