@@ -215,8 +215,9 @@ void MainWindow::reparseCategories()
             else if (line == "end") inCategories = false;
             else if (line.contains("feature"))
             {
-                lineParts = line.split(QRegularExpression("=|/"));
-                for (int i = 1; i<lineParts.length(); i+=2)
+                lineParts = line.split(QRegularExpression("=|/|feature"));
+                // every second part from the end is a category name,
+                for (int i = lineParts.length()-2; i>=0; i-=2)
                     categories.append(lineParts[i].trimmed());
             }
             else if (inCategories)

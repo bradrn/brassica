@@ -131,15 +131,20 @@ categoriesDeclParse = do
   where
     parseFeature = do
         _ <- symbol "feature"
+        namePlain <- optional $ try $ parseGrapheme' <* symbol "="
         modsPlain <- some (parseCategoryModification @'Target)
         cats <- gets categories
-        let plain = C.bake $ C.expand cats $ toGrapheme <$> toCategory modsPlain
+        let plainCat = C.expand cats $ toGrapheme <$> toCategory modsPlain
+            plain = C.bake plainCat
         modifiedCats <- some (symbol "/" *> parseCategoryStandalone) <* scn
         let modified = C.bake . snd <$> modifiedCats
             syns = zipWith (\a b -> (a, C.UnionOf [C.Node a, C.categorise b])) plain $ transpose modified
         modify $ \(Config cs) -> Config $ M.unions
                 [ M.fromList syns
                 , M.fromList modifiedCats
+                , case namePlain of
+                      Nothing -> M.empty
+                      Just n -> M.singleton n plainCat
                 , cs
                 ]
     parseCategoryDecl = do
