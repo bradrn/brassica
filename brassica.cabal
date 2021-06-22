@@ -52,6 +52,7 @@ executable brassica-cli
     , brassica
     , bytestring
     , text
+    , conduit
 
   default-language: Haskell2010
 
