@@ -4,6 +4,7 @@
 #include <QPlainTextEdit>
 #include <QGridLayout>
 #include <QLabel>
+#include <QPushButton>
 
 ParadigmWindow::ParadigmWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -13,29 +14,43 @@ ParadigmWindow::ParadigmWindow(QWidget *parent)
     QWidget *window = new QWidget;
     setCentralWidget(window);
 
-    QGridLayout *layout = new QGridLayout(window);
+    QHBoxLayout *layout = new QHBoxLayout(window);
+
+    QVBoxLayout *paradigmLayout = new QVBoxLayout();
+    QVBoxLayout *rootsLayout = new QVBoxLayout();
+    QVBoxLayout *outputLayout = new QVBoxLayout();
+
+    layout->addLayout(paradigmLayout);
+    layout->addLayout(rootsLayout);
+    layout->addLayout(outputLayout);
 
     QLabel *paradigmLbl = new QLabel("Paradigm:");
-    layout->addWidget(paradigmLbl, 0, 0);
+    paradigmLayout->addWidget(paradigmLbl);
 
     paradigmEdit = new QPlainTextEdit();
-    layout->addWidget(paradigmEdit, 1, 0);
+    paradigmLayout->addWidget(paradigmEdit);
 
-    QLabel *rulesLbl = new QLabel("Rules:");
-    layout->addWidget(rulesLbl, 0, 1);
+    QLabel *rootsLbl = new QLabel("Roots:");
+    rootsLayout->addWidget(rootsLbl);
 
     rootsEdit = new QPlainTextEdit();
-    layout->addWidget(rootsEdit, 1, 1);
+    rootsLayout->addWidget(rootsEdit);
 
     QLabel *outputLbl = new QLabel("Output:");
-    layout->addWidget(outputLbl, 0, 2);
+    outputLayout->addWidget(outputLbl);
 
     outputEdit = new QTextEdit();
     outputEdit->setReadOnly(true);
-    layout->addWidget(outputEdit, 1, 2);
+    outputLayout->addWidget(outputEdit);
 
-    connect(paradigmEdit, &QPlainTextEdit::textChanged, this, &ParadigmWindow::rebuildResult);
-    connect(rootsEdit, &QPlainTextEdit::textChanged, this, &ParadigmWindow::rebuildResult);
+    QPushButton *buildBtn = new QPushButton("Build");
+    outputLayout->addWidget(buildBtn);
+
+    connect(buildBtn, &QPushButton::clicked, this, &ParadigmWindow::rebuildResult);
+
+    // previous code for live previewing (turned out to be too slow):
+    //connect(paradigmEdit, &QPlainTextEdit::textChanged, this, &ParadigmWindow::rebuildResult);
+    //connect(rootsEdit, &QPlainTextEdit::textChanged, this, &ParadigmWindow::rebuildResult);
 }
 
 void ParadigmWindow::rebuildResult()
