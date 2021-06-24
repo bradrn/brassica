@@ -21,7 +21,7 @@ sc = L.space space1' (L.skipLineComment "*") empty
   where
     -- adapted from megaparsec source: like 'space1', but does not
     -- consume newlines (which are important for rule separation)
-    space1' = void $ takeWhile1P (Just "white space") ((&&) <$> isSpace <*> (/='\n'))
+    space1' = void $ takeWhile1P (Just "whitespace") ((&&) <$> isSpace <*> (/='\n'))
 
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
@@ -32,16 +32,18 @@ symbol = L.symbol sc
 name :: Parser String
 name = lexeme $ some alphaNumChar
 
-slot :: Parser Int
-slot = lexeme $ L.signed (pure ()) L.decimal
+slot :: Parser (String -> Process)
+slot = lexeme $ do
+    n <- L.signed (pure ()) L.decimal
+    pure $ if n > 0 then Suffix n else Prefix (-n)
 
-insertion :: Parser Insertion
-insertion =
+process :: Parser Process
+process =
     Null <$ symbol "0"
-    <|> Adfix <$> slot <* char '.' <*> lexeme (takeWhile1P (Just "letter") $ (&&) <$> (not.isSpace) <*> (/=')'))
+    <|> slot <* char '.' <*> lexeme (takeWhile1P (Just "letter") $ (&&) <$> (not.isSpace) <*> (/=')'))
 
 affix :: Parser Affix
-affix = fmap pure insertion <|> between (symbol "(") (symbol ")") (some insertion)
+affix = fmap pure process <|> between (symbol "(") (symbol ")") (some process)
 
 grammeme :: Parser Grammeme
 grammeme = Concrete <$> affix <|> Abstract <$> name
