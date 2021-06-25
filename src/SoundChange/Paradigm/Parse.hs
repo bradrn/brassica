@@ -77,9 +77,9 @@ mapping :: Parser ([String], Affix)
 mapping = (,) <$> manyTill name (symbol ">") <*> affix <* optional eol
 
 statement :: Parser Statement
-statement =
-    uncurry NewMapping <$> try mapping
-    <|> NewFeature <$> feature
+statement = sc *>
+    (uncurry NewMapping <$> try mapping
+    <|> NewFeature <$> feature)
 
 parseParadigm :: String -> Either (ParseErrorBundle String Void) Paradigm
 parseParadigm = runParser (many statement) ""
