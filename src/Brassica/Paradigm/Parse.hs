@@ -1,4 +1,4 @@
-module SoundChange.Paradigm.Parse
+module Brassica.Paradigm.Parse
        ( parseParadigm
          -- * Re-exports
        , errorBundlePretty
@@ -12,7 +12,7 @@ import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
-import SoundChange.Paradigm
+import Brassica.Paradigm
 import Data.Maybe (fromMaybe)
 
 type Parser = Parsec Void String

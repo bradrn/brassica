@@ -11,11 +11,11 @@ import Foreign.StablePtr
 import qualified GHC.Foreign as GHC
 import GHC.IO.Encoding (utf8)
 
-import SoundChange
-import SoundChange.Paradigm (build)
-import SoundChange.Paradigm.Parse
-import SoundChange.Parse
-import SoundChange.Types
+import Brassica.SoundChange
+import Brassica.SoundChange.Parse
+import Brassica.SoundChange.Types
+import Brassica.Paradigm (build)
+import Brassica.Paradigm.Parse
 import Data.Maybe (fromMaybe)
 
 parseTokeniseAndApplyRules_hs

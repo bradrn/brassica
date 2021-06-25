@@ -16,7 +16,7 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module SoundChange.Apply
+module Brassica.SoundChange.Apply
        ( -- * Types
          RuleTag(..)
        -- * Lexeme matching
@@ -43,8 +43,8 @@ import Data.Ord (Down(Down))
 import Control.Monad.State
 import qualified Data.Map.Strict as Map
 
-import MultiZipper
-import SoundChange.Types
+import Brassica.MultiZipper
+import Brassica.SoundChange.Types
 import Data.Functor ((<&>))
 import Data.Bifunctor (Bifunctor(first))
 import Data.Either (isLeft)

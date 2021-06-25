@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveFunctor  #-}
 {-# LANGUAGE KindSignatures #-}
 
-module SoundChange.Category where
+module Brassica.SoundChange.Category where
 
 import Data.Coerce
 import Data.List (intersect, (\\))

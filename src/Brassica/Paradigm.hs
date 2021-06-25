@@ -1,6 +1,6 @@
 {-# LANGUAGE LambdaCase    #-}
 
-module SoundChange.Paradigm
+module Brassica.Paradigm
        ( Process(..)
        , Affix
        , Grammeme(..)

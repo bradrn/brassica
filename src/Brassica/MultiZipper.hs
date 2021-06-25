@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveTraversable #-}
 
-module MultiZipper
+module Brassica.MultiZipper
        ( MultiZipper
        -- * Conversion
        , fromListStart

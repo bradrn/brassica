@@ -1,15 +1,15 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE LambdaCase    #-}
 
-module SoundChange where
+module Brassica.SoundChange where
 
 import Data.Void (Void)
 
 import Text.Megaparsec (ParseErrorBundle)
 
-import SoundChange.Apply
-import SoundChange.Parse
-import SoundChange.Types
+import Brassica.SoundChange.Apply
+import Brassica.SoundChange.Parse
+import Brassica.SoundChange.Types
 
 -- tokeniseAndApplyRulesWithLog :: Categories Grapheme -> [Rule] -> String -> [Component [LogItem Rule]]
 -- tokeniseAndApplyRulesWithLog cats rs ws =

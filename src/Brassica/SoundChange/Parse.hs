@@ -8,7 +8,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ViewPatterns     #-}
 
-module SoundChange.Parse
+module Brassica.SoundChange.Parse
     ( ParseLexeme
     , parseRule
     , parseSoundChanges
@@ -42,8 +42,8 @@ import Text.Megaparsec hiding (State)
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
-import SoundChange.Types
-import qualified SoundChange.Category as C
+import Brassica.SoundChange.Types
+import qualified Brassica.SoundChange.Category as C
 import Control.Applicative (Alternative)
 
 data Config = Config

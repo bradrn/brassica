@@ -1,5 +1,4 @@
 {-# LANGUAGE LambdaCase   #-}
-{-# LANGUAGE ViewPatterns #-}
 
 module Main where
 
@@ -12,9 +11,9 @@ import qualified Data.ByteString as B
 import Data.Text (pack, unpack)
 import Data.Text.Encoding (decodeUtf8)
 
-import SoundChange
-import SoundChange.Parse
-import SoundChange.Types (Grapheme)
+import Brassica.SoundChange
+import Brassica.SoundChange.Parse
+import Brassica.SoundChange.Types (Grapheme)
 import Data.Conduit.Combinators (iterM)
 
 
