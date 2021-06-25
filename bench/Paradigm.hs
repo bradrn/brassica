@@ -13,27 +13,27 @@ main = defaultMain
     ]
 
 smallParadigm :: Paradigm
-smallParadigm = Paradigm
-    [ Feature Nothing
+smallParadigm =
+    [ NewFeature $ Feature Always Nothing
       [ Concrete [Prefix 1 "a"]
       , Concrete [Prefix 1 "b"]
       , Concrete [Prefix 1 "c"]
       ]
-    , Feature Nothing
+    , NewFeature $ Feature Always Nothing
       [ Concrete [Suffix 1 "x"]
       , Concrete [Suffix 1 "y"]
-      , Concrete [Null]
+      , Concrete []
       ]
-    , Feature Nothing
+    , NewFeature $ Feature Always Nothing
       [ Concrete [Prefix 2 "n", Suffix 2 "v"]
       , Concrete [Prefix 2 "n", Suffix 2 "w"]
       , Concrete [Prefix 2 "m", Suffix 2 "w"]
       ]
-    ] []
+    ]
 
 largeParadigm :: Paradigm
-largeParadigm = Paradigm
-    [ Feature Nothing
+largeParadigm =
+    [ NewFeature $ Feature Always Nothing
       [ Concrete [Prefix 1 "a"]
       , Concrete [Prefix 1 "b"]
       , Concrete [Prefix 1 "c"]
@@ -44,21 +44,21 @@ largeParadigm = Paradigm
       , Concrete [Prefix 1 "h"]
       , Concrete [Prefix 1 "i"]
       ]
-    , Feature Nothing
+    , NewFeature $ Feature Always Nothing
       [ Abstract "abstract1a"
       , Abstract "abstract1b"
       ]
-    , Feature Nothing
+    , NewFeature $ Feature Always Nothing
       [ Concrete [Prefix 2 "n", Suffix 2 "v"]
       , Concrete [Prefix 2 "n", Suffix 2 "w"]
       , Concrete [Prefix 2 "m", Suffix 2 "v"]
       , Concrete [Prefix 2 "m", Suffix 2 "w"]
       ]
-    , Feature Nothing
+    , NewFeature $ Feature Always Nothing
       [ Abstract "abstract2a"
       , Abstract "abstract2b"
       ]
-    , Feature Nothing
+    , NewFeature $ Feature Always Nothing
       [ Concrete [Suffix 4 "a"]
       , Concrete [Suffix 4 "b"]
       , Concrete [Suffix 4 "c"]
@@ -69,11 +69,10 @@ largeParadigm = Paradigm
       , Concrete [Suffix 4 "h"]
       , Concrete [Suffix 4 "i"]
       ]
-    ]
-    [ (["abstract1a","abstract2a"], [Suffix 3 "q"])
-    , (["abstract1a","abstract2b"], [Suffix 3 "w"])
-    , (["abstract1b","abstract2a"], [Suffix 3 "e"])
-    , (["abstract1b","abstract2b"], [Suffix 3 "r"])
+    , NewMapping ["abstract1a","abstract2a"] [Suffix 3 "q"]
+    , NewMapping ["abstract1a","abstract2b"] [Suffix 3 "w"]
+    , NewMapping ["abstract1b","abstract2a"] [Suffix 3 "e"]
+    , NewMapping ["abstract1b","abstract2b"] [Suffix 3 "r"]
     ]
 
 smallWords :: [String]
