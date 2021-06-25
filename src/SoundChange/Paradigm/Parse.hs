@@ -13,6 +13,7 @@ import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
 import SoundChange.Paradigm
+import Data.Maybe (fromMaybe)
 
 type Parser = Parsec Void String
 
@@ -49,20 +50,28 @@ affix = fmap pure process <|> between (symbol "(") (symbol ")") (many process)
 grammeme :: Parser Grammeme
 grammeme = Concrete <$> affix <|> Abstract <$> name
 
+condition :: Parser Condition
+condition = do
+    _ <- symbol "when"
+    between (symbol "(") (symbol ")") $
+        try (Is <$> name <* symbol "is" <*> grammeme)
+        <|> Not <$> name <* symbol "not" <*> grammeme
+
 feature :: Parser Feature
 feature = do
+    c <- fromMaybe Always <$> optional condition
     globalSlot <- optional slot
     case globalSlot of
         Nothing -> do
             n <- optional $ try $ name <* symbol "="
             gs <- some grammeme
             _ <- optional eol
-            return $ Feature n gs
+            return $ Feature c n gs
         Just globalSlot' -> do
             n <- optional $ try $ name <* symbol "="
             gs <- some morphValue
             _ <- optional eol
-            return $ Feature n (Concrete . pure . globalSlot' <$> gs)
+            return $ Feature c n (Concrete . pure . globalSlot' <$> gs)
 
 mapping :: Parser ([String], Affix)
 mapping = (,) <$> manyTill name (symbol ">") <*> affix <* optional eol

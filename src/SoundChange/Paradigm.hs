@@ -4,6 +4,7 @@ module SoundChange.Paradigm
        ( Process(..)
        , Affix
        , Grammeme(..)
+       , Condition(..)
        , Feature(..)
        , Statement(..)
        , Paradigm
@@ -36,10 +37,23 @@ type Affix = [Process]
 data Grammeme = Concrete Affix | Abstract String
     deriving (Show, Eq)
 
+-- | A condition which must be satisfied before including a 'Feature'
+-- in a word. 
+data Condition
+    = Always
+    -- ^ Condition which is always satisfied
+    | Is String Grammeme
+    -- ^ Satisfied when the specified feature (identified by its name)
+    -- has been assigned to the specified 'Grammeme'
+    | Not String Grammeme
+    -- ^ Satisfied when the specified feature has /not/ been assigned
+    -- to the specified 'Grammeme'
+    deriving (Show, Eq)
+
 -- | A grammatical feature, which may be realised by one of a
 -- selection of 'Grammeme's. A feature may be given a descriptive
--- name.
-data Feature = Feature (Maybe String) [Grammeme]
+-- name and a condition which must be satisfied.
+data Feature = Feature Condition (Maybe String) [Grammeme]
     deriving (Show, Eq)
 
 -- | Each statement in a paradigm description specifies either a new
@@ -70,8 +84,29 @@ applyParadigm p w =
     getMapping (NewMapping k v) = Just (k,v)
     getMapping _ = Nothing
       
-    combinations :: [Feature] -> [[Grammeme]]
-    combinations = mapM $ \(Feature _ gs) -> gs
+combinations :: [Feature] -> [[Grammeme]]
+combinations = go []
+  where
+    go :: [(Maybe String,Grammeme)] -> [Feature] -> [[Grammeme]]
+    go acc [] = return $ snd <$> reverse acc
+    go acc (Feature c n gs : fs) =
+        if satisfied (flip lookup acc . Just) c
+        then do
+            g <- gs
+            go ((n,g) : acc) fs
+        else go acc fs
+
+    satisfied
+        :: (String -> Maybe Grammeme)
+        -> Condition
+        -> Bool
+    satisfied _ Always = True
+    satisfied l (Is n g) = case l n of
+        Just g' -> g == g'
+        Nothing -> False
+    satisfied l (Not n g) = case l n of
+        Just g' -> g /= g'
+        Nothing -> True
 
 expand :: [([String], Affix)] -> [Grammeme] -> [Process]
 expand ms = concat . ((++) <$> concretes <*> (replace . abstracts))
