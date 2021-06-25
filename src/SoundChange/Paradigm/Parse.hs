@@ -44,8 +44,11 @@ morphValue = lexeme (takeWhile1P (Just "letter") $ (&&) <$> (not.isSpace) <*> (/
 process :: Parser Process
 process = slot <* char '.' <*> morphValue
 
+oneOrMany :: Parser p -> Parser [p]
+oneOrMany p = between (symbol "(") (symbol ")") (many p) <|> fmap pure p
+
 affix :: Parser Affix
-affix = fmap pure process <|> between (symbol "(") (symbol ")") (many process)
+affix = oneOrMany process
 
 grammeme :: Parser Grammeme
 grammeme = Concrete <$> affix <|> Abstract <$> name
@@ -69,9 +72,9 @@ feature = do
             return $ Feature c n gs
         Just globalSlot' -> do
             n <- optional $ try $ name <* symbol "="
-            gs <- some morphValue
+            gs <- some $ oneOrMany $ process <|> (globalSlot' <$> morphValue)
             _ <- optional eol
-            return $ Feature c n (Concrete . pure . globalSlot' <$> gs)
+            return $ Feature c n (Concrete <$> gs)
 
 mapping :: Parser ([String], Affix)
 mapping = (,) <$> manyTill name (symbol ">") <*> affix <* optional eol
