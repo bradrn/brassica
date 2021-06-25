@@ -12,7 +12,6 @@
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TupleSections         #-}
-{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
@@ -35,19 +34,16 @@ module Brassica.SoundChange.Apply
 
 import Control.Applicative ((<|>))
 import Data.Function (on, (&))
-import qualified Data.Foldable as F
 import Data.List (sortBy)
-import Data.Maybe (maybeToList, mapMaybe, fromMaybe, catMaybes, listToMaybe)
+import Data.Maybe (maybeToList, fromMaybe, catMaybes, listToMaybe)
 import Data.Ord (Down(Down))
 
 import Control.Monad.State
-import qualified Data.Map.Strict as Map
 
 import Brassica.MultiZipper
 import Brassica.SoundChange.Types
 import Data.Functor ((<&>))
 import Data.Bifunctor (Bifunctor(first))
-import Data.Either (isLeft)
 
 -- | Defines the tags used when applying a 'Rule'.
 data RuleTag

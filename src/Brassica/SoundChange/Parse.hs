@@ -4,7 +4,6 @@
 {-# LANGUAGE KindSignatures   #-}
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE RecordWildCards  #-}
-{-# LANGUAGE TupleSections    #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ViewPatterns     #-}
 
@@ -25,7 +24,6 @@ module Brassica.SoundChange.Parse
     ) where
 
 import Data.Char (isSpace)
-import Data.Either (fromRight)
 import Data.Foldable (asum)
 import Data.Function (on)
 import Data.List (sortBy, transpose)
@@ -35,7 +33,6 @@ import Data.Void (Void)
 
 import Control.Applicative.Permutations
 import Control.Monad.State
-import qualified Data.List.Split as S
 import qualified Data.Map.Strict as M
 
 import Text.Megaparsec hiding (State)
@@ -44,9 +41,8 @@ import qualified Text.Megaparsec.Char.Lexer as L
 
 import Brassica.SoundChange.Types
 import qualified Brassica.SoundChange.Category as C
-import Control.Applicative (Alternative)
 
-data Config = Config
+newtype Config = Config
     { categories :: C.Categories Grapheme
     }
 type Parser = ParsecT Void String (State Config)

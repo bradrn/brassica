@@ -126,7 +126,7 @@ locationOf t (MultiZipper _ _ ts) = M.lookup t ts
 
 -- | Get all tags at the current position
 query :: Ord t => MultiZipper t a -> [t]
-query mz@(MultiZipper _ pos ts) = M.keys $ M.filter (==pos) ts
+query (MultiZipper _ pos ts) = M.keys $ M.filter (==pos) ts
 
 seekIx :: Int -> MultiZipper t a -> Maybe (MultiZipper t a)
 seekIx i (MultiZipper as _ ts) =
@@ -236,10 +236,10 @@ modifyBetween (t1, t2) f mz@(MultiZipper as pos ts) = do
     (i1, i2) <- fmap correctOrder $ (,) <$> locationOf t1 mz <*> locationOf t2 mz
     let (before_t1, after_t1) = splitAt i1 as
         (cut_part, after_t2) = splitAt (i2-i1) after_t1
-        insert = f cut_part
-        dEnd = length insert - length cut_part
+        replacement = f cut_part
+        dEnd = length replacement - length cut_part
         pos' = pos + dEnd
-    return $ MultiZipper (before_t1 ++ insert ++ after_t2) pos' (correctIxsFrom i2 (+dEnd) ts) -- (M.adjust (+dEnd) t2 ts)
+    return $ MultiZipper (before_t1 ++ replacement ++ after_t2) pos' (correctIxsFrom i2 (+dEnd) ts)
   where
     correctOrder (m, n) = if m <= n then (m, n) else (n, m)
 

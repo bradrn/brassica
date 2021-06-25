@@ -5,7 +5,7 @@
 module Brassica.SoundChange.Category where
 
 import Data.Coerce
-import Data.List (intersect, (\\))
+import Data.List (intersect)
 import Data.Maybe (fromMaybe)
 
 import qualified Data.Map.Strict as M
