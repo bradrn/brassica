@@ -97,8 +97,8 @@ expand ms = concat . ((++) <$> concretes <*> (replace . abstracts))
 
 applyTo :: String -> [Process] -> String
 applyTo w is =
-    let ps = concatMap snd $ sortOn         fst  $ mapMaybe getPrefix is
-        ss = concatMap snd $ sortOn (Down . fst) $ mapMaybe getSuffix is
+    let ps = concatMap snd $ sortOn (Down . fst) $ mapMaybe getPrefix is
+        ss = concatMap snd $ sortOn         fst  $ mapMaybe getSuffix is
     in ps ++ w ++ ss
   where
     getPrefix (Prefix s i) = Just (s,i)
