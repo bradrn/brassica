@@ -38,12 +38,12 @@ slot = lexeme $ do
     pure $ if n > 0 then Suffix n else Prefix (-n)
 
 process :: Parser Process
-process =
-    Null <$ symbol "0"
-    <|> slot <* char '.' <*> lexeme (takeWhile1P (Just "letter") $ (&&) <$> (not.isSpace) <*> (/=')'))
+process = slot
+    <* char '.'
+    <*> lexeme (takeWhile1P (Just "letter") $ (&&) <$> (not.isSpace) <*> (/=')'))
 
 affix :: Parser Affix
-affix = fmap pure process <|> between (symbol "(") (symbol ")") (some process)
+affix = fmap pure process <|> between (symbol "(") (symbol ")") (many process)
 
 grammeme :: Parser Grammeme
 grammeme = Concrete <$> affix <|> Abstract <$> name
@@ -54,8 +54,10 @@ feature = Feature <$> optional (try $ name <* symbol "=") <*> some grammeme <* o
 mapping :: Parser ([String], Affix)
 mapping = (,) <$> manyTill name (symbol ">") <*> affix <* optional eol
 
-paradigm :: Parser Paradigm
-paradigm = Paradigm <$> some feature <*> many mapping
+statement :: Parser Statement
+statement =
+    uncurry NewMapping <$> try mapping
+    <|> NewFeature <$> feature
 
 parseParadigm :: String -> Either (ParseErrorBundle String Void) Paradigm
-parseParadigm = runParser paradigm ""
+parseParadigm = runParser (many statement) ""

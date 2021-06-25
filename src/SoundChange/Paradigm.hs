@@ -5,7 +5,8 @@ module SoundChange.Paradigm
        , Affix
        , Grammeme(..)
        , Feature(..)
-       , Paradigm(..)
+       , Statement(..)
+       , Paradigm
        , build
        ) where
 
@@ -17,14 +18,13 @@ import Data.Ord (Down(Down))
 -- prefixation or suffixation. The 'Int' argument represents distance
 -- from the root.
 data Process
-    = Null
-    | Prefix Int String
+    = Prefix Int String
     | Suffix Int String
     deriving (Show, Eq)
 
 -- | A single affix (using the term in a wide sense, to include
 -- circumfixes etc.) can be thought of as a list of morphophonological
--- processes.
+-- processes, with the zero list representing a zero affix.
 type Affix = [Process]
 
 -- | A 'Grammeme' represents one value of a grammatical feature, for
@@ -42,21 +42,34 @@ data Grammeme = Concrete Affix | Abstract String
 data Feature = Feature (Maybe String) [Grammeme]
     deriving (Show, Eq)
 
--- | A paradigm is primarily a list of 'Feature's. The list is
+-- | Each statement in a paradigm description specifies either a new
+-- 'Feature', or a new mapping from a set of abstract grammemes to
+-- their realisation.
+data Statement = NewFeature Feature | NewMapping [String] Affix
+    deriving (Show, Eq)
+
+-- | A paradigm is specified as a list of 'Statements'. The list is
 -- basically big-endian, in that the slowest-varying feature should be
 -- listed first. (So if e.g. tense is listed first, then first all
 -- words of tense 1 are listed, next all words of tense 2 are listed,
--- and so on.) The 'Paradigm' also includes a mapping from sets of
--- 'Abstract' grammemes to their cumulative 'Affix' realisation.
-data Paradigm = Paradigm [Feature] [([String], Affix)]
-    deriving (Show, Eq)
+-- and so on.)
+type Paradigm = [Statement]
 
 build :: Paradigm -> [String] -> [String]
 build p ws = ws >>= applyParadigm p
 
 applyParadigm :: Paradigm -> String -> [String]
-applyParadigm (Paradigm fs ms) w = applyTo w . expand ms <$> combinations fs
+applyParadigm p w =
+    let fs = mapMaybe getFeature p
+        ms = mapMaybe getMapping p
+    in applyTo w . expand ms <$> combinations fs
   where
+    getFeature (NewFeature f) = Just f
+    getFeature _ = Nothing
+
+    getMapping (NewMapping k v) = Just (k,v)
+    getMapping _ = Nothing
+      
     combinations :: [Feature] -> [[Grammeme]]
     combinations = mapM $ \(Feature _ gs) -> gs
 
@@ -76,7 +89,7 @@ expand ms = concat . ((++) <$> concretes <*> (replace . abstracts))
     replace :: [String] -> [Affix]
     replace gs = do
         (condition, replacement) <- ms
-        if gs `subsetOf` condition
+        if condition `subsetOf` gs
            then return replacement
            else []
 
