@@ -15,6 +15,11 @@ public:
 private slots:
     void rebuildResult();
 
+    void openParadigm();
+    void saveParadigm();
+    void openLexicon();
+    void saveLexicon();
+
 private:
     QPlainTextEdit *paradigmEdit;
     QPlainTextEdit *rootsEdit;

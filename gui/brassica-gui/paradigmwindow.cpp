@@ -5,6 +5,9 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QMenu>
+#include <QMenuBar>
+#include <QFileDialog>
 
 ParadigmWindow::ParadigmWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -46,6 +49,12 @@ ParadigmWindow::ParadigmWindow(QWidget *parent)
     QPushButton *buildBtn = new QPushButton("Build");
     outputLayout->addWidget(buildBtn);
 
+    QMenu *fileMenu = menuBar()->addMenu("&File");
+    fileMenu->addAction("Open paradigm", this, &ParadigmWindow::openParadigm, QKeySequence::Open);
+    fileMenu->addAction("Save paradigm", this, &ParadigmWindow::saveParadigm, QKeySequence::Save);
+    fileMenu->addAction("Open lexicon", this, &ParadigmWindow::openLexicon);
+    fileMenu->addAction("Save lexicon", this, &ParadigmWindow::saveLexicon);
+
     connect(buildBtn, &QPushButton::clicked, this, &ParadigmWindow::rebuildResult);
 
     // previous code for live previewing (turned out to be too slow):
@@ -66,3 +75,45 @@ void ParadigmWindow::rebuildResult()
     outputEdit->setHtml(QString::fromUtf8(output));
 }
 
+void ParadigmWindow::openParadigm()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, "Open paradigm", QString(), "Brassica paradigms (*.bpd);;All files (*.*)");
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return;
+
+    paradigmEdit->setPlainText(QString::fromUtf8(file.readAll()));
+}
+
+void ParadigmWindow::saveParadigm()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, "Save paradigm", QString(), "Brassica paradigms (*.bpd);;All files (*.*)");
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        return;
+
+    QString rules = paradigmEdit->toPlainText();
+
+    file.write(rules.toUtf8());
+}
+
+void ParadigmWindow::openLexicon()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, "Open lexicon", QString(), "Lexicon files (*.lex);;All files (*.*)");
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return;
+
+    rootsEdit->setPlainText(QString::fromUtf8(file.readAll()));
+}
+
+void ParadigmWindow::saveLexicon()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, "Open lexicon", QString(), "Lexicon files (*.lex);;All files (*.*)");
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        return;
+
+    QString lexicon = rootsEdit->toPlainText();
+    file.write(lexicon.toUtf8());
+}
