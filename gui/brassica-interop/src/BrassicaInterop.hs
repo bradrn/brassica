@@ -12,7 +12,7 @@ import qualified GHC.Foreign as GHC
 import GHC.IO.Encoding (utf8)
 
 import SoundChange
-import SoundChange.Paradigm
+import SoundChange.Paradigm (build)
 import SoundChange.Paradigm.Parse
 import SoundChange.Parse
 import SoundChange.Types

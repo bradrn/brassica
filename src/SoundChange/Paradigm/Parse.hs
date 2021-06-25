@@ -37,10 +37,11 @@ slot = lexeme $ do
     n <- L.signed (pure ()) L.decimal
     pure $ if n > 0 then Suffix n else Prefix (-n)
 
+morphValue :: Parser String
+morphValue = lexeme (takeWhile1P (Just "letter") $ (&&) <$> (not.isSpace) <*> (/=')'))
+
 process :: Parser Process
-process = slot
-    <* char '.'
-    <*> lexeme (takeWhile1P (Just "letter") $ (&&) <$> (not.isSpace) <*> (/=')'))
+process = slot <* char '.' <*> morphValue
 
 affix :: Parser Affix
 affix = fmap pure process <|> between (symbol "(") (symbol ")") (many process)
@@ -49,7 +50,19 @@ grammeme :: Parser Grammeme
 grammeme = Concrete <$> affix <|> Abstract <$> name
 
 feature :: Parser Feature
-feature = Feature <$> optional (try $ name <* symbol "=") <*> some grammeme <* optional eol
+feature = do
+    globalSlot <- optional slot
+    case globalSlot of
+        Nothing -> do
+            n <- optional $ try $ name <* symbol "="
+            gs <- some grammeme
+            _ <- optional eol
+            return $ Feature n gs
+        Just globalSlot' -> do
+            n <- optional $ try $ name <* symbol "="
+            gs <- some morphValue
+            _ <- optional eol
+            return $ Feature n (Concrete . pure . globalSlot' <$> gs)
 
 mapping :: Parser ([String], Affix)
 mapping = (,) <$> manyTill name (symbol ">") <*> affix <* optional eol
