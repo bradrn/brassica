@@ -5,10 +5,8 @@
 {-# LANGUAGE TypeApplications #-}
 
 module Brassica.SoundChange.Parse
-    ( ParseLexeme
-    , parseRule
+    ( parseRule
     , parseSoundChanges
-    , Config(..)
       -- * Re-exports
     , errorBundlePretty
     ) where

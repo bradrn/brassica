@@ -27,6 +27,7 @@ module Brassica.SoundChange.Apply
        -- * Sound change application
        , applyOnce
        , applyRule
+       , checkGraphemes
        , applyStatement
        , applyRuleStr
        , applyStatementStr
@@ -285,18 +286,25 @@ applyRule r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
                 Just mz'' -> repeatRule m mz''
                 Nothing -> mz'
 
+-- | Check that the 'MultiZipper' contains only graphemes listed in
+-- the given 'CategoriesDecl', replacing all unlisted graphemes with
+-- U+FFFD.
 checkGraphemes :: CategoriesDecl -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme
 checkGraphemes (CategoriesDecl gs) = fmap $ \g -> if g `elem` gs then g else "\xfffd"
 
+-- | Apply a 'Statement' to a 'MultiZipper'. This is a simple wrapper
+-- around 'applyRule' and 'checkGraphemes'.
 applyStatement :: Statement -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme
 applyStatement (RuleS r) mz = applyRule r mz
 applyStatement (CategoriesDeclS gs) mz = checkGraphemes gs mz
 
 -- | Apply a 'Rule' to a word, represented as a list of
--- 'Grapheme's. This is a simple wrapper around 'apply'.
+-- 'Grapheme's. This is a simple wrapper around 'applyRule'.
 applyRuleStr :: Rule -> [Grapheme] -> [Grapheme]
 -- Note: 'fromJust' is safe here as 'apply' should always succeed
 applyRuleStr r s = toList $ applyRule r $ fromListStart s
 
+-- | Apply a 'Statement' to a word, represented as a list of
+-- 'Grapheme's. This is a simple wrapper around 'applyStatement'.
 applyStatementStr :: Statement -> [Grapheme] -> [Grapheme]
 applyStatementStr st s = toList $ applyStatement st $ fromListStart s

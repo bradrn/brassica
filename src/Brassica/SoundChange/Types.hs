@@ -86,10 +86,13 @@ data Flags = Flags
   , applyOnceOnly    :: Bool
   } deriving (Show)
 
+-- | A default selection of flags which are appropriate for most
+-- rules: highlight changes, apply 'LTR', and apply repeatedly.
 defFlags :: Flags
 defFlags = Flags True LTR False
 
--- | A sound change rule: ‘-flags target → replacement \/ environment \/ exception’.
+-- | A single sound change rule: ‘-flags target → replacement \/
+-- environment \/ exception’.
 data Rule = Rule
   { target      :: [Lexeme 'Target]
   , replacement :: [Lexeme 'Replacement]
@@ -99,10 +102,18 @@ data Rule = Rule
   , plaintext   :: String
   } deriving (Show)
 
+-- | Corresponds to a category declaration in the original sound
+-- changes. Category declarations are mostly desugared away by the
+-- parser, but the applier still needs to know the list of graphemes
+-- which were introduced, so that it can filter out all unknown
+-- graphemes.
 newtype CategoriesDecl = CategoriesDecl { graphemes :: [Grapheme] }
   deriving (Show)
 
+-- | A 'Statement' can be either a single sound change rule, or a
+-- category declaration.
 data Statement = RuleS Rule | CategoriesDeclS CategoriesDecl
     deriving (Show)
 
+-- | A set of 'SoundChanges' is simply a list of 'Statement's.
 type SoundChanges = [Statement]
