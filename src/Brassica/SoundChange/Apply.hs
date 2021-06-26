@@ -98,10 +98,7 @@ instance Semigroup MatchOutput where
 -- 'MultiZipper' past the match. Returns 'Nothing' if it does not
 -- match; else return the 'MatchOutput' tupled with the updated
 -- 'MultiZipper'.
-match :: forall a t.
-       ( OneOf a 'Target 'Env
-       , SingLT a
-       )
+match :: OneOf a 'Target 'Env
       => Maybe Grapheme       -- ^ The previously-matched grapheme, if any. (Used to match a 'Geminate'.)
       -> Lexeme a             -- ^ The lexeme to match.
       -> MultiZipper t Grapheme   -- ^ The 'MultiZipper' to match against.
@@ -147,10 +144,7 @@ matchGraphemeP p mz = value mz >>= \cs -> if p cs then fwd mz else Nothing
 -- 'MultiZipper'. Arguments and output are the same as with 'match',
 -- though the outputs are given as a list of indices and graphemes
 -- rather than as a single index and grapheme.
-matchMany ::
-           ( OneOf a 'Target 'Env
-           , SingLT a
-           )
+matchMany :: OneOf a 'Target 'Env
           => Maybe Grapheme
           -> [Lexeme a]
           -> MultiZipper t Grapheme

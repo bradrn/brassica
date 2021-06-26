@@ -43,16 +43,6 @@ type Grapheme = [Char]
 -- target, the replacement or the environment.
 data LexemeType = Target | Replacement | Env
 
-data SLexemeType :: LexemeType -> * where
-    STarget      :: SLexemeType 'Target
-    SReplacement :: SLexemeType 'Replacement
-    SEnv         :: SLexemeType 'Env
-
-class SingLT lt where singLT :: SLexemeType lt
-instance SingLT 'Target      where singLT = STarget
-instance SingLT 'Replacement where singLT = SReplacement
-instance SingLT 'Env         where singLT = SEnv
-
 -- | A 'Lexeme' is the smallest component of a sound change,
 -- specifying either a match or a replacement. The phantom type
 -- variable, of kind 'LexemeType', specifies the part(s) of the rule
