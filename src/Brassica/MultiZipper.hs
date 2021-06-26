@@ -121,6 +121,7 @@ valueN i (MultiZipper as pos ts) =
         then Nothing
         else Just (take i $ drop pos as, MultiZipper as pos' ts)
 
+-- | Given a tag, return its position
 locationOf :: Ord t => t -> MultiZipper t a -> Maybe Int
 locationOf t (MultiZipper _ _ ts) = M.lookup t ts
 
@@ -183,6 +184,8 @@ insert a (MultiZipper as pos ts) =
     case splitAt pos as of
         (as1, as2) -> MultiZipper (as1 ++ [a] ++ as2) (pos+1) $ correctIxsFrom pos (+1) ts
 
+-- | Insert multiple elements at point and move after them. A simple
+-- wrapper around 'insert'.
 insertMany :: [a] -> MultiZipper t a -> MultiZipper t a
 insertMany = flip $ foldl' $ flip insert
 

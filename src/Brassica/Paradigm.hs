@@ -62,13 +62,15 @@ data Feature = Feature Condition (Maybe String) [Grammeme]
 data Statement = NewFeature Feature | NewMapping [String] Affix
     deriving (Show, Eq)
 
--- | A paradigm is specified as a list of 'Statements'. The list is
+-- | A paradigm is specified as a list of 'Statement's. The list is
 -- basically big-endian, in that the slowest-varying feature should be
 -- listed first. (So if e.g. tense is listed first, then first all
 -- words of tense 1 are listed, next all words of tense 2 are listed,
 -- and so on.)
 type Paradigm = [Statement]
 
+-- | Given a 'Paradigm', build the paradigm by applying it to each
+-- root in a list of roots.
 build :: Paradigm -> [String] -> [String]
 build p ws = ws >>= applyParadigm p
 
