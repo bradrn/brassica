@@ -13,6 +13,7 @@ import GHC.IO.Encoding (utf8)
 
 import Brassica.SoundChange
 import Brassica.SoundChange.Parse
+import Brassica.SoundChange.Tokenise
 import Brassica.SoundChange.Types
 import Brassica.Paradigm (build)
 import Brassica.Paradigm.Parse

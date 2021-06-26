@@ -13,6 +13,7 @@ import Data.Text.Encoding (decodeUtf8)
 
 import Brassica.SoundChange
 import Brassica.SoundChange.Parse
+import Brassica.SoundChange.Tokenise
 import Brassica.SoundChange.Types (Grapheme)
 import Data.Conduit.Combinators (iterM)
 

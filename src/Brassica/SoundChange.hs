@@ -8,7 +8,7 @@ import Data.Void (Void)
 import Text.Megaparsec (ParseErrorBundle)
 
 import Brassica.SoundChange.Apply
-import Brassica.SoundChange.Parse
+import Brassica.SoundChange.Tokenise
 import Brassica.SoundChange.Types
 
 -- tokeniseAndApplyRulesWithLog :: Categories Grapheme -> [Rule] -> String -> [Component [LogItem Rule]]
