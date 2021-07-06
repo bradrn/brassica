@@ -9,7 +9,7 @@ The former is recommended for prototyping new sound changes, while the latter is
 
 The interactive interface appears as follows:
 
-![Image of Brassica GUI](./gui-interface.PNG)
+![Image of Brassica GUI](./gui-interface.png)
 
 For basic usage, enter your rules in the leftmost textbox and your lexicon in the textbox second from the left,
   using the syntax described below.
