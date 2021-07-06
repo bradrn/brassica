@@ -614,7 +614,12 @@ Thus an example of a basic paradigm definition would be as follows:
 The output will then iterate through all combinations of these affixes.
 For instance, applying the paradigm above to the root `kood` gives:
 
-```
+<details>
+<summary>
+(Click to show output)
+</summary>
+<pre>
+<code>
 zhaazhkoodwim
 zhaawkoodwim
 zhaaykoodwim
@@ -687,7 +692,9 @@ wooykoodaaen
 yaazhkoodaaen
 yaawkoodaaen
 yaaykoodaaen
-```
+</code>
+</pre>
+</details>
 
 Note that in the paradigm described above, all affixes on each line are assigned to the same slot.
 This is common in paradigms, so the paradigm builder has a shortcut syntax for this situation,
