@@ -1,2 +1,2 @@
 * text eol=crlf
-*.png binary
+*.png binary -eol
