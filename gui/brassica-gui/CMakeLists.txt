@@ -28,6 +28,7 @@ add_executable(brassica-gui
   ruleshighlighter.h
   paradigmwindow.cpp
   paradigmwindow.h
+  resources.rc
 #  brassicaprocess.h
 #  brassicaprocess.cpp
 )
