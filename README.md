@@ -13,7 +13,7 @@ Brassica is a new sound change applier with the following features:
 - Support for ‘features’ lets rules easily manipulate stress, tone and other suprasegmentals
 - Easy control over rule application: apply rules right-to-left and left-to-right, one time or multiple times
 
-See the [documentation](./DOCUMENTATION.md) for details on Brassica usage.
+See the [documentation](./Documentation.md) for details on Brassica usage.
 
 Download Brassica from the [releases page](https://github.com/bradrn/brassica/releases/latest).
 As of the time of writing prebuilt binaries exist only for Windows.
