@@ -17,7 +17,6 @@ See the [documentation](./DOCUMENTATION.md) for details on Brassica usage.
 
 Download Brassica from the [releases page](https://github.com/bradrn/brassica/releases/latest).
 As of the time of writing prebuilt binaries exist only for Windows.
-Instructions for building from source should be coming soon;
-  but until then, good luck building it on other platforms.
+Instructions for building from source are available at [`BUILDING.md`](./BUILDING.md).
 
 ![Image of Brassica with some example sound changes](./gui-interface-example.png)
