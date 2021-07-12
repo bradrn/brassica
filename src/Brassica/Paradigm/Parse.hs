@@ -17,12 +17,13 @@ import Data.Maybe (fromMaybe)
 
 type Parser = Parsec Void String
 
+-- adapted from megaparsec source: like 'space1', but does not
+-- consume newlines (which are important for rule separation)
+space1' :: Parser ()
+space1' = void $ takeWhile1P (Just "whitespace") ((&&) <$> isSpace <*> (/='\n'))
+
 sc :: Parser ()
 sc = L.space space1' (L.skipLineComment "*") empty
-  where
-    -- adapted from megaparsec source: like 'space1', but does not
-    -- consume newlines (which are important for rule separation)
-    space1' = void $ takeWhile1P (Just "whitespace") ((&&) <$> isSpace <*> (/='\n'))
 
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
@@ -63,7 +64,7 @@ condition = do
 feature :: Parser Feature
 feature = do
     c <- fromMaybe Always <$> optional condition
-    globalSlot <- optional slot
+    globalSlot <- optional $ try $ slot <* space1'
     case globalSlot of
         Nothing -> do
             n <- optional $ try $ name <* symbol "="
