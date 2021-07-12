@@ -20,7 +20,7 @@ set(GHC_INCLUDE_DIR ${GHC_BIN_DIR}/../lib/include CACHE PATH "Path to includes d
 
 include_directories(${BRASSICA_INTEROP_DIR}/stub ${GHC_INCLUDE_DIR})
 
-add_executable(brassica-gui
+add_executable(brassica-gui WIN32
   main.cpp
   mainwindow.cpp
   mainwindow.h
