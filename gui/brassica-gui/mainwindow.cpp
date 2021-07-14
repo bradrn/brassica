@@ -229,6 +229,9 @@ void MainWindow::reparseCategories()
         }
     }
 
-    rulesHl->setCategories(categories);
+    {
+        const QSignalBlocker blocker(rulesEdit);
+        rulesHl->setCategories(categories);
+    }
 }
 
