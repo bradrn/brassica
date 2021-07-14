@@ -2,9 +2,10 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "Brassica"
-!define PRODUCT_VERSION "0.0.1"
+!define PRODUCT_VERSION "0.0.2"
 !define PRODUCT_WEB_SITE "https://github.com/bradrn/brassica"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\brassica-gui.exe"
+!define PRODUCT_DIR_REGKEY_CMD "Software\Microsoft\Windows\CurrentVersion\App Paths\brassica.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 
@@ -26,10 +27,10 @@
 !insertmacro MUI_PAGE_INSTFILES
 ; Finish page
 !define MUI_FINISHPAGE_RUN "$INSTDIR\brassica-gui.exe"
-  !define MUI_FINISHPAGE_SHOWREADME
-  !define MUI_FINISHPAGE_SHOWREADME_TEXT "Create Desktop Shortcut"
-  !define MUI_FINISHPAGE_SHOWREADME_FUNCTION CreateDesktopShortCut
-  !define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
+!define MUI_FINISHPAGE_SHOWREADME
+!define MUI_FINISHPAGE_SHOWREADME_TEXT "Create Desktop Shortcut"
+!define MUI_FINISHPAGE_SHOWREADME_FUNCTION CreateDesktopShortCut
+!define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
 !insertmacro MUI_PAGE_FINISH
 
 ; Uninstaller pages
@@ -41,7 +42,7 @@
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "brassica-setup.exe"
+OutFile "brassica-setup-${PRODUCT_VERSION}.exe"
 InstallDir "$PROGRAMFILES\Brassica"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
@@ -49,62 +50,63 @@ ShowUnInstDetails show
 
 Section "MainSection" SEC01
   SetOutPath "$INSTDIR"
-  File "gui\bin\brassica-gui.exe"
+  File "bin\brassica.exe"
+  File "bin\brassica-gui.exe"
   CreateDirectory "$SMPROGRAMS\Brassica"
   CreateShortCut "$SMPROGRAMS\Brassica\Brassica.lnk" "$INSTDIR\brassica-gui.exe"
-  File "gui\bin\D3Dcompiler_47.dll"
+  File "bin\D3Dcompiler_47.dll"
   SetOutPath "$INSTDIR\iconengines"
-  File "gui\bin\iconengines\qsvgicon.dll"
+  File "bin\iconengines\qsvgicon.dll"
   SetOutPath "$INSTDIR\imageformats"
-  File "gui\bin\imageformats\qgif.dll"
-  File "gui\bin\imageformats\qicns.dll"
-  File "gui\bin\imageformats\qico.dll"
-  File "gui\bin\imageformats\qjpeg.dll"
-  File "gui\bin\imageformats\qsvg.dll"
-  File "gui\bin\imageformats\qtga.dll"
-  File "gui\bin\imageformats\qtiff.dll"
-  File "gui\bin\imageformats\qwbmp.dll"
-  File "gui\bin\imageformats\qwebp.dll"
+  File "bin\imageformats\qgif.dll"
+  File "bin\imageformats\qicns.dll"
+  File "bin\imageformats\qico.dll"
+  File "bin\imageformats\qjpeg.dll"
+  File "bin\imageformats\qsvg.dll"
+  File "bin\imageformats\qtga.dll"
+  File "bin\imageformats\qtiff.dll"
+  File "bin\imageformats\qwbmp.dll"
+  File "bin\imageformats\qwebp.dll"
   SetOutPath "$INSTDIR"
-  File "gui\bin\libEGL.dll"
-  File "gui\bin\libgcc_s_seh-1.dll"
-  File "gui\bin\libGLESv2.dll"
-  File "gui\bin\libstdc++-6.dll"
-  File "gui\bin\libwinpthread-1.dll"
-  File "gui\bin\opengl32sw.dll"
+  File "bin\libEGL.dll"
+  File "bin\libgcc_s_seh-1.dll"
+  File "bin\libGLESv2.dll"
+  File "bin\libstdc++-6.dll"
+  File "bin\libwinpthread-1.dll"
+  File "bin\opengl32sw.dll"
   SetOutPath "$INSTDIR\platforms"
-  File "gui\bin\platforms\qwindows.dll"
+  File "bin\platforms\qwindows.dll"
   SetOutPath "$INSTDIR"
-  File "gui\bin\Qt5Core.dll"
-  File "gui\bin\Qt5Gui.dll"
-  File "gui\bin\Qt5Svg.dll"
-  File "gui\bin\Qt5Widgets.dll"
+  File "bin\Qt5Core.dll"
+  File "bin\Qt5Gui.dll"
+  File "bin\Qt5Svg.dll"
+  File "bin\Qt5Widgets.dll"
   SetOutPath "$INSTDIR\styles"
-  File "gui\bin\styles\qwindowsvistastyle.dll"
+  File "bin\styles\qwindowsvistastyle.dll"
   SetOutPath "$INSTDIR\translations"
-  File "gui\bin\translations\qt_ar.qm"
-  File "gui\bin\translations\qt_bg.qm"
-  File "gui\bin\translations\qt_ca.qm"
-  File "gui\bin\translations\qt_cs.qm"
-  File "gui\bin\translations\qt_da.qm"
-  File "gui\bin\translations\qt_de.qm"
-  File "gui\bin\translations\qt_en.qm"
-  File "gui\bin\translations\qt_es.qm"
-  File "gui\bin\translations\qt_fi.qm"
-  File "gui\bin\translations\qt_fr.qm"
-  File "gui\bin\translations\qt_gd.qm"
-  File "gui\bin\translations\qt_he.qm"
-  File "gui\bin\translations\qt_hu.qm"
-  File "gui\bin\translations\qt_it.qm"
-  File "gui\bin\translations\qt_ja.qm"
-  File "gui\bin\translations\qt_ko.qm"
-  File "gui\bin\translations\qt_lv.qm"
-  File "gui\bin\translations\qt_pl.qm"
-  File "gui\bin\translations\qt_ru.qm"
-  File "gui\bin\translations\qt_sk.qm"
-  File "gui\bin\translations\qt_tr.qm"
-  File "gui\bin\translations\qt_uk.qm"
-  File "gui\bin\translations\qt_zh_TW.qm"
+  File "bin\translations\qt_ar.qm"
+  File "bin\translations\qt_bg.qm"
+  File "bin\translations\qt_ca.qm"
+  File "bin\translations\qt_cs.qm"
+  File "bin\translations\qt_da.qm"
+  File "bin\translations\qt_de.qm"
+  File "bin\translations\qt_en.qm"
+  File "bin\translations\qt_es.qm"
+  File "bin\translations\qt_fi.qm"
+  File "bin\translations\qt_fr.qm"
+  File "bin\translations\qt_gd.qm"
+  File "bin\translations\qt_he.qm"
+  File "bin\translations\qt_hu.qm"
+  File "bin\translations\qt_it.qm"
+  File "bin\translations\qt_ja.qm"
+  File "bin\translations\qt_ko.qm"
+  File "bin\translations\qt_lv.qm"
+  File "bin\translations\qt_pl.qm"
+  File "bin\translations\qt_ru.qm"
+  File "bin\translations\qt_sk.qm"
+  File "bin\translations\qt_tr.qm"
+  File "bin\translations\qt_uk.qm"
+  File "bin\translations\qt_zh_TW.qm"
 SectionEnd
 
 Function CreateDesktopShortCut
@@ -114,6 +116,7 @@ FunctionEnd
 Section -Post
   WriteUninstaller "$INSTDIR\uninst.exe"
   WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\brassica-gui.exe"
+  WriteRegStr HKLM "${PRODUCT_DIR_REGKEY_CMD}" "" "$INSTDIR\brassica.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\brassica-gui.exe"
@@ -181,6 +184,7 @@ Section Uninstall
   Delete "$INSTDIR\iconengines\qsvgicon.dll"
   Delete "$INSTDIR\D3Dcompiler_47.dll"
   Delete "$INSTDIR\brassica-gui.exe"
+  Delete "$INSTDIR\brassica.exe"
 
   Delete "$DESKTOP\Brassica.lnk"
   Delete "$SMPROGRAMS\Brassica\Brassica.lnk"
@@ -194,6 +198,7 @@ Section Uninstall
   RMDir "$INSTDIR"
 
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
+  DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY_CMD}"
   DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
   SetAutoClose true
 SectionEnd
