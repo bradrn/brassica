@@ -87,6 +87,7 @@ parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) hlMode prevPtr = d
     surroundTable :: String -> String
     surroundTable s = "<table>" ++ s ++ "</table>"
 
+initResults :: IO (StablePtr (IORef (Maybe [Component [Grapheme]])))
 initResults = newIORef Nothing >>= newStablePtr
 
 parseAndBuildParadigm_hs
@@ -105,8 +106,6 @@ escape = concatMap $ \case
     '\n' -> "<br/>"
     -- '\t' -> "&#9;"  -- this doesn't seem to do anything - keeping it here in case I eventually figure out how to do tabs in Qt
     c    -> pure c
-
-initResults :: IO (StablePtr (IORef (Maybe [Component [Grapheme]])))
 
 foreign export ccall parseTokeniseAndApplyRules_hs
     :: CString
