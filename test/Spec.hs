@@ -33,9 +33,7 @@ proto21eTest = goldenVsFile "proto21e test" "test/proto21e.golden" "test/proto21
         liftIO $ withSourceFile "test/proto21e.in" $ flip connect
              $ decodeUtf8C
             .| linesUnboundedC
-            .| iterMC (liftIO . print)
             .| mapC (evolve . T.unpack)
-            .| iterMC (liftIO . print)
             .| sinkHandle outFile
     where
         catchEither (Left  a) f = f a
