@@ -2,7 +2,7 @@ module Main where
 
 import Criterion.Main (defaultMain, bench, nf)
 
-import SoundChange.Paradigm
+import Brassica.Paradigm
 
 main :: IO ()
 main = defaultMain
