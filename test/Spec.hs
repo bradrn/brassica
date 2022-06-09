@@ -2,7 +2,6 @@
 {-# LANGUAGE PartialTypeSignatures #-}
 import Test.Tasty ( defaultMain, testGroup, TestTree )
 import qualified Data.ByteString as B
-import qualified Data.Text.Encoding as T
 import qualified Data.Text as T
 import Brassica.SoundChange.Parse (parseSoundChanges, errorBundlePretty)
 import Control.Monad.Trans.Except (runExceptT, throwE)
@@ -11,7 +10,7 @@ import Test.Tasty.Golden (goldenVsFile)
 import Brassica.SoundChange (applyChanges, tokeniseAnd)
 import Conduit
 import System.IO (IOMode(..), hPutStrLn, withFile)
-import Control.Monad.IO.Class ( MonadIO(liftIO) )
+import qualified Data.ByteString.UTF8 as B8
 
 main :: IO ()
 main = defaultMain $ testGroup "brassica-tests"
@@ -19,22 +18,24 @@ main = defaultMain $ testGroup "brassica-tests"
      ]
 
 proto21eTest :: TestTree
-proto21eTest = goldenVsFile "proto21e test" "test/proto21e.golden" "test/proto21e.out" $ do
+proto21eTest = goldenVsFile "proto21e golden test" "test/proto21e.golden" "test/proto21e.out" $ do
     withFile "test/proto21e.out" WriteMode $ \outFile -> fmap (either id id) . runExceptT $ do
         let writeLn = liftIO . hPutStrLn outFile
-        soundChangeData <- T.unpack . T.decodeUtf8 <$> liftIO (B.readFile "test/proto21e.bsc")
+        soundChangeData <- B8.toString <$> liftIO (B.readFile "test/proto21e.bsc")
         soundChanges <- catchEither (parseSoundChanges soundChangeData) $ \err -> do
             writeLn "Cannot parse the SCA file because: "
             writeLn $ errorBundlePretty err
             throwE ()
-        let prettyError  = T.encodeUtf8 . T.pack . (++"\n") . ("SCA Error: " ++ ) . errorBundlePretty
-        let prettyOutput = T.encodeUtf8 . T.pack . (++"\n") . ("SCA Output: " ++ ) . detokeniseWords
+        let prettyError  = B8.fromString . (++"\n") . ("SCA Error: " ++ ) . errorBundlePretty
+        let prettyOutput = B8.fromString . (++"\n") . ("SCA Output: " ++ ) . detokeniseWords
         let evolve = either prettyError prettyOutput . tokeniseAnd applyChanges soundChanges
         liftIO $ withSourceFile "test/proto21e.in" $ flip connect
-             $ decodeUtf8C
+            $ decodeUtf8C
             .| linesUnboundedC
             .| mapC (evolve . T.unpack)
             .| sinkHandle outFile
-    where
-        catchEither (Left  a) f = f a
-        catchEither (Right b) _ = pure b
+    --, withResource (getNumCapabilities <* setNumCapabilities 1) setNumCapabilities $ const $ testGroup "benchmarks"
+    --    [env (B.readFile "test/proto21e.bsc") $ bench "parsing SCA file" . nf (parseSoundChanges . B8.toString)
+    --    ]
+catchEither :: Applicative f => Either e a -> (e -> f a) -> f a
+catchEither val f = either f pure val
