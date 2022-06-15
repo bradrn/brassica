@@ -2,10 +2,10 @@
 
 ## Windows
 
-To build the command-line interface alone, you will need the [Haskell Stack](https://docs.haskellstack.org/en/stable/README/).
-(Cabal should also work, but I highly recommend using Stack, especially if you intend to go on and build the GUI.)
+To build the command-line interface alone, you can use the [Haskell Stack](https://docs.haskellstack.org/en/stable/README/).
 Simply run `mkdir bin`, then `stack install brassica --local-bin-path bin`.
 The command-line executable `brassica.exe` should now be present in `./bin`.
+The equivalent Cabal commands should also work.
 
 The GUI interface is more complex to build.
 First install the GUI library [Qt](https://www.qt.io/).

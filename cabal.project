@@ -1,0 +1,3 @@
+packages: ./brassica.cabal
+          ./gui/brassica-interop/brassica-interop.cabal
+with-compiler: ghc-8.8.4
