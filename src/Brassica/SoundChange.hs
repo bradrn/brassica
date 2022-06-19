@@ -5,7 +5,7 @@
 
 module Brassica.SoundChange where
 
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Void (Void)
 
 import Text.Megaparsec (ParseErrorBundle)
@@ -43,23 +43,12 @@ data AppliedRulesTableItem r = AppliedRulesTableItem
     , derivations :: [([Grapheme], r)]
     } deriving (Show, Functor)
 
-collateLog :: [LogItem r] -> [AppliedRulesTableItem r]
-collateLog [] = []
-collateLog ls@(l : _) =
-    let (item, ls') = mkOneItem (input l) Nothing [] ls
-    in item : collateLog ls'
-  where
-    mkOneItem
-        :: [Grapheme]                  -- initial word
-        -> Maybe [Grapheme]            -- output of previous statement
-        -> [([Grapheme], r)]   -- accumulated derivations so far
-        -> [LogItem r]         -- rest of unprocessed log items
-        -> (AppliedRulesTableItem r, [LogItem r])
-    mkOneItem initialWord _    derivations [] = (AppliedRulesTableItem{..}, [])
-    mkOneItem initialWord prev derivations (ActionApplied{..} : ls') =
-        if maybe True (==input) prev
-        then mkOneItem initialWord (Just output) ((output, action) : derivations) ls'
-        else (AppliedRulesTableItem{..}, ls')
+toTableItem :: [LogItem r] -> Maybe (AppliedRulesTableItem r)
+toTableItem [] = Nothing
+toTableItem ls@(l : _) = Just $ AppliedRulesTableItem
+    { initialWord = input l
+    , derivations = (\ActionApplied{..} -> (output, action)) <$> ls
+    }
 
 -- | Render a single 'AppliedRulesTableItem' to HTML table rows.
 tableItemToHtmlRows :: (r -> String) -> AppliedRulesTableItem r -> String
@@ -149,7 +138,7 @@ parseTokeniseAndApplyRules statements ws mode prev =
     case mode of
         ReportRulesApplied -> case tokeniseAnd applyChangesWithLog statements ws of
             Left e -> ParseError e
-            Right result -> AppliedRulesTable $ collateLog $ concat (getWords result)
+            Right result -> AppliedRulesTable $ mapMaybe toTableItem $ getWords result
         DifferentToLastRun -> case tokeniseAnd applyChanges statements ws of
             Left e -> ParseError e
             Right result -> HighlightedWords $
