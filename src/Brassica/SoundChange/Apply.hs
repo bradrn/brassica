@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DerivingVia           #-}
@@ -58,7 +59,11 @@ data RuleTag
 -- it stores the 'MultiZipper' as state, and allows the possibility of
 -- failure if a match attempt fails.
 newtype RuleAp a = RuleAp { runRuleAp :: MultiZipper RuleTag Grapheme -> Maybe (a, MultiZipper RuleTag Grapheme) }
-    deriving (Functor, Applicative, Monad, MonadFail, MonadState (MultiZipper RuleTag Grapheme))
+    deriving (Functor, Applicative, Monad, MonadState (MultiZipper RuleTag Grapheme)
+#if __GLASGOW_HASKELL__ > 806
+    , MonadFail
+#endif
+    )
       via (StateT (MultiZipper RuleTag Grapheme) Maybe)
 
 -- | Lift a partial modification function into a 'State'. Update state

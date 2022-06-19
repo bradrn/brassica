@@ -1,5 +1,5 @@
 .stack-work/
-dist-newstyle/
+dist-*/
 *~
 *.exe
 *.a
