@@ -143,7 +143,7 @@ intro = TL.toStrict $ renderHtml [shamlet|
     You are currently on the <b>online version</b> of Brassica. #
     \ You may also want to try the standalone desktop interface, which may be downloaded from the <a href="https://github.com/bradrn/brassica">GitHub repository</a>. #
     \ This online version does not support all features of Brassica: #
-    \ in particular it does not allow opening or saving, does not include the paradigm builder, and has no option to view results live. #
+    \ in particular it does not include opening or saving, syntax highlighting, the paradigm builder, or a live results view. #
     \ It is also somewhat slow. #
     \ However, otherwise it should be fully compatible with the desktop version of Brassica.
 <p>
