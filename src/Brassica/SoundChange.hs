@@ -1,4 +1,6 @@
+{-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DeriveFunctor   #-}
+{-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections   #-}
@@ -7,7 +9,9 @@ module Brassica.SoundChange where
 
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Void (Void)
+import GHC.Generics (Generic)
 
+import Control.DeepSeq (NFData)
 import Text.Megaparsec (ParseErrorBundle)
 
 import Brassica.SoundChange.Apply
@@ -34,14 +38,14 @@ data LogItem r = ActionApplied
     { action :: r
     , input :: [Grapheme]
     , output :: [Grapheme]
-    } deriving (Show, Functor)
+    } deriving (Show, Functor, Generic, NFData)
 
 -- | A single component of an ‘applied rules’ table, which collates
 -- action applications by the word they are applied to.
 data AppliedRulesTableItem r = AppliedRulesTableItem
     { initialWord :: [Grapheme]
     , derivations :: [([Grapheme], r)]
-    } deriving (Show, Functor)
+    } deriving (Show, Functor, Generic, NFData)
 
 toTableItem :: [LogItem r] -> Maybe (AppliedRulesTableItem r)
 toTableItem [] = Nothing
@@ -123,7 +127,7 @@ data ApplicationOutput a r
     = HighlightedWords [Component (a, Bool)]
     | AppliedRulesTable [AppliedRulesTableItem r]
     | ParseError (ParseErrorBundle String Void)
-    deriving (Show)
+    deriving (Show, Generic, NFData)
 
 -- | Top-level dispatcher for an interactive frontend: given a textual
 -- wordlist and a list of sound changes, returns the result of running
