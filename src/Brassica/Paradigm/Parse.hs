@@ -35,7 +35,7 @@ name :: Parser String
 name = lexeme $ some alphaNumChar
 
 slot :: Parser (String -> Process)
-slot = lexeme $ do
+slot = do
     n <- L.signed (pure ()) L.decimal
     pure $ if n > 0 then Suffix n else Prefix (-n)
 

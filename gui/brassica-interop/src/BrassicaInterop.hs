@@ -1,7 +1,6 @@
 {-# LANGUAGE LambdaCase               #-}
 {-# LANGUAGE BlockArguments           #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE RecordWildCards          #-}
 
 module BrassicaInterop where
 
@@ -17,7 +16,6 @@ import Brassica.SoundChange.Tokenise
 import Brassica.SoundChange.Types
 import Brassica.Paradigm (build)
 import Brassica.Paradigm.Parse
-import Data.Maybe (fromMaybe)
 
 parseTokeniseAndApplyRules_hs
     :: CString     -- ^ changes
@@ -31,58 +29,32 @@ parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) hlMode prevPtr = d
     wsText      <- GHC.peekCString utf8 wsRaw
 
     prevRef <- deRefStablePtr prevPtr
+    prev <- readIORef prevRef
+
+    let mode =
+            if report == 1
+            then ReportRulesApplied
+            else toEnum $ fromIntegral hlMode
 
     case parseSoundChanges changesText of
         Left e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
         Right statements ->
-            if report == 1 then
-                case tokeniseAnd applyChangesWithLog statements wsText of
-                    Left e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
-                    Right result -> do
-                        writeIORef prevRef Nothing
-                        GHC.newCString utf8 $ surroundTable $ formatLog $ concat (getWords result)
-            else case hlMode of
-                1 -> case tokeniseAnd applyChanges statements wsText of
-                    Left e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
-                    Right result -> do
-                        prev <- readIORef prevRef
-                        writeIORef prevRef $ Just result
-                        GHC.newCString utf8 $ escape $ detokeniseWords' id $
-                            zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
-                                let thisWordStr = concat thisWord in
-                                    if thisWord == prevWord
-                                    then thisWordStr
-                                    else "<b>" ++ thisWordStr ++ "</b>"
-                2 -> case tokeniseAnd applyChangesWithChanges statements wsText of
-                    Left e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
-                    Right result -> do
-                        writeIORef prevRef $ Just $ (fmap.fmap) fst result
-                        GHC.newCString utf8 $ escape $ flip detokeniseWords' result $ \case
-                            (w, False) -> concat w
-                            (w, True) -> "<b>" ++ concat w ++ "</b>"
-                _ -> case tokeniseAnd applyChanges statements wsText of
-                    Left e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
-                    Right result -> do
-                        writeIORef prevRef $ Just result
-                        GHC.newCString utf8 $ escape $ detokeniseWords result
+            case parseTokeniseAndApplyRules statements wsText mode prev of
+                ParseError e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
+                HighlightedWords result -> do
+                    writeIORef prevRef $ Just $ (fmap.fmap) fst result
+                    GHC.newCString utf8 $ escape $ detokeniseWords' highlightWord result
+                AppliedRulesTable items -> do
+                    writeIORef prevRef Nothing
+                    GHC.newCString utf8 $ surroundTable $
+                        concatMap (tableItemToHtmlRows plaintext') items
   where
-    formatLog :: [LogItem Statement] -> String
-    formatLog = concat . go Nothing
-      where
-        go :: Maybe [Grapheme] -> [LogItem Statement] -> [String]
-        go _ [] = []
-        go prev (ActionApplied{..} : ls) =
-            let cell1 = case prev of
-                    Just input' | input == input' -> ""
-                    _ -> concat input
-            in
-                ("<tr><td>" ++ cell1 ++ "</td><td>&rarr;</td>\
-                \<td>" ++ concat output ++ "</td><td>(" ++ plaintext' action ++ ")</td></tr>")
-                : go (Just output) ls
+    highlightWord (s, False) = concat s
+    highlightWord (s, True) = "<b>" ++ concat s ++ "</b>"
 
-        plaintext' :: Statement -> String
-        plaintext' (RuleS r) = plaintext r
-        plaintext' (CategoriesDeclS _) = "categories … end"
+    plaintext' :: Statement -> String
+    plaintext' (RuleS r) = plaintext r
+    plaintext' (CategoriesDeclS _) = "categories … end"
 
     surroundTable :: String -> String
     surroundTable s = "<table>" ++ s ++ "</table>"

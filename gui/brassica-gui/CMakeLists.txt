@@ -15,7 +15,12 @@ find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 
 set(BRASSICA_INTEROP_DIR ${CMAKE_CURRENT_LIST_DIR}/../brassica-interop/ CACHE PATH "Path to /gui directory of Brassica source code")
-execute_process(COMMAND stack path --compiler-bin OUTPUT_VARIABLE GHC_BIN_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+find_program(HAS_GHCUP "ghcup")
+if(HAS_GHCUP)
+    execute_process(COMMAND ghcup whereis -d ghc OUTPUT_VARIABLE GHC_BIN_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+else() # try Stack if no GHCup
+    execute_process(COMMAND stack path --compiler-bin OUTPUT_VARIABLE GHC_BIN_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
 set(GHC_INCLUDE_DIR ${GHC_BIN_DIR}/../lib/include CACHE PATH "Path to includes directory of GHC")
 
 include_directories(${BRASSICA_INTEROP_DIR}/stub ${GHC_INCLUDE_DIR})

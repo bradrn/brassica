@@ -1,7 +1,9 @@
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE LambdaCase    #-}
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE DeriveAnyClass   #-}
+{-# LANGUAGE DeriveFunctor    #-}
+{-# LANGUAGE DeriveGeneric    #-}
+{-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns     #-}
 
 module Brassica.SoundChange.Tokenise
        ( Component(..)
@@ -18,7 +20,9 @@ import Data.List (sortBy)
 import Data.Maybe (mapMaybe)
 import Data.Ord (Down(..))
 import Data.Void (Void)
+import GHC.Generics (Generic)
 
+import Control.DeepSeq (NFData)
 import Text.Megaparsec hiding (State)
 import Text.Megaparsec.Char
 
@@ -28,7 +32,7 @@ import Brassica.SoundChange.Types
 -- variable will usually be something like '[Grapheme]', though it
 -- depends on the type of words you’re parsing.
 data Component a = Word a | Whitespace String | Gloss String
-    deriving (Eq, Show, Functor)
+    deriving (Eq, Show, Functor, Generic, NFData)
 
 -- | Given a tokenised input string, return only the 'Word's within
 -- it.

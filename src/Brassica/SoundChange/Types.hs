@@ -1,5 +1,7 @@
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -14,7 +16,9 @@
 
 module Brassica.SoundChange.Types where
 
+import Control.DeepSeq (NFData(..))
 import Data.Kind (Constraint)
+import GHC.Generics (Generic)
 import GHC.TypeLits
 
 -- | The constraint @OneOf a x y@ is satisfied if @a ~ x@ or @a ~ y@.
@@ -60,6 +64,17 @@ data Lexeme (a :: LexemeType) where
 
 deriving instance Show (Lexeme a)
 
+instance NFData (Lexeme a) where
+    rnf (Grapheme g) = rnf g
+    rnf (Category cs) = rnf cs
+    rnf Boundary = ()
+    rnf (Optional ls) = rnf ls
+    rnf Metathesis = ()
+    rnf Geminate = ()
+    rnf (Wildcard l) = rnf l
+    rnf (Kleene l) = rnf l
+    rnf Discard = ()
+
 -- | The elements allowed in a 'Category'.
 data CategoryElement (a :: LexemeType) where
     GraphemeEl :: Grapheme -> CategoryElement a
@@ -69,6 +84,10 @@ deriving instance Show (CategoryElement a)
 deriving instance Eq (CategoryElement a)
 deriving instance Ord (CategoryElement a)
 
+instance NFData (CategoryElement a) where
+    rnf (GraphemeEl a) = rnf a
+    rnf BoundaryEl = ()
+
 -- | An 'Environment' is a tuple of @(before, after)@ components,
 -- corresponding to a ‘/ before _ after’ component of a sound change.
 --
@@ -77,14 +96,14 @@ type Environment = ([Lexeme 'Env], [Lexeme 'Env])
 
 -- | Specifies application direction of rule — either left-to-right or right-to-left.
 data Direction = LTR | RTL
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, NFData)
 
 -- | Flags which can be enabled on a 'Rule'
 data Flags = Flags
   { highlightChanges :: Bool
   , applyDirection   :: Direction
   , applyOnceOnly    :: Bool
-  } deriving (Show)
+  } deriving (Show, Generic, NFData)
 
 -- | A default selection of flags which are appropriate for most
 -- rules: highlight changes, apply 'LTR', and apply repeatedly.
@@ -100,7 +119,7 @@ data Rule = Rule
   , exception   :: Maybe Environment
   , flags       :: Flags
   , plaintext   :: String
-  } deriving (Show)
+  } deriving (Show, Generic, NFData)
 
 -- | Corresponds to a category declaration in the original sound
 -- changes. Category declarations are mostly desugared away by the
@@ -108,12 +127,12 @@ data Rule = Rule
 -- which were introduced, so that it can filter out all unknown
 -- graphemes.
 newtype CategoriesDecl = CategoriesDecl { graphemes :: [Grapheme] }
-  deriving (Show)
+  deriving (Show, Generic, NFData)
 
 -- | A 'Statement' can be either a single sound change rule, or a
 -- category declaration.
 data Statement = RuleS Rule | CategoriesDeclS CategoriesDecl
-    deriving (Show)
+    deriving (Show, Generic, NFData)
 
 -- | A set of 'SoundChanges' is simply a list of 'Statement's.
 type SoundChanges = [Statement]
