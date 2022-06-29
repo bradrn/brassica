@@ -1,11 +1,11 @@
 module Paradigm where
 
-import Criterion.Main (bench, nf, Benchmark, bgroup)
+import Criterion.Main (bench, nf, defaultMain)
 
 import Brassica.Paradigm
 
-benchmarks :: Benchmark
-benchmarks = bgroup "Paradigm benchmarks"
+main :: IO ()
+main = defaultMain
     [ bench "small" $ nf (build smallParadigm) smallWords
     , bench "mid"   $ nf (build smallParadigm) largeWords
     , bench "mid2"  $ nf (build largeParadigm) smallWords
