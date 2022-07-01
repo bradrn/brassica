@@ -8,3 +8,4 @@ electron/static
 gui/build*
 gui/brassica-interop/stub/
 CMakeLists.txt.user
+stack.yaml.lock

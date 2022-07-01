@@ -1,6 +1,6 @@
-module Main where
+module Paradigm where
 
-import Criterion.Main (defaultMain, bench, nf)
+import Criterion.Main (bench, nf, defaultMain)
 
 import Brassica.Paradigm
 
