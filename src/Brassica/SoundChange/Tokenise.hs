@@ -54,7 +54,8 @@ tokeniseWords (sortBy (compare `on` Down . length) -> gs) =
             (Word <$> parseWord))
         ""
   where
-    parseWord = some $ choice (chunk <$> gs) <|> (pure <$> satisfy (not . isSpace))
+    parseWord = some $ choice (chunk <$> gs) <|> (pure <$> satisfy (not . isSpaceOrGloss))
+    isSpaceOrGloss = (||) <$> isSpace <*> (=='[')
 
 -- | Given a function to convert words to strings, converts a list of
 -- 'Component's to strings.
