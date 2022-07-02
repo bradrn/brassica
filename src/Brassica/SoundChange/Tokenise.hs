@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveGeneric    #-}
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE ViewPatterns     #-}
 
 module Brassica.SoundChange.Tokenise
@@ -50,12 +51,20 @@ tokeniseWords (sortBy (compare `on` Down . length) -> gs) =
     parse @Void
         (many $
             (Whitespace <$> takeWhile1P Nothing isSpace) <|>
-            (Gloss <$> (char '[' *> takeWhileP Nothing (/=']') <* char ']')) <|>
+            (Gloss <$> gloss False) <|>
             (Word <$> parseWord))
         ""
   where
     parseWord = some $ choice (chunk <$> gs) <|> (pure <$> satisfy (not . isSpaceOrGloss))
     isSpaceOrGloss = (||) <$> isSpace <*> (=='[')
+
+    gloss returnBracketed = do
+        _ <- char '['
+        contents <- many $ gloss True <|> takeWhile1P Nothing (not . (`elem` "[]"))
+        _ <- char ']'
+        pure $ if returnBracketed
+           then '[' : concat contents ++ "]"
+           else concat contents
 
 -- | Given a function to convert words to strings, converts a list of
 -- 'Component's to strings.
