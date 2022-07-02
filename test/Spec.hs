@@ -1,16 +1,20 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PartialTypeSignatures #-}
-import Test.Tasty ( defaultMain, testGroup, TestTree )
-import qualified Data.ByteString as B
-import qualified Data.Text as T
-import Brassica.SoundChange.Parse (parseSoundChanges, errorBundlePretty)
-import Control.Monad.Trans.Except (runExceptT, throwE)
-import Brassica.SoundChange.Tokenise (detokeniseWords)
-import Test.Tasty.Golden (goldenVsFile)
-import Brassica.SoundChange (applyChanges, tokeniseAnd)
+module Main where
+
 import Conduit
+import Control.Monad.Trans.Except (runExceptT, throwE)
 import System.IO (IOMode(..), hPutStrLn, withFile)
+import Test.Tasty ( defaultMain, testGroup, TestTree )
+import Test.Tasty.Golden (goldenVsFile)
+
+import qualified Data.ByteString as B
 import qualified Data.ByteString.UTF8 as B8
+import qualified Data.Text as T
+
+import Brassica.SoundChange (applyChanges, tokeniseAnd)
+import Brassica.SoundChange.Parse (parseSoundChanges, errorBundlePretty)
+import Brassica.SoundChange.Tokenise (detokeniseWords)
 
 main :: IO ()
 main = defaultMain $ testGroup "brassica-tests"
@@ -18,7 +22,7 @@ main = defaultMain $ testGroup "brassica-tests"
      ]
 
 proto21eTest :: TestTree
-proto21eTest = goldenVsFile "proto21e golden test" "test/proto21e.golden" "test/proto21e.out" $ do
+proto21eTest = goldenVsFile "proto21e golden test" "test/proto21e.golden" "test/proto21e.out" $
     withFile "test/proto21e.out" WriteMode $ \outFile -> fmap (either id id) . runExceptT $ do
         let writeLn = liftIO . hPutStrLn outFile
         soundChangeData <- B8.toString <$> liftIO (B.readFile "test/proto21e.bsc")
@@ -34,8 +38,6 @@ proto21eTest = goldenVsFile "proto21e golden test" "test/proto21e.golden" "test/
             .| linesUnboundedC
             .| mapC (evolve . T.unpack)
             .| sinkHandle outFile
-    --, withResource (getNumCapabilities <* setNumCapabilities 1) setNumCapabilities $ const $ testGroup "benchmarks"
-    --    [env (B.readFile "test/proto21e.bsc") $ bench "parsing SCA file" . nf (parseSoundChanges . B8.toString)
-    --    ]
+
 catchEither :: Applicative f => Either e a -> (e -> f a) -> f a
 catchEither val f = either f pure val
