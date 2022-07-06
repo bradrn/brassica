@@ -54,9 +54,9 @@ When finished that command should drop into a Nix shell, which can be immediatel
 After this, run either of the following two commands to build:
 ```bash
 # to build as a warp-enabled webserver with GHC, into ./dist-ghc/:
-nix-shell -A shells.ghc --run "cabal --project-file=cabal-web-ghc.project --builddir=dist-ghc build brassica-web"
+nix-shell -A shells.ghc --run "cabal --builddir=dist-ghc build brassica-web"
 # to build as a webpage with GHCJS, into ./dist-ghcjs/:
-nix-shell -A shells.ghcjs --run "cabal --project-file=cabal-web-ghcjs.project --builddir=dist-ghcjs build brassica-web"
+nix-shell -A shells.ghcjs --run "cabal --project-file=cabal-ghcjs.project --builddir=dist-ghcjs build brassica-web"
 ```
 For more details consult the [`reflex-platform` project development guide](https://github.com/reflex-frp/reflex-platform/blob/ac66356c8839d1dc16cc60887c2db5988a60e6c4/docs/project-development.rst).
 
