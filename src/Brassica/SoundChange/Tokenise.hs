@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveFunctor    #-}
 {-# LANGUAGE DeriveGeneric    #-}
 {-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE ViewPatterns     #-}
 
@@ -10,13 +9,17 @@ module Brassica.SoundChange.Tokenise
        ( Component(..)
        , getWords
        , zipWithComponents
+       , tokeniseWord
        , tokeniseWords
+       , findFirstCategoriesDecl
+       , withFirstCategoriesDecl
        , detokeniseWords'
        , detokeniseWords
        ) where
 
 import Data.Char (isSpace)
 import Data.Function (on)
+import Data.Functor.Identity
 import Data.List (sortBy)
 import Data.Maybe (mapMaybe)
 import Data.Ord (Down(..))
@@ -42,22 +45,29 @@ getWords = mapMaybe $ \case
     Word a -> Just a
     _ -> Nothing
 
+wordParser :: [Grapheme] -> ParsecT Void String Identity [Grapheme]
+wordParser gs = some $ choice (chunk <$> gs) <|> (pure <$> satisfy (not . isSpaceOrGloss))
+  where
+    isSpaceOrGloss = (||) <$> isSpace <*> (=='[')
+
+-- | Given a list of 'Grapheme's used, tokenise an input word. Note
+-- that this tokeniser is greedy: if one of the given 'Grapheme's is a
+-- prefix of another, the tokeniser will prefer the longest if possible.
+tokeniseWord :: [Grapheme] -> String -> Either (ParseErrorBundle String Void) [Grapheme]
+tokeniseWord (sortBy (compare `on` Down . length) -> gs) = parse (wordParser gs) ""
+
 -- | Given a list of 'Grapheme's used, tokenise an input string into a
--- list of 'Component's. Note that this tokeniser is greedy: if one of
--- the given 'Grapheme's is a prefix of another, the tokeniser will
--- prefer the longest if possible.
+-- list of words and other 'Component's. This uses the same
+-- tokenisation strategy as 'tokeniseWords'.
 tokeniseWords :: [Grapheme] -> String -> Either (ParseErrorBundle String Void) [Component [Grapheme]]
 tokeniseWords (sortBy (compare `on` Down . length) -> gs) =
-    parse @Void
+    parse
         (many $
             (Whitespace <$> takeWhile1P Nothing isSpace) <|>
             (Gloss <$> gloss False) <|>
-            (Word <$> parseWord))
+            (Word <$> wordParser gs))
         ""
   where
-    parseWord = some $ choice (chunk <$> gs) <|> (pure <$> satisfy (not . isSpaceOrGloss))
-    isSpaceOrGloss = (||) <$> isSpace <*> (=='[')
-
     gloss returnBracketed = do
         _ <- char '['
         contents <- many $ gloss True <|> takeWhile1P Nothing (not . (`elem` "[]"))
@@ -107,3 +117,16 @@ unsafeCastComponent :: Component a -> Component b
 unsafeCastComponent (Word _) = error "unsafeCastComponent: attempted to cast a word!"
 unsafeCastComponent (Whitespace s) = Whitespace s
 unsafeCastComponent (Gloss s) = Gloss s
+
+-- | Given a list of sound changes, extract the list of graphemes
+-- defined in the first categories declaration.
+findFirstCategoriesDecl :: SoundChanges -> [Grapheme]
+findFirstCategoriesDecl (CategoriesDeclS (CategoriesDecl gs):_) = gs
+findFirstCategoriesDecl (_:ss) = findFirstCategoriesDecl ss
+findFirstCategoriesDecl [] = []
+
+-- | CPS'd form of 'findFirstCategoriesDecl'. Nice for doing things
+-- like @withFirstCategoriesDecl 'tokeniseWords' changes words@ and so
+-- on.
+withFirstCategoriesDecl :: ([Grapheme] -> t) -> SoundChanges -> t
+withFirstCategoriesDecl tok ss = tok (findFirstCategoriesDecl ss)

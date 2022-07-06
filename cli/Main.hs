@@ -2,6 +2,7 @@
 
 module Main where
 
+import Control.Category ((>>>))
 import Control.Exception (Exception)
 import Data.Bifunctor (first, bimap)
 import System.Environment (getArgs)
@@ -27,7 +28,10 @@ main = do
         Left err ->
             putStrLn $ errorBundlePretty err
         Right rules ->
-            runConduit $ processWords $ first errorBundlePretty . tokeniseAnd applyChanges rules
+            runConduit $ processWords $ 
+                withFirstCategoriesDecl tokeniseWords rules
+                >>> (fmap.fmap.fmap) (applyChanges rules)
+                >>> first errorBundlePretty
 
 processWords
     :: (MonadIO m, MonadThrow m)

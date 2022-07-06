@@ -3,6 +3,7 @@
 module Main where
 
 import Conduit
+import Control.Category ((>>>))
 import Control.Monad.Trans.Except (runExceptT, throwE)
 import System.IO (IOMode(..), hPutStrLn, withFile)
 import Test.Tasty ( defaultMain, testGroup, TestTree )
@@ -12,9 +13,9 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.UTF8 as B8
 import qualified Data.Text as T
 
-import Brassica.SoundChange (applyChanges, tokeniseAnd)
+import Brassica.SoundChange (applyChanges)
 import Brassica.SoundChange.Parse (parseSoundChanges, errorBundlePretty)
-import Brassica.SoundChange.Tokenise (detokeniseWords)
+import Brassica.SoundChange.Tokenise (tokeniseWords, detokeniseWords, withFirstCategoriesDecl)
 
 main :: IO ()
 main = defaultMain $ testGroup "brassica-tests"
@@ -32,7 +33,10 @@ proto21eTest = goldenVsFile "proto21e golden test" "test/proto21e.golden" "test/
             throwE ()
         let prettyError  = B8.fromString . (++"\n") . ("SCA Error: " ++ ) . errorBundlePretty
         let prettyOutput = B8.fromString . (++"\n") . ("SCA Output: " ++ ) . detokeniseWords
-        let evolve = either prettyError prettyOutput . tokeniseAnd applyChanges soundChanges
+        let evolve =
+                withFirstCategoriesDecl tokeniseWords soundChanges
+                >>> (fmap.fmap.fmap) (applyChanges soundChanges)
+                >>> either prettyError prettyOutput
         liftIO $ withSourceFile "test/proto21e.in" $ flip connect
             $ decodeUtf8C
             .| linesUnboundedC

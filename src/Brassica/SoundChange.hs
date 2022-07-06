@@ -18,19 +18,6 @@ import Brassica.SoundChange.Apply
 import Brassica.SoundChange.Tokenise
 import Brassica.SoundChange.Types
 
--- | Tokenises the input 'String' into a @[Grapheme]@, then applies
--- the given 'SoundChanges' to the input using a user-specified
--- application function.
-tokeniseAnd :: (SoundChanges -> [Grapheme] -> a) -> SoundChanges -> String -> Either (ParseErrorBundle String Void) [Component a]
-tokeniseAnd applyFn sts ws =
-    let gs = findFirstCategoriesDecl sts
-        ts = tokeniseWords gs ws
-    in (fmap.fmap.fmap) (applyFn sts) ts
-  where
-    findFirstCategoriesDecl (CategoriesDeclS (CategoriesDecl gs):_) = gs
-    findFirstCategoriesDecl (_:ss) = findFirstCategoriesDecl ss
-    findFirstCategoriesDecl [] = []
-
 -- | A log item representing a single application of an action. (In
 -- practise this will usually be a 'Statement'.) Specifies the action
 -- which was applied, as well as the ‘before’ and ‘after’ states.
@@ -133,24 +120,26 @@ data ApplicationOutput a r
 -- wordlist and a list of sound changes, returns the result of running
 -- the changes in the specified mode.
 parseTokeniseAndApplyRules
-    :: [Statement] -- ^ changes
-    -> String      -- ^ words
+    :: SoundChanges -- ^ changes
+    -> String       -- ^ words
     -> OutputMode
     -> Maybe [Component [Grapheme]]  -- ^ previous results
     -> ApplicationOutput [Grapheme] Statement
 parseTokeniseAndApplyRules statements ws mode prev =
-    case mode of
-        ReportRulesApplied -> case tokeniseAnd applyChangesWithLog statements ws of
-            Left e -> ParseError e
-            Right result -> AppliedRulesTable $ mapMaybe toTableItem $ getWords result
-        DifferentToLastRun -> case tokeniseAnd applyChanges statements ws of
-            Left e -> ParseError e
-            Right result -> HighlightedWords $
-                zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
-                    (thisWord, thisWord /= prevWord)
-        DifferentToInput -> case tokeniseAnd applyChangesWithChanges statements ws of
-            Left e -> ParseError e
-            Right result -> HighlightedWords result
-        NoHighlight -> case tokeniseAnd applyChanges statements ws of
-            Left e -> ParseError e
-            Right result -> HighlightedWords $ (fmap.fmap) (,False) result
+    case withFirstCategoriesDecl tokeniseWords statements ws of
+        Left e -> ParseError e
+        Right toks -> case mode of
+            ReportRulesApplied ->
+                AppliedRulesTable $ mapMaybe toTableItem $ getWords $
+                    applyChangesWithLog statements <<$>> toks
+            DifferentToLastRun ->
+                let result = applyChanges statements <<$>> toks
+                in HighlightedWords $
+                    zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
+                        (thisWord, thisWord /= prevWord)
+            DifferentToInput ->
+                HighlightedWords $ applyChangesWithChanges statements <<$>> toks
+            NoHighlight ->
+                HighlightedWords $ ((,False) . applyChanges statements) <<$>> toks
+  where
+    (<<$>>) = fmap . fmap
