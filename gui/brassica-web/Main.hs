@@ -2,6 +2,7 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
+{-# LANGUAGE RecursiveDo       #-}
 
 module Main where
 
@@ -25,20 +26,22 @@ import Brassica.SoundChange
        , tableItemToHtmlRows
        )
 import Brassica.SoundChange.Parse (errorBundlePretty, parseSoundChanges)
-import Brassica.SoundChange.Tokenise (detokeniseWords')
+import Brassica.SoundChange.Tokenise (detokeniseWords', Component)
 import Brassica.SoundChange.Types
 
-applyRules :: (T.Text, T.Text, OutputMode) -> T.Text
-applyRules (changes, ws, mode) =
+applyRules
+    :: (Maybe [Component [Grapheme]], (T.Text, T.Text, OutputMode))
+    -> (Maybe [Component [Grapheme]], T.Text)
+applyRules (prev, (changes, ws, mode)) =
     case parseSoundChanges (T.unpack changes) of
-        Left e -> "<pre>" <> T.pack (errorBundlePretty e) <> "</pre>"
+        Left e -> (Nothing, "<pre>" <> T.pack (errorBundlePretty e) <> "</pre>")
         Right statements ->
-            case parseTokeniseAndApplyRules statements (T.unpack ws) mode Nothing of
-                ParseError e -> "<pre>" <> T.pack (errorBundlePretty e) <> "</pre>"
+            case parseTokeniseAndApplyRules statements (T.unpack ws) mode prev of
+                ParseError e -> (Nothing, "<pre>" <> T.pack (errorBundlePretty e) <> "</pre>")
                 HighlightedWords result ->
-                    T.pack $ escape $ detokeniseWords' highlightWord result
+                    (Just $ (fmap.fmap) fst result, T.pack $ escape $ detokeniseWords' highlightWord result)
                 AppliedRulesTable items ->
-                    T.pack $ surroundTable $ concatMap (tableItemToHtmlRows plaintext') items
+                    (Nothing, T.pack $ surroundTable $ concatMap (tableItemToHtmlRows plaintext') items)
   where
     -- NB. this is all duplicated from the Qt interop code; need to
     -- figure out a better way of structuring this
@@ -176,12 +179,16 @@ main = mainWidgetWithCss style $ el "div" $ do
             [ current mode <@ applyBtn
             , ReportRulesApplied <$ reportBtn
             ]
-    outputValue <- holdDyn "" $
-        fmap applyRules $
+        appliedValuesEvent =
             current (liftA2 (,,)
                 (_textAreaElement_value rules)
                 (_textAreaElement_value input))
             <@> applyEvent
+    rec
+        let withPrev = attach (current prev) appliedValuesEvent
+            applicationResult = applyRules <$> withPrev
+        prev <- holdDyn Nothing $ fst <$> applicationResult
+    outputValue <- holdDyn "" $ snd <$> applicationResult
     
     _output <- labeledEl "Output lexicon" $
         elDynHtml "p" outputValue
