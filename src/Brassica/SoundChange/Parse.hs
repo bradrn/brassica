@@ -6,6 +6,7 @@
 
 module Brassica.SoundChange.Parse
     ( parseRule
+    , parseRuleWithCategories
     , parseSoundChanges
       -- * Re-exports
     , errorBundlePretty
@@ -246,7 +247,12 @@ ruleParser = do
 -- | Parse a 'String' to get a 'Rule'. Returns 'Nothing' if the input
 -- string is malformed.
 parseRule :: String -> Either (ParseErrorBundle String Void) Rule
-parseRule s = flip evalState (Config M.empty) $ runParserT (scn *> ruleParser <* eof) "" s
+parseRule = parseRuleWithCategories M.empty
+
+-- | Same as 'parseRule', but also allows passing in some categories to
+-- substitute.
+parseRuleWithCategories :: C.Categories Grapheme -> String -> Either (ParseErrorBundle String Void) Rule
+parseRuleWithCategories cs s = flip evalState (Config cs) $ runParserT (scn *> ruleParser <* eof) "" s
 
 -- | Parse a list of 'SoundChanges'.
 parseSoundChanges :: String -> Either (ParseErrorBundle String Void) SoundChanges
