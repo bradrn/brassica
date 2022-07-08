@@ -22,6 +22,7 @@ import qualified Data.Text.Lazy as TL
 import Brassica.SoundChange
        ( OutputMode(..)
        , ApplicationOutput(..)
+       , InputLexiconFormat(Raw)
        , parseTokeniseAndApplyRules
        , tableItemToHtmlRows
        )
@@ -36,7 +37,7 @@ applyRules (prev, (changes, ws, mode)) =
     case parseSoundChanges (T.unpack changes) of
         Left e -> (Nothing, "<pre>" <> T.pack (errorBundlePretty e) <> "</pre>")
         Right statements ->
-            case parseTokeniseAndApplyRules statements (T.unpack ws) mode prev of
+            case parseTokeniseAndApplyRules statements (T.unpack ws) Raw mode prev of
                 ParseError e -> (Nothing, "<pre>" <> T.pack (errorBundlePretty e) <> "</pre>")
                 HighlightedWords result ->
                     (Just $ (fmap.fmap) fst result, T.pack $ escape $ detokeniseWords' highlightWord result)

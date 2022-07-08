@@ -39,7 +39,7 @@ parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) hlMode prevPtr = d
     case parseSoundChanges changesText of
         Left e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
         Right statements ->
-            case parseTokeniseAndApplyRules statements wsText mode prev of
+            case parseTokeniseAndApplyRules statements wsText Raw mode prev of
                 ParseError e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
                 HighlightedWords result -> do
                     writeIORef prevRef $ Just $ (fmap.fmap) fst result

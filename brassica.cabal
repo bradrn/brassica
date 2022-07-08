@@ -28,6 +28,7 @@ library
                  , Brassica.SoundChange.Parse
                  , Brassica.SoundChange.Tokenise
                  , Brassica.SoundChange.Types
+                 , Brassica.MDF
                  , Brassica.Paradigm
                  , Brassica.Paradigm.Parse
                  , Brassica.MultiZipper

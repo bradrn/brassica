@@ -1,9 +1,9 @@
-{-# LANGUAGE DeriveAnyClass   #-}
-{-# LANGUAGE DeriveFunctor    #-}
-{-# LANGUAGE DeriveGeneric    #-}
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TypeFamilies     #-}
-{-# LANGUAGE ViewPatterns     #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE ViewPatterns      #-}
 
 module Brassica.SoundChange.Tokenise
        ( Component(..)
@@ -11,6 +11,8 @@ module Brassica.SoundChange.Tokenise
        , zipWithComponents
        , tokeniseWord
        , tokeniseWords
+       , wordParser
+       , componentsParser
        , findFirstCategoriesDecl
        , withFirstCategoriesDecl
        , detokeniseWords'
@@ -36,7 +38,7 @@ import Brassica.SoundChange.Types
 -- variable will usually be something like '[Grapheme]', though it
 -- depends on the type of words you’re parsing.
 data Component a = Word a | Whitespace String | Gloss String
-    deriving (Eq, Show, Functor, Generic, NFData)
+    deriving (Eq, Show, Functor, Foldable, Traversable, Generic, NFData)
 
 -- | Given a tokenised input string, return only the 'Word's within
 -- it.
@@ -45,28 +47,27 @@ getWords = mapMaybe $ \case
     Word a -> Just a
     _ -> Nothing
 
-wordParser :: [Grapheme] -> ParsecT Void String Identity [Grapheme]
-wordParser gs = some $ choice (chunk <$> gs) <|> (pure <$> satisfy (not . isSpaceOrGloss))
+-- | Megaparsec parser for 'Words' — see 'tokeniseWord' documentation
+-- for details on the parsing strategy. For most usecases
+-- 'tokeniseWord' should suffice; 'wordParser' itself is only really
+-- useful in unusual situations (e.g. as part of a larger parser). The
+-- first parameter gives a list of characters (aside from whitespace)
+-- which should be excluded from words, i.e. the parser will stop if
+-- any of them are found.
+wordParser :: [Char] -> [Grapheme] -> ParsecT Void String Identity [Grapheme]
+wordParser excludes gs = some $ choice (chunk <$> gs) <|> (pure <$> satisfy (not . exclude))
   where
-    isSpaceOrGloss = (||) <$> isSpace <*> (=='[')
+    exclude = (||) <$> isSpace <*> (`elem` excludes)
 
--- | Given a list of 'Grapheme's used, tokenise an input word. Note
--- that this tokeniser is greedy: if one of the given 'Grapheme's is a
--- prefix of another, the tokeniser will prefer the longest if possible.
-tokeniseWord :: [Grapheme] -> String -> Either (ParseErrorBundle String Void) [Grapheme]
-tokeniseWord (sortBy (compare `on` Down . length) -> gs) = parse (wordParser gs) ""
-
--- | Given a list of 'Grapheme's used, tokenise an input string into a
--- list of words and other 'Component's. This uses the same
--- tokenisation strategy as 'tokeniseWords'.
-tokeniseWords :: [Grapheme] -> String -> Either (ParseErrorBundle String Void) [Component [Grapheme]]
-tokeniseWords (sortBy (compare `on` Down . length) -> gs) =
-    parse
-        (many $
-            (Whitespace <$> takeWhile1P Nothing isSpace) <|>
-            (Gloss <$> gloss False) <|>
-            (Word <$> wordParser gs))
-        ""
+-- | Megaparsec parser for 'Component's. Similarly to 'wordParser',
+-- usually it’s easier to use 'tokeniseWords' instead.
+componentsParser
+    :: ParsecT Void String Identity a
+    -> ParsecT Void String Identity [Component a]
+componentsParser p = many $
+    (Whitespace <$> takeWhile1P Nothing isSpace) <|>
+    (Gloss <$> gloss False) <|>
+    (Word <$> p)
   where
     gloss returnBracketed = do
         _ <- char '['
@@ -75,6 +76,19 @@ tokeniseWords (sortBy (compare `on` Down . length) -> gs) =
         pure $ if returnBracketed
            then '[' : concat contents ++ "]"
            else concat contents
+
+-- | Given a list of 'Grapheme's used, tokenise an input word. Note
+-- that this tokeniser is greedy: if one of the given 'Grapheme's is a
+-- prefix of another, the tokeniser will prefer the longest if possible.
+tokeniseWord :: [Grapheme] -> String -> Either (ParseErrorBundle String Void) [Grapheme]
+tokeniseWord (sortBy (compare `on` Down . length) -> gs) = parse (wordParser "[" gs) ""
+
+-- | Given a list of 'Grapheme's used, tokenise an input string into a
+-- list of words and other 'Component's. This uses the same
+-- tokenisation strategy as 'tokeniseWords'.
+tokeniseWords :: [Grapheme] -> String -> Either (ParseErrorBundle String Void) [Component [Grapheme]]
+tokeniseWords (sortBy (compare `on` Down . length) -> gs) =
+    parse (componentsParser $ wordParser "[" gs) ""
 
 -- | Given a function to convert words to strings, converts a list of
 -- 'Component's to strings.

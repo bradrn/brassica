@@ -14,6 +14,7 @@ import GHC.Generics (Generic)
 import Control.DeepSeq (NFData)
 import Text.Megaparsec (ParseErrorBundle)
 
+import Brassica.MDF (MDF, parseMDFWithTokenisation, componentiseMDF, componentiseMDFWordsOnly)
 import Brassica.SoundChange.Apply
 import Brassica.SoundChange.Tokenise
 import Brassica.SoundChange.Types
@@ -116,30 +117,60 @@ data ApplicationOutput a r
     | ParseError (ParseErrorBundle String Void)
     deriving (Show, Generic, NFData)
 
+-- | Kind of input: either a raw wordlist, or an MDF file.
+data InputLexiconFormat = Raw | MDF
+    deriving (Show, Eq)
+instance Enum InputLexiconFormat where
+    -- used for conversion to and from C, so want control over values
+    fromEnum Raw = 0
+    fromEnum MDF = 1
+
+    toEnum 0 = Raw
+    toEnum 1 = MDF
+    toEnum _ = undefined
+
+data ParseOutput a = RawOutput [Component a] | MDFOutput (MDF [Component a])
+    deriving (Show, Functor)
+
+componentise :: ParseOutput a -> [Component a]
+componentise (RawOutput cs) = cs
+componentise (MDFOutput mdf) = componentiseMDF mdf
+
+componentiseWordsOnly :: String -> ParseOutput a -> [Component a]
+componentiseWordsOnly _   (RawOutput cs) = cs
+componentiseWordsOnly sep (MDFOutput mdf) = componentiseMDFWordsOnly sep mdf
+
+tokeniseAccordingToInputFormat
+    :: InputLexiconFormat
+    -> SoundChanges
+    -> String
+    -> Either (ParseErrorBundle String Void) (ParseOutput [Grapheme])
+tokeniseAccordingToInputFormat Raw cs = fmap RawOutput . withFirstCategoriesDecl tokeniseWords cs
+tokeniseAccordingToInputFormat MDF cs = fmap MDFOutput . withFirstCategoriesDecl parseMDFWithTokenisation cs
+
 -- | Top-level dispatcher for an interactive frontend: given a textual
 -- wordlist and a list of sound changes, returns the result of running
 -- the changes in the specified mode.
 parseTokeniseAndApplyRules
     :: SoundChanges -- ^ changes
     -> String       -- ^ words
+    -> InputLexiconFormat
     -> OutputMode
     -> Maybe [Component [Grapheme]]  -- ^ previous results
     -> ApplicationOutput [Grapheme] Statement
-parseTokeniseAndApplyRules statements ws mode prev =
-    case withFirstCategoriesDecl tokeniseWords statements ws of
+parseTokeniseAndApplyRules statements ws intype mode prev =
+    case tokeniseAccordingToInputFormat intype statements ws of
         Left e -> ParseError e
         Right toks -> case mode of
             ReportRulesApplied ->
-                AppliedRulesTable $ mapMaybe toTableItem $ getWords $
-                    applyChangesWithLog statements <<$>> toks
+                AppliedRulesTable $ mapMaybe toTableItem $ getWords $ componentise $
+                    applyChangesWithLog statements <$> toks
             DifferentToLastRun ->
-                let result = applyChanges statements <<$>> toks
+                let result = componentise $ applyChanges statements <$> toks
                 in HighlightedWords $
                     zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
                         (thisWord, thisWord /= prevWord)
             DifferentToInput ->
-                HighlightedWords $ applyChangesWithChanges statements <<$>> toks
+                HighlightedWords $ componentise $ applyChangesWithChanges statements <$> toks
             NoHighlight ->
-                HighlightedWords $ ((,False) . applyChanges statements) <<$>> toks
-  where
-    (<<$>>) = fmap . fmap
+                HighlightedWords $ componentise $ (,False) . applyChanges statements <$> toks

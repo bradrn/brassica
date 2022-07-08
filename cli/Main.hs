@@ -4,7 +4,7 @@ module Main where
 
 import Control.Category ((>>>))
 import Control.Exception (Exception)
-import Data.Bifunctor (first, bimap)
+import Data.Bifunctor (bimap)
 import System.Environment (getArgs)
 
 import Conduit
@@ -16,36 +16,41 @@ import Brassica.SoundChange
 import Brassica.SoundChange.Parse
 import Brassica.SoundChange.Tokenise
 import Brassica.SoundChange.Types (Grapheme)
-import Data.Conduit.Combinators (iterM)
 
 
 main :: IO ()
 main = do
-    [inputFile] <- getArgs
+    (inputFile, wordsFormat) <- decodeArgs <$> getArgs
     changesText <- unpack . decodeUtf8 <$> B.readFile inputFile
 
     case parseSoundChanges changesText of
         Left err ->
             putStrLn $ errorBundlePretty err
         Right rules ->
-            runConduit $ processWords $ 
-                withFirstCategoriesDecl tokeniseWords rules
-                >>> (fmap.fmap.fmap) (applyChanges rules)
-                >>> first errorBundlePretty
+            runConduit $ processWords (incrFor wordsFormat) $
+                tokeniseAccordingToInputFormat wordsFormat rules
+                >>> (fmap.fmap) (applyChanges rules)
+                >>> bimap errorBundlePretty componentise
+  where
+    decodeArgs [inputFile] = (inputFile, Raw)
+    decodeArgs ["--mdf", inputFile] = (inputFile, MDF)
+    decodeArgs [inputFile, "--mdf"] = (inputFile, MDF)
+    decodeArgs _ = error "Command-line arguments could not be parsed"
+
+    incrFor Raw = True
+    incrFor MDF = False
 
 processWords
     :: (MonadIO m, MonadThrow m)
-    => (String -> Either String [Component [Grapheme]])
+    => Bool  -- split into lines?
+    -> (String -> Either String [Component [Grapheme]])
     -> ConduitT () Void m ()
-processWords evolve = stdinC
-    .| iterM (liftIO . print)
+processWords incr evolve = stdinC
     .| decodeUtf8C
-    .| linesUnboundedC
-    .| iterM (liftIO . print)
+    .| (if incr then linesUnboundedC else mapC id)
     .| mapC (bimap ParseException (pack . detokeniseWords) . evolve . unpack)
     .| throwOnLeft
-    .| iterM (liftIO . print)
-    .| unlinesC
+    .| (if incr then unlinesC else mapC id)
     .| encodeUtf8C
     .| stdoutC
   where
