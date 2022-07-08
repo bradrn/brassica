@@ -28,6 +28,8 @@ private:
     QRadioButton *nohighlightBtn;
     QRadioButton *diffhighlightBtn;
     QRadioButton *inputhighlightBtn;
+    QRadioButton *rawBtn;
+    QRadioButton *mdfBtn;
     QPushButton *reportRulesBtn;
     QCheckBox *viewLive;
     QTextEdit *outputEdit;

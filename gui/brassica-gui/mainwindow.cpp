@@ -88,6 +88,17 @@ void MainWindow::setupWidgets(QWidget *central)
     inputhighlightBtn = new QRadioButton("Different to input");
     highlightLayout->addWidget(inputhighlightBtn);
 
+    QGroupBox *inputFormatBox = new QGroupBox("Input lexicon format");
+    QVBoxLayout *inputFormatLayout = new QVBoxLayout(inputFormatBox);
+    midLayout->addWidget(inputFormatBox);
+
+    rawBtn = new QRadioButton("Wordlist + glosses");
+    rawBtn->setChecked(true);
+    inputFormatLayout->addWidget(rawBtn);
+
+    mdfBtn = new QRadioButton("MDF file");
+    inputFormatLayout->addWidget(mdfBtn);
+
     viewLive = new QCheckBox("View results live");
     midLayout->addWidget(viewLive);
 
@@ -129,6 +140,9 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
 
     //QString output = proc->applyRules(categories, rules, words);
 
+    int infmt = 0;
+    if (mdfBtn->isChecked()) infmt = 1;
+
     int checkedHl = 0;
     if (diffhighlightBtn->isChecked()) checkedHl = 1;
     else if (inputhighlightBtn->isChecked()) checkedHl = 2;
@@ -137,6 +151,7 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
                                        rules.toUtf8().data(),
                                        words.toUtf8().data(),
                                        reportRules,
+                                       infmt,
                                        checkedHl,
                                        hsResults));
     outputEdit->setHtml(QString::fromUtf8(output));
@@ -166,12 +181,18 @@ void MainWindow::saveRules()
 
 void MainWindow::openLexicon()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, "Open lexicon", QString(), "Lexicon files (*.lex);;All files (*.*)");
+    QString fileName = QFileDialog::getOpenFileName(this, "Open lexicon", QString(), "Lexicon files (*.lex);;MDF files (*.mdf *.txt);;All files (*.*)");
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         return;
 
     wordsEdit->setPlainText(QString::fromUtf8(file.readAll()));
+
+    QString extension = QFileInfo(fileName).suffix();
+    if (extension == "mdf" || extension == "txt")
+        mdfBtn->setChecked(true);
+    else
+        rawBtn->setChecked(true);
 }
 
 void MainWindow::saveLexicon()
