@@ -2,7 +2,7 @@
 
 Brassica is a new sound change applier with the following features:
 
-- Can be used in both interactive (GUI) and batch mode, as well as a Haskell library
+- Can be used interactively both [online](http://bradrn.com/brassica/index.html) and on desktop, as well as in batch mode on the command-line and as a Haskell library
 - Intuitive syntax based on Mark Rosenfelder’s [SCA²](https://www.zompist.com/sca2.html)
 - First-class support for multigraphs
 - Natively supports the MDF dictionary format, also used by tools including [SIL Toolbox](https://software.sil.org/toolbox/) and [Lexique Pro](https://software.sil.org/lexiquepro/)

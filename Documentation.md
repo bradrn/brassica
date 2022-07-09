@@ -4,10 +4,11 @@
 
 ## Using Brassica
 
-Brassica comes in two versions: an interactive, graphical interface and a non-interactive command-line interface.
-The former is recommended for prototyping new sound changes, while the latter is more useful for evolving long lists of words.
+Brassica comes in four versions: a graphical interface on the desktop, a similar interface [online](http://bradrn.com/brassica/index.html), and as a command-line program.
+The former two are recommended for prototyping new sound changes, while the latter is more useful for evolving long lists of words.
+Both graphical interaces work in the same way and are organised very similarly, though the online interface supports fewer features than the desktop one.
 
-The interactive interface appears as follows:
+The desktop interface appears as follows:
 
 ![Image of Brassica GUI](./gui-interface.png)
 
@@ -20,7 +21,7 @@ Finally, enabling the checkbox labeled ‘View results live’ causes the result
 This can be extremely useful when prototyping new rules, but is very slow for longer rulesets.
 For this reason, live updating is disabled by default.
 
-The command-line interface offers far fewer options than does the interactive interface.
+The command-line interface offers far fewer options than the graphical interfaces do.
 Invoke it by running `brassica path/to/your/rules.bsc`.
 `brassica` takes words as input on stdin, and outputs to stdout the results of applying the selected ruleset to these words.
 
@@ -481,7 +482,7 @@ Any element, even optional elements or wildcards, can be used in an exception in
 
 ### Output highlighting
 
-Brassica’s interactive interface contains options to highlight output words which satisfy various conditions.
+Both of Brassica’s graphical interfaces (desktop and online) contain options to highlight output words which satisfy various conditions.
 These options are located in the ‘output highlighting’ box near the right of the window.
 The highlighting is updated every time the rules are applied.
 (That is, every time the ‘apply’ button is pressed;
