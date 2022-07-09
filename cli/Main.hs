@@ -28,7 +28,7 @@ main = do
             putStrLn $ errorBundlePretty err
         Right rules ->
             runConduit $ processWords (incrFor wordsFormat) $
-                tokeniseAccordingToInputFormat wordsFormat rules
+                tokeniseAccordingToInputFormat wordsFormat Normal rules
                 >>> (fmap.fmap) (applyChanges rules)
                 >>> bimap errorBundlePretty (componentise MDFOutput)
   where

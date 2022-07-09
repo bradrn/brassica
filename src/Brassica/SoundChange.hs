@@ -7,6 +7,7 @@
 
 module Brassica.SoundChange where
 
+import Data.Bifunctor (second)
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Void (Void)
 import GHC.Generics (Generic)
@@ -14,7 +15,7 @@ import GHC.Generics (Generic)
 import Control.DeepSeq (NFData)
 import Text.Megaparsec (ParseErrorBundle)
 
-import Brassica.MDF (MDF, parseMDFWithTokenisation, componentiseMDF, componentiseMDFWordsOnly)
+import Brassica.MDF (MDF, parseMDFWithTokenisation, componentiseMDF, componentiseMDFWordsOnly, duplicateEtymologies)
 import Brassica.SoundChange.Apply
 import Brassica.SoundChange.Tokenise
 import Brassica.SoundChange.Types
@@ -121,6 +122,17 @@ instance Enum MDFOutputMode where
     toEnum 1 = WordsOnlyOutput
     toEnum _ = undefined
 
+data TokenisationMode = Normal | AddEtymons
+    deriving (Show, Eq)
+instance Enum TokenisationMode where
+    -- used for conversion to and from C, so want control over values
+    fromEnum Normal = 0
+    fromEnum AddEtymons = 1
+
+    toEnum 0 = Normal
+    toEnum 1 = AddEtymons
+    toEnum _ = undefined
+
 -- | Output of a single application of rules to a wordlist: either a
 -- list of possibly highlighted words, an applied rules table, or a
 -- parse error.
@@ -152,11 +164,18 @@ componentise WordsOnlyOutput (ParsedMDF mdf) = componentiseMDFWordsOnly mdf
 
 tokeniseAccordingToInputFormat
     :: InputLexiconFormat
+    -> TokenisationMode
     -> SoundChanges
     -> String
     -> Either (ParseErrorBundle String Void) (ParseOutput [Grapheme])
-tokeniseAccordingToInputFormat Raw cs = fmap ParsedRaw . withFirstCategoriesDecl tokeniseWords cs
-tokeniseAccordingToInputFormat MDF cs = fmap ParsedMDF . withFirstCategoriesDecl parseMDFWithTokenisation cs
+tokeniseAccordingToInputFormat Raw _ cs =
+    fmap ParsedRaw . withFirstCategoriesDecl tokeniseWords cs
+tokeniseAccordingToInputFormat MDF Normal cs =
+    fmap ParsedMDF . withFirstCategoriesDecl parseMDFWithTokenisation cs
+tokeniseAccordingToInputFormat MDF AddEtymons cs =
+    fmap ParsedMDF
+    . second (duplicateEtymologies $ ('*':) . detokeniseWords)
+    . withFirstCategoriesDecl parseMDFWithTokenisation cs
 
 -- | Top-level dispatcher for an interactive frontend: given a textual
 -- wordlist and a list of sound changes, returns the result of running
@@ -165,11 +184,12 @@ parseTokeniseAndApplyRules
     :: SoundChanges -- ^ changes
     -> String       -- ^ words
     -> InputLexiconFormat
+    -> TokenisationMode
     -> ApplicationMode
     -> Maybe [Component [Grapheme]]  -- ^ previous results
     -> ApplicationOutput [Grapheme] Statement
-parseTokeniseAndApplyRules statements ws intype mode prev =
-    case tokeniseAccordingToInputFormat intype statements ws of
+parseTokeniseAndApplyRules statements ws intype tmode mode prev =
+    case tokeniseAccordingToInputFormat intype tmode statements ws of
         Left e -> ParseError e
         Right toks -> case mode of
             ReportRulesApplied ->

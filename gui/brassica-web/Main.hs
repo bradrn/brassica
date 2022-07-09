@@ -23,10 +23,11 @@ import Brassica.SoundChange
        ( ApplicationMode(..)
        , HighlightMode(..)
        , MDFOutputMode(MDFOutput)
+       , TokenisationMode (Normal)
        , ApplicationOutput(..)
        , InputLexiconFormat(Raw)
        , parseTokeniseAndApplyRules
-       , tableItemToHtmlRows
+       , tableItemToHtmlRows,
        )
 import Brassica.SoundChange.Parse (errorBundlePretty, parseSoundChanges)
 import Brassica.SoundChange.Tokenise (detokeniseWords', Component)
@@ -39,7 +40,7 @@ applyRules (prev, (changes, ws, mode)) =
     case parseSoundChanges (T.unpack changes) of
         Left e -> (Nothing, "<pre>" <> T.pack (errorBundlePretty e) <> "</pre>")
         Right statements ->
-            case parseTokeniseAndApplyRules statements (T.unpack ws) Raw mode prev of
+            case parseTokeniseAndApplyRules statements (T.unpack ws) Raw Normal mode prev of
                 ParseError e -> (Nothing, "<pre>" <> T.pack (errorBundlePretty e) <> "</pre>")
                 HighlightedWords result ->
                     (Just $ (fmap.fmap) fst result, T.pack $ escape $ detokeniseWords' highlightWord result)

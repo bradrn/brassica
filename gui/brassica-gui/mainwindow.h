@@ -33,6 +33,7 @@ private:
     QRadioButton *mdfBtn;
     QGroupBox *outputFormatBox;
     QRadioButton *mdfoutBtn;
+    QRadioButton *mdfetymoutBtn;
     QRadioButton *rawoutBtn;
     QPushButton *reportRulesBtn;
     QCheckBox *viewLive;

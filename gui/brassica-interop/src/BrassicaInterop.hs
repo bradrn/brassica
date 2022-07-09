@@ -22,11 +22,12 @@ parseTokeniseAndApplyRules_hs
     -> CString     -- ^ words
     -> CBool       -- ^ report rules applied?
     -> CInt        -- ^ input format
+    -> CInt        -- ^ tokenisation mode
     -> CInt        -- ^ highlighting mode
     -> CInt        -- ^ MDF output mode
     -> StablePtr (IORef (Maybe [Component [Grapheme]]))  -- ^ previous results
     -> IO CString  -- ^ output (either wordlist or parse error)
-parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) infmtC hlModeC mdfOutC prevPtr = do
+parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) infmtC tokModeC hlModeC mdfOutC prevPtr = do
     changesText <- GHC.peekCString utf8 changesRaw
     wsText      <- GHC.peekCString utf8 wsRaw
 
@@ -34,6 +35,7 @@ parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) infmtC hlModeC mdf
     prev <- readIORef prevRef
 
     let hlMode = toEnum $ fromIntegral hlModeC
+        tokMode = toEnum $ fromIntegral tokModeC
         infmt = toEnum $ fromIntegral infmtC
         mdfOut = toEnum $ fromIntegral mdfOutC
         mode =
@@ -44,7 +46,7 @@ parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) infmtC hlModeC mdf
     case parseSoundChanges changesText of
         Left e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
         Right statements ->
-            case parseTokeniseAndApplyRules statements wsText infmt mode prev of
+            case parseTokeniseAndApplyRules statements wsText infmt tokMode mode prev of
                 ParseError e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
                 HighlightedWords result -> do
                     writeIORef prevRef $ Just $ (fmap.fmap) fst result
@@ -89,6 +91,7 @@ foreign export ccall parseTokeniseAndApplyRules_hs
     -> CString
     -> CBool
     -> CInt
+    -> CInt        -- ^ tokenisation mode
     -> CInt
     -> CInt
     -> StablePtr (IORef (Maybe [Component [Grapheme]]))

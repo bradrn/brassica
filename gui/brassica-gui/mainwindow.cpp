@@ -112,6 +112,9 @@ void MainWindow::setupWidgets(QWidget *central)
     mdfoutBtn->setChecked(true);
     outputFormatLayout->addWidget(mdfoutBtn);
 
+    mdfetymoutBtn = new QRadioButton("MDF output with etymologies");
+    outputFormatLayout->addWidget(mdfetymoutBtn);
+
     rawoutBtn = new QRadioButton("Wordlist");
     outputFormatLayout->addWidget(rawoutBtn);
 
@@ -164,13 +167,16 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
     else if (inputhighlightBtn->isChecked()) checkedHl = 2;
 
     int mdfOut = 0;
-    if (rawoutBtn->isChecked()) mdfOut = 1;
+    int tokmode = 0;
+    if (mdfetymoutBtn->isChecked()) tokmode = 1;
+    else if (rawoutBtn->isChecked()) mdfOut = 1;
 
     QByteArray output = QByteArray((char*) parseTokeniseAndApplyRules_hs(
                                        rules.toUtf8().data(),
                                        words.toUtf8().data(),
                                        reportRules,
                                        infmt,
+                                       tokmode,
                                        checkedHl,
                                        mdfOut,
                                        hsResults));
