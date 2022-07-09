@@ -30,7 +30,7 @@ main = do
             runConduit $ processWords (incrFor wordsFormat) $
                 tokeniseAccordingToInputFormat wordsFormat rules
                 >>> (fmap.fmap) (applyChanges rules)
-                >>> bimap errorBundlePretty componentise
+                >>> bimap errorBundlePretty (componentise MDFOutput)
   where
     decodeArgs [inputFile] = (inputFile, Raw)
     decodeArgs ["--mdf", inputFile] = (inputFile, MDF)

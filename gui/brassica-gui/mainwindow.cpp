@@ -32,6 +32,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(wordsEdit, &QPlainTextEdit::textChanged, [this] { applySoundChanges(true, false); });
 
     connect(rulesEdit, &QPlainTextEdit::textChanged, this, &MainWindow::reparseCategories);
+
+    connect(mdfBtn, &QRadioButton::toggled, [this](bool checked) {
+        if (checked) outputFormatBox->show(); else outputFormatBox->hide();
+    });
 }
 
 MainWindow::~MainWindow()
@@ -99,6 +103,18 @@ void MainWindow::setupWidgets(QWidget *central)
     mdfBtn = new QRadioButton("MDF file");
     inputFormatLayout->addWidget(mdfBtn);
 
+    outputFormatBox = new QGroupBox("MDF output format");
+    QVBoxLayout *outputFormatLayout = new QVBoxLayout(outputFormatBox);
+    midLayout->addWidget(outputFormatBox);
+    outputFormatBox->hide();
+
+    mdfoutBtn = new QRadioButton("MDF output");
+    mdfoutBtn->setChecked(true);
+    outputFormatLayout->addWidget(mdfoutBtn);
+
+    rawoutBtn = new QRadioButton("Wordlist");
+    outputFormatLayout->addWidget(rawoutBtn);
+
     viewLive = new QCheckBox("View results live");
     midLayout->addWidget(viewLive);
 
@@ -147,12 +163,16 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
     if (diffhighlightBtn->isChecked()) checkedHl = 1;
     else if (inputhighlightBtn->isChecked()) checkedHl = 2;
 
+    int mdfOut = 0;
+    if (rawoutBtn->isChecked()) mdfOut = 1;
+
     QByteArray output = QByteArray((char*) parseTokeniseAndApplyRules_hs(
                                        rules.toUtf8().data(),
                                        words.toUtf8().data(),
                                        reportRules,
                                        infmt,
                                        checkedHl,
+                                       mdfOut,
                                        hsResults));
     outputEdit->setHtml(QString::fromUtf8(output));
 }

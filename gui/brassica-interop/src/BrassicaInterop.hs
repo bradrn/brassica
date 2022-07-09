@@ -23,20 +23,23 @@ parseTokeniseAndApplyRules_hs
     -> CBool       -- ^ report rules applied?
     -> CInt        -- ^ input format
     -> CInt        -- ^ highlighting mode
+    -> CInt        -- ^ MDF output mode
     -> StablePtr (IORef (Maybe [Component [Grapheme]]))  -- ^ previous results
     -> IO CString  -- ^ output (either wordlist or parse error)
-parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) infmtC hlMode prevPtr = do
+parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) infmtC hlModeC mdfOutC prevPtr = do
     changesText <- GHC.peekCString utf8 changesRaw
     wsText      <- GHC.peekCString utf8 wsRaw
 
     prevRef <- deRefStablePtr prevPtr
     prev <- readIORef prevRef
 
-    let mode =
+    let hlMode = toEnum $ fromIntegral hlModeC
+        infmt = toEnum $ fromIntegral infmtC
+        mdfOut = toEnum $ fromIntegral mdfOutC
+        mode =
             if report == 1
             then ReportRulesApplied
-            else toEnum $ fromIntegral hlMode
-        infmt = toEnum $ fromIntegral infmtC
+            else ApplyRules hlMode mdfOut
 
     case parseSoundChanges changesText of
         Left e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
@@ -85,6 +88,7 @@ foreign export ccall parseTokeniseAndApplyRules_hs
     :: CString
     -> CString
     -> CBool
+    -> CInt
     -> CInt
     -> CInt
     -> StablePtr (IORef (Maybe [Component [Grapheme]]))

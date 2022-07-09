@@ -20,7 +20,9 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 
 import Brassica.SoundChange
-       ( OutputMode(..)
+       ( ApplicationMode(..)
+       , HighlightMode(..)
+       , MDFOutputMode(MDFOutput)
        , ApplicationOutput(..)
        , InputLexiconFormat(Raw)
        , parseTokeniseAndApplyRules
@@ -31,7 +33,7 @@ import Brassica.SoundChange.Tokenise (detokeniseWords', Component)
 import Brassica.SoundChange.Types
 
 applyRules
-    :: (Maybe [Component [Grapheme]], (T.Text, T.Text, OutputMode))
+    :: (Maybe [Component [Grapheme]], (T.Text, T.Text, ApplicationMode))
     -> (Maybe [Component [Grapheme]], T.Text)
 applyRules (prev, (changes, ws, mode)) =
     case parseSoundChanges (T.unpack changes) of
@@ -170,7 +172,7 @@ main = mainWidgetWithCss style $ el "div" $ do
             dlastrun     <- radio "Different to last run" "dlastrun"    "highlighting" False
             br
             dinput       <- radio "Different to input"    "dinput"      "highlighting" False
-            pure $ ffor2 dlastrun dinput $ \dl di ->
+            pure $ ffor2 dlastrun dinput $ \dl di -> flip ApplyRules MDFOutput $
                 if dl then DifferentToLastRun else
                     if di then DifferentToInput else
                         NoHighlight

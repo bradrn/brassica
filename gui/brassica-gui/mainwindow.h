@@ -5,6 +5,7 @@
 #include "ruleshighlighter.h"
 
 #include <QCheckBox>
+#include <QGroupBox>
 #include <QMainWindow>
 #include <QPlainTextEdit>
 #include <QProcess>
@@ -30,6 +31,9 @@ private:
     QRadioButton *inputhighlightBtn;
     QRadioButton *rawBtn;
     QRadioButton *mdfBtn;
+    QGroupBox *outputFormatBox;
+    QRadioButton *mdfoutBtn;
+    QRadioButton *rawoutBtn;
     QPushButton *reportRulesBtn;
     QCheckBox *viewLive;
     QTextEdit *outputEdit;

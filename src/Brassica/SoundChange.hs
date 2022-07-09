@@ -88,24 +88,37 @@ applyChangesWithChanges sts w = case applyChangesWithLog sts w of
         ActionApplied{action=RuleS rule} -> highlightChanges $ flags rule
         ActionApplied{action=CategoriesDeclS _} -> True
 
--- | Output mode of the SCA.
-data OutputMode
+-- | Rule application mode of the SCA.
+data ApplicationMode
+    = ApplyRules HighlightMode MDFOutputMode
+    | ReportRulesApplied
+    deriving (Show, Eq)
+
+data HighlightMode
     = NoHighlight
     | DifferentToLastRun
     | DifferentToInput
-    | ReportRulesApplied
     deriving (Show, Eq)
-instance Enum OutputMode where
+instance Enum HighlightMode where
     -- used for conversion to and from C, so want control over values
     fromEnum NoHighlight = 0
     fromEnum DifferentToLastRun = 1
     fromEnum DifferentToInput = 2
-    fromEnum ReportRulesApplied = 3
 
     toEnum 0 = NoHighlight
     toEnum 1 = DifferentToLastRun
     toEnum 2 = DifferentToInput
-    toEnum 3 = ReportRulesApplied
+    toEnum _ = undefined
+
+data MDFOutputMode = MDFOutput | WordsOnlyOutput
+    deriving (Show, Eq)
+instance Enum MDFOutputMode where
+    -- used for conversion to and from C, so want control over values
+    fromEnum MDFOutput = 0
+    fromEnum WordsOnlyOutput = 1
+
+    toEnum 0 = MDFOutput
+    toEnum 1 = WordsOnlyOutput
     toEnum _ = undefined
 
 -- | Output of a single application of rules to a wordlist: either a
@@ -129,24 +142,21 @@ instance Enum InputLexiconFormat where
     toEnum 1 = MDF
     toEnum _ = undefined
 
-data ParseOutput a = RawOutput [Component a] | MDFOutput (MDF [Component a])
+data ParseOutput a = ParsedRaw [Component a] | ParsedMDF (MDF [Component a])
     deriving (Show, Functor)
 
-componentise :: ParseOutput a -> [Component a]
-componentise (RawOutput cs) = cs
-componentise (MDFOutput mdf) = componentiseMDF mdf
-
-componentiseWordsOnly :: String -> ParseOutput a -> [Component a]
-componentiseWordsOnly _   (RawOutput cs) = cs
-componentiseWordsOnly sep (MDFOutput mdf) = componentiseMDFWordsOnly sep mdf
+componentise :: MDFOutputMode -> ParseOutput a -> [Component a]
+componentise _               (ParsedRaw cs) = cs
+componentise MDFOutput       (ParsedMDF mdf) = componentiseMDF mdf
+componentise WordsOnlyOutput (ParsedMDF mdf) = componentiseMDFWordsOnly mdf
 
 tokeniseAccordingToInputFormat
     :: InputLexiconFormat
     -> SoundChanges
     -> String
     -> Either (ParseErrorBundle String Void) (ParseOutput [Grapheme])
-tokeniseAccordingToInputFormat Raw cs = fmap RawOutput . withFirstCategoriesDecl tokeniseWords cs
-tokeniseAccordingToInputFormat MDF cs = fmap MDFOutput . withFirstCategoriesDecl parseMDFWithTokenisation cs
+tokeniseAccordingToInputFormat Raw cs = fmap ParsedRaw . withFirstCategoriesDecl tokeniseWords cs
+tokeniseAccordingToInputFormat MDF cs = fmap ParsedMDF . withFirstCategoriesDecl parseMDFWithTokenisation cs
 
 -- | Top-level dispatcher for an interactive frontend: given a textual
 -- wordlist and a list of sound changes, returns the result of running
@@ -155,7 +165,7 @@ parseTokeniseAndApplyRules
     :: SoundChanges -- ^ changes
     -> String       -- ^ words
     -> InputLexiconFormat
-    -> OutputMode
+    -> ApplicationMode
     -> Maybe [Component [Grapheme]]  -- ^ previous results
     -> ApplicationOutput [Grapheme] Statement
 parseTokeniseAndApplyRules statements ws intype mode prev =
@@ -163,14 +173,14 @@ parseTokeniseAndApplyRules statements ws intype mode prev =
         Left e -> ParseError e
         Right toks -> case mode of
             ReportRulesApplied ->
-                AppliedRulesTable $ mapMaybe toTableItem $ getWords $ componentise $
+                AppliedRulesTable $ mapMaybe toTableItem $ getWords $ componentise WordsOnlyOutput $
                     applyChangesWithLog statements <$> toks
-            DifferentToLastRun ->
-                let result = componentise $ applyChanges statements <$> toks
+            ApplyRules DifferentToLastRun mdfout ->
+                let result = componentise mdfout $ applyChanges statements <$> toks
                 in HighlightedWords $
                     zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
                         (thisWord, thisWord /= prevWord)
-            DifferentToInput ->
-                HighlightedWords $ componentise $ applyChangesWithChanges statements <$> toks
-            NoHighlight ->
-                HighlightedWords $ componentise $ (,False) . applyChanges statements <$> toks
+            ApplyRules DifferentToInput mdfout ->
+                HighlightedWords $ componentise mdfout $ applyChangesWithChanges statements <$> toks
+            ApplyRules NoHighlight mdfout ->
+                HighlightedWords $ componentise mdfout $ (,False) . applyChanges statements <$> toks
