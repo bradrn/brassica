@@ -217,7 +217,7 @@ void MainWindow::openLexicon()
 
 void MainWindow::saveLexicon()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, "Open lexicon", QString(), "Lexicon files (*.lex);;All files (*.*)");
+    QString fileName = QFileDialog::getSaveFileName(this, "Open lexicon", QString(), "Lexicon files (*.lex);;MDF files (*.mdf *.txt);;All files (*.*)");
     QFile file(fileName);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
         return;
