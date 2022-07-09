@@ -1,6 +1,7 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module Brassica.MDF
        ( MDF
@@ -62,7 +63,8 @@ parseMDFWithTokenisation
     :: [Grapheme]
     -> String
     -> Either (ParseErrorBundle String Void) (MDF [Component [Grapheme]])
-parseMDFWithTokenisation gs = runParser (fmap MDF $ sc *> p <* eof) ""
+parseMDFWithTokenisation (sortByDescendingLength -> gs) =
+    runParser (fmap MDF $ sc *> p <* eof) ""
   where
     p = many $ entry $ componentsParser $ wordParser "\\" gs
 

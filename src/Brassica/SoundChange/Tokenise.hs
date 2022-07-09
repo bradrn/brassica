@@ -17,6 +17,8 @@ module Brassica.SoundChange.Tokenise
        , withFirstCategoriesDecl
        , detokeniseWords'
        , detokeniseWords
+       -- * Utility
+       , sortByDescendingLength
        ) where
 
 import Data.Char (isSpace)
@@ -48,12 +50,15 @@ getWords = mapMaybe $ \case
     _ -> Nothing
 
 -- | Megaparsec parser for 'Words' — see 'tokeniseWord' documentation
--- for details on the parsing strategy. For most usecases
--- 'tokeniseWord' should suffice; 'wordParser' itself is only really
--- useful in unusual situations (e.g. as part of a larger parser). The
--- first parameter gives a list of characters (aside from whitespace)
--- which should be excluded from words, i.e. the parser will stop if
--- any of them are found.
+-- for details on the parsing strategy and the meaning of the second
+-- parameter. For most usecases 'tokeniseWord' should suffice;
+-- 'wordParser' itself is only really useful in unusual situations
+-- (e.g. as part of a larger parser). The first parameter gives a list
+-- of characters (aside from whitespace) which should be excluded from
+-- words, i.e. the parser will stop if any of them are found.
+--
+-- Note: the second parameter __must__ be 'sortByDescendingLength'-ed;
+-- otherwise digraphs will not be parsed correctly.
 wordParser :: [Char] -> [Grapheme] -> ParsecT Void String Identity [Grapheme]
 wordParser excludes gs = some $ choice (chunk <$> gs) <|> (pure <$> satisfy (not . exclude))
   where
@@ -77,17 +82,20 @@ componentsParser p = many $
            then '[' : concat contents ++ "]"
            else concat contents
 
+sortByDescendingLength :: [[a]] -> [[a]]
+sortByDescendingLength = sortBy (compare `on` Down . length)
+
 -- | Given a list of 'Grapheme's used, tokenise an input word. Note
 -- that this tokeniser is greedy: if one of the given 'Grapheme's is a
 -- prefix of another, the tokeniser will prefer the longest if possible.
 tokeniseWord :: [Grapheme] -> String -> Either (ParseErrorBundle String Void) [Grapheme]
-tokeniseWord (sortBy (compare `on` Down . length) -> gs) = parse (wordParser "[" gs) ""
+tokeniseWord (sortByDescendingLength -> gs) = parse (wordParser "[" gs) ""
 
 -- | Given a list of 'Grapheme's used, tokenise an input string into a
 -- list of words and other 'Component's. This uses the same
 -- tokenisation strategy as 'tokeniseWords'.
 tokeniseWords :: [Grapheme] -> String -> Either (ParseErrorBundle String Void) [Component [Grapheme]]
-tokeniseWords (sortBy (compare `on` Down . length) -> gs) =
+tokeniseWords (sortByDescendingLength -> gs) =
     parse (componentsParser $ wordParser "[" gs) ""
 
 -- | Given a function to convert words to strings, converts a list of
