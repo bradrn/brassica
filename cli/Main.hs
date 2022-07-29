@@ -32,9 +32,9 @@ main = do
             withSinkFileIf outWordsFile $ \outC ->
             let c e = inC .| processWords (incrFor wordsFormat) e .| outC
             in runConduit $ c $
-                tokeniseAccordingToInputFormat wordsFormat Normal rules
+                tokeniseAccordingToInputFormat wordsFormat tokMode rules
                 >>> (fmap.fmap) (applyChanges rules)
-                >>> bimap errorBundlePretty (componentise MDFOutput)
+                >>> bimap errorBundlePretty (componentise outMode)
   where
     opts = info (args <**> helper) fullDesc
 
@@ -43,6 +43,10 @@ main = do
             (metavar "RULES" <> help "File containing sound changes")
         <*> flag Raw MDF
             (long "mdf" <> help "Parse input words in MDF format")
+        <*> flag Normal AddEtymons
+            (long "etymons" <> help "With --mdf, add etymologies to output")
+        <*> flag MDFOutput WordsOnlyOutput
+            (long "wordlist" <> help "With --mdf, output only a list of the derived words")
         <*> optional (strOption
             (long "in" <> short 'i' <> help "File containing input words (if not specified will read from stdin)"))
         <*> optional (strOption
@@ -60,6 +64,8 @@ main = do
 data Options = Options
     { rulesFile :: String
     , wordsFormat :: InputLexiconFormat
+    , tokMode :: TokenisationMode
+    , outMode :: MDFOutputMode
     , inWordsFile :: Maybe String
     , outWordsFile :: Maybe String
     } deriving (Show)
