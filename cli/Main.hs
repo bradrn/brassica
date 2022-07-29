@@ -28,7 +28,10 @@ main = do
         Left err ->
             putStrLn $ errorBundlePretty err
         Right rules ->
-            runConduit $ processWords (incrFor wordsFormat) $
+            withSourceFileIf inWordsFile $ \inC ->
+            withSinkFileIf outWordsFile $ \outC ->
+            let c e = inC .| processWords (incrFor wordsFormat) e .| outC
+            in runConduit $ c $
                 tokeniseAccordingToInputFormat wordsFormat Normal rules
                 >>> (fmap.fmap) (applyChanges rules)
                 >>> bimap errorBundlePretty (componentise MDFOutput)
@@ -36,32 +39,43 @@ main = do
     opts = info (args <**> helper) fullDesc
 
     args = Options
-        <$> flag Raw MDF
-            (long "mdf" <> help "Parse input words in MDF format")
-        <*> strArgument
+        <$> strArgument
             (metavar "RULES" <> help "File containing sound changes")
+        <*> flag Raw MDF
+            (long "mdf" <> help "Parse input words in MDF format")
+        <*> optional (strOption
+            (long "in" <> short 'i' <> help "File containing input words (if not specified will read from stdin)"))
+        <*> optional (strOption
+            (long "out" <> short 'o' <> help "File to which output words should be written (if not specified will write to stdout)"))
 
     incrFor Raw = True
     incrFor MDF = False
 
+    withSourceFileIf :: Maybe FilePath -> (ConduitM i B.ByteString IO () -> IO a) -> IO a
+    withSourceFileIf = maybe ($ stdinC) withSourceFile
+
+    withSinkFileIf :: Maybe FilePath -> (ConduitM B.ByteString o IO () -> IO a) -> IO a
+    withSinkFileIf = maybe ($ stdoutC) withSinkFile
+
 data Options = Options
-    { wordsFormat :: InputLexiconFormat
-    , rulesFile :: String
+    { rulesFile :: String
+    , wordsFormat :: InputLexiconFormat
+    , inWordsFile :: Maybe String
+    , outWordsFile :: Maybe String
     } deriving (Show)
 
 processWords
     :: (MonadIO m, MonadThrow m)
     => Bool  -- split into lines?
     -> (String -> Either String [Component [Grapheme]])
-    -> ConduitT () Void m ()
-processWords incr evolve = stdinC
-    .| decodeUtf8C
+    -> ConduitT B.ByteString B.ByteString m ()
+processWords incr evolve =
+    decodeUtf8C
     .| (if incr then linesUnboundedC else mapC id)
     .| mapC (bimap ParseException (pack . detokeniseWords) . evolve . unpack)
     .| throwOnLeft
     .| (if incr then unlinesC else mapC id)
     .| encodeUtf8C
-    .| stdoutC
   where
     throwOnLeft :: (MonadThrow m, Exception e) => ConduitT (Either e r) r m ()
     throwOnLeft = awaitForever $ \case
