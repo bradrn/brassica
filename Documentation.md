@@ -21,9 +21,12 @@ Finally, enabling the checkbox labeled ‘View results live’ causes the result
 This can be extremely useful when prototyping new rules, but is very slow for longer rulesets.
 For this reason, live updating is disabled by default.
 
-The command-line interface offers far fewer options than the graphical interfaces do.
-Invoke it by running `brassica path/to/your/rules.bsc`.
-`brassica` takes words as input on stdin, and outputs to stdout the results of applying the selected ruleset to these words.
+The command-line interface offers somewhat fewer options than the graphical interfaces do.
+However, it can be much easier to use for batch applications, e.g. processing all words in a dictionary file.
+Invoke Brassica on the command-line by running `brassica path/to/your/rules.bsc`.
+By default `brassica` takes words as input on stdin, and outputs to stdout the results of applying the selected ruleset to these words.
+However these defaults can be changed by means of the `--in`/`-i` and `--out`/`-o` command-line arguments respectively.
+For more details on using the command-line interface, run `brassica --help`.
 
 In addition to the two user interfaces, the library which powers Brassica can also be used directly from a Haskell program.
 For now, the best way to understand this library is simply by reading the commented source code in [`./src`](./src).
@@ -590,11 +593,12 @@ Similarly, enabling the button labeled ‘Wordlist + glosses’ will make Brassi
 MDF files can also be processed when using Brassica in batch mode from the command-line:
   this can be done by supplying the `--mdf` command-line argument.
   
-On the desktop, Brassica has three output modes which are available when an MDF file is given as input.
-When the ‘MDF output’ button is enabled, Brassica will produce an MDF file as output.
+Brassica has three output modes which are available when an MDF file is given as input.
+On the desktop interface, Brassica will produce an MDF file as output when the ‘MDF output’ button is enabled.
 ‘MDF output with etymologies’ is similar, but will insert additional etymological information into the MDF output;
   see below for details on this.
-By contrast, when the ‘Wordlist’ button is enabled, output is produced in quite a different format:
+(The corresponding command-line argument is `--etymons`.)
+By contrast, when the ‘Wordlist’ button (or `--wordlist` command-line argument) is enabled, output is produced in quite a different format:
   instead of an MDF file, the output is a simple list of every derived word (similar to the output produced from non-MDF inputs).
 This last option can be very useful when quickly experimenting with sound changes.
   
