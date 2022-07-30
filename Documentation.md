@@ -483,6 +483,49 @@ Arbitrarily many exceptions can be specified using the same syntax; the rule wil
 Brassica has no such restriction.
 Any element, even optional elements or wildcards, can be used in an exception in Brassica.)
 
+### Sporadic rules and multiple results
+
+On some occasions we might want a sound change rule to have more than one output at a time.
+The most common situation where this is useful is that of *sporadic rules*:
+  sound changes which unpredictably apply to some words but not others.
+In Brassica, these can be simulated by placing the flag `-?` before the rule.
+For rules with this flag, two outputs are generated:
+  one for the situation in which the rule has been applied,
+  and one for the situation in which it has not been applied.
+(In the output wordlist, these are displayed separated by a single space.)
+Thus, for instance, the rule `-? i / / a _ #` applied to the word ⟨kanai⟩ will produce the two outputs ⟨kanai⟩ and ⟨kana⟩.
+This allows us to manually inspect both outputs, so we can decide which one we prefer for later usage.
+
+We can also produce rules with two or more different outputs, all of which are different to the input.
+We can do this using categories and optional elements in the replacement which cannot be matched with any in the target.
+Recall that if categories or optional elements are used in the replacement,
+  Brassica will attempt to match them with corresponding elements in the target.
+Thus, for instance, `[ɪ ʊ] (q) / [i u] (k) / _ #` will convert ⟨nɪ⟩→⟨ni⟩ and ⟨lʊq⟩→⟨luk⟩.
+However, if an output element is found with no corresponding input element, Brassica will instead produce *all possible* outputs.
+This allows us to, for instance, summarise the history of close back vowels from Middle to Modern English as:
+```
+oː / [uː ʊ ʌ]
+u / [ʌ ʊ]
+```
+(though the reality is [somewhat more complex](https://en.wikipedia.org/wiki/Phonological_history_of_English_close_back_vowels)).
+
+Rarely, Brassica will produce multiple results even when this is not explicitly specified.
+This occurs when there is more than one way to apply a given rule to a particular word.
+This happens most often with optional elements in the target or environment:
+  e.g. if the rule `o (m) / u (ŋ)` is applied to the word ⟨tom⟩, then both ⟨tum⟩ and ⟨tuŋ⟩ are possible outputs,
+  depending on whether the nasal is matched or not.
+However, more subtle cases also occur.
+For instance, consider the following rule applied to the word ⟨ʔʔan⟩:
+```
+ʔ / / [# ʔ] _
+```
+Here, there are two different ways to apply this rule to the given word.
+On one hand, we can notice that the very first `ʔ` is at the beginning of the word, so it can be deleted;
+  this then brings the second `ʔ` to the beginning of the word, where it too can be deleted to give the result ⟨an⟩.
+On the other hand, we can notice that there are two `ʔ`s in a row, so by this rule the second can be deleted;
+  proceeding on to the rest of the word gives the result ⟨ʔan⟩.
+In this situation, Brassica will report both ⟨an⟩ and ⟨ʔan⟩, to account for all possibilities.
+
 ### Output highlighting
 
 Both of Brassica’s graphical interfaces (desktop and online) contain options to highlight output words which satisfy various conditions.
