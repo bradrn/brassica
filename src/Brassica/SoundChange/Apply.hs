@@ -36,6 +36,7 @@ module Brassica.SoundChange.Apply
 
 import Control.Applicative ((<|>))
 import Data.Function ((&))
+import Data.Functor ((<&>))
 import Data.Maybe (maybeToList, fromMaybe, listToMaybe)
 
 import Control.Monad.State
@@ -68,6 +69,10 @@ newtype RuleAp a = RuleAp { runRuleAp :: MultiZipper RuleTag Grapheme -> [(a, Mu
 -- if it succeeds, otherwise rollback.
 modifyMay :: Monad m => (s -> Maybe s) -> StateT s m ()
 modifyMay f = modify $ \s -> fromMaybe s (f s)
+
+-- | Monadic version of 'modify'.
+modifyM :: Monad m => (s -> m s) -> StateT s m ()
+modifyM f = StateT (fmap ((),) . f)
 
 -- | Given a nondeterministic stateful function, lift it into a
 -- 'StateT' computation which returns 'Nothing' when the original
@@ -161,45 +166,46 @@ matchMany = go (MatchOutput [] [] [])
 lastMay :: [a] -> Maybe a
 lastMay l = if null l then Nothing else Just (last l)
 
--- | Given a list of 'Lexeme's specifying a replacement, generate the
--- replacement as a 'String'.
+-- | Given a list of 'Lexeme's specifying a replacement, generate all
+-- possible replacements and apply them to the given input.
 mkReplacement
     :: MatchOutput              -- ^ The result of matching against the target
     -> [Lexeme 'Replacement]    -- ^ The 'Lexeme's specifying the replacement.
     -> MultiZipper t Grapheme
-    -> MultiZipper t Grapheme
-mkReplacement = \out ls -> fst . snd . go out ls . (,Nothing)
+    -> [MultiZipper t Grapheme]
+mkReplacement = \out ls -> fmap (fst . snd) . go out ls . (,Nothing)
   where
-    go out []     (mz, prev) = (out, (mz, prev))
-    go out (l:ls) (mz, prev) =
-        let (out', (mz', prev')) = replaceLex out l mz prev
-        in go out' ls (mz', prev')
-
+    go out []     (mz, prev) = [(out, (mz, prev))]
+    go out (l:ls) (mz, prev) = do
+        (out', (mz', prev')) <- replaceLex out l mz prev
+        go out' ls (mz', prev')
 
     replaceLex
         :: MatchOutput
         -> Lexeme 'Replacement
         -> MultiZipper t Grapheme
         -> Maybe Grapheme
-        -> (MatchOutput, (MultiZipper t Grapheme, Maybe Grapheme))
-    replaceLex out (Grapheme g) mz _prev = (out, (insert g mz, Just g))
-    replaceLex out@MatchOutput{matchedCatIxs=(i:is)} (Category gs) mz _prev = (out{matchedCatIxs=is},) $
-        if i < length gs
-        then case gs !! i of GraphemeEl g -> (insert g mz, Just g)
-        else (insert "\xfffd" mz, Nothing)  -- Unicode replacement character
-    replaceLex out@MatchOutput{matchedCatIxs=[]} (Category _) mz _prev = (out, (insert "\xfffd" mz, Nothing))
+        -> [(MatchOutput, (MultiZipper t Grapheme, Maybe Grapheme))]
+    replaceLex out (Grapheme g) mz _prev = [(out, (insert g mz, Just g))]
+    replaceLex out@MatchOutput{matchedCatIxs=(i:is)} (Category gs) mz _prev =
+        fmap (out{matchedCatIxs=is},) $
+            if i < length gs
+            then case gs !! i of GraphemeEl g -> [(insert g mz, Just g)]
+            else [(insert "\xfffd" mz, Nothing)]  -- Unicode replacement character
+    replaceLex out (Category gs) mz _prev =
+        gs <&> \(GraphemeEl g) -> (out, (insert g mz, Just g))
     replaceLex MatchOutput{matchedOptionals=(o:os), ..} (Optional ls) mz prev =
         let out' = MatchOutput{matchedOptionals=os, ..}
         in if o
            then go out' ls (mz, prev)
-           else (out', (mz, Nothing))
-    replaceLex out@MatchOutput{matchedOptionals=[]} (Optional _) mz _prev = (out, (insert "\xfffd" mz, Nothing))
+           else [(out', (mz, Nothing))]
+    replaceLex out (Optional ls) mz prev = (out, (mz, Nothing)) : go out ls (mz, prev)
     replaceLex out@MatchOutput{matchedGraphemes}     Metathesis  mz _prev =
-        (out, (flip insertMany mz $ reverse matchedGraphemes, listToMaybe matchedGraphemes))
+        [(out, (flip insertMany mz $ reverse matchedGraphemes, listToMaybe matchedGraphemes))]
     replaceLex out                                   Geminate    mz prev =
-        (out, (flip insertMany mz $ maybeToList prev, prev))
-    replaceLex out@MatchOutput{matchedCatIxs=(_:is)} Discard mz prev = (out{matchedCatIxs=is}, (mz, prev))
-    replaceLex out@MatchOutput{matchedCatIxs=[]} Discard mz prev = (out, (insert "\xfffd" mz, prev))
+        [(out, (flip insertMany mz $ maybeToList prev, prev))]
+    replaceLex out@MatchOutput{matchedCatIxs=(_:is)} Discard mz prev = [(out{matchedCatIxs=is}, (mz, prev))]
+    replaceLex out@MatchOutput{matchedCatIxs=[]} Discard mz prev = [(out, (mz, prev))]
 
 -- | Given a 'Rule' and a 'MultiZipper', determines whether the
 -- 'exception' of that rule (if any) applies starting at the current
@@ -247,7 +253,7 @@ applyOnce r@Rule{target, replacement, exception} = do
                 else do
                     modifyMay $ modifyBetween (TargetStart, TargetEnd) $ const []
                     modifyMay $ seek TargetStart
-                    modify $ mkReplacement out replacement
+                    modifyM $ mkReplacement out replacement
                     return True
         Nothing -> return False
 
