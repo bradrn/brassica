@@ -7,7 +7,7 @@ import Data.FileEmbed (embedFile)
 import Data.Text (unpack)
 import Data.Text.Encoding (decodeUtf8)
 
-import Brassica.SoundChange (applyChanges, applyStatementWithLog, parseTokeniseAndApplyRules, OutputMode(NoHighlight))
+import Brassica.SoundChange
 import Brassica.SoundChange.Parse (parseSoundChanges)
 import Brassica.SoundChange.Types
 
@@ -34,7 +34,7 @@ main = defaultMain
     , bgroup "many"
       [ bench "parse" $ nf parseSoundChanges manyChanges
       , bench "parseRun" $ case parseSoundChanges manyChanges of
-            Right cs -> nf (parseTokeniseAndApplyRules cs manyWords NoHighlight) Nothing
+            Right cs -> nf (parseTokeniseAndApplyRules cs manyWords Raw Normal (ApplyRules NoHighlight WordsOnlyOutput)) Nothing
             Left _ -> error "invalid file"
       ]
     ]
