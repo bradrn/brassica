@@ -13,7 +13,7 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.UTF8 as B8
 import qualified Data.Text as T
 
-import Brassica.SoundChange (applyChanges)
+import Brassica.SoundChange (applyChanges, splitMultipleResults)
 import Brassica.SoundChange.Parse (parseSoundChanges, errorBundlePretty)
 import Brassica.SoundChange.Tokenise (tokeniseWords, detokeniseWords, withFirstCategoriesDecl)
 
@@ -32,7 +32,7 @@ proto21eTest = goldenVsFile "proto21e golden test" "test/proto21e.golden" "test/
             writeLn $ errorBundlePretty err
             throwE ()
         let prettyError  = B8.fromString . (++"\n") . ("SCA Error: " ++ ) . errorBundlePretty
-        let prettyOutput = B8.fromString . (++"\n") . ("SCA Output: " ++ ) . detokeniseWords
+        let prettyOutput = B8.fromString . (++"\n") . ("SCA Output: " ++ ) . detokeniseWords . concatMap splitMultipleResults
         let evolve =
                 withFirstCategoriesDecl tokeniseWords soundChanges
                 >>> (fmap.fmap.fmap) (applyChanges soundChanges)

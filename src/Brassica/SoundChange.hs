@@ -8,6 +8,8 @@
 module Brassica.SoundChange where
 
 import Data.Bifunctor (second)
+import Data.Functor ((<&>))
+import Data.List (intersperse)
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Void (Void)
 import GHC.Generics (Generic)
@@ -53,35 +55,38 @@ tableItemToHtmlRows render item = go (concat $ initialWord item) (derivations it
         \<td>" ++ concat output ++ "</td><td>(" ++ render action ++ ")</td></tr>")
         ++ go "" ds
 
--- | Apply a single 'Statement' to a word. Returns a 'LogItem' only if
--- the statement altered the input.
-applyStatementWithLog :: Statement -> [Grapheme] -> Maybe (LogItem Statement)
+-- | Apply a single 'Statement' to a word. Returns a 'LogItem' for
+-- each possible result.
+applyStatementWithLog :: Statement -> [Grapheme] -> [LogItem Statement]
 applyStatementWithLog st w =
-    let w' = applyStatementStr st w
-    in if w' == w then Nothing else Just (ActionApplied st w w')
+    applyStatementStr st w >>= \w' ->
+        if w' == w then [] else [ActionApplied st w w']
 
--- | Apply 'SoundChanges' to a word. Returns a 'LogItem' for each
--- 'Statement' which altered the input.
-applyChangesWithLog :: SoundChanges -> [Grapheme] -> [LogItem Statement]
-applyChangesWithLog [] _ = []
+-- | Apply 'SoundChanges' to a word. For each possible result, returns
+-- a 'LogItem' for each 'Statement' which altered the input.
+applyChangesWithLog :: SoundChanges -> [Grapheme] -> [[LogItem Statement]]
+applyChangesWithLog [] _ = [[]]
 applyChangesWithLog (st:sts) w =
     case applyStatementWithLog st w of
-        Nothing -> applyChangesWithLog sts w
-        Just l@ActionApplied{output=w'} -> l : applyChangesWithLog sts w'
+        [] -> applyChangesWithLog sts w
+        items -> items >>= \l@ActionApplied{output=w'} ->
+            (l :) <$> applyChangesWithLog sts w'
 
--- | Apply 'SoundChanges' to a word returning the final result without
--- any log.
-applyChanges :: SoundChanges -> [Grapheme] -> [Grapheme]
-applyChanges sts w = case applyChangesWithLog sts w of
-    [] -> w
-    logs -> output $ last logs
+-- | Apply 'SoundChanges' to a word returning the final results
+-- without any logs.
+applyChanges :: SoundChanges -> [Grapheme] -> [[Grapheme]]
+applyChanges sts w =
+    lastOutput <$> applyChangesWithLog sts w
+  where
+    lastOutput [] = w
+    lastOutput ls = output $ last ls
 
--- | Apply 'SoundChanges' to a word returning the final result, as
+-- | Apply 'SoundChanges' to a word returning the final results, as
 -- well as a boolean value indicating whether the word should be
 -- highlighted in a UI due to changes from its initial value. (Note
 -- that this accounts for 'highlightChanges' values.)
-applyChangesWithChanges :: SoundChanges -> [Grapheme] -> ([Grapheme], Bool)
-applyChangesWithChanges sts w = case applyChangesWithLog sts w of
+applyChangesWithChanges :: SoundChanges -> [Grapheme] -> [([Grapheme], Bool)]
+applyChangesWithChanges sts w = applyChangesWithLog sts w <&> \case
     [] -> (w, False)
     logs -> (output $ last logs, hasChanged logs)
   where
@@ -177,6 +182,13 @@ tokeniseAccordingToInputFormat MDF AddEtymons cs =
     . second (duplicateEtymologies $ ('*':) . detokeniseWords)
     . withFirstCategoriesDecl parseMDFWithTokenisation cs
 
+-- | Utility function: insert 'Whitespace' (hard-coded as a single
+-- space) between multiple results.
+splitMultipleResults :: Component [a] -> [Component a]
+splitMultipleResults (Word as) = intersperse (Whitespace " ") $ Word <$> as
+splitMultipleResults (Whitespace w) = [Whitespace w]
+splitMultipleResults (Gloss g) = [Gloss g]
+
 -- | Top-level dispatcher for an interactive frontend: given a textual
 -- wordlist and a list of sound changes, returns the result of running
 -- the changes in the specified mode.
@@ -193,14 +205,18 @@ parseTokeniseAndApplyRules statements ws intype tmode mode prev =
         Left e -> ParseError e
         Right toks -> case mode of
             ReportRulesApplied ->
-                AppliedRulesTable $ mapMaybe toTableItem $ getWords $ componentise WordsOnlyOutput $
-                    applyChangesWithLog statements <$> toks
+                AppliedRulesTable $ mapMaybe toTableItem $ concat $
+                    getWords $ componentise WordsOnlyOutput $
+                        applyChangesWithLog statements <$> toks
             ApplyRules DifferentToLastRun mdfout ->
-                let result = componentise mdfout $ applyChanges statements <$> toks
+                let result = concatMap splitMultipleResults $
+                      componentise mdfout $ applyChanges statements <$> toks
                 in HighlightedWords $
                     zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
                         (thisWord, thisWord /= prevWord)
             ApplyRules DifferentToInput mdfout ->
-                HighlightedWords $ componentise mdfout $ applyChangesWithChanges statements <$> toks
+                HighlightedWords $ concatMap splitMultipleResults $
+                    componentise mdfout $ applyChangesWithChanges statements <$> toks
             ApplyRules NoHighlight mdfout ->
-                HighlightedWords $ componentise mdfout $ (,False) . applyChanges statements <$> toks
+                HighlightedWords $ (fmap.fmap) (,False) $ concatMap splitMultipleResults $
+                    componentise mdfout $ applyChanges statements <$> toks
