@@ -56,11 +56,12 @@ tableItemToHtmlRows render item = go (concat $ initialWord item) (derivations it
         ++ go "" ds
 
 -- | Apply a single 'Statement' to a word. Returns a 'LogItem' for
--- each possible result.
+-- each possible result, or @[]@ if the rule does not apply and the
+-- input is returned unmodified.
 applyStatementWithLog :: Statement -> [Grapheme] -> [LogItem Statement]
-applyStatementWithLog st w =
-    applyStatementStr st w >>= \w' ->
-        if w' == w then [] else [ActionApplied st w w']
+applyStatementWithLog st w = case applyStatementStr st w of
+    [w'] -> if w' == w then [] else [ActionApplied st w w']
+    r -> ActionApplied st w <$> r
 
 -- | Apply 'SoundChanges' to a word. For each possible result, returns
 -- a 'LogItem' for each 'Statement' which altered the input.
