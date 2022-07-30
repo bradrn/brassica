@@ -280,7 +280,10 @@ applyRule r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
     let startingPos = case applyDirection $ flags r of
             LTR -> toBeginning mz
             RTL -> toEnd mz
-    in repeatRule (applyOnce r) startingPos
+        result = repeatRule (applyOnce r) startingPos
+    in if sporadic $ flags r
+          then mz : result
+          else result
   where
     repeatRule
         :: StateT (MultiZipper RuleTag Grapheme) [] Bool

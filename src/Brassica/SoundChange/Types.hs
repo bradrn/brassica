@@ -103,12 +103,14 @@ data Flags = Flags
   { highlightChanges :: Bool
   , applyDirection   :: Direction
   , applyOnceOnly    :: Bool
+  , sporadic         :: Bool
   } deriving (Show, Generic, NFData)
 
 -- | A default selection of flags which are appropriate for most
--- rules: highlight changes, apply 'LTR', and apply repeatedly.
+-- rules: highlight changes, apply 'LTR', apply repeatedly, and don’t
+-- apply sporadically.
 defFlags :: Flags
-defFlags = Flags True LTR False
+defFlags = Flags True LTR False False
 
 -- | A single sound change rule: ‘-flags target → replacement \/
 -- environment \/ exception’.

@@ -214,6 +214,7 @@ parseFlags = runPermutation $ Flags
     <$> toPermutation (isNothing <$> optional (symbol "-x"))
     <*> toPermutationWithDefault LTR ((LTR <$ symbol "-ltr") <|> (RTL <$ symbol "-rtl"))
     <*> toPermutation (isJust <$> optional (symbol "-1"))
+    <*> toPermutation (isJust <$> optional (symbol "-?"))
 
 ruleParser :: Parser Rule
 ruleParser = do
