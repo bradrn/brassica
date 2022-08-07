@@ -10,7 +10,7 @@ import Control.Applicative (liftA2)
 import Data.String (IsString(fromString))
 import GHCJS.DOM.Element (setOuterHTML, IsElement, setInnerHTML)
 import GHCJS.DOM.Types (MonadJSM, liftJSM)
-import Reflex.Dom
+import Reflex.Dom hiding (checkbox)
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Text.Hamlet (shamlet)
 import Text.Lucius (renderCss, lucius)
@@ -131,6 +131,18 @@ radio label ident name checked = do
     elAttr "label" ("for" =: ident) $ text label
     pure $ _inputElement_checked e
 
+checkbox :: DomBuilder t m => T.Text -> T.Text -> Bool -> m (Dynamic t Bool)
+checkbox label ident checked = do
+    e <- inputElement $ def
+        & inputElementConfig_initialChecked .~ checked
+        & inputElementConfig_elementConfig . elementConfig_initialAttributes .~
+            Map.fromList
+                [ ("type", "checkbox")
+                , ("id", ident)
+                ]
+    elAttr "label" ("for" =: ident) $ text label
+    pure $ _inputElement_checked e
+
 style :: IsString s => s
 style = fromString $ TL.unpack $ renderCss $ ($ undefined) [lucius|
 .block {
@@ -163,7 +175,7 @@ main = mainWidgetWithCss style $ el "div" $ do
 
     rules <- labeledEl "Rules" $ textAreaElement bigTextAreaConf
     input <- labeledEl "Input lexicon" $ textAreaElement bigTextAreaConf
-    (applyBtn, reportBtn, mode) <- elClass "div" "block" $ do
+    (applyBtn, reportBtn, mode, viewLiveBtn) <- elClass "div" "block" $ do
         applyBtn  <- button "Apply"
         reportBtn <- button "Report rules applied"
         mode <- el "fieldset" $ do
@@ -177,17 +189,24 @@ main = mainWidgetWithCss style $ el "div" $ do
                 if dl then DifferentToLastRun else
                     if di then DifferentToInput else
                         NoHighlight
-        pure (applyBtn, reportBtn, mode)
+        br
+        viewLiveBtn <- checkbox "View results live" "viewlive" False
+        pure (applyBtn, reportBtn, mode, viewLiveBtn)
 
-    let applyEvent = leftmost
+    let anyInput = _textAreaElement_input rules <> _textAreaElement_input input
+        applyEvent = leftmost
             [ current mode <@ applyBtn
+            , gate (current viewLiveBtn) $ current mode <@ anyInput
             , ReportRulesApplied <$ reportBtn
             ]
         appliedValuesEvent =
-            current (liftA2 (,,)
-                (_textAreaElement_value rules)
-                (_textAreaElement_value input))
-            <@> applyEvent
+            -- need to do things promptly here since event can come at
+            -- same time as input is modified
+            attachPromptlyDynWith ($)
+                (liftA2 (,,)
+                    (_textAreaElement_value rules)
+                    (_textAreaElement_value input))
+                applyEvent
     rec
         let withPrev = attach (current prev) appliedValuesEvent
             applicationResult = applyRules <$> withPrev
