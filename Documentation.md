@@ -691,13 +691,14 @@ Further modifications can then be made to the output while keeping the etymologi
 ### Paradigm builder
 
 Brassica includes an inbuilt paradigm builder.
-It may be accessed using the ‘Tools⇒Paradigm Builder’ menu item in the graphical interface.
+It may be accessed using the ‘Tools⇒Paradigm Builder’ menu item in the graphical interface,
+  or by visiting <https://bradrn.com/brassica/builder/>.
 
 The paradigm builder consists of three textboxes and a button.
 The leftmost textbox contains a description of the paradigm using the syntax described below.
 The middle textbox contains a list of roots on which the paradigm should be built.
 Each root should be specified on its own line.
-When the ‘Build’ button (bottom right) is pressed,
+When the ‘Build’ button (at the bottom right on the desktop version) is pressed,
   the rightmost textbox will contain the output of the paradigm builder,
   which can then be copied and pasted into another window or application.
 A menu at the top of the window provides options to open and save the paradigm and the lexicon.
