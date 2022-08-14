@@ -1,0 +1,11 @@
+lector
+doctor
+focus
+jocus
+districtus
+cīvitatem
+adoptare
+opera
+secundus
+fīliam
+pōntem

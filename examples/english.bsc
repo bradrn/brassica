@@ -1,0 +1,196 @@
+; This outlines the sound changes from Early Middle English
+; to the American–British split, with one or two later and
+; earlier changes included too. These changes are taken from
+; https://en.wikipedia.org/w/index.php?title=Phonological_history_of_English&oldid=1091430987
+; The sample words have been mildly cherry-picked to give
+; better results, but only because the changes themselves
+; don’t quite seem to line up with the derived forms of
+; some words; given the changes described by the article,
+; as far as I can tell this rules file simulates them exactly.
+
+; Of particular interest is that many of these changes are
+; sporadic, or otherwise have conditions which are
+; phonologically unpredictable. This means that most input
+; words have several different possible output, each
+; corresponding to a different sequence of sound changes.
+; Naturally, the Modern English pronunciation for each word
+; is given by one of these possible outputs.
+
+categories
+Nasl = m n
+Stop = p b t d tʃ dʒ k g
+Fric = f v θ ð s z ʃ h
+Aprx = r j w
+Latr = l
+C = Nasl Stop Fric Aprx Latr
+
+Vs = i  u  e  o  a
+Vl = iː uː eː oː aː ɛː ɔː
+Di = uĭ eĭ oĭ aĭ ɛĭ ɔĭ
+Du = iŭ eŭ oŭ aŭ ɛŭ ɔŭ
+V = Vs Vl Di Du ə
+end
+
+; diphthong formation and mergers
+
+[Vs -i -iː -ə] j / Di
+[Vl -i -iː -ə] j / Di
+[Vs -u -uː -ə] w / Du
+[Vl -u -uː -ə] w / Du
+
+oŭ / ɔŭ
+
+[e eː ɛː] / [eĭ eĭ ɛĭ] / _ h
+[o oː ɔː a aː] / [oŭ oŭ ɔŭ aŭ aŭ] / _ h
+
+[eĭ oŭ eŭ aĭ] / [iː uː iŭ eĭ]
+
+; open syllable lengthening
+; applied to highest vowels only sporadically
+[e o a] / [ɛː ɔː aː] / _ C V
+-? [i u] / [iː uː] / _ C V
+
+; trisyllabic laxing
+
+; not sure if stress is predictable in ME,
+; so just shorten third vowel from the end
+
+; implemented by shortening long vowels which
+; precede two other long vowels, but applying
+; this rule once only starting from the right
+; edge of the word
+-rtl -1 Vl / Vs / _ ^V ^V
+
+; unstressed vowel loss in final syllables
+ə / / _ C* #
+
+; h-loss
+
+; in coda this has very many outcomes (cf. ⟨-ough⟩ ending);
+; I’m probably missing some of them here
+
+; I’m also unsure about what happened to the vowels,
+; especially ɛː, ɔː; at the moment these changes turn
+; them into ɛ, ɔ
+
+h / / # _ [r l n]
+-? [u o uː oː ɔː] h / [u o u o ɔ] f
+-? Du h / [Vs -u ɛ ɔ] f
+h / / V _
+
+; various consonant changes
+
+w / / s _ [a aː ɔː ɔ o oː u uː]  ; unsure about the vowels here
+m b / m
+
+; al, ɔl mutations
+[a ɔ] / [aŭ ɔŭ] / _ l [t d tʃ dʒ θ ð s z ʃ r #]
+[a ɔ] l / [aŭ ɔŭ] / _ k
+l / / [a ɔ] _ [f v] / ɔ _ v
+[a ɔ] l / [ɑː oː] / _ m
+
+; short i, u laxing
+[i u] / [ɪ ʊ]
+
+
+categories
+Vs = i  u  e  o  a  ɛ  ɔ ɪ ʊ ʌ
+Vl = iː uː eː oː aː ɛː ɔː ɑː
+Di = uĭ eĭ oĭ aĭ ɛĭ ɔĭ
+Du = iŭ eŭ oŭ aŭ ɛŭ ɔŭ ɪʊ̆
+V = Vs Vl Di Du ə
+end
+
+
+; Great Vowel Shift
+
+; this one affected nearly all words, so
+; use -x to keep highlighting manageable
+
+-x [eː oː iː uː] / [iː uː eĭ oŭ]
+-x [aː ɛː ɔː] / [eː iː oː]
+
+[eĭ oŭ] / [aĭ aŭ]
+
+; initial cluster reduction
+w / / # _ r
+
+; degemination
+C / / _ >
+
+; diphthong loss and mergers
+[aŭ ɛĭ ɔŭ ɛŭ eŭ iŭ ɔĭ uĭ] / [ɔː eĭ oŭ ɪʊ̆ ɪʊ̆ ɪʊ̆ oĭ oĭ]
+ɪʊ̆ / j uː
+
+; trill loss
+; r → ɹ
+; as a 1-1 phonetic shift there is no need
+; to explicitly represent this, especially
+; since it just makes things hard to type...
+
+; more initial cluster reductions
+[g k] / / # _ n
+
+; uː shortening
+
+; this change was inconsistent, happening
+; both before and after the FOOT-STRUT split
+
+-? [eː uː] / [e ʊ]
+
+; FOOT-STRUT split
+-? ʊ / ʌ / _ / [m p b f v] _ [l ʃ tʃ]
+
+; ng-coalescence
+
+; this occurred at the end of a morpheme, which
+; is hard to represent in Brassica; the best
+; alternative is to treat it as a sporadic rule
+; before vowels
+
+-? n g / ŋ / _ V
+n g / ŋ / _ [C #]
+
+; yod-coalescence
+-? [t s d z] j / [tʃ ʃ dʒ ʒ]
+
+; ɔ lowering
+ɔ / ɒ
+
+; eː, uː shortening
+-? [eː uː] / [e ʊ]
+
+; MEET-MEAT merger
+-? eː / iː
+
+; short vowel changes
+[a ɔ] / [aː ɔː]
+[ɛ ɪ ʌ ʊ] / ə / _ r
+
+; a-fronting
+a / æ
+
+; eː, oː breaking
+[eː oː] / [eĭ oŭ]
+
+new categories
+Nasl = m n ŋ
+Stop = p b t d tʃ dʒ k g
+Fric = f v θ ð s z ʃ h
+Aprx = r j w
+Latr = l
+C = Nasl Stop Fric Aprx Latr
+
+Vs = i u e o a ɪ ʊ ʌ ɒ ə
+Vl = iː uː aː ɔː ɑː
+Di = aĭ
+Du = aŭ oŭ
+V = Vs Vl Di Du
+end
+
+; by this point final -n has long disappeared;
+; this is an inflectional change, which Brassica
+; cannot simulate, so the only alternative is to
+; make this yet another sporadic change
+
+-x -? n / / _ #
