@@ -35,6 +35,7 @@ module Brassica.SoundChange.Apply
        ) where
 
 import Control.Applicative ((<|>))
+import Data.Containers.ListUtils (nubOrd)
 import Data.Function ((&))
 import Data.Functor ((<&>))
 import Data.Maybe (maybeToList, fromMaybe, listToMaybe)
@@ -310,11 +311,17 @@ applyStatement (CategoriesDeclS gs) mz = [checkGraphemes gs mz]
 
 -- | Apply a 'Rule' to a word, represented as a list of
 -- 'Grapheme's. This is a simple wrapper around 'applyRule'.
+--
+-- Note: duplicate outputs from this function are removed. To keep
+-- duplicates, use 'applyRule' directly.
 applyRuleStr :: Rule -> [Grapheme] -> [[Grapheme]]
 -- Note: 'fromJust' is safe here as 'apply' should always succeed
-applyRuleStr r s = fmap toList $ applyRule r $ fromListStart s
+applyRuleStr r s = nubOrd $ fmap toList $ applyRule r $ fromListStart s
 
 -- | Apply a 'Statement' to a word, represented as a list of
 -- 'Grapheme's. This is a simple wrapper around 'applyStatement'.
+--
+-- Note: duplicate outputs from this function are removed. To keep
+-- duplicates, use 'applyStatement' directly.
 applyStatementStr :: Statement -> [Grapheme] -> [[Grapheme]]
-applyStatementStr st s = fmap toList $ applyStatement st $ fromListStart s
+applyStatementStr st s = nubOrd $ fmap toList $ applyStatement st $ fromListStart s
