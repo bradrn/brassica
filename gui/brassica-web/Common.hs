@@ -1,12 +1,15 @@
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
 
 module Common where
 
+import Control.Monad ((<=<))
 import Data.String (IsString(fromString))
 import GHCJS.DOM.Element (setOuterHTML, IsElement, setInnerHTML)
 import GHCJS.DOM.Types (MonadJSM, liftJSM)
+import Language.Javascript.JSaddle (valToBool, jsg1)
 import Reflex.Dom hiding (checkbox)
 import Text.Lucius (renderCss, lucius)
 
@@ -91,6 +94,19 @@ checkbox label ident checked = do
                 ]
     elAttr "label" ("for" =: ident) $ text label
     pure $ _inputElement_checked e
+
+confirm :: MonadJSM m => T.Text -> m Bool
+confirm = liftJSM . (valToBool <=< jsg1 ("confirm" :: T.Text))
+
+withConfirm
+    :: ( MonadJSM (Performable m)
+       , PerformEvent t m
+       )
+    => T.Text -> Event t a -> m (Event t a)
+withConfirm msg = fmap (fmapMaybe id) . performEvent . fmap (\a -> tag' a <$> confirm msg)
+  where
+    tag' _ False = Nothing
+    tag' a True = Just a
 
 style :: IsString s => s
 style = fromString $ TL.unpack $ renderCss $ ($ undefined) [lucius|

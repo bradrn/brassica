@@ -3,11 +3,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
 {-# LANGUAGE RecursiveDo       #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Main where
 
 import Control.Applicative (liftA2)
-import Data.Map.Strict (fromList)
+import Data.FileEmbed (makeRelativeToProject, embedFile)
+import Data.Map.Strict (fromList, Map)
+import Data.Text.Encoding (decodeUtf8)
 import Reflex.Dom hiding (checkbox)
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Text.Hamlet (shamlet)
@@ -63,6 +66,35 @@ applyRules (prev, (changes, ws, mode)) =
         -- '\t' -> "&#9;"  -- this doesn't seem to do anything - keeping it here in case I eventually figure out how to do tabs in Qt
         c    -> pure c
 
+data Example = Example
+    { exampleRules :: T.Text
+    , exampleWords :: T.Text
+    } deriving (Show, Eq, Ord)
+
+blankExample :: Example
+blankExample = Example "" ""
+
+examples :: Map Example T.Text
+examples = fromList
+    [ (blankExample, "None")
+    , (mkExample englishRules englishWords        , "Middle to Modern English")
+    , (mkExample latin2portRules latin2portWords  , "Latin to Portuguese")
+    , (mkExample tonogenesisRules tonogenesisWords, "Tonogenesis")
+    ]
+  where
+    mkExample r w = Example
+        { exampleRules = decodeUtf8 r
+        , exampleWords = decodeUtf8 w
+        }
+
+    englishRules     = $(makeRelativeToProject "../../examples/english.bsc" >>= embedFile)
+    latin2portRules  = $(makeRelativeToProject "../../examples/latin2port.bsc" >>= embedFile)
+    tonogenesisRules = $(makeRelativeToProject "../../examples/tonogenesis.bsc" >>= embedFile)
+
+    englishWords     = $(makeRelativeToProject "../../examples/english.lex" >>= embedFile)
+    latin2portWords  = $(makeRelativeToProject "../../examples/latin2port.lex" >>= embedFile)
+    tonogenesisWords = $(makeRelativeToProject "../../examples/tonogenesis.lex" >>= embedFile)
+
 intro :: T.Text
 intro = TL.toStrict $ renderHtml [shamlet|
 <h1>Brassica: online version
@@ -84,27 +116,36 @@ main :: IO ()
 main = mainWidgetWithCss style $ el "div" $ do
     _ <- elRawHtml intro
 
-    rules <- labeledEl "Rules" $ textAreaElement bigTextAreaConf
-    input <- labeledEl "Input lexicon" $ textAreaElement bigTextAreaConf
-    (applyBtn, reportBtn, mode, viewLiveBtn) <- elClass "div" "block" $ do
-        applyBtn  <- button "Apply"
-        reportBtn <- button "Report rules applied"
-        mode <- el "fieldset" $ do
-            el "legend" $ text "Output highlighting"
-            _nohighlight <- radio "No highlighting"       "nohighlight" "highlighting" True
+    rec
+        rules <- labeledEl "Rules" $ textAreaElement bigTextAreaConf
+            { _textAreaElementConfig_setValue = Just (exampleRules <$> setExample)
+            }
+        input <- labeledEl "Input lexicon" $ textAreaElement bigTextAreaConf
+            { _textAreaElementConfig_setValue = Just (exampleWords <$> setExample)
+            }
+        (applyBtn, reportBtn, mode, viewLiveBtn, setExample) <- elClass "div" "block" $ do
+            applyBtn  <- button "Apply"
+            reportBtn <- button "Report rules applied"
+            mode <- el "fieldset" $ do
+                el "legend" $ text "Output highlighting"
+                _nohighlight <- radio "No highlighting"       "nohighlight" "highlighting" True
+                br
+                dlastrun     <- radio "Different to last run" "dlastrun"    "highlighting" False
+                br
+                dinput       <- radio "Different to input"    "dinput"      "highlighting" False
+                pure $ ffor2 dlastrun dinput $ \dl di -> flip ApplyRules MDFOutput $
+                    if dl then DifferentToLastRun else
+                        if di then DifferentToInput else
+                            NoHighlight
             br
-            dlastrun     <- radio "Different to last run" "dlastrun"    "highlighting" False
+            viewLiveBtn <- checkbox "View results live" "viewlive" False
             br
-            dinput       <- radio "Different to input"    "dinput"      "highlighting" False
-            pure $ ffor2 dlastrun dinput $ \dl di -> flip ApplyRules MDFOutput $
-                if dl then DifferentToLastRun else
-                    if di then DifferentToInput else
-                        NoHighlight
-        br
-        viewLiveBtn <- checkbox "View results live" "viewlive" False
-        br
-        elAttr "a" (fromList [("href", "./builder/"), ("target", "_blank")]) $ text "Open paradigm builder"
-        pure (applyBtn, reportBtn, mode, viewLiveBtn)
+            elAttr "a" (fromList [("href", "./builder/"), ("target", "_blank")]) $ text "Open paradigm builder"
+            br
+            let overwriteMsg = "This will overwrite your current rules and lexicon. Are you sure you want to proceed?"
+            exampleBtn <- withConfirm overwriteMsg =<< button "Open example:"
+            example <- _dropdown_value <$> dropdown blankExample (pure examples) def
+            pure (applyBtn, reportBtn, mode, viewLiveBtn, current example <@ exampleBtn)
 
     let anyInput = _textAreaElement_input rules <> _textAreaElement_input input
         applyEvent = leftmost
