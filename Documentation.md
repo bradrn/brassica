@@ -31,9 +31,9 @@ For more details on using the command-line interface, run `brassica --help`.
 In addition to the two user interfaces, the library which powers Brassica can also be used directly from a Haskell program.
 For now, the best way to understand this library is simply by reading the commented source code in [`./src`](./src).
 
-## Brassica rule syntax
+## Basic rule syntax
 
-### Basic rules
+### Writing simple rules
 
 The basic form of a sound change rule in Brassica is as follows:
 
@@ -448,6 +448,8 @@ Such a situation can be dealt with in Brassica by using a rule which simply remo
 A sequence such as ⟨n’g⟩ will be tokenised to `n`+`’`+`g`, allowing this rule to remove the separator leaving `n`+`g` as desired,
   while a sequence such as ⟨ng⟩ will be straightforwardly tokenised to the multigraph `ng`.
 
+## Advanced features
+
 ### Controlling rule application
 
 By default, Brassica applies rules from left to right.
@@ -526,34 +528,6 @@ On the other hand, we can notice that there are two `ʔ`s in a row, so by this r
   proceeding on to the rest of the word gives the result ⟨ʔan⟩.
 In this situation, Brassica will report both ⟨an⟩ and ⟨ʔan⟩, to account for all possibilities.
 
-### Output highlighting
-
-Both of Brassica’s graphical interfaces (desktop and online) contain options to highlight output words which satisfy various conditions.
-These options are located in the ‘output highlighting’ box near the right of the window.
-The highlighting is updated every time the rules are applied.
-(That is, every time the ‘apply’ button is pressed;
-  or, with live previewing enabled, every time the input or rules are changed.)
-The default is ‘No highlighting’.
-Select ‘Different to last run’ to highlight all words for which
-  the current application of the rules gave a different output to the last application of the rules.
-This option can be useful when investigating the effect of a particular rule on the output:
-  while this option is enabled, toggling the rule on and off will highlight all words which are affected by this rule.
-Select ‘Different to input’ to highlight all words for which
-  at least one rule alters the input.
-This option can be useful when prototyping a new set of sound changes:
-  when conlanging, the ideal situation is one in which every word is affected by at least one rule,
-  i.e. every word is highlighted.
-
-Note that when the latter option is selected, some rules cause undesirable highlighting.
-For instance, it is often useful to use rules which remove romanisation conventions, mark syllable boundaries or similar.
-Such rules tend to alter a large portion of the input;
-  all those words are then highlighted even though, linguistically speaking, they have undergone no change.
-For this reason, Brassica provides the `-x` flag.
-If a word has only been affected by `-x` rules, that word will not be highlighted —
-  that is, `-x` rules are treated by Brassica as effectively causing no change for the purposes of output highlighting.
-Thus, it is recommended to annotate rules with `-x` when they cause only cosmetic change,
-  so only rules corresponding to actual phonetic change will trigger output highlighting.
-
 ### Features
 
 Sound changes often manipulate suprasegmental features such as stress or tone.
@@ -622,6 +596,36 @@ feature (BaseCategory =) <category declaration> / ModifiedOne = <category declar
 The base category name is optional, and any number of modified categories may be defined.
 Each category specified in the declaration must have the same number of elements.
 
+## User interface
+
+### Output highlighting
+
+Both of Brassica’s graphical interfaces (desktop and online) contain options to highlight output words which satisfy various conditions.
+These options are located in the ‘output highlighting’ box near the right of the window.
+The highlighting is updated every time the rules are applied.
+(That is, every time the ‘apply’ button is pressed;
+  or, with live previewing enabled, every time the input or rules are changed.)
+The default is ‘No highlighting’.
+Select ‘Different to last run’ to highlight all words for which
+  the current application of the rules gave a different output to the last application of the rules.
+This option can be useful when investigating the effect of a particular rule on the output:
+  while this option is enabled, toggling the rule on and off will highlight all words which are affected by this rule.
+Select ‘Different to input’ to highlight all words for which
+  at least one rule alters the input.
+This option can be useful when prototyping a new set of sound changes:
+  when conlanging, the ideal situation is one in which every word is affected by at least one rule,
+  i.e. every word is highlighted.
+
+Note that when the latter option is selected, some rules cause undesirable highlighting.
+For instance, it is often useful to use rules which remove romanisation conventions, mark syllable boundaries or similar.
+Such rules tend to alter a large portion of the input;
+  all those words are then highlighted even though, linguistically speaking, they have undergone no change.
+For this reason, Brassica provides the `-x` flag.
+If a word has only been affected by `-x` rules, that word will not be highlighted —
+  that is, `-x` rules are treated by Brassica as effectively causing no change for the purposes of output highlighting.
+Thus, it is recommended to annotate rules with `-x` when they cause only cosmetic change,
+  so only rules corresponding to actual phonetic change will trigger output highlighting.
+
 ### MDF dictionaries
 
 All examples above have involved input given as a simple list of words.
@@ -688,7 +692,7 @@ Further modifications can then be made to the output while keeping the etymologi
 (Note that Brassica adds an initial asterisk to all etymons;
   this is not currently configurable, but can easily be removed by hand.)
 
-### Paradigm builder
+## Paradigm builder
 
 Brassica includes an inbuilt paradigm builder.
 It may be accessed using the ‘Tools⇒Paradigm Builder’ menu item in the graphical interface,
