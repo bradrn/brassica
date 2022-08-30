@@ -132,10 +132,12 @@ void MainWindow::setupWidgets(QWidget *central)
 void MainWindow::setupMenuBar()
 {
     QMenu *fileMenu = menuBar()->addMenu("&File");
-    fileMenu->addAction("Open rules", this, &MainWindow::openRules, QKeySequence::Open);
-    fileMenu->addAction("Save rules", this, &MainWindow::saveRules, QKeySequence::Save);
-    fileMenu->addAction("Open lexicon", this, &MainWindow::openLexicon);
-    fileMenu->addAction("Save lexicon", this, &MainWindow::saveLexicon);
+    fileMenu->addAction("Open rules", this, &MainWindow::openRules, QKeySequence(Qt::CTRL + Qt::Key_O));
+    fileMenu->addAction("Save rules", this, &MainWindow::saveRules, QKeySequence(Qt::CTRL + Qt::Key_S));
+    fileMenu->addAction("Save rules as", this, &MainWindow::saveRulesAs);
+    fileMenu->addAction("Open lexicon", this, &MainWindow::openLexicon, QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_O));
+    fileMenu->addAction("Save lexicon", this, &MainWindow::saveLexicon, QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S));
+    fileMenu->addAction("Save lexicon as", this, &MainWindow::saveLexiconAs);
 
     QMenu *toolsMenu = menuBar()->addMenu("&Tools");
     toolsMenu->addAction("Paradigm builder", this, &MainWindow::showParadigmBuilder);
@@ -148,6 +150,26 @@ QVBoxLayout *MainWindow::mkLayoutWithContainer(QSplitter *splitter)
     layout->setContentsMargins(0,0,0,0);
     splitter->addWidget(container);
     return layout;
+}
+
+void MainWindow::doSaveRules(QString fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        return;
+
+    QString rules = rulesEdit->toPlainText();
+    file.write(rules.toUtf8());
+}
+
+void MainWindow::doSaveLexicon(QString fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        return;
+
+    QString lexicon = wordsEdit->toPlainText();
+    file.write(lexicon.toUtf8());
 }
 
 void MainWindow::applySoundChanges(bool live, bool reportRules)
@@ -191,18 +213,20 @@ void MainWindow::openRules()
         return;
 
     rulesEdit->setPlainText(QString::fromUtf8(file.readAll()));
+    currentRulesFile = fileName;
 }
 
 void MainWindow::saveRules()
 {
+    if (currentRulesFile.isEmpty()) saveRulesAs();
+    else doSaveRules(currentRulesFile);
+}
+
+void MainWindow::saveRulesAs()
+{
     QString fileName = QFileDialog::getSaveFileName(this, "Save rules", QString(), "Brassica rules (*.bsc);;All files (*.*)");
-    QFile file(fileName);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-        return;
-
-    QString rules = rulesEdit->toPlainText();
-
-    file.write(rules.toUtf8());
+    doSaveRules(fileName);
+    currentRulesFile = fileName;
 }
 
 void MainWindow::openLexicon()
@@ -219,17 +243,21 @@ void MainWindow::openLexicon()
         mdfBtn->setChecked(true);
     else
         rawBtn->setChecked(true);
+
+    currentLexiconFile = fileName;
 }
 
 void MainWindow::saveLexicon()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, "Open lexicon", QString(), "Lexicon files (*.lex);;MDF files (*.mdf *.txt);;All files (*.*)");
-    QFile file(fileName);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-        return;
+    if (currentLexiconFile.isEmpty()) saveLexiconAs();
+    else doSaveLexicon(currentLexiconFile);
+}
 
-    QString lexicon = wordsEdit->toPlainText();
-    file.write(lexicon.toUtf8());
+void MainWindow::saveLexiconAs()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, "Open lexicon", QString(), "Lexicon files (*.lex);;MDF files (*.mdf *.txt);;All files (*.*)");
+    doSaveLexicon(fileName);
+    currentLexiconFile = fileName;
 }
 
 void MainWindow::showParadigmBuilder()

@@ -48,6 +48,12 @@ private:
 
     QVBoxLayout *mkLayoutWithContainer(QSplitter *splitter);
 
+    void doSaveRules(QString fileName);
+    void doSaveLexicon(QString fileName);
+
+    QString currentRulesFile;
+    QString currentLexiconFile;
+
     HsStablePtr hsResults;
 
 private slots:
@@ -55,8 +61,10 @@ private slots:
 
     void openRules();
     void saveRules();
+    void saveRulesAs();
     void openLexicon();
     void saveLexicon();
+    void saveLexiconAs();
 
     void showParadigmBuilder();
 
