@@ -1,6 +1,7 @@
 #include "BrassicaInterop_stub.h"
 #include "mainwindow.h"
 #include "paradigmwindow.h"
+#include "settingsdialog.h"
 
 #include <QFileDialog>
 #include <QGridLayout>
@@ -25,6 +26,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     setupWidgets(window);
     setupMenuBar();
+
+    settings = Settings();
+    applySettings();
 
     connect(applyBtn      , &QPushButton::clicked  , [this] { applySoundChanges(false, false); });
     connect(reportRulesBtn, &QPushButton::clicked  , [this] { applySoundChanges(false, true); } );
@@ -56,19 +60,14 @@ void MainWindow::setupWidgets(QWidget *central)
 
     midLayout->setAlignment(Qt::AlignTop);
 
-    const QFont fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    const QFont textFont = QFont("Microsoft Sans Serif");
-
     QLabel *rulesLbl = new QLabel("Rules:");
     rulesEdit = new QPlainTextEdit;
-    rulesEdit->setFont(fixedFont);
     rulesHl = new RulesHighlighter(rulesEdit->document());
     rulesLayout->addWidget(rulesLbl);
     rulesLayout->addWidget(rulesEdit);
 
     QLabel *wordsLbl = new QLabel("Input lexicon:");
     wordsEdit = new QPlainTextEdit;
-    wordsEdit->setFont(textFont);
     wordsLayout->addWidget(wordsLbl);
     wordsLayout->addWidget(wordsEdit);
 
@@ -124,7 +123,6 @@ void MainWindow::setupWidgets(QWidget *central)
     QLabel *outputLbl = new QLabel("Output lexicon:");
     outputEdit = new QTextEdit;
     outputEdit->setReadOnly(true);
-    outputEdit->setFont(textFont);
     outputLayout->addWidget(outputLbl);
     outputLayout->addWidget(outputEdit);
 }
@@ -138,6 +136,7 @@ void MainWindow::setupMenuBar()
     fileMenu->addAction("Open lexicon", this, &MainWindow::openLexicon, QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_O));
     fileMenu->addAction("Save lexicon", this, &MainWindow::saveLexicon, QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S));
     fileMenu->addAction("Save lexicon as", this, &MainWindow::saveLexiconAs);
+    fileMenu->addAction("Options...", this, &MainWindow::editSettings);
 
     QMenu *toolsMenu = menuBar()->addMenu("&Tools");
     toolsMenu->addAction("Paradigm builder", this, &MainWindow::showParadigmBuilder);
@@ -170,6 +169,13 @@ void MainWindow::doSaveLexicon(QString fileName)
 
     QString lexicon = wordsEdit->toPlainText();
     file.write(lexicon.toUtf8());
+}
+
+void MainWindow::applySettings()
+{
+    rulesEdit->setFont(settings.rulesFont);
+    wordsEdit->setFont(settings.wordsFont);
+    outputEdit->setFont(settings.wordsFont);
 }
 
 void MainWindow::applySoundChanges(bool live, bool reportRules)
@@ -308,5 +314,12 @@ void MainWindow::reparseCategories()
         const QSignalBlocker blocker(rulesEdit);
         rulesHl->setCategories(categories);
     }
+}
+
+void MainWindow::editSettings()
+{
+    SettingsDialog dlg(settings, this);
+    dlg.exec();
+    applySettings();
 }
 

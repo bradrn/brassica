@@ -33,6 +33,10 @@ add_executable(brassica-gui WIN32
   ruleshighlighter.h
   paradigmwindow.cpp
   paradigmwindow.h
+  settingsdialog.cpp
+  settingsdialog.h
+  settings.cpp
+  settings.h
   resources.rc
 #  brassicaprocess.h
 #  brassicaprocess.cpp

@@ -3,6 +3,7 @@
 
 #include "HsFFI.h"
 #include "ruleshighlighter.h"
+#include "settings.h"
 
 #include <QCheckBox>
 #include <QGroupBox>
@@ -54,6 +55,9 @@ private:
     QString currentRulesFile;
     QString currentLexiconFile;
 
+    Settings settings;
+    void applySettings();
+
     HsStablePtr hsResults;
 
 private slots:
@@ -69,5 +73,7 @@ private slots:
     void showParadigmBuilder();
 
     void reparseCategories();
+
+    void editSettings();
 };
 #endif // MAINWINDOW_H
