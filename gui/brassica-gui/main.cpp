@@ -10,6 +10,10 @@ int main(int argc, char *argv[])
     hs_init(&argc, &argv);
 
     QApplication a(argc, argv);
+    QCoreApplication::setOrganizationName("bradrn");
+    QCoreApplication::setOrganizationDomain("bradrn.com");
+    QCoreApplication::setApplicationName("Brassica");
+    QCoreApplication::setApplicationVersion("0.0.2");
 
 //    BrassicaProcess *proc = new BrassicaProcess();
 //    if (!proc->startupCorrect())

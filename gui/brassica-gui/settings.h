@@ -8,6 +8,8 @@ class Settings
 public:
     Settings();
 
+    void writeSettings();
+
     QFont rulesFont;
     QFont wordsFont;
 };

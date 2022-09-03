@@ -16,6 +16,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
+    , settings()
 {
     setWindowTitle("Brassica");
 
@@ -26,8 +27,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     setupWidgets(window);
     setupMenuBar();
-
-    settings = Settings();
     applySettings();
 
     connect(applyBtn      , &QPushButton::clicked  , [this] { applySoundChanges(false, false); });
@@ -176,6 +175,7 @@ void MainWindow::applySettings()
     rulesEdit->setFont(settings.rulesFont);
     wordsEdit->setFont(settings.wordsFont);
     outputEdit->setFont(settings.wordsFont);
+    settings.writeSettings();
 }
 
 void MainWindow::applySoundChanges(bool live, bool reportRules)
