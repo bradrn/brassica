@@ -319,7 +319,7 @@ void MainWindow::reparseCategories()
 void MainWindow::editSettings()
 {
     SettingsDialog dlg(settings, this);
-    dlg.exec();
-    applySettings();
+    if (dlg.exec() == QDialog::Accepted)
+        applySettings();
 }
 

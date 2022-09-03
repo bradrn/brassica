@@ -9,6 +9,7 @@
 SettingsDialog::SettingsDialog(Settings &settings, QWidget *parent)
     : QDialog(parent)
     , settings(settings)
+    , oldSettings(settings)
 {
     setWindowTitle("Settings");
 
@@ -45,4 +46,10 @@ void SettingsDialog::chooseRulesFont()
 void SettingsDialog::chooseWordsFont()
 {
     settings.wordsFont = QFontDialog::getFont(nullptr, settings.wordsFont, this);
+}
+
+void SettingsDialog::reject()
+{
+    QDialog::reject();
+    settings = oldSettings;
 }

@@ -12,10 +12,13 @@ public:
     SettingsDialog(Settings &settings, QWidget *parent = nullptr);
 
     Settings &settings;
+    const Settings oldSettings;
 
 private slots:
     void chooseRulesFont();
     void chooseWordsFont();
+
+    void reject() override;
 };
 
 #endif // SETTINGSDIALOG_H
