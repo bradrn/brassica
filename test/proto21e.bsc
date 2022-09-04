@@ -119,7 +119,7 @@ s C / \ / V _ [C #]
 C ʔ / \ / V _
 
 ; [h]-deletion
-h / / V _
+-? h / / V _
 
 ; coronal/dorsal palatalisation
 [n ŋ] y / ɲ
@@ -130,6 +130,9 @@ k / č / _ [e i]
 
 ; nasal cluster smoothing
 [m n ŋ l] / w / V _ [Nasl Aprx]
+
+; diphthong smoothing
+-? [w y] / / V _ C
 
 ; [a aa æ ɛ e ə ɔ o i ii u] ʹ / [á áá ǽ Ɛ é Ə 3 ó í íí ú] / _
 ; [a aa æ ɛ e ə ɔ o i ii u] ʹ / [á áá ǽ ɛ́ é ə́ ɔ́ ó í íí ú] / _
