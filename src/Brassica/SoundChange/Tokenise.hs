@@ -37,19 +37,19 @@ import Text.Megaparsec.Char
 import Brassica.SoundChange.Types
 
 -- | Represents a component of a tokenised input string. The type
--- variable will usually be something like '[Grapheme]', though it
--- depends on the type of words you’re parsing.
+-- variable will usually be something like 'PWord', though it depends
+-- on the type of words you’re parsing.
 data Component a = Word a | Whitespace String | Gloss String
     deriving (Eq, Show, Functor, Foldable, Traversable, Generic, NFData)
 
--- | Given a tokenised input string, return only the 'Word's within
+-- | Given a tokenised input string, return only the 'PWord's within
 -- it.
 getWords :: [Component a] -> [a]
 getWords = mapMaybe $ \case
     Word a -> Just a
     _ -> Nothing
 
--- | Megaparsec parser for 'Words' — see 'tokeniseWord' documentation
+-- | Megaparsec parser for 'PWord's — see 'tokeniseWord' documentation
 -- for details on the parsing strategy and the meaning of the second
 -- parameter. For most usecases 'tokeniseWord' should suffice;
 -- 'wordParser' itself is only really useful in unusual situations
@@ -59,7 +59,7 @@ getWords = mapMaybe $ \case
 --
 -- Note: the second parameter __must__ be 'sortByDescendingLength'-ed;
 -- otherwise digraphs will not be parsed correctly.
-wordParser :: [Char] -> [Grapheme] -> ParsecT Void String Identity [Grapheme]
+wordParser :: [Char] -> [Grapheme] -> ParsecT Void String Identity PWord
 wordParser excludes gs = some $ choice (chunk <$> gs) <|> (pure <$> satisfy (not . exclude))
   where
     exclude = (||) <$> isSpace <*> (`elem` excludes)
@@ -88,13 +88,13 @@ sortByDescendingLength = sortBy (compare `on` Down . length)
 -- | Given a list of 'Grapheme's used, tokenise an input word. Note
 -- that this tokeniser is greedy: if one of the given 'Grapheme's is a
 -- prefix of another, the tokeniser will prefer the longest if possible.
-tokeniseWord :: [Grapheme] -> String -> Either (ParseErrorBundle String Void) [Grapheme]
+tokeniseWord :: [Grapheme] -> String -> Either (ParseErrorBundle String Void) PWord
 tokeniseWord (sortByDescendingLength -> gs) = parse (wordParser "[" gs) ""
 
 -- | Given a list of 'Grapheme's used, tokenise an input string into a
 -- list of words and other 'Component's. This uses the same
 -- tokenisation strategy as 'tokeniseWords'.
-tokeniseWords :: [Grapheme] -> String -> Either (ParseErrorBundle String Void) [Component [Grapheme]]
+tokeniseWords :: [Grapheme] -> String -> Either (ParseErrorBundle String Void) [Component PWord]
 tokeniseWords (sortByDescendingLength -> gs) =
     parse (componentsParser $ wordParser "[" gs) ""
 
@@ -106,23 +106,23 @@ detokeniseWords' f = concatMap $ \case
     Whitespace w -> w
     Gloss g -> '[':(g ++ "]")
 
--- | Specialisation of 'detokeniseWords'' for words which are
--- '[Grapheme]', converting words to strings using 'concat'.
-detokeniseWords :: [Component [Grapheme]] -> String
+-- | Specialisation of 'detokeniseWords'' for 'PWord's, converting
+-- words to strings using 'concat'.
+detokeniseWords :: [Component PWord] -> String
 detokeniseWords = detokeniseWords' concat
 
 -- | Zips two tokenised input strings. Compared to normal 'zipWith'
 -- this has two special properties:
 --
---   * It only zips 'Word's. Any non-'Word's in the first argument
+--   * It only zips v'Word's. Any non-v'Word's in the first argument
 --     will be passed unaltered to the output; any in the second
 --     argument will be ignored.
 --
 --   * The returned list will have the same number of elements as does
---     the first argument. If a 'Word' in the first argument has no
---     corresponding 'Word' in the second, the zipping function is
+--     the first argument. If a v'Word' in the first argument has no
+--     corresponding v'Word' in the second, the zipping function is
 --     called using the default @b@ value given as the third argument.
---     Such a 'Word' in the second argument will simply be ignored.
+--     Such a v'Word' in the second argument will simply be ignored.
 --
 -- Note the persistent assymetry in the definition: each 'Component'
 -- in the first argument will be reflected in the output, but each in

@@ -73,7 +73,7 @@ data Options = Options
 processWords
     :: (MonadIO m, MonadThrow m)
     => Bool  -- split into lines?
-    -> (String -> Either String [Component [Grapheme]])
+    -> (String -> Either String [Component PWord])
     -> ConduitT B.ByteString B.ByteString m ()
 processWords incr evolve =
     decodeUtf8C

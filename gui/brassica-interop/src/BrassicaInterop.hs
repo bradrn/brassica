@@ -25,7 +25,7 @@ parseTokeniseAndApplyRules_hs
     -> CInt        -- ^ tokenisation mode
     -> CInt        -- ^ highlighting mode
     -> CInt        -- ^ MDF output mode
-    -> StablePtr (IORef (Maybe [Component [Grapheme]]))  -- ^ previous results
+    -> StablePtr (IORef (Maybe [Component PWord]))  -- ^ previous results
     -> IO CString  -- ^ output (either wordlist or parse error)
 parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) infmtC tokModeC hlModeC mdfOutC prevPtr = do
     changesText <- GHC.peekCString utf8 changesRaw
@@ -66,7 +66,7 @@ parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) infmtC tokModeC hl
     surroundTable :: String -> String
     surroundTable s = "<table>" ++ s ++ "</table>"
 
-initResults :: IO (StablePtr (IORef (Maybe [Component [Grapheme]])))
+initResults :: IO (StablePtr (IORef (Maybe [Component PWord])))
 initResults = newIORef Nothing >>= newStablePtr
 
 parseAndBuildParadigm_hs
@@ -94,10 +94,10 @@ foreign export ccall parseTokeniseAndApplyRules_hs
     -> CInt        -- ^ tokenisation mode
     -> CInt
     -> CInt
-    -> StablePtr (IORef (Maybe [Component [Grapheme]]))
+    -> StablePtr (IORef (Maybe [Component PWord]))
     -> IO CString
 
-foreign export ccall initResults :: IO (StablePtr (IORef (Maybe [Component [Grapheme]])))
+foreign export ccall initResults :: IO (StablePtr (IORef (Maybe [Component PWord])))
 
 foreign export ccall parseAndBuildParadigm_hs
     :: CString -- ^ paradigm

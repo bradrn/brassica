@@ -309,19 +309,19 @@ applyStatement :: Statement -> MultiZipper RuleTag Grapheme -> [MultiZipper Rule
 applyStatement (RuleS r) mz = applyRule r mz
 applyStatement (CategoriesDeclS gs) mz = [checkGraphemes gs mz]
 
--- | Apply a 'Rule' to a word, represented as a list of
--- 'Grapheme's. This is a simple wrapper around 'applyRule'.
+-- | Apply a 'Rule' to a word. This is a simple wrapper around
+-- 'applyRule'.
 --
 -- Note: duplicate outputs from this function are removed. To keep
 -- duplicates, use 'applyRule' directly.
-applyRuleStr :: Rule -> [Grapheme] -> [[Grapheme]]
+applyRuleStr :: Rule -> PWord -> [PWord]
 -- Note: 'fromJust' is safe here as 'apply' should always succeed
 applyRuleStr r s = nubOrd $ fmap toList $ applyRule r $ fromListStart s
 
--- | Apply a 'Statement' to a word, represented as a list of
--- 'Grapheme's. This is a simple wrapper around 'applyStatement'.
+-- | Apply a 'Statement' to a word. This is a simple wrapper around
+-- 'applyStatement'.
 --
 -- Note: duplicate outputs from this function are removed. To keep
 -- duplicates, use 'applyStatement' directly.
-applyStatementStr :: Statement -> [Grapheme] -> [[Grapheme]]
+applyStatementStr :: Statement -> PWord -> [PWord]
 applyStatementStr st s = nubOrd $ fmap toList $ applyStatement st $ fromListStart s

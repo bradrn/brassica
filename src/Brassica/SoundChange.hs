@@ -27,15 +27,15 @@ import Brassica.SoundChange.Types
 -- which was applied, as well as the ‘before’ and ‘after’ states.
 data LogItem r = ActionApplied
     { action :: r
-    , input :: [Grapheme]
-    , output :: [Grapheme]
+    , input :: PWord
+    , output :: PWord
     } deriving (Show, Functor, Generic, NFData)
 
 -- | A single component of an ‘applied rules’ table, which collates
 -- action applications by the word they are applied to.
 data AppliedRulesTableItem r = AppliedRulesTableItem
-    { initialWord :: [Grapheme]
-    , derivations :: [([Grapheme], r)]
+    { initialWord :: PWord
+    , derivations :: [(PWord, r)]
     } deriving (Show, Functor, Generic, NFData)
 
 toTableItem :: [LogItem r] -> Maybe (AppliedRulesTableItem r)
@@ -58,14 +58,14 @@ tableItemToHtmlRows render item = go (concat $ initialWord item) (derivations it
 -- | Apply a single 'Statement' to a word. Returns a 'LogItem' for
 -- each possible result, or @[]@ if the rule does not apply and the
 -- input is returned unmodified.
-applyStatementWithLog :: Statement -> [Grapheme] -> [LogItem Statement]
+applyStatementWithLog :: Statement -> PWord -> [LogItem Statement]
 applyStatementWithLog st w = case applyStatementStr st w of
     [w'] -> if w' == w then [] else [ActionApplied st w w']
     r -> ActionApplied st w <$> r
 
 -- | Apply 'SoundChanges' to a word. For each possible result, returns
 -- a 'LogItem' for each 'Statement' which altered the input.
-applyChangesWithLog :: SoundChanges -> [Grapheme] -> [[LogItem Statement]]
+applyChangesWithLog :: SoundChanges -> PWord -> [[LogItem Statement]]
 applyChangesWithLog [] _ = [[]]
 applyChangesWithLog (st:sts) w =
     case applyStatementWithLog st w of
@@ -75,7 +75,7 @@ applyChangesWithLog (st:sts) w =
 
 -- | Apply 'SoundChanges' to a word returning the final results
 -- without any logs.
-applyChanges :: SoundChanges -> [Grapheme] -> [[Grapheme]]
+applyChanges :: SoundChanges -> PWord -> [PWord]
 applyChanges sts w =
     lastOutput <$> applyChangesWithLog sts w
   where
@@ -86,7 +86,7 @@ applyChanges sts w =
 -- well as a boolean value indicating whether the word should be
 -- highlighted in a UI due to changes from its initial value. (Note
 -- that this accounts for 'highlightChanges' values.)
-applyChangesWithChanges :: SoundChanges -> [Grapheme] -> [([Grapheme], Bool)]
+applyChangesWithChanges :: SoundChanges -> PWord -> [(PWord, Bool)]
 applyChangesWithChanges sts w = applyChangesWithLog sts w <&> \case
     [] -> (w, False)
     logs -> (output $ last logs, hasChanged logs)
@@ -173,7 +173,7 @@ tokeniseAccordingToInputFormat
     -> TokenisationMode
     -> SoundChanges
     -> String
-    -> Either (ParseErrorBundle String Void) (ParseOutput [Grapheme])
+    -> Either (ParseErrorBundle String Void) (ParseOutput PWord)
 tokeniseAccordingToInputFormat Raw _ cs =
     fmap ParsedRaw . withFirstCategoriesDecl tokeniseWords cs
 tokeniseAccordingToInputFormat MDF Normal cs =
@@ -199,8 +199,8 @@ parseTokeniseAndApplyRules
     -> InputLexiconFormat
     -> TokenisationMode
     -> ApplicationMode
-    -> Maybe [Component [Grapheme]]  -- ^ previous results
-    -> ApplicationOutput [Grapheme] Statement
+    -> Maybe [Component PWord]  -- ^ previous results
+    -> ApplicationOutput PWord Statement
 parseTokeniseAndApplyRules statements ws intype tmode mode prev =
     case tokeniseAccordingToInputFormat intype tmode statements ws of
         Left e -> ParseError e

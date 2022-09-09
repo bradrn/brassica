@@ -39,9 +39,17 @@ type family OneOf a x y :: Constraint where
                      ':<>: 'ShowType c))
 
 -- | The type of graphemes (or more accurately multigraphs): a
--- grapheme is a sequence of characters. A word (or a subsequence of
--- one) can be considered to be a @[Grapheme]@.
+-- grapheme is a sequence of characters.
 type Grapheme = [Char]
+
+-- | A word (or a subsequence of one) can be viewed as a list of
+-- @Grapheme@s: e.g. Portuguese "filha" becomes
+-- @["f", "i", "lh", "a"] :: Word@.
+--
+-- (The name 'PWord' is from ‘phonological word’, these being what a
+-- SCA typically manipulates; this name was chosen to avoid a clash
+-- with 'Prelude.Word'.)
+type PWord = [Grapheme]
 
 -- | The part of a 'Rule' in which a 'Lexeme' may occur: either the
 -- target, the replacement or the environment.

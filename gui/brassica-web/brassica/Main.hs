@@ -35,8 +35,8 @@ import Brassica.SoundChange.Tokenise (detokeniseWords', Component)
 import Brassica.SoundChange.Types
 
 applyRules
-    :: (Maybe [Component [Grapheme]], (T.Text, T.Text, ApplicationMode))
-    -> (Maybe [Component [Grapheme]], T.Text)
+    :: (Maybe [Component PWord], (T.Text, T.Text, ApplicationMode))
+    -> (Maybe [Component PWord], T.Text)
 applyRules (prev, (changes, ws, mode)) =
     case parseSoundChanges (T.unpack changes) of
         Left e -> (Nothing, "<pre>" <> T.pack (errorBundlePretty e) <> "</pre>")
