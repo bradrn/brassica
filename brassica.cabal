@@ -24,6 +24,7 @@ source-repository head
 library
   exposed-modules: Brassica.SoundChange
                  , Brassica.SoundChange.Apply
+                 , Brassica.SoundChange.Apply.Internal
                  , Brassica.SoundChange.Category
                  , Brassica.SoundChange.Parse
                  , Brassica.SoundChange.Tokenise
