@@ -20,7 +20,7 @@ import qualified Data.Text.Lazy as TL
 
 import Common
 
-import Brassica.SoundChange
+import Brassica.SoundChange.Frontend.Internal
        ( ApplicationMode(..)
        , HighlightMode(..)
        , MDFOutputMode(MDFOutput)
@@ -28,8 +28,8 @@ import Brassica.SoundChange
        , ApplicationOutput(..)
        , InputLexiconFormat(Raw)
        , parseTokeniseAndApplyRules
-       , tableItemToHtmlRows,
        )
+import Brassica.SoundChange.Apply (tableItemToHtmlRows)
 import Brassica.SoundChange.Parse (errorBundlePretty, parseSoundChanges)
 import Brassica.SoundChange.Tokenise (detokeniseWords', Component)
 import Brassica.SoundChange.Types

@@ -26,6 +26,7 @@ library
                  , Brassica.SoundChange.Apply
                  , Brassica.SoundChange.Apply.Internal
                  , Brassica.SoundChange.Category
+                 , Brassica.SoundChange.Frontend.Internal
                  , Brassica.SoundChange.Parse
                  , Brassica.SoundChange.Tokenise
                  , Brassica.SoundChange.Types

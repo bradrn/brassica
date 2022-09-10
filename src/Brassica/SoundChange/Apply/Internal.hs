@@ -1,6 +1,9 @@
-{-# LANGUAGE CPP                   #-}
+{-# LANGUAGE CPP                  #-}
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveFunctor         #-}
+{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -32,6 +35,15 @@ module Brassica.SoundChange.Apply.Internal
        , applyStatement
        , applyRuleStr
        , applyStatementStr
+       , applyChanges
+       -- * Logging
+       , LogItem(..)
+       , AppliedRulesTableItem(..)
+       , toTableItem
+       , tableItemToHtmlRows
+       , applyStatementWithLog
+       , applyChangesWithLog
+       , applyChangesWithChanges
        ) where
 
 import Control.Applicative ((<|>))
@@ -39,7 +51,9 @@ import Data.Containers.ListUtils (nubOrd)
 import Data.Function ((&))
 import Data.Functor ((<&>))
 import Data.Maybe (maybeToList, fromMaybe, listToMaybe)
+import GHC.Generics (Generic)
 
+import Control.DeepSeq (NFData)
 import Control.Monad.State
 
 import Brassica.MultiZipper
@@ -325,3 +339,79 @@ applyRuleStr r s = nubOrd $ fmap toList $ applyRule r $ fromListStart s
 -- duplicates, use 'applyStatement' directly.
 applyStatementStr :: Statement -> PWord -> [PWord]
 applyStatementStr st s = nubOrd $ fmap toList $ applyStatement st $ fromListStart s
+
+-- | A log item representing a single application of an action. (In
+-- practise this will usually be a 'Statement'.) Specifies the action
+-- which was applied, as well as the ‘before’ and ‘after’ states.
+data LogItem r = ActionApplied
+    { action :: r
+    , input :: PWord
+    , output :: PWord
+    } deriving (Show, Functor, Generic, NFData)
+
+-- | A single component of an ‘applied rules’ table, which collates
+-- action applications by the word they are applied to.
+data AppliedRulesTableItem r = AppliedRulesTableItem
+    { initialWord :: PWord
+    , derivations :: [(PWord, r)]
+    } deriving (Show, Functor, Generic, NFData)
+
+toTableItem :: [LogItem r] -> Maybe (AppliedRulesTableItem r)
+toTableItem [] = Nothing
+toTableItem ls@(l : _) = Just $ AppliedRulesTableItem
+    { initialWord = input l
+    , derivations = (\ActionApplied{..} -> (output, action)) <$> ls
+    }
+
+-- | Render a single 'AppliedRulesTableItem' to HTML table rows.
+tableItemToHtmlRows :: (r -> String) -> AppliedRulesTableItem r -> String
+tableItemToHtmlRows render item = go (concat $ initialWord item) (derivations item)
+  where
+    go _ [] = ""
+    go cell1 ((output, action) : ds) =
+        ("<tr><td>" ++ cell1 ++ "</td><td>&rarr;</td><td>"
+         ++ concat output
+         ++ "</td><td>(" ++ render action ++ ")</td></tr>")
+        ++ go "" ds
+
+-- | Apply a single 'Statement' to a word. Returns a 'LogItem' for
+-- each possible result, or @[]@ if the rule does not apply and the
+-- input is returned unmodified.
+applyStatementWithLog :: Statement -> PWord -> [LogItem Statement]
+applyStatementWithLog st w = case applyStatementStr st w of
+    [w'] -> if w' == w then [] else [ActionApplied st w w']
+    r -> ActionApplied st w <$> r
+
+-- | Apply 'SoundChanges' to a word. For each possible result, returns
+-- a 'LogItem' for each 'Statement' which altered the input.
+applyChangesWithLog :: SoundChanges -> PWord -> [[LogItem Statement]]
+applyChangesWithLog [] _ = [[]]
+applyChangesWithLog (st:sts) w =
+    case applyStatementWithLog st w of
+        [] -> applyChangesWithLog sts w
+        items -> items >>= \l@ActionApplied{output=w'} ->
+            (l :) <$> applyChangesWithLog sts w'
+
+-- | Apply 'SoundChanges' to a word, returning the final results
+-- without any logs.
+--
+-- (This is a simple wrapper around 'applyChangesWithLogs'.)
+applyChanges :: SoundChanges -> PWord -> [PWord]
+applyChanges sts w =
+    lastOutput <$> applyChangesWithLog sts w
+  where
+    lastOutput [] = w
+    lastOutput ls = output $ last ls
+
+-- | Apply 'SoundChanges' to a word returning the final results, as
+-- well as a boolean value indicating whether the word should be
+-- highlighted in a UI due to changes from its initial value. (Note
+-- that this accounts for 'highlightChanges' values.)
+applyChangesWithChanges :: SoundChanges -> PWord -> [(PWord, Bool)]
+applyChangesWithChanges sts w = applyChangesWithLog sts w <&> \case
+    [] -> (w, False)
+    logs -> (output $ last logs, hasChanged logs)
+  where
+    hasChanged = any $ \case
+        ActionApplied{action=RuleS rule} -> highlightChanges $ flags rule
+        ActionApplied{action=CategoriesDeclS _} -> True

@@ -8,6 +8,7 @@
 module Brassica.SoundChange.Tokenise
        ( Component(..)
        , getWords
+       , splitMultipleResults
        , zipWithComponents
        , tokeniseWord
        , tokeniseWords
@@ -24,7 +25,7 @@ module Brassica.SoundChange.Tokenise
 import Data.Char (isSpace)
 import Data.Function (on)
 import Data.Functor.Identity
-import Data.List (sortBy)
+import Data.List (intersperse, sortBy)
 import Data.Maybe (mapMaybe)
 import Data.Ord (Down(..))
 import Data.Void (Void)
@@ -49,6 +50,13 @@ getWords = mapMaybe $ \case
     Word a -> Just a
     _ -> Nothing
 
+-- | Utility function: insert 'Whitespace' (hard-coded as a single
+-- space) between multiple results.
+splitMultipleResults :: Component [a] -> [Component a]
+splitMultipleResults (Word as) = intersperse (Whitespace " ") $ Word <$> as
+splitMultipleResults (Whitespace w) = [Whitespace w]
+splitMultipleResults (Gloss g) = [Gloss g]
+    
 -- | Megaparsec parser for 'PWord's — see 'tokeniseWord' documentation
 -- for details on the parsing strategy and the meaning of the second
 -- parameter. For most usecases 'tokeniseWord' should suffice;

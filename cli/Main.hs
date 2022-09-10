@@ -14,9 +14,7 @@ import Data.Text.Encoding (decodeUtf8)
 import Options.Applicative
 
 import Brassica.SoundChange
-import Brassica.SoundChange.Parse
-import Brassica.SoundChange.Tokenise
-import Brassica.SoundChange.Types (Grapheme)
+import Brassica.SoundChange.Frontend.Internal
 
 
 main :: IO ()
@@ -34,7 +32,7 @@ main = do
             in runConduit $ c $
                 tokeniseAccordingToInputFormat wordsFormat tokMode rules
                 >>> (fmap.fmap) (applyChanges rules)
-                >>> bimap errorBundlePretty (componentise outMode)
+                >>> bimap errorBundlePretty (concatMap splitMultipleResults . componentise outMode)
   where
     opts = info (args <**> helper) fullDesc
 

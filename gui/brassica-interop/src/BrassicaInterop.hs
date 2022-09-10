@@ -11,9 +11,7 @@ import qualified GHC.Foreign as GHC
 import GHC.IO.Encoding (utf8)
 
 import Brassica.SoundChange
-import Brassica.SoundChange.Parse
-import Brassica.SoundChange.Tokenise
-import Brassica.SoundChange.Types
+import Brassica.SoundChange.Frontend.Internal
 import Brassica.Paradigm (build)
 import Brassica.Paradigm.Parse
 
