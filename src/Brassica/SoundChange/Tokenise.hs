@@ -52,12 +52,12 @@ getWords = mapMaybe $ \case
     Word a -> Just a
     _ -> Nothing
 
--- | Utility function: insert 'Whitespace' (hard-coded as a single
--- space) between multiple results.
-splitMultipleResults :: Component [a] -> [Component a]
-splitMultipleResults (Word as) = intersperse (Whitespace " ") $ Word <$> as
-splitMultipleResults (Whitespace w) = [Whitespace w]
-splitMultipleResults (Gloss g) = [Gloss g]
+-- | Utility function: insert the given 'String' as 'Whitespace'
+-- between multiple results.
+splitMultipleResults :: String -> Component [a] -> [Component a]
+splitMultipleResults wh (Word as) = intersperse (Whitespace wh) $ Word <$> as
+splitMultipleResults _ (Whitespace w) = [Whitespace w]
+splitMultipleResults _ (Gloss g) = [Gloss g]
     
 -- | Megaparsec parser for 'PWord's — see 'tokeniseWord' documentation
 -- for details on the parsing strategy and the meaning of the second

@@ -127,16 +127,16 @@ parseTokeniseAndApplyRules statements ws intype tmode mode prev =
                     getWords $ componentise WordsOnlyOutput $
                         applyChangesWithLog statements <$> toks
             ApplyRules DifferentToLastRun mdfout ->
-                let result = concatMap splitMultipleResults $
+                let result = concatMap (splitMultipleResults " ") $
                       componentise mdfout $ applyChanges statements <$> toks
                 in HighlightedWords $
                     zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
                         (thisWord, thisWord /= prevWord)
             ApplyRules DifferentToInput mdfout ->
-                HighlightedWords $ concatMap splitMultipleResults $
+                HighlightedWords $ concatMap (splitMultipleResults " ") $
                     componentise mdfout $ applyChangesWithChanges statements <$> toks
             ApplyRules NoHighlight mdfout ->
-                HighlightedWords $ (fmap.fmap) (,False) $ concatMap splitMultipleResults $
+                HighlightedWords $ (fmap.fmap) (,False) $ concatMap (splitMultipleResults " ") $
                     componentise mdfout $ applyChanges statements <$> toks
   where
     -- Zips two tokenised input strings. Compared to normal 'zipWith'

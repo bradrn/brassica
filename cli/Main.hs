@@ -32,7 +32,7 @@ main = do
             in runConduit $ c $
                 tokeniseAccordingToInputFormat wordsFormat tokMode rules
                 >>> (fmap.fmap) (applyChanges rules)
-                >>> bimap errorBundlePretty (concatMap splitMultipleResults . componentise outMode)
+                >>> bimap errorBundlePretty (concatMap (splitMultipleResults " ") . componentise outMode)
   where
     opts = info (args <**> helper) fullDesc
 
