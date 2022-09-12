@@ -5,7 +5,6 @@ module Main where
 import Conduit
 import Control.Category ((>>>))
 import Control.Monad.Trans.Except (runExceptT, throwE)
-import Data.Maybe (mapMaybe)
 import System.IO (IOMode(..), withFile)
 import Test.Tasty ( defaultMain, testGroup, TestTree )
 import Test.Tasty.Golden (goldenVsFile)
@@ -14,7 +13,7 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.UTF8 as B8
 import qualified Data.Text as T
 
-import Brassica.SoundChange (applyChanges, splitMultipleResults, applyChangesWithLog, toTableItem, tableItemToHtmlRows)
+import Brassica.SoundChange (applyChanges, splitMultipleResults, applyChangesWithLogs, tableItemToHtmlRows)
 import Brassica.SoundChange.Parse (parseSoundChanges, errorBundlePretty)
 import Brassica.SoundChange.Tokenise (tokeniseWords, detokeniseWords, withFirstCategoriesDecl, Component, getWords)
 import Brassica.SoundChange.Types (SoundChanges, PWord)
@@ -22,14 +21,13 @@ import Brassica.SoundChange.Types (SoundChanges, PWord)
 main :: IO ()
 main = defaultMain $ testGroup "brassica-tests"
     [ proto21eTest applyChanges showWord "proto21e golden test" "proto21e.out" "proto21e.golden"
-    , proto21eTest applyChangesWithLog showLogs "proto21e golden test with log" "proto21e-log.out.html" "proto21e-log.golden"
+    , proto21eTest applyChangesWithLogs showLogs "proto21e golden test with log" "proto21e-log.out.html" "proto21e-log.golden"
     ]
   where
     showWord = detokeniseWords . concatMap splitMultipleResults
 
     showLogs logs = (("<table>"++) . (++"</table>")) $
-        concatMap (tableItemToHtmlRows $ const "statement") $
-            mapMaybe toTableItem $ concat $ getWords logs
+        concatMap (tableItemToHtmlRows $ const "statement") $ concat $ getWords logs
 
 proto21eTest
     :: (SoundChanges -> PWord -> [a])

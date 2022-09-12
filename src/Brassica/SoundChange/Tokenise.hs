@@ -6,19 +6,21 @@
 {-# LANGUAGE ViewPatterns      #-}
 
 module Brassica.SoundChange.Tokenise
-       ( Component(..)
+       ( 
+       -- * Components
+         Component(..)
        , getWords
        , splitMultipleResults
-       , zipWithComponents
+       -- * High-level interface
        , tokeniseWord
        , tokeniseWords
-       , wordParser
-       , componentsParser
-       , findFirstCategoriesDecl
-       , withFirstCategoriesDecl
        , detokeniseWords'
        , detokeniseWords
-       -- * Utility
+       , findFirstCategoriesDecl
+       , withFirstCategoriesDecl
+       -- * Lower-level functions
+       , wordParser
+       , componentsParser
        , sortByDescendingLength
        ) where
 
@@ -118,35 +120,6 @@ detokeniseWords' f = concatMap $ \case
 -- words to strings using 'concat'.
 detokeniseWords :: [Component PWord] -> String
 detokeniseWords = detokeniseWords' concat
-
--- | Zips two tokenised input strings. Compared to normal 'zipWith'
--- this has two special properties:
---
---   * It only zips v'Word's. Any non-v'Word's in the first argument
---     will be passed unaltered to the output; any in the second
---     argument will be ignored.
---
---   * The returned list will have the same number of elements as does
---     the first argument. If a v'Word' in the first argument has no
---     corresponding v'Word' in the second, the zipping function is
---     called using the default @b@ value given as the third argument.
---     Such a v'Word' in the second argument will simply be ignored.
---
--- Note the persistent assymetry in the definition: each 'Component'
--- in the first argument will be reflected in the output, but each in
--- the second argument may be ignored.
-zipWithComponents :: [Component a] -> [Component b] -> b -> (a -> b -> c) -> [Component c]
-zipWithComponents []             _            _  _ = []
-zipWithComponents as            []            bd f = (fmap.fmap) (`f` bd) as
-zipWithComponents (Word a:as)   (Word b:bs)   bd f = Word (f a b) : zipWithComponents as bs bd f
-zipWithComponents as@(Word _:_) (_:bs)        bd f = zipWithComponents as bs bd f
-zipWithComponents (a:as)        bs@(Word _:_) bd f = unsafeCastComponent a : zipWithComponents as bs bd f
-zipWithComponents (a:as)        (_:bs)        bd f = unsafeCastComponent a : zipWithComponents as bs bd f
-
-unsafeCastComponent :: Component a -> Component b
-unsafeCastComponent (Word _) = error "unsafeCastComponent: attempted to cast a word!"
-unsafeCastComponent (Whitespace s) = Whitespace s
-unsafeCastComponent (Gloss s) = Gloss s
 
 -- | Given a list of sound changes, extract the list of graphemes
 -- defined in the first categories declaration.

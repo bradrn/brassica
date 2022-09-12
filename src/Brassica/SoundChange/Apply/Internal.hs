@@ -43,6 +43,7 @@ module Brassica.SoundChange.Apply.Internal
        , tableItemToHtmlRows
        , applyStatementWithLog
        , applyChangesWithLog
+       , applyChangesWithLogs
        , applyChangesWithChanges
        ) where
 
@@ -50,7 +51,7 @@ import Control.Applicative ((<|>))
 import Data.Containers.ListUtils (nubOrd)
 import Data.Function ((&))
 import Data.Functor ((<&>))
-import Data.Maybe (maybeToList, fromMaybe, listToMaybe)
+import Data.Maybe (maybeToList, fromMaybe, listToMaybe, mapMaybe)
 import GHC.Generics (Generic)
 
 import Control.DeepSeq (NFData)
@@ -391,6 +392,11 @@ applyChangesWithLog (st:sts) w =
         [] -> applyChangesWithLog sts w
         items -> items >>= \l@ActionApplied{output=w'} ->
             (l :) <$> applyChangesWithLog sts w'
+
+-- | Apply 'SoundChanges' to a word, returning an 'AppliedRulesTableItem'
+-- for each possible result.
+applyChangesWithLogs :: SoundChanges -> PWord -> [AppliedRulesTableItem Statement]
+applyChangesWithLogs scs w = mapMaybe toTableItem $ applyChangesWithLog  scs w
 
 -- | Apply 'SoundChanges' to a word, returning the final results
 -- without any logs.

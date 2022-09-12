@@ -14,7 +14,28 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Brassica.SoundChange.Types where
+module Brassica.SoundChange.Types
+       (
+       -- * Words and graphemes
+         Grapheme
+       , PWord
+       -- * Lexemes
+       , Lexeme(..)
+       , CategoryElement(..)
+       , LexemeType(..)
+       -- * Rules
+       , Rule(..)
+       , Environment
+       , Direction(..)
+       , Flags(..)
+       , defFlags
+       -- * Categories and statements
+       , CategoriesDecl(..)
+       , Statement(..)
+       , SoundChanges
+       -- * Utility
+       , OneOf
+       ) where
 
 import Control.DeepSeq (NFData(..))
 import Data.Kind (Constraint)

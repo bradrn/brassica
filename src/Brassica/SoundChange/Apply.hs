@@ -1,18 +1,14 @@
 module Brassica.SoundChange.Apply
        (
        -- * Sound change application
-         RuleTag(..)
-       , applyStatement
+         applyStatement
        , applyRuleStr
        , applyStatementStr
        , applyChanges
        -- * Logging
-       , LogItem(..)
        , AppliedRulesTableItem(..)
-       , toTableItem
        , tableItemToHtmlRows
-       , applyStatementWithLog
-       , applyChangesWithLog
+       , applyChangesWithLogs
        , applyChangesWithChanges
        ) where
 
