@@ -242,8 +242,10 @@ ruleParser = do
     _ <- optional scn   -- consume newline after rule if present
 
     o' <- getOffset
-    let plaintext = (fst . fromJust) (takeN_ (o' - o) s)
+    let plaintext = takeWhile notNewline $ (fst . fromJust) (takeN_ (o' - o) s)
     return Rule{environment=(env1,env2), ..}
+  where
+    notNewline c = (c /= '\n') && (c /= '\r')
 
 -- | Parse a 'String' to get a 'Rule'. Returns 'Nothing' if the input
 -- string is malformed.
