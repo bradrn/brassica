@@ -32,6 +32,7 @@ module Brassica.SoundChange.Types
        -- * Categories and statements
        , CategoriesDecl(..)
        , Statement(..)
+       , plaintext'
        , SoundChanges
        -- * Utility
        , OneOf
@@ -164,6 +165,12 @@ newtype CategoriesDecl = CategoriesDecl { graphemes :: [Grapheme] }
 -- category declaration.
 data Statement = RuleS Rule | CategoriesDeclS CategoriesDecl
     deriving (Show, Generic, NFData)
+
+-- | A simple wrapper around 'plaintext' for 'Statement's. Returns
+-- @"categories … end"@ for all 'CategoriesDecl' inputs.
+plaintext' :: Statement -> String
+plaintext' (RuleS r) = plaintext r
+plaintext' (CategoriesDeclS _) = "categories … end"
 
 -- | A set of 'SoundChanges' is simply a list of 'Statement's.
 type SoundChanges = [Statement]

@@ -8,6 +8,7 @@ module Brassica.SoundChange.Apply
        -- * Logging
        , AppliedRulesTableItem(..)
        , tableItemToHtmlRows
+       , tableItemToText
        , applyChangesWithLogs
        , applyChangesWithChanges
        ) where

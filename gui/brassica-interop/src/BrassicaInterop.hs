@@ -57,10 +57,6 @@ parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) infmtC tokModeC hl
     highlightWord (s, False) = concat s
     highlightWord (s, True) = "<b>" ++ concat s ++ "</b>"
 
-    plaintext' :: Statement -> String
-    plaintext' (RuleS r) = plaintext r
-    plaintext' (CategoriesDeclS _) = "categories … end"
-
     surroundTable :: String -> String
     surroundTable s = "<table>" ++ s ++ "</table>"
 

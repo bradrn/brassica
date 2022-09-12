@@ -18,6 +18,7 @@
 {-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 module Brassica.SoundChange.Apply.Internal
        ( -- * Types
@@ -41,6 +42,7 @@ module Brassica.SoundChange.Apply.Internal
        , AppliedRulesTableItem(..)
        , toTableItem
        , tableItemToHtmlRows
+       , tableItemToText
        , applyStatementWithLog
        , applyChangesWithLog
        , applyChangesWithLogs
@@ -374,6 +376,19 @@ tableItemToHtmlRows render item = go (concat $ initialWord item) (derivations it
          ++ concat output
          ++ "</td><td>(" ++ render action ++ ")</td></tr>")
         ++ go "" ds
+
+-- | Render a single 'AppliedRulesTableItem' to plain text.
+tableItemToText :: (r -> String) -> AppliedRulesTableItem r -> String
+tableItemToText render item = unlines $
+    concat (initialWord item) : fmap toLine (alignWithPadding $ derivations item)
+  where
+    alignWithPadding ds =
+        let (fmap concat -> outputs, actions) = unzip ds
+            maxlen = maximum $ length <$> outputs
+            padded = outputs <&> \o -> o ++ replicate (maxlen - length o) ' '
+        in zip padded actions
+
+    toLine (output, action) = "  -> " ++ output ++ "  (" ++ render action ++ ")"
 
 -- | Apply a single 'Statement' to a word. Returns a 'LogItem' for
 -- each possible result, or @[]@ if the rule does not apply and the

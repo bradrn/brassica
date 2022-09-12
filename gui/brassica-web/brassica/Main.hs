@@ -53,10 +53,6 @@ applyRules (prev, (changes, ws, mode)) =
     highlightWord (s, False) = concat s
     highlightWord (s, True) = "<b>" ++ concat s ++ "</b>"
 
-    plaintext' :: Statement -> String
-    plaintext' (RuleS r) = plaintext r
-    plaintext' (CategoriesDeclS _) = "categories … end"
-
     surroundTable :: String -> String
     surroundTable s = "<table>" ++ s ++ "</table>"
 

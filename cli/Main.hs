@@ -3,13 +3,11 @@
 
 module Main where
 
-import Control.Category ((>>>))
 import Control.Exception (Exception)
-import Data.Bifunctor (bimap)
 
 import Conduit
 import qualified Data.ByteString as B
-import Data.Text (pack, unpack)
+import Data.Text (pack, unpack, Text)
 import Data.Text.Encoding (decodeUtf8)
 import Options.Applicative
 
@@ -28,11 +26,11 @@ main = do
         Right rules ->
             withSourceFileIf inWordsFile $ \inC ->
             withSinkFileIf outWordsFile $ \outC ->
-            let c e = inC .| processWords (incrFor wordsFormat) e .| outC
-            in runConduit $ c $
-                tokeniseAccordingToInputFormat wordsFormat tokMode rules
-                >>> (fmap.fmap) (applyChanges rules)
-                >>> bimap errorBundlePretty (concatMap (splitMultipleResults " ") . componentise outMode)
+            runConduit $
+                inC
+                .| processWords (incrFor wordsFormat) rules wordsFormat tokMode outMode
+                .| outC
+
   where
     opts = info (args <**> helper) fullDesc
 
@@ -43,8 +41,11 @@ main = do
             (long "mdf" <> help "Parse input words in MDF format")
         <*> flag Normal AddEtymons
             (long "etymons" <> help "With --mdf, add etymologies to output")
-        <*> flag MDFOutput WordsOnlyOutput
-            (long "wordlist" <> help "With --mdf, output only a list of the derived words")
+        <*> (flag' ReportRulesApplied
+                (long "report" <> help "Report rules applied rather than outputting words")
+            <|>
+            flag (ApplyRules NoHighlight MDFOutput) (ApplyRules NoHighlight WordsOnlyOutput)
+                (long "wordlist" <> help "With --mdf, output only a list of the derived words"))
         <*> optional (strOption
             (long "in" <> short 'i' <> help "File containing input words (if not specified will read from stdin)"))
         <*> optional (strOption
@@ -63,7 +64,7 @@ data Options = Options
     { rulesFile :: String
     , wordsFormat :: InputLexiconFormat
     , tokMode :: TokenisationMode
-    , outMode :: MDFOutputMode
+    , outMode :: ApplicationMode
     , inWordsFile :: Maybe String
     , outWordsFile :: Maybe String
     } deriving (Show)
@@ -71,20 +72,30 @@ data Options = Options
 processWords
     :: (MonadIO m, MonadThrow m)
     => Bool  -- split into lines?
-    -> (String -> Either String [Component PWord])
+    -> SoundChanges
+    -> InputLexiconFormat
+    -> TokenisationMode
+    -> ApplicationMode
     -> ConduitT B.ByteString B.ByteString m ()
-processWords incr evolve =
+processWords incr rules wordsFormat tokMode outMode =
     decodeUtf8C
     .| (if incr then linesUnboundedC else mapC id)
-    .| mapC (bimap ParseException (pack . detokeniseWords) . evolve . unpack)
+    .| mapC (processApplicationOutput . evolve . unpack)
     .| throwOnLeft
     .| (if incr then unlinesC else mapC id)
     .| encodeUtf8C
   where
+    evolve ws = parseTokeniseAndApplyRules rules ws wordsFormat tokMode outMode Nothing
+
     throwOnLeft :: (MonadThrow m, Exception e) => ConduitT (Either e r) r m ()
     throwOnLeft = awaitForever $ \case
         Left e -> throwM e
         Right r -> yield r
+
+    processApplicationOutput :: ApplicationOutput PWord Statement -> Either ParseException Text
+    processApplicationOutput (HighlightedWords cs) = Right $ pack $ detokeniseWords $ (fmap.fmap) fst cs
+    processApplicationOutput (AppliedRulesTable is) = Right $ pack $ unlines $ tableItemToText plaintext' <$> is
+    processApplicationOutput (ParseError e) = Left $ ParseException $ errorBundlePretty e
 
 newtype ParseException = ParseException String
     deriving Show
