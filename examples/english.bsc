@@ -101,13 +101,12 @@ Du = iŭ eŭ oŭ aŭ ɛŭ ɔŭ ɪʊ̆
 V = Vs Vl Di Du ə
 end
 
-
-; Great Vowel Shift
+; Great Vowel Shift + diphthong loss
 
 ; this one affected nearly all words, so
 ; use -x to keep highlighting manageable
 
--x [eː oː iː uː] / [iː uː eĭ oŭ]
+-x [eː oː iː uː aĭ aŭ ɔŭ] / [iː uː eĭ oŭ ɛː ɔː oː]
 -x [aː ɛː ɔː] / [eː iː oː]
 
 [eĭ oŭ] / [aĭ aŭ]
@@ -118,8 +117,9 @@ w / / # _ r
 ; degemination
 C / / _ >
 
-; diphthong loss and mergers
-[aŭ ɛĭ ɔŭ ɛŭ eŭ iŭ ɔĭ uĭ] / [ɔː eĭ oŭ ɪʊ̆ ɪʊ̆ ɪʊ̆ oĭ oĭ]
+; more diphthong loss
+[ɛĭ ɔŭ ɛŭ eŭ iŭ ɔĭ uĭ] / [eː oː ɪʊ̆ ɪʊ̆ ɪʊ̆ oĭ oĭ]
+
 ɪʊ̆ / j uː
 
 ; trill loss
@@ -137,6 +137,9 @@ C / / _ >
 ; both before and after the FOOT-STRUT split
 
 -? [eː uː] / [e ʊ]
+
+; woː raising
+w oː / uː
 
 ; FOOT-STRUT split
 -? ʊ / ʌ / _ / [m p b f v] _ [l ʃ tʃ]
