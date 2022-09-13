@@ -25,6 +25,7 @@ library
   exposed-modules: Brassica.SoundChange
                  , Brassica.SoundChange.Apply
                  , Brassica.SoundChange.Apply.Internal
+                 , Brassica.SoundChange.Apply.Internal.MultiZipper
                  , Brassica.SoundChange.Category
                  , Brassica.SoundChange.Frontend.Internal
                  , Brassica.SoundChange.Parse
@@ -33,7 +34,6 @@ library
                  , Brassica.MDF
                  , Brassica.Paradigm
                  , Brassica.Paradigm.Parse
-                 , Brassica.MultiZipper
   hs-source-dirs:   src
   ghc-options:      -Wall
   build-depends:

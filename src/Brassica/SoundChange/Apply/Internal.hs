@@ -59,7 +59,7 @@ import GHC.Generics (Generic)
 import Control.DeepSeq (NFData)
 import Control.Monad.State
 
-import Brassica.MultiZipper
+import Brassica.SoundChange.Apply.Internal.MultiZipper
 import Brassica.SoundChange.Types
 import Data.Bifunctor (Bifunctor(first))
 
