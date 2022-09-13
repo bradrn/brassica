@@ -4,7 +4,7 @@
 {-# LANGUAGE ViewPatterns #-}
 
 module Brassica.MDF
-       ( MDF
+       ( MDF(..)
        , MDFLanguage(..)
        , fieldLangs
        , parseMDFRaw
