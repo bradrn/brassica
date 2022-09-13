@@ -29,7 +29,7 @@ import Brassica.SoundChange.Frontend.Internal
        , InputLexiconFormat(Raw)
        , parseTokeniseAndApplyRules
        )
-import Brassica.SoundChange.Apply (tableItemToHtmlRows)
+import Brassica.SoundChange.Apply (reportAsHtmlRows)
 import Brassica.SoundChange.Parse (errorBundlePretty, parseSoundChanges)
 import Brassica.SoundChange.Tokenise (detokeniseWords', Component)
 import Brassica.SoundChange.Types
@@ -46,7 +46,7 @@ applyRules (prev, (changes, ws, mode)) =
                 HighlightedWords result ->
                     (Just $ (fmap.fmap) fst result, T.pack $ escape $ detokeniseWords' highlightWord result)
                 AppliedRulesTable items ->
-                    (Nothing, T.pack $ surroundTable $ concatMap (tableItemToHtmlRows plaintext') items)
+                    (Nothing, T.pack $ surroundTable $ concatMap (reportAsHtmlRows plaintext') items)
   where
     -- NB. this is all duplicated from the Qt interop code; need to
     -- figure out a better way of structuring this

@@ -6,9 +6,9 @@ module Brassica.SoundChange.Apply
        , applyStatementStr
        , applyChanges
        -- * Logging
-       , AppliedRulesTableItem(..)
-       , tableItemToHtmlRows
-       , tableItemToText
+       , PWordLog(..)
+       , reportAsHtmlRows
+       , reportAsText
        , applyChangesWithLogs
        , applyChangesWithChanges
        ) where

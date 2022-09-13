@@ -52,7 +52,7 @@ parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) infmtC tokModeC hl
                 AppliedRulesTable items -> do
                     writeIORef prevRef Nothing
                     GHC.newCString utf8 $ surroundTable $
-                        concatMap (tableItemToHtmlRows plaintext') items
+                        concatMap (reportAsHtmlRows plaintext') items
   where
     highlightWord (s, False) = concat s
     highlightWord (s, True) = "<b>" ++ concat s ++ "</b>"

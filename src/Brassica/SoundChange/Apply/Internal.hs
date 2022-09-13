@@ -39,10 +39,10 @@ module Brassica.SoundChange.Apply.Internal
        , applyChanges
        -- * Logging
        , LogItem(..)
-       , AppliedRulesTableItem(..)
-       , toTableItem
-       , tableItemToHtmlRows
-       , tableItemToText
+       , PWordLog(..)
+       , toPWordLog
+       , reportAsHtmlRows
+       , reportAsText
        , applyStatementWithLog
        , applyChangesWithLog
        , applyChangesWithLogs
@@ -354,21 +354,21 @@ data LogItem r = ActionApplied
 
 -- | A single component of an ‘applied rules’ table, which collates
 -- action applications by the word they are applied to.
-data AppliedRulesTableItem r = AppliedRulesTableItem
+data PWordLog r = PWordLog
     { initialWord :: PWord
     , derivations :: [(PWord, r)]
     } deriving (Show, Functor, Generic, NFData)
 
-toTableItem :: [LogItem r] -> Maybe (AppliedRulesTableItem r)
-toTableItem [] = Nothing
-toTableItem ls@(l : _) = Just $ AppliedRulesTableItem
+toPWordLog :: [LogItem r] -> Maybe (PWordLog r)
+toPWordLog [] = Nothing
+toPWordLog ls@(l : _) = Just $ PWordLog
     { initialWord = input l
     , derivations = (\ActionApplied{..} -> (output, action)) <$> ls
     }
 
--- | Render a single 'AppliedRulesTableItem' to HTML table rows.
-tableItemToHtmlRows :: (r -> String) -> AppliedRulesTableItem r -> String
-tableItemToHtmlRows render item = go (concat $ initialWord item) (derivations item)
+-- | Render a single 'PWordLog' to HTML table rows.
+reportAsHtmlRows :: (r -> String) -> PWordLog r -> String
+reportAsHtmlRows render item = go (concat $ initialWord item) (derivations item)
   where
     go _ [] = ""
     go cell1 ((output, action) : ds) =
@@ -377,9 +377,9 @@ tableItemToHtmlRows render item = go (concat $ initialWord item) (derivations it
          ++ "</td><td>(" ++ render action ++ ")</td></tr>")
         ++ go "" ds
 
--- | Render a single 'AppliedRulesTableItem' to plain text.
-tableItemToText :: (r -> String) -> AppliedRulesTableItem r -> String
-tableItemToText render item = unlines $
+-- | Render a single 'PWordLog' to plain text.
+reportAsText :: (r -> String) -> PWordLog r -> String
+reportAsText render item = unlines $
     concat (initialWord item) : fmap toLine (alignWithPadding $ derivations item)
   where
     alignWithPadding ds =
@@ -408,10 +408,10 @@ applyChangesWithLog (st:sts) w =
         items -> items >>= \l@ActionApplied{output=w'} ->
             (l :) <$> applyChangesWithLog sts w'
 
--- | Apply 'SoundChanges' to a word, returning an 'AppliedRulesTableItem'
+-- | Apply 'SoundChanges' to a word, returning an 'PWordLog'
 -- for each possible result.
-applyChangesWithLogs :: SoundChanges -> PWord -> [AppliedRulesTableItem Statement]
-applyChangesWithLogs scs w = mapMaybe toTableItem $ applyChangesWithLog  scs w
+applyChangesWithLogs :: SoundChanges -> PWord -> [PWordLog Statement]
+applyChangesWithLogs scs w = mapMaybe toPWordLog $ applyChangesWithLog  scs w
 
 -- | Apply 'SoundChanges' to a word, returning the final results
 -- without any logs.

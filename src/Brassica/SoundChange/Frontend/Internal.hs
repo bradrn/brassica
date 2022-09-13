@@ -15,7 +15,7 @@ import Text.Megaparsec (ParseErrorBundle)
 
 import Brassica.MDF (MDF, parseMDFWithTokenisation, componentiseMDF, componentiseMDFWordsOnly, duplicateEtymologies)
 import Brassica.SoundChange.Apply
-import Brassica.SoundChange.Apply.Internal (applyChangesWithLog, toTableItem)
+import Brassica.SoundChange.Apply.Internal (applyChangesWithLog, toPWordLog)
 import Brassica.SoundChange.Tokenise
 import Brassica.SoundChange.Types
 
@@ -68,7 +68,7 @@ instance Enum TokenisationMode where
 -- parse error.
 data ApplicationOutput a r
     = HighlightedWords [Component (a, Bool)]
-    | AppliedRulesTable [AppliedRulesTableItem r]
+    | AppliedRulesTable [PWordLog r]
     | ParseError (ParseErrorBundle String Void)
     deriving (Show, Generic, NFData)
 
@@ -123,7 +123,7 @@ parseTokeniseAndApplyRules statements ws intype tmode mode prev =
         Left e -> ParseError e
         Right toks -> case mode of
             ReportRulesApplied ->
-                AppliedRulesTable $ mapMaybe toTableItem $ concat $
+                AppliedRulesTable $ mapMaybe toPWordLog $ concat $
                     getWords $ componentise WordsOnlyOutput $
                         applyChangesWithLog statements <$> toks
             ApplyRules DifferentToLastRun mdfout ->

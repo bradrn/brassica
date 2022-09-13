@@ -94,7 +94,7 @@ processWords incr rules wordsFormat tokMode outMode =
 
     processApplicationOutput :: ApplicationOutput PWord Statement -> Either ParseException Text
     processApplicationOutput (HighlightedWords cs) = Right $ pack $ detokeniseWords $ (fmap.fmap) fst cs
-    processApplicationOutput (AppliedRulesTable is) = Right $ pack $ unlines $ tableItemToText plaintext' <$> is
+    processApplicationOutput (AppliedRulesTable is) = Right $ pack $ unlines $ reportAsText plaintext' <$> is
     processApplicationOutput (ParseError e) = Left $ ParseException $ errorBundlePretty e
 
 newtype ParseException = ParseException String

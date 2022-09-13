@@ -13,7 +13,7 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.UTF8 as B8
 import qualified Data.Text as T
 
-import Brassica.SoundChange (applyChanges, splitMultipleResults, applyChangesWithLogs, tableItemToText)
+import Brassica.SoundChange (applyChanges, splitMultipleResults, applyChangesWithLogs, reportAsText)
 import Brassica.SoundChange.Parse (parseSoundChanges, errorBundlePretty)
 import Brassica.SoundChange.Tokenise (tokeniseWords, detokeniseWords, withFirstCategoriesDecl, Component, getWords)
 import Brassica.SoundChange.Types (SoundChanges, PWord, plaintext')
@@ -26,7 +26,7 @@ main = defaultMain $ testGroup "brassica-tests"
   where
     showWord = detokeniseWords . concatMap (splitMultipleResults " ")
 
-    showLogs logs = unlines $ fmap (tableItemToText plaintext') $ concat $ getWords logs
+    showLogs logs = unlines $ fmap (reportAsText plaintext') $ concat $ getWords logs
 
 proto21eTest
     :: (SoundChanges -> PWord -> [a])
