@@ -70,17 +70,16 @@ parseMDFWithTokenisation (sortByDescendingLength -> gs) =
 
 -- | Convert an 'MDF' to a list of 'Component's representing the same
 -- textual content. Vernacular field values are left as is; everything
--- else is wrapped in 'Whitespace' (even though it contains words) so
+-- else is treated as a 'Separator' (even though it contains words) so
 -- that it is not disturbed by rule application or rendering to text.
 componentiseMDF :: MDF [Component a] -> [Component a]
 componentiseMDF = unMDF >>> concatMap \case
-    (m, s, Left v) -> [Whitespace ('\\':m ++ s ++ v)]
-    (m, s, Right v) -> Whitespace ('\\':m ++ s) : v
+    (m, s, Left v) -> [Separator ('\\':m ++ s ++ v)]
+    (m, s, Right v) -> Separator ('\\':m ++ s) : v
 
 -- | As with 'MDF', but the resulting 'Component's contain vernacular
 -- field contents only; all else is discarded. The first parameter
--- specifies the 'Whitespace' separator to insert after each
--- vernacular field.
+-- specifies the 'Separator' to insert after each vernacular field.
 componentiseMDFWordsOnly :: MDF [Component a] -> [Component a]
 componentiseMDFWordsOnly = unMDF >>> concatMap \case
     (_, _, Right v) -> v

@@ -165,5 +165,5 @@ parseTokeniseAndApplyRules statements ws intype tmode mode prev =
 
     unsafeCastComponent :: Component a -> Component b
     unsafeCastComponent (Word _) = error "unsafeCastComponent: attempted to cast a word!"
-    unsafeCastComponent (Whitespace s) = Whitespace s
+    unsafeCastComponent (Separator s) = Separator s
     unsafeCastComponent (Gloss s) = Gloss s

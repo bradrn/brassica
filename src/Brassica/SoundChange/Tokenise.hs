@@ -42,7 +42,7 @@ import Brassica.SoundChange.Types
 -- | Represents a component of a tokenised input string. The type
 -- variable will usually be something like 'PWord', though it depends
 -- on the type of words you’re parsing.
-data Component a = Word a | Whitespace String | Gloss String
+data Component a = Word a | Separator String | Gloss String
     deriving (Eq, Show, Functor, Foldable, Traversable, Generic, NFData)
 
 -- | Given a tokenised input string, return only the 'PWord's within
@@ -52,11 +52,11 @@ getWords = mapMaybe $ \case
     Word a -> Just a
     _ -> Nothing
 
--- | Utility function: insert the given 'String' as 'Whitespace'
+-- | Utility function: insert the given 'String' as 'Separator'
 -- between multiple results.
 splitMultipleResults :: String -> Component [a] -> [Component a]
-splitMultipleResults wh (Word as) = intersperse (Whitespace wh) $ Word <$> as
-splitMultipleResults _ (Whitespace w) = [Whitespace w]
+splitMultipleResults wh (Word as) = intersperse (Separator wh) $ Word <$> as
+splitMultipleResults _ (Separator w) = [Separator w]
 splitMultipleResults _ (Gloss g) = [Gloss g]
     
 -- | Megaparsec parser for 'PWord's — see 'tokeniseWord' documentation
@@ -80,7 +80,7 @@ componentsParser
     :: ParsecT Void String Identity a
     -> ParsecT Void String Identity [Component a]
 componentsParser p = many $
-    (Whitespace <$> takeWhile1P Nothing isSpace) <|>
+    (Separator <$> takeWhile1P Nothing isSpace) <|>
     (Gloss <$> gloss False) <|>
     (Word <$> p)
   where
@@ -113,7 +113,7 @@ tokeniseWords (sortByDescendingLength -> gs) =
 detokeniseWords' :: (a -> String) -> [Component a] -> String
 detokeniseWords' f = concatMap $ \case
     Word gs -> f gs
-    Whitespace w -> w
+    Separator w -> w
     Gloss g -> '[':(g ++ "]")
 
 -- | Specialisation of 'detokeniseWords'' for 'PWord's, converting
