@@ -46,7 +46,7 @@ import GHC.TypeLits
 -- | The constraint @OneOf a x y@ is satisfied if @a ~ x@ or @a ~ y@.
 --
 -- (Note: the strange @() ~ Bool@ constraint is just a simple
--- unsatisfyable constraint, so as to not give ‘non-exhaustive pattern
+-- unsatisfiable constraint, so as to not give ‘non-exhaustive pattern
 -- match’ errors everywhere.)
 type family OneOf a x y :: Constraint where
     OneOf a a y = ()
@@ -60,36 +60,45 @@ type family OneOf a x y :: Constraint where
                      ':<>: 'Text " or "
                      ':<>: 'ShowType c))
 
--- | The type of graphemes (or more accurately multigraphs): a
--- grapheme is a sequence of characters.
+-- | The type of graphemes, or more accurately multigraphs: for
+-- instance, @"a", "ch", "c̓" :: t'Grapheme'@.
 type Grapheme = [Char]
 
 -- | A word (or a subsequence of one) can be viewed as a list of
 -- @Grapheme@s: e.g. Portuguese "filha" becomes
--- @["f", "i", "lh", "a"] :: Word@.
+-- @["f", "i", "lh", "a"] :: 'PWord'@.
 --
 -- (The name 'PWord' is from ‘phonological word’, these being what a
 -- SCA typically manipulates; this name was chosen to avoid a clash
--- with 'Prelude.Word'.)
+-- with @Prelude.'Prelude.Word'@.)
 type PWord = [Grapheme]
 
 -- | The part of a 'Rule' in which a 'Lexeme' may occur: either the
 -- target, the replacement or the environment.
 data LexemeType = Target | Replacement | Env
 
--- | A 'Lexeme' is the smallest component of a sound change,
--- specifying either a match or a replacement. The phantom type
--- variable, of kind 'LexemeType', specifies the part(s) of the rule
--- in which each type of 'Lexeme' may occur.
+-- | A 'Lexeme' is the smallest part of a sound change. Both matches
+-- and replacements are made up of 'Lexeme's: the phantom type
+-- variable specifies where each different variety of 'Lexeme' may
+-- occur.
 data Lexeme (a :: LexemeType) where
+    -- | In Brassica sound-change syntax, one or more letters without intervening whitespace
     Grapheme :: Grapheme -> Lexeme a
+    -- | In Brassica sound-change syntax, delimited by square brackets
     Category :: [CategoryElement a] -> Lexeme a
+    -- | In Brassica sound-change syntax, specified as @#@
     Boundary :: Lexeme 'Env
+    -- | In Brassica sound-change syntax, delimited by parentheses
     Optional :: [Lexeme a] -> Lexeme a
+    -- | In Brassica sound-change syntax, specified as @\@
     Metathesis :: Lexeme 'Replacement
+    -- | In Brassica sound-change syntax, specified as @>@
     Geminate :: Lexeme a
+    -- | In Brassica sound-change syntax, specified as @^@ before another 'Lexeme'
     Wildcard :: OneOf a 'Target 'Env => Lexeme a -> Lexeme a
+    -- | In Brassica sound-change syntax, specified as @*@ after another 'Lexeme'
     Kleene   :: OneOf a 'Target 'Env => Lexeme a -> Lexeme a
+    -- | In Brassica sound-change syntax, specified as @~@
     Discard  :: Lexeme 'Replacement
 
 deriving instance Show (Lexeme a)
@@ -105,7 +114,8 @@ instance NFData (Lexeme a) where
     rnf (Kleene l) = rnf l
     rnf Discard = ()
 
--- | The elements allowed in a 'Category'.
+-- | The elements allowed in a 'Category': currently, only
+-- t'Grapheme's and word boundaries.
 data CategoryElement (a :: LexemeType) where
     GraphemeEl :: Grapheme -> CategoryElement a
     BoundaryEl :: CategoryElement 'Env
@@ -128,7 +138,8 @@ type Environment = ([Lexeme 'Env], [Lexeme 'Env])
 data Direction = LTR | RTL
     deriving (Eq, Show, Generic, NFData)
 
--- | Flags which can be enabled on a 'Rule'
+-- | Flags which can be enabled, disabled or altered on a 'Rule' to
+-- change how it is applied.
 data Flags = Flags
   { highlightChanges :: Bool
   , applyDirection   :: Direction
@@ -137,13 +148,30 @@ data Flags = Flags
   } deriving (Show, Generic, NFData)
 
 -- | A default selection of flags which are appropriate for most
--- rules: highlight changes, apply 'LTR', apply repeatedly, and don’t
--- apply sporadically.
+-- rules:
+--
+-- @
+-- 'defFlags' = 'Flags'
+--     { 'highlightChanges' = 'True'
+--     , 'applyDirection' = 'LTR'
+--     , 'applyOnceOnly' = 'False'
+--     , 'sporadic' = 'False'
+--     }
+-- @
+--
+-- That is: highlight changes, apply from left to right, apply
+-- repeatedly, and don’t apply sporadically.
 defFlags :: Flags
-defFlags = Flags True LTR False False
+defFlags = Flags
+    { highlightChanges = True
+    , applyDirection = LTR
+    , applyOnceOnly = False
+    , sporadic = False
+    }
 
--- | A single sound change rule: ‘-flags target → replacement \/
--- environment \/ exception’.
+-- | A single sound change rule: in Brassica sound-change syntax with all elements specified,
+-- @-flags target / replacement \/ environment \/ exception@.
+-- (And usually the 'plaintext' of the rule will contain a 'String' resembling that pattern.)
 data Rule = Rule
   { target      :: [Lexeme 'Target]
   , replacement :: [Lexeme 'Replacement]
@@ -153,11 +181,11 @@ data Rule = Rule
   , plaintext   :: String
   } deriving (Show, Generic, NFData)
 
--- | Corresponds to a category declaration in the original sound
+-- | Corresponds to a category declaration in a set of sound
 -- changes. Category declarations are mostly desugared away by the
--- parser, but the applier still needs to know the list of graphemes
--- which were introduced, so that it can filter out all unknown
--- graphemes.
+-- parser, but for rule application we still need to be able to filter
+-- out all unknown t'Grapheme's; thus, a 'CategoriesDecl' lists the
+-- t'Grapheme's which are available at a given point.
 newtype CategoriesDecl = CategoriesDecl { graphemes :: [Grapheme] }
   deriving (Show, Generic, NFData)
 

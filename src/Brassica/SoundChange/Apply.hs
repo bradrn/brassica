@@ -1,16 +1,15 @@
 module Brassica.SoundChange.Apply
        (
        -- * Sound change application
-         applyStatement
-       , applyRuleStr
+         applyRuleStr
        , applyStatementStr
        , applyChanges
        -- * Logging
-       , PWordLog(..)
-       , reportAsHtmlRows
-       , reportAsText
        , applyChangesWithLogs
        , applyChangesWithChanges
+       , PWordLog(..)
+       , reportAsText
+       , reportAsHtmlRows
        ) where
 
 import Brassica.SoundChange.Apply.Internal

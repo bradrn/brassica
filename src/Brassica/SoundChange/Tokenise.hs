@@ -39,21 +39,30 @@ import Text.Megaparsec.Char
 
 import Brassica.SoundChange.Types
 
--- | Represents a component of a tokenised input string. The type
--- variable will usually be something like 'PWord', though it depends
--- on the type of words you’re parsing.
+-- | Represents a component of a tokenised input string. v'Word's in
+-- the input are represented as the type parameter @a@ — which for
+-- this reason will usually, though not always, be 'PWord'.
 data Component a = Word a | Separator String | Gloss String
     deriving (Eq, Show, Functor, Foldable, Traversable, Generic, NFData)
 
--- | Given a tokenised input string, return only the 'PWord's within
+-- | Given a tokenised input string, return only the v'Word's within
 -- it.
 getWords :: [Component a] -> [a]
 getWords = mapMaybe $ \case
     Word a -> Just a
     _ -> Nothing
 
--- | Utility function: insert the given 'String' as 'Separator'
--- between multiple results.
+-- | Given a 'Component' containing multiple values in a v'Word',
+-- split it apart into a list of 'Component's in which the given
+-- 'String' is used as a 'Separator' between multiple results.
+--
+-- For instance:
+--
+-- >>> splitMultipleResults " " (Word ["abc", "def", "ghi"])
+-- [Word "abc", Separator " ", Word "def", Separator " ", Word "ghi"]
+--
+-- >>> splitMultipleResults " " (Word ["abc"])
+-- [Word "abc"]
 splitMultipleResults :: String -> Component [a] -> [Component a]
 splitMultipleResults wh (Word as) = intersperse (Separator wh) $ Word <$> as
 splitMultipleResults _ (Separator w) = [Separator w]
@@ -95,21 +104,38 @@ componentsParser p = many $
 sortByDescendingLength :: [[a]] -> [[a]]
 sortByDescendingLength = sortBy (compare `on` Down . length)
 
--- | Given a list of 'Grapheme's used, tokenise an input word. Note
--- that this tokeniser is greedy: if one of the given 'Grapheme's is a
--- prefix of another, the tokeniser will prefer the longest if possible.
+-- | Tokenise a 'String' input word into a 'PWord' by splitting it up
+-- into t'Grapheme's. A list of available t'Grapheme's is supplied as
+-- an argument.
+--
+-- Note that this tokeniser is greedy: if one of the given
+-- t'Grapheme's is a prefix of another, the tokeniser will prefer the
+-- longest if possible. If there are no matching t'Grapheme's starting
+-- at a particular character in the 'String', 'tokeniseWord' will
+-- treat that character as its own t'Grapheme'. For instance:
+--
+-- >>> tokeniseWord [] "cherish"
+-- Right ["c","h","e","r","i","s","h"]
+-- 
+-- >>> tokeniseWord ["e","h","i","r","s","sh"] "cherish"
+-- Right ["c","h","e","r","i","sh"]
+-- 
+-- >>> tokeniseWord ["c","ch","e","h","i","r","s","sh"] "cherish"
+-- Right ["ch","e","r","i","sh"]
 tokeniseWord :: [Grapheme] -> String -> Either (ParseErrorBundle String Void) PWord
 tokeniseWord (sortByDescendingLength -> gs) = parse (wordParser "[" gs) ""
 
--- | Given a list of 'Grapheme's used, tokenise an input string into a
--- list of words and other 'Component's. This uses the same
--- tokenisation strategy as 'tokeniseWords'.
+-- | Given a list of available t'Grapheme's, tokenise an input string
+-- into a list of words and other 'Component's. This uses the same
+-- tokenisation strategy as 'tokeniseWords', but also recognises
+-- 'Gloss'es (in square brackets) and 'Separator's (in the form of
+-- whitespace).
 tokeniseWords :: [Grapheme] -> String -> Either (ParseErrorBundle String Void) [Component PWord]
 tokeniseWords (sortByDescendingLength -> gs) =
     parse (componentsParser $ wordParser "[" gs) ""
 
--- | Given a function to convert words to strings, converts a list of
--- 'Component's to strings.
+-- | Given a function to convert 'Word's to strings, converts a list
+-- of 'Component's to strings.
 detokeniseWords' :: (a -> String) -> [Component a] -> String
 detokeniseWords' f = concatMap $ \case
     Word gs -> f gs
@@ -122,14 +148,15 @@ detokeniseWords :: [Component PWord] -> String
 detokeniseWords = detokeniseWords' concat
 
 -- | Given a list of sound changes, extract the list of graphemes
--- defined in the first categories declaration.
+-- defined in the first categories declaration of the 'SoundChange's.
 findFirstCategoriesDecl :: SoundChanges -> [Grapheme]
 findFirstCategoriesDecl (CategoriesDeclS (CategoriesDecl gs):_) = gs
 findFirstCategoriesDecl (_:ss) = findFirstCategoriesDecl ss
 findFirstCategoriesDecl [] = []
 
 -- | CPS'd form of 'findFirstCategoriesDecl'. Nice for doing things
--- like @withFirstCategoriesDecl 'tokeniseWords' changes words@ and so
--- on.
+-- like @'withFirstCategoriesDecl' 'tokeniseWords' changes words@ (to
+-- tokenise using the graphemes from the first categories declaration)
+-- and so on.
 withFirstCategoriesDecl :: ([Grapheme] -> t) -> SoundChanges -> t
 withFirstCategoriesDecl tok ss = tok (findFirstCategoriesDecl ss)

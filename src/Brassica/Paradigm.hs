@@ -14,6 +14,7 @@ module Brassica.Paradigm
        , applyParadigm
        -- * Parsing
        , parseParadigm
+       -- ** Re-export
        , errorBundlePretty
        ) where
 

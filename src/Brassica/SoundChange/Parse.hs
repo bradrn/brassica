@@ -8,7 +8,7 @@ module Brassica.SoundChange.Parse
     ( parseRule
     , parseRuleWithCategories
     , parseSoundChanges
-      -- * Re-exports
+      -- ** Re-export
     , errorBundlePretty
     ) where
 
@@ -247,13 +247,13 @@ ruleParser = do
   where
     notNewline c = (c /= '\n') && (c /= '\r')
 
--- | Parse a 'String' to get a 'Rule'. Returns 'Nothing' if the input
--- string is malformed.
+-- | Parse a 'String' in Brassica sound change syntax into a
+-- 'Rule'. Returns 'Left' if the input string is malformed.
 parseRule :: String -> Either (ParseErrorBundle String Void) Rule
 parseRule = parseRuleWithCategories M.empty
 
--- | Same as 'parseRule', but also allows passing in some categories to
--- substitute.
+-- | Same as 'parseRule', but also allows passing in some predefined
+-- categories to substitute.
 parseRuleWithCategories :: C.Categories Grapheme -> String -> Either (ParseErrorBundle String Void) Rule
 parseRuleWithCategories cs s = flip evalState (Config cs) $ runParserT (scn *> ruleParser <* eof) "" s
 

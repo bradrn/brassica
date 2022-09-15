@@ -3,6 +3,11 @@
 {-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE TupleSections   #-}
 
+{-| __Warning:__ This module is __internal__, and does __not__ follow
+  the Package Versioning Policy. It may be useful for extending
+  Brassica, but be prepared to track development closely if you import
+  this module.
+-}
 module Brassica.SoundChange.Frontend.Internal where
 
 import Data.Bifunctor (second)

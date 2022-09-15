@@ -3,12 +3,23 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ViewPatterns #-}
 
+{-| This module contains types and functions for working with the MDF
+  dictionary format, used by programs such as [SIL Toolbox](https://software.sil.org/toolbox/).
+  For more on the MDF format, refer to e.g.
+  [Coward & Grimes (2000), /Making Dictionaries: A guide to lexicography and the Multi-Dictionary Formatter/](http://downloads.sil.org/legacy/shoebox/MDF_2000.pdf).
+-}
 module Brassica.MDF
-       ( MDF(..)
+       (
+       -- * MDF files
+         MDF(..)
        , MDFLanguage(..)
        , fieldLangs
+       -- * Parsing
        , parseMDFRaw
        , parseMDFWithTokenisation
+       -- ** Re-export
+       , errorBundlePretty
+       -- * Conversion
        , componentiseMDF
        , componentiseMDFWordsOnly
        , duplicateEtymologies
@@ -28,13 +39,28 @@ import Data.Maybe (fromMaybe)
 
 -- | An MDF (Multi-Dictionary Formatter) file, represented as a list
 -- of (field marker, whitespace, field value) tuples. The field marker
--- is represented excluding its initial slash; the field value
--- includes all whitespace to the next marker. 'Vernacular' fields
--- have value type @v@, while all other fields are given 'String'
--- values. Whitespace after the field marker is included so that the
--- original MDF file can be precisely recovered, though it has to be a
--- separate field as looking up field markers could be difficult
--- otherwise.
+-- is represented excluding its initial slash; whitespace after the
+-- field marker is also stored, allowing the original MDF file to be
+-- precisely recovered. Field values should includes all whitespace to
+-- the next marker. All field values are stored as 'String's, with the
+-- exception of 'Vernacular' fields, which have type @v@.
+--
+-- For instance, the following MDF file:
+--
+-- > \lx kapa
+-- > \ps n
+-- > \ge parent
+-- > \se sakapa
+-- > \ge father
+--
+-- Could be stored as:
+--
+-- > MDF [ ("lx", " ", Right "kapa\n")
+-- >     , ("ps", " ", Left "n\n")
+-- >     , ("ge", " ", Left "parent\n")
+-- >     , ("se", " ", Right "sakapa\n")
+-- >     , ("ge", " ", Left "father")
+-- >     ]
 newtype MDF v = MDF { unMDF :: [(String, String, Either String v)] }
     deriving (Show, Functor)
 
@@ -56,9 +82,12 @@ entry pv = do
         _ -> Left <$> parseToSlash
     pure (marker, s, value)
 
+-- | Parse an MDF file to an 'MDF', storing the 'Vernacular' fields as 'String's.
 parseMDFRaw :: String -> Either (ParseErrorBundle String Void) (MDF String)
 parseMDFRaw = runParser (fmap MDF $ sc *> many (entry parseToSlash) <* eof) ""
 
+-- | Parse an MDF file to an 'MDF', parsing the 'Vernacular' fields
+-- into 'Component's in the process.
 parseMDFWithTokenisation
     :: [Grapheme]
     -> String
@@ -70,16 +99,17 @@ parseMDFWithTokenisation (sortByDescendingLength -> gs) =
 
 -- | Convert an 'MDF' to a list of 'Component's representing the same
 -- textual content. Vernacular field values are left as is; everything
--- else is treated as a 'Separator' (even though it contains words) so
--- that it is not disturbed by rule application or rendering to text.
+-- else is treated as a 'Separator', so that it is not disturbed by
+-- operations such as rule application or rendering to text.
 componentiseMDF :: MDF [Component a] -> [Component a]
 componentiseMDF = unMDF >>> concatMap \case
     (m, s, Left v) -> [Separator ('\\':m ++ s ++ v)]
     (m, s, Right v) -> Separator ('\\':m ++ s) : v
 
--- | As with 'MDF', but the resulting 'Component's contain vernacular
--- field contents only; all else is discarded. The first parameter
--- specifies the 'Separator' to insert after each vernacular field.
+-- | As with 'componentiseMDF', but the resulting 'Component's contain
+-- the contents of 'Vernacular' fields only; all else is
+-- discarded. The first parameter specifies the 'Separator' to insert
+-- after each vernacular field.
 componentiseMDFWordsOnly :: MDF [Component a] -> [Component a]
 componentiseMDFWordsOnly = unMDF >>> concatMap \case
     (_, _, Right v) -> v

@@ -20,6 +20,11 @@
 {-# LANGUAGE UndecidableInstances  #-}
 {-# LANGUAGE ViewPatterns          #-}
 
+{-| __Warning:__ This module is __internal__, and does __not__ follow
+  the Package Versioning Policy. It may be useful for extending
+  Brassica, but be prepared to track development closely if you import
+  this module.
+-}
 module Brassica.SoundChange.Apply.Internal
        ( -- * Types
          RuleTag(..)
@@ -239,7 +244,7 @@ exceptionAppliesAtPoint target (ex1, ex2) mz = fmap fst $ flip runRuleAp mz $ do
 
 -- | Given a 'Rule', determine if that rule matches. If so, for each
 -- match, set the appropriate 'RuleTag's and return a tuple of @(is,
--- gs)@, where @gs@ is a list of matched 'Grapheme's, and @is@ is a
+-- gs)@, where @gs@ is a list of matched t'Grapheme's, and @is@ is a
 -- list of indices, one for each 'Category' lexeme matched.
 matchRuleAtPoint
     :: Rule
@@ -275,7 +280,7 @@ applyOnce r@Rule{target, replacement, exception} = do
                     return True
         Nothing -> return False
 
--- | Remove tags and advance the current index to the next 'Grapheme'
+-- | Remove tags and advance the current index to the next t'Grapheme'
 -- after the rule application.
 setupForNextApplication :: Bool -> Rule -> MultiZipper RuleTag Grapheme -> Maybe (MultiZipper RuleTag Grapheme)
 setupForNextApplication success r@Rule{flags=Flags{applyDirection}} = fmap untag .
@@ -326,20 +331,20 @@ applyStatement :: Statement -> MultiZipper RuleTag Grapheme -> [MultiZipper Rule
 applyStatement (RuleS r) mz = applyRule r mz
 applyStatement (CategoriesDeclS gs) mz = [checkGraphemes gs mz]
 
--- | Apply a 'Rule' to a word. This is a simple wrapper around
--- 'applyRule'.
+-- | Apply a single 'Rule' to a word.
 --
 -- Note: duplicate outputs from this function are removed. To keep
--- duplicates, use 'applyRule' directly.
+-- duplicates, use the lower-level internal function 'applyRule'
+-- directly.
 applyRuleStr :: Rule -> PWord -> [PWord]
 -- Note: 'fromJust' is safe here as 'apply' should always succeed
 applyRuleStr r s = nubOrd $ fmap toList $ applyRule r $ fromListStart s
 
--- | Apply a 'Statement' to a word. This is a simple wrapper around
--- 'applyStatement'.
+-- | Apply a single 'Statement' to a word.
 --
--- Note: duplicate outputs from this function are removed. To keep
--- duplicates, use 'applyStatement' directly.
+-- Note: as with 'applyRuleStr', duplicate outputs from this function
+-- are removed. To keep duplicates, use the lower-level internal
+-- function 'applyStatement' directly.
 applyStatementStr :: Statement -> PWord -> [PWord]
 applyStatementStr st s = nubOrd $ fmap toList $ applyStatement st $ fromListStart s
 
@@ -352,11 +357,14 @@ data LogItem r = ActionApplied
     , output :: PWord
     } deriving (Show, Functor, Generic, NFData)
 
--- | A single component of an ‘applied rules’ table, which collates
--- action applications by the word they are applied to.
+-- | Logs the evolution of a 'PWord' as various actions are applied to
+-- it. The actions (usually 'Statement's) are of type @r@.
 data PWordLog r = PWordLog
     { initialWord :: PWord
+    -- ^ The initial word, before any actions have been applied
     , derivations :: [(PWord, r)]
+    -- ^ The state of the word after each action @r@, stored alongside
+    -- the action which was applied at each point
     } deriving (Show, Functor, Generic, NFData)
 
 toPWordLog :: [LogItem r] -> Maybe (PWordLog r)
@@ -366,7 +374,21 @@ toPWordLog ls@(l : _) = Just $ PWordLog
     , derivations = (\ActionApplied{..} -> (output, action)) <$> ls
     }
 
--- | Render a single 'PWordLog' to HTML table rows.
+-- | Render a single 'PWordLog' to rows of an HTML table. For
+-- instance, the example log given in the documentation for
+-- 'reportAsText' would be converted to the following HTML:
+--
+-- > "<tr><td>tara</td><td>&rarr;</td><td>tazha</td><td>(r / zh)</td></tr><tr><td></td><td>&rarr;</td><td>tazh</td><td>(V / / _ #)</td></tr>"
+--
+-- Which might be displayed in an HTML table as something like the
+-- following:
+--
+-- +------+---+-------+-------------+ 
+-- | tara | → | tazha | (r / zh)    |
+-- +------+---+-------+-------------+ 
+-- |      | → | tazh  | (V / / _ #) |
+-- +------+---+-------+-------------+ 
+
 reportAsHtmlRows :: (r -> String) -> PWordLog r -> String
 reportAsHtmlRows render item = go (concat $ initialWord item) (derivations item)
   where
@@ -377,7 +399,21 @@ reportAsHtmlRows render item = go (concat $ initialWord item) (derivations item)
          ++ "</td><td>(" ++ render action ++ ")</td></tr>")
         ++ go "" ds
 
--- | Render a single 'PWordLog' to plain text.
+-- | Render a single 'PWordLog' to plain text. For instance, this log:
+--
+-- > PWordLog
+-- >   { initialWord = ["t", "a", "r", "a"]
+-- >   , derivations =
+-- >     [ (["t", "a", "zh", "a"], "r / zh")
+-- >     , (["t", "a", "zh"], "V / / _ #")
+-- >     ]
+-- >   }
+--
+-- Would render as:
+--
+-- > tara
+-- >   -> tazha  (r / zh)
+-- >   -> tazh   (V / / _ #)
 reportAsText :: (r -> String) -> PWordLog r -> String
 reportAsText render item = unlines $
     concat (initialWord item) : fmap toLine (alignWithPadding $ derivations item)
@@ -413,10 +449,7 @@ applyChangesWithLog (st:sts) w =
 applyChangesWithLogs :: SoundChanges -> PWord -> [PWordLog Statement]
 applyChangesWithLogs scs w = mapMaybe toPWordLog $ applyChangesWithLog  scs w
 
--- | Apply 'SoundChanges' to a word, returning the final results
--- without any logs.
---
--- (This is a simple wrapper around 'applyChangesWithLogs'.)
+-- | Apply a set of 'SoundChanges' to a word.
 applyChanges :: SoundChanges -> PWord -> [PWord]
 applyChanges sts w =
     lastOutput <$> applyChangesWithLog sts w
