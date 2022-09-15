@@ -33,7 +33,9 @@ library
                  , Brassica.SoundChange.Types
                  , Brassica.MDF
                  , Brassica.Paradigm
+  other-modules:   Brassica.Paradigm.Apply
                  , Brassica.Paradigm.Parse
+                 , Brassica.Paradigm.Types
   hs-source-dirs:   src
   ghc-options:      -Wall
   build-depends:

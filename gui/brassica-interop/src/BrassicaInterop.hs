@@ -12,8 +12,7 @@ import GHC.IO.Encoding (utf8)
 
 import Brassica.SoundChange
 import Brassica.SoundChange.Frontend.Internal
-import Brassica.Paradigm (build)
-import Brassica.Paradigm.Parse
+import Brassica.Paradigm (applyParadigm, parseParadigm)
 
 parseTokeniseAndApplyRules_hs
     :: CString     -- ^ changes
@@ -72,7 +71,7 @@ parseAndBuildParadigm_hs pRaw wsRaw = do
     wsText <- GHC.peekCString utf8 wsRaw
     case parseParadigm pText of
         Left e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
-        Right p -> GHC.newCString utf8 $ escape $ unlines $ build p $ lines wsText
+        Right p -> GHC.newCString utf8 $ escape $ unlines $ concatMap (applyParadigm p) $ lines wsText
 
 escape :: String -> String
 escape = concatMap $ \case

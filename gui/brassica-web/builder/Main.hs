@@ -11,8 +11,7 @@ import Text.Hamlet (shamlet)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 
-import Brassica.Paradigm (build)
-import Brassica.Paradigm.Parse (parseParadigm, errorBundlePretty)
+import Brassica.Paradigm (applyParadigm, parseParadigm, errorBundlePretty)
 import Common
     
 intro :: T.Text
@@ -30,7 +29,7 @@ buildParadigm :: T.Text -> T.Text -> T.Text
 buildParadigm pText ws =
     case parseParadigm (T.unpack pText) of
         Left e -> "<pre>" <> T.pack (errorBundlePretty e) <> "</pre>"
-        Right p -> T.intercalate "<br>" $ fmap T.pack $ build p $ lines $ T.unpack ws
+        Right p -> T.intercalate "<br>" $ fmap T.pack $ concatMap (applyParadigm p) $ lines $ T.unpack ws
 
 main :: IO ()
 main = mainWidgetWithCss style $ el "div" $ do

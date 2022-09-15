@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Paradigm where
 
 import Criterion.Main (bench, nf, defaultMain)
@@ -11,6 +13,8 @@ main = defaultMain
     , bench "mid2"  $ nf (build largeParadigm) smallWords
     , bench "large" $ nf (build largeParadigm) largeWords
     ]
+  where
+    build = concatMap . applyParadigm
 
 smallParadigm :: Paradigm
 smallParadigm =

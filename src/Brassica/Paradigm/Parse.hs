@@ -1,8 +1,4 @@
-module Brassica.Paradigm.Parse
-       ( parseParadigm
-         -- * Re-exports
-       , errorBundlePretty
-       ) where
+module Brassica.Paradigm.Parse (parseParadigm) where
 
 import Control.Monad (void)
 import Data.Char (isSpace)
@@ -12,7 +8,7 @@ import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
-import Brassica.Paradigm
+import Brassica.Paradigm.Types
 import Data.Maybe (fromMaybe)
 
 type Parser = Parsec Void String
@@ -52,14 +48,16 @@ affix :: Parser Affix
 affix = oneOrMany process
 
 grammeme :: Parser Grammeme
-grammeme = Concrete <$> affix <|> Abstract <$> name
+grammeme =
+    Concrete <$> affix
+    <|> Abstract . AbstractGrammeme <$> name
 
 condition :: Parser Condition
 condition = do
     _ <- symbol "when"
     between (symbol "(") (symbol ")") $
-        try (Is <$> name <* symbol "is" <*> grammeme)
-        <|> Not <$> name <* symbol "not" <*> grammeme
+        try (Is . FeatureName <$> name <* symbol "is" <*> grammeme)
+        <|> Not . FeatureName <$> name <* symbol "not" <*> grammeme
 
 feature :: Parser Feature
 feature = do
@@ -70,15 +68,15 @@ feature = do
             n <- optional $ try $ name <* symbol "="
             gs <- some grammeme
             _ <- optional eol
-            return $ Feature c n gs
+            return $ Feature c (FeatureName <$> n) gs
         Just globalSlot' -> do
             n <- optional $ try $ name <* symbol "="
             gs <- some $ oneOrMany $ process <|> (globalSlot' <$> morphValue)
             _ <- optional eol
-            return $ Feature c n (Concrete <$> gs)
+            return $ Feature c (FeatureName <$> n) (Concrete <$> gs)
 
-mapping :: Parser ([String], Affix)
-mapping = (,) <$> manyTill name (symbol ">") <*> affix <* optional eol
+mapping :: Parser ([AbstractGrammeme], Affix)
+mapping = (,) <$> manyTill (AbstractGrammeme <$> name) (symbol ">") <*> affix <* optional eol
 
 statement :: Parser Statement
 statement = sc *>
