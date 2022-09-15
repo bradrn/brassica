@@ -8,8 +8,6 @@ import Data.Text (unpack)
 import Data.Text.Encoding (decodeUtf8)
 
 import Brassica.SoundChange
-import Brassica.SoundChange.Parse (parseSoundChanges)
-import Brassica.SoundChange.Types
 
 main :: IO ()
 main = defaultMain
@@ -34,8 +32,10 @@ main = defaultMain
     , bgroup "many"
       [ bench "parse" $ nf parseSoundChanges manyChanges
       , bench "parseRun" $ case parseSoundChanges manyChanges of
-            Right cs -> nf (parseTokeniseAndApplyRules cs manyWords Raw Normal (ApplyRules NoHighlight WordsOnlyOutput)) Nothing
-            Left _ -> error "invalid file"
+            Left _ -> error "invalid changes file"
+            Right cs -> case withFirstCategoriesDecl tokeniseWords cs manyWords of
+                Left _ -> error "invalid words file"
+                Right ws -> nf (fmap $ applyChanges cs) $ getWords ws
       ]
     ]
   where
@@ -68,8 +68,9 @@ main = defaultMain
         }
 
     benchChanges cs l =
-        [ bench "log" $ nf (applyStatementWithLog (RuleS cs)) l
-        , bench "nolog" $ nf (applyChanges        [RuleS cs]) l
+        -- [ bench "log" $ nf (applyStatementWithLogs (RuleS cs)) l
+        -- given the implementation of logging, the above benchmark doesn't help very much at all
+        [ bench "nolog" $ nf (applyChanges [RuleS cs]) l
         ]
 
 manyChanges :: String

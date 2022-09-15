@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Paradigm where
+module Main where
 
 import Criterion.Main (bench, nf, defaultMain)
 
