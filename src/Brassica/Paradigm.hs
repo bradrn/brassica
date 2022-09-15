@@ -15,22 +15,24 @@ import Data.List (sortOn)
 import Data.Maybe (mapMaybe)
 import Data.Ord (Down(Down))
 
--- | Represents a single morphophonological process: either
--- prefixation or suffixation. The 'Int' argument represents distance
--- from the root.
+-- | Represents a single morphophonological process: currently, either
+-- prefixation or suffixation of a 'String'. The 'Int' gives the
+-- distance of the affix from the root.
 data Process
     = Prefix Int String
     | Suffix Int String
     deriving (Show, Eq)
 
--- | A single affix (using the term in a wide sense, to include
--- circumfixes etc.) can be thought of as a list of morphophonological
--- processes, with the zero list representing a zero affix.
+-- | A single affix (using the term in a wide sense) can be thought of
+-- as a list of morphophonological processes. For instance, the Berber
+-- feminine circumfix /t-/…/-t/ might be represented as
+-- @['Prefix' 1 "t", 'Suffix' 1 "t"] :: 'Affix'@.
 type Affix = [Process]
 
--- | A 'Grammeme' represents one value of a grammatical feature, for
--- instance past, or dual. This can either be a 'Concrete' affix, or
--- an 'Abstract' feature as realised in a cumulative morph or similar.
+-- | A 'Grammeme' represents one value of a grammatical feature: for
+-- instance past, or dual. This can be realised as a 'Concrete' affix,
+-- or can be left 'Abstract' so that it can be encoded in a cumulative
+-- morph or similar.
 --
 -- (The name is from Wikipedia; it doesn’t seem widely-used, but I can
 -- find no better for this concept.)
@@ -52,7 +54,8 @@ data Condition
 
 -- | A grammatical feature, which may be realised by one of a
 -- selection of 'Grammeme's. A feature may be given a descriptive
--- name and a condition which must be satisfied.
+-- name, as well as a condition which must be satisfied for the
+-- 'Feature' to be included in a word.
 data Feature = Feature Condition (Maybe String) [Grammeme]
     deriving (Show, Eq)
 
@@ -69,8 +72,8 @@ data Statement = NewFeature Feature | NewMapping [String] Affix
 -- and so on.)
 type Paradigm = [Statement]
 
--- | Given a 'Paradigm', build the paradigm by applying it to each
--- root in a list of roots.
+-- | Apply the given 'Paradigm' to each root in the given list. A
+-- simple wrapper around 'applyParadigm'.
 build :: Paradigm -> [String] -> [String]
 build p ws = ws >>= applyParadigm p
 
