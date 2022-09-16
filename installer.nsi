@@ -2,7 +2,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "Brassica"
-!define PRODUCT_VERSION "0.0.2"
+!define PRODUCT_VERSION "0.0.3"
 !define PRODUCT_WEB_SITE "https://github.com/bradrn/brassica"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\brassica-gui.exe"
 !define PRODUCT_DIR_REGKEY_CMD "Software\Microsoft\Windows\CurrentVersion\App Paths\brassica.exe"

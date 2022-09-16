@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("bradrn");
     QCoreApplication::setOrganizationDomain("bradrn.com");
     QCoreApplication::setApplicationName("Brassica");
-    QCoreApplication::setApplicationVersion("0.0.2");
+    QCoreApplication::setApplicationVersion("0.0.3");
 
 //    BrassicaProcess *proc = new BrassicaProcess();
 //    if (!proc->startupCorrect())

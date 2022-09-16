@@ -96,7 +96,7 @@ intro = TL.toStrict $ renderHtml [shamlet|
 <h1>Brassica: online version
 <p>
     Brassica is an advanced sound change applier with features including multigraphs and phonetic categories. #
-    \ This page runs <b>Brassica 0.0.2</b>. #
+    \ This page runs <b>Brassica 0.0.3</b>. #
 <p>
     You are currently on the <b>online version</b> of Brassica. #
     \ You may also want to try the standalone desktop interface, which may be downloaded from the <a href="https://github.com/bradrn/brassica">GitHub repository</a>. #
