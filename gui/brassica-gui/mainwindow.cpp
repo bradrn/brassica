@@ -135,10 +135,10 @@ void MainWindow::setupMenuBar()
     fileMenu->addAction("Open lexicon", this, &MainWindow::openLexicon, QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_O));
     fileMenu->addAction("Save lexicon", this, &MainWindow::saveLexicon, QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S));
     fileMenu->addAction("Save lexicon as", this, &MainWindow::saveLexiconAs);
-    fileMenu->addAction("Options...", this, &MainWindow::editSettings);
 
     QMenu *toolsMenu = menuBar()->addMenu("&Tools");
     toolsMenu->addAction("Paradigm builder", this, &MainWindow::showParadigmBuilder);
+    toolsMenu->addAction("Options...", this, &MainWindow::editSettings);
 }
 
 QVBoxLayout *MainWindow::mkLayoutWithContainer(QSplitter *splitter)
