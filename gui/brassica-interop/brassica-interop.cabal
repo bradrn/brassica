@@ -5,7 +5,7 @@ version:             0.1.0.0
 license:             BSD3
 -- license-file:        LICENSE
 author:              Brad Neimann
-copyright:           2021 Brad Neimann
+copyright:           2021-2022 Brad Neimann
 category:            Web
 build-type:          Simple
 -- extra-source-files:  README.md
