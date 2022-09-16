@@ -105,7 +105,7 @@ intro = TL.toStrict $ renderHtml [shamlet|
     \ It is also somewhat slow. #
     \ However, otherwise it should be fully compatible with the desktop version of Brassica.
 <p>
-    For more information on how to use Brassica, see the <a href="https://github.com/bradrn/brassica/blob/211b9c3e9ad97ab509d41847610d7c6a37e5d1fc/Documentation.md">official documentation</a>.
+    For more information on how to use Brassica, see the <a href="https://github.com/bradrn/brassica/blob/v0.0.3/Documentation.md">official documentation</a>.
 |]
 
 main :: IO ()
