@@ -1,11 +1,11 @@
 cabal-version:      2.0
 name:               brassica
 version:            0.1.0.0
-synopsis:           A sound change applier.
+synopsis:           Featureful sound change applier
 description:
-  Please see the README on GitHub at <https://github.com/githubuser/brassica#readme>
+  Please see the README on GitHub at <https://github.com/bradrn/brassica#readme>.
 
-category:
+category:           Linguistics
 homepage:           https://github.com/bradrn/brassica#readme
 bug-reports:        https://github.com/bradrn/brassica/issues
 author:             Brad Neimann
@@ -15,7 +15,11 @@ license-file:       LICENSE
 build-type:         Simple
 extra-source-files:
   README.md
-  -- ChangeLog.md
+  BUILDING.md
+  ARCHITECTURE.md
+  ChangeLog.md
+  examples/*.bsc
+  examples/*.lex
 
 source-repository head
   type:     git
