@@ -3,7 +3,8 @@ name:               brassica
 version:            0.0.3
 synopsis:           Featureful sound change applier
 description:
-  Please see the README on GitHub at <https://github.com/bradrn/brassica#readme>.
+  The Brassica library for the simulation of sound changes in historical linguistics and language construction.
+  For further details, please refer to the README below or at <https://github.com/bradrn/brassica#readme>.
 
 category:           Linguistics
 homepage:           https://github.com/bradrn/brassica#readme
