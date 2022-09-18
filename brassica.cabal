@@ -16,11 +16,7 @@ license-file:       LICENSE
 build-type:         Simple
 extra-source-files:
   README.md
-  BUILDING.md
-  ARCHITECTURE.md
   ChangeLog.md
-  examples/*.bsc
-  examples/*.lex
 
 source-repository head
   type:     git
