@@ -249,6 +249,8 @@ ruleParser = do
 
 -- | Parse a 'String' in Brassica sound change syntax into a
 -- 'Rule'. Returns 'Left' if the input string is malformed.
+--
+-- For details on the syntax, refer to <https://github.com/bradrn/brassica/blob/v0.0.3/Documentation.md#basic-rule-syntax>.
 parseRule :: String -> Either (ParseErrorBundle String Void) Rule
 parseRule = parseRuleWithCategories M.empty
 
