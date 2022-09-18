@@ -9,6 +9,7 @@ category:           Linguistics
 homepage:           https://github.com/bradrn/brassica#readme
 bug-reports:        https://github.com/bradrn/brassica/issues
 author:             Brad Neimann
+maintainer:         Brad Neimann
 copyright:          2020-2022 Brad Neimann
 license:            BSD3
 license-file:       LICENSE
