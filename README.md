@@ -1,9 +1,11 @@
 # Brassica
 
+[![Hackage](https://img.shields.io/hackage/v/brassica.svg?logo=haskell)](https://hackage.haskell.org/package/brassica)
+
 Brassica is a new sound change applier.
 Its features include:
 
-- Can be used interactively both [online](http://bradrn.com/brassica/index.html) and as a desktop application, or non-interactively in batch mode on the command-line or as a Haskell library
+- Can be used interactively both [online](http://bradrn.com/brassica/index.html) and as a desktop application, or non-interactively in batch mode on the command-line or as a [Haskell library](https://hackage.haskell.org/package/brassica)
 - Natively supports the MDF dictionary format, also used by tools including [SIL Toolbox](https://software.sil.org/toolbox/) and [Lexique Pro](https://software.sil.org/lexiquepro/)
 - First-class support for multigraphs
 - Easy control over rule application: apply sound changes sporadically, right-to-left, and in many more ways
