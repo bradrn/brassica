@@ -37,8 +37,9 @@ Whereas most other examples focus on calling C from Haskell, this is a Haskell c
 (Well, C++ really, but it works the same way given that C++ is a near-superset of C.)
 Broadly speaking, three methods are available to accomplish this:
   interprocess communication, dynamic linking and static linking.
-The first can be brittle and the second is unavailable on Windows,
-  so this component is built as a static library to be linked into C.
+The first can be brittle, leaving the second and third as options.
+
+On Windows, dynamic linking is unavailable, so this component is built as a static library to be linked into C.
 This is accomplished using GHC options `-stubdir stub -o brassica-interop.a -static -optl-static -staticlib`.
 (Explanation: `-stubdir stub` places stub header files in a directory `stub`,
   `-o brassica-interop.a` names the output static library,
@@ -47,6 +48,17 @@ This is accomplished using GHC options `-stubdir stub -o brassica-interop.a -sta
 This component consists only of one module `BrassicaInterop.hs` containing foreign exports,
   because GHC [seems to choke](https://www.reddit.com/r/haskell/comments/mlsjmm/ghcexe_cant_apply_o_to_multiple_source_files/)
     on creating a static library with two or more modules.
+
+On Linux, (position-independent) static linking is [reportedly unavailable](https://verduria.org/viewtopic.php?p=51343#p51343),
+  so this component is built as a dynamic library instead.
+This is accomplished using GHC options `-stubdir stub -o libbrassica-interop.so -dynamic -shared -fPIC -fPIE`.
+(Explanation: `-stubdir` and `-o` are as before,
+  `-dynamic` builds for dynamic linking,
+  `-shared` builds the current target as a shared library,
+  and `-fPIC -fPIE` make it position-independent.)
+One wrinkle here is that the [RUNPATH](https://en.wikipedia.org/wiki/Rpath) of the resulting library is hardcoded,
+  meaning it is not redistributable;
+  see the [building guide](./BUILDING.md) for a workaround.
 
 The exact design of the foreign interface also deserves comment.
 Only a limited set of types may be passed between C and Haskell with any degree of ease:

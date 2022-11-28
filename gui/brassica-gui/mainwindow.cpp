@@ -129,11 +129,11 @@ void MainWindow::setupWidgets(QWidget *central)
 void MainWindow::setupMenuBar()
 {
     QMenu *fileMenu = menuBar()->addMenu("&File");
-    fileMenu->addAction("Open rules", this, &MainWindow::openRules, QKeySequence(Qt::CTRL + Qt::Key_O));
-    fileMenu->addAction("Save rules", this, &MainWindow::saveRules, QKeySequence(Qt::CTRL + Qt::Key_S));
+    fileMenu->addAction("Open rules", this, &MainWindow::openRules, QKeySequence(Qt::CTRL | Qt::Key_O));
+    fileMenu->addAction("Save rules", this, &MainWindow::saveRules, QKeySequence(Qt::CTRL | Qt::Key_S));
     fileMenu->addAction("Save rules as", this, &MainWindow::saveRulesAs);
-    fileMenu->addAction("Open lexicon", this, &MainWindow::openLexicon, QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_O));
-    fileMenu->addAction("Save lexicon", this, &MainWindow::saveLexicon, QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S));
+    fileMenu->addAction("Open lexicon", this, &MainWindow::openLexicon, QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_O));
+    fileMenu->addAction("Save lexicon", this, &MainWindow::saveLexicon, QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_S));
     fileMenu->addAction("Save lexicon as", this, &MainWindow::saveLexiconAs);
 
     QMenu *toolsMenu = menuBar()->addMenu("&Tools");

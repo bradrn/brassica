@@ -3,6 +3,7 @@ dist-*/
 *~
 *.exe
 *.a
+*.so
 electron/node_modules
 electron/static
 gui/build*
