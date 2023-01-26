@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE KindSignatures   #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE RecordWildCards  #-}
 {-# LANGUAGE TypeApplications #-}
 
@@ -57,7 +58,13 @@ symbol :: String -> Parser String
 symbol = L.symbol sc
 
 keyChars :: [Char]
-keyChars = "#[](){}>\\→/_^%~*"
+keyChars = "#[](){}>\\→/_^%~*@"
+
+nonzero :: Parser Int
+nonzero = label "nonzero postive number" $ try $ do
+    n <- lexeme L.decimal
+    guard $ n>0
+    pure n
 
 parseGrapheme :: Parser (Grapheme, Bool)
 parseGrapheme = lexeme $ (,) <$> takeWhile1P Nothing (not . ((||) <$> isSpace <*> (`elem` keyChars))) <*> (isJust <$> optional (char '~'))
@@ -82,10 +89,13 @@ parseGraphemeOrCategory = do
                 Just c  -> Category $ C.bake $ GraphemeEl <$> c
 
 parseCategory :: ParseLexeme a => Parser (Lexeme a)
-parseCategory = do
+parseCategory = Category <$> parseCategory'
+
+parseCategory' :: ParseLexeme a => Parser [CategoryElement a]
+parseCategory' = do
     mods <- symbol "[" *> someTill parseCategoryModification (symbol "]")
     cats <- gets categories
-    return $ Category $ C.bake $
+    return $ C.bake $
         C.expand (C.mapCategories GraphemeEl cats) (toCategory mods)
 
 parseCategoryStandalone :: Parser (Grapheme, C.Category 'C.Expanded Grapheme)
@@ -171,12 +181,29 @@ parseDiscard = Discard <$ symbol "~"
 parseKleene :: OneOf a 'Target 'Env => Lexeme a -> Parser (Lexeme a)
 parseKleene l = (Kleene l <$ symbol "*") <|> pure l
 
+parseMultiple :: Parser (Lexeme 'Replacement)
+parseMultiple = Multiple <$> (symbol "@?" *> parseCategory')
+
+parseBackreference
+    :: (OneOf a 'Target 'Replacement, ParseLexeme a)
+    => Parser (Lexeme a)
+parseBackreference =
+    Backreference
+    <$> (symbol "@" *> nonzero)
+    <*> (parseCategory' <|> parseGraphemeCategory)
+  where
+    parseGraphemeCategory = label "category" $ try $
+        parseGraphemeOrCategory >>= \case
+            Category gs -> pure gs
+            _ -> empty
+
 instance ParseLexeme 'Target where
     parseLexeme = asum
         [ parseCategory
         , parseOptional
         , parseGeminate
         , parseWildcard
+        , parseBackreference
         , parseGraphemeOrCategory
         ] >>= parseKleene
     parseCategoryElement = GraphemeEl . fst <$> parseGrapheme
@@ -188,6 +215,8 @@ instance ParseLexeme 'Replacement where
         , parseMetathesis
         , parseDiscard
         , parseGeminate
+        , parseMultiple
+        , parseBackreference
         , parseGraphemeOrCategory
         ]
     parseCategoryElement = GraphemeEl . fst <$> parseGrapheme

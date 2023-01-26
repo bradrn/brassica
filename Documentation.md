@@ -485,6 +485,78 @@ Arbitrarily many exceptions can be specified using the same syntax; the rule wil
 Brassica has no such restriction.
 Any element, even optional elements or wildcards, can be used in an exception in Brassica.)
 
+### Backreferences
+
+Recall that Brassica matches up each category in the target to the corresponding category in the replacement,
+  going in order from left to right.
+Thus, a rule `[p t k] [m n ŋ] / [m n ŋ] [p t k]` will change ⟨pŋ⟩ to ⟨mk⟩ and ⟨tm⟩ to ⟨np⟩.
+We can picture this as follows:
+```
+[p t k] [m n ŋ] / [m n ŋ] [p t k]
+───┬─── ───╥───   ───┬─── ───╥───
+   │       ║         │       ║
+   │       ╚═════════╪═══════╝
+   └─────────────────┘
+```
+(NB. If the picture looks wonky, try copying it into Notepad or a similar text editing application.)
+
+However, this is sometimes inconvenient.
+For instance, consider the cross-linguistically common sound change converting V₁ʔC to V₁ʔV₁C
+  (where of course V and C are vowels and consonants respectively).
+Though not impossible, this is difficult to write using only the syntax covered above.
+A rule like `V ʔ / V ʔ V / _ C` fails, since the second `V` in the replacement has no corresponding category in the target:
+```
+V ʔ / V ʔ V / _ C
+┬     ┬   ┬
+└─────┘   │
+          ?
+```
+
+‘Backreferences’ provide a way to express such rules.
+To create a backreference, write <code>@<i>n</i></code> before a category, where <code><i>n</i></code> is any number greater than 0.
+This indicates to Brassica that it should associate that category with the <code><i>n</i></code>th category in the target.
+Thus, we can write the desired rule as `V ʔ / @1 V ʔ @1 V / _ C`,
+  explicitly associating both categories in the replacement with the first category in the target:
+```
+V ʔ / V ʔ V / _ C
+┬     ┬   ┬
+├─────┘   │
+└─────────┘
+```
+
+Of course, we are not limited to using the same category on both sides.
+For instance, the following rule will cause a nasal to assimilate in place of articulation to a following voiced stop,
+  by associating the nasal category in the replacement with the stop category in the target:
+```
+[m n ŋ] [b d g] / @2 [m n n] @2 [b d g]
+───┬─── ───╥───   ─────╥──── ─────╥────
+           ╠═══════════╝          ║
+           ╚══════════════════════╝
+```
+
+Backreferences can also be used in the target, in which case they match repeated or corresponding graphemes.
+For instance, consider a rule deleting ⟨ə⟩ between identical consonants.
+This may be written:
+```
+C ə @1 C / C @1 C
+┬   ──┬─   ┬ ──┬─
+├─────┘    │   │
+├──────────┘   │
+└──────────────┘
+```
+(Note the use of backreferences in the replacement too!
+Otherwise the second `C` in the replacement would not be associated with anything in the target.)
+
+Similarly, consider a rule converting homorganic nasal + voiceless stop sequences to prenasalised stops
+  (e.g. ⟨nt⟩→⟨ⁿd⟩, but ⟨mt⟩ doesn’t change).
+This may be written as:
+```
+[m n ŋ] @1 [p t k] / [ᵐb ⁿd ⁿg]
+───┬─── ─────┬────   ─────┬────
+   ├─────────┘            │
+   └──────────────────────┘
+```
+
 ### Sporadic rules and multiple results
 
 On some occasions we might want a sound change rule to have more than one output at a time.
@@ -500,7 +572,7 @@ This allows us to manually inspect both outputs, so we can decide which one we p
 
 We can also produce rules with two or more different outputs, all of which are different to the input.
 We can do this using categories and optional elements in the replacement which cannot be matched with any in the target.
-Recall that if categories or optional elements are used in the replacement,
+As mentioned above, if categories or optional elements are used in the replacement,
   Brassica will attempt to match them with corresponding elements in the target.
 Thus, for instance, `[ɪ ʊ] (q) / [i u] (k) / _ #` will convert ⟨nɪ⟩→⟨ni⟩ and ⟨lʊq⟩→⟨luk⟩.
 However, if an output element is found with no corresponding input element, Brassica will instead produce *all possible* outputs.
@@ -510,6 +582,8 @@ oː / [uː ʊ ʌ]
 u / [ʌ ʊ]
 ```
 (though the reality is [somewhat more complex](https://en.wikipedia.org/wiki/Phonological_history_of_English_close_back_vowels)).
+This behaviour can also be forced by adding `@?` before a category:
+  thus `[i u] / @? [i u]` will output both ⟨i⟩ and ⟨u⟩ for any high vowel in the input.
 
 Rarely, Brassica will produce multiple results even when this is not explicitly specified.
 This occurs when there is more than one way to apply a given rule to a particular word.

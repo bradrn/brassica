@@ -6,7 +6,7 @@ RulesHighlighter::RulesHighlighter(QTextDocument *parent)
     QTextCharFormat specialCharsFormat;
     specialCharsFormat.setForeground(QColor(0, 0, 255));
     formats.append(specialCharsFormat);
-    patterns.append(QRegularExpression(R"(>|#|\(|\)|{|}|\\|\^|%|~|\*|categories|end|new|feature)"));
+    patterns.append(QRegularExpression(R"(>|#|\(|\)|{|}|\\|\^|%|~|\*|categories|end|new|feature|@[0-9]+|@\?)"));
 
     QTextCharFormat separatorFormat;
     separatorFormat.setFontWeight(QFont::Bold);

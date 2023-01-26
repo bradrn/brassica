@@ -31,6 +31,7 @@ module Brassica.SoundChange.Apply.Internal
        -- * Lexeme matching
        , match
        , matchMany
+       , matchMany'
        , mkReplacement
        , exceptionAppliesAtPoint
        , matchRuleAtPoint
@@ -120,8 +121,8 @@ data MatchOutput = MatchOutput
 modifyMatchedGraphemes :: ([Grapheme] -> [Grapheme]) -> MatchOutput -> MatchOutput
 modifyMatchedGraphemes f MatchOutput{..} = MatchOutput{matchedGraphemes=f matchedGraphemes, ..}
 
-prependGrapheme :: Grapheme -> MatchOutput -> MatchOutput
-prependGrapheme g = modifyMatchedGraphemes (g:)
+appendGrapheme :: MatchOutput -> Grapheme -> MatchOutput
+appendGrapheme out g = modifyMatchedGraphemes (++[g]) out
 
 instance Semigroup MatchOutput where
     (MatchOutput a1 b1 c1) <> (MatchOutput a2 b2 c2) = MatchOutput (a1++a2) (b1++b2) (c1++c2)
@@ -130,40 +131,51 @@ instance Semigroup MatchOutput where
 -- 'MultiZipper' past the match. For each match found, returns the
 -- 'MatchOutput' tupled with the updated 'MultiZipper'.
 match :: OneOf a 'Target 'Env
-      => Maybe Grapheme       -- ^ The previously-matched grapheme, if any. (Used to match a 'Geminate'.)
+      => MatchOutput          -- ^ The previous 'MatchOutput'
+      -> Maybe Grapheme       -- ^ The previously-matched grapheme, if any. (Used to match a 'Geminate'.)
       -> Lexeme a             -- ^ The lexeme to match.
       -> MultiZipper t Grapheme   -- ^ The 'MultiZipper' to match against.
       -> [(MatchOutput, MultiZipper t Grapheme)]
-      -- ^ The output: a tuple @((i, g), mz)@ as described below.
-match prev (Optional l) mz =
-    (MatchOutput [] [False] [], mz) :
-    (first (MatchOutput [] [True] [] <>) <$> matchMany prev l mz )
-match prev w@(Wildcard l) mz = case match prev l mz of
+      -- ^ The output: a tuple @(g, mz)@ as described below.
+match out prev (Optional l) mz =
+    (out <> MatchOutput [] [False] [], mz) :
+    matchMany (out <> MatchOutput [] [True] []) prev l mz
+match out prev w@(Wildcard l) mz = case match out prev l mz of
     [] -> maybeToList (consume mz) >>= \(g, mz') ->
-        first (prependGrapheme g) <$> match prev w mz'
+        match (appendGrapheme out g) prev w mz'
     r -> r
-match prev k@(Kleene l) mz = case match prev l mz of
+match out prev k@(Kleene l) mz = case match out prev l mz of
     [] -> [(MatchOutput [] [] [], mz)]
-    r -> r >>= \(out, mz') -> case match prev k mz' of
+    r -> r >>= \(out', mz') -> case match out' prev k mz' of
         [] -> error "match: Kleene should never fail"
-        r' -> first (out <>) <$> r'
-match _ (Grapheme g) mz = (MatchOutput [] [] [g],) <$> maybeToList (matchGrapheme g mz)
-match _ (Category gs) mz =
+        r' -> r'
+match out _ (Grapheme g) mz = (out <> MatchOutput [] [] [g],) <$> maybeToList (matchGrapheme g mz)
+match out _ (Category gs) mz =
     gs
     -- Attempt to match each option in category...
-    & fmap (\case
-               BoundaryEl -> if atBoundary mz then Just ([], mz) else Nothing
-               GraphemeEl g -> ([g],) <$> matchGrapheme g mz)
+    & fmap (matchCategoryEl mz)
     -- ...get the index of each match...
     & zipWith (\i m -> fmap (i,) m) [0..]
     -- ...and take all matches
     & (>>= maybeToList)
-    & fmap (\(i, (g, mz')) -> (MatchOutput [i] [] g, mz'))
-match _ Boundary mz = if atBoundary mz then [(MatchOutput [] [] [], mz)] else []
-match prev Geminate mz = case prev of
+    & fmap (\(i, (g, mz')) -> (out <> MatchOutput [i] [] g, mz'))
+match out _ Boundary mz =
+    if atBoundary mz
+    then [(out <> MatchOutput [] [] [], mz)]
+    else []
+match out prev Geminate mz = case prev of
     Nothing -> []
-    Just prev' -> (MatchOutput [] [] [prev'],) <$> maybeToList (matchGrapheme prev' mz)
+    Just prev' -> (out <> MatchOutput [] [] [prev'],) <$> maybeToList (matchGrapheme prev' mz)
+match out _prev (Backreference i gs) mz = maybeToList $ do
+    catIx <- matchedCatIxs out !? (i-1)
+    g <- gs !? catIx
+    (matched, mz') <- matchCategoryEl mz g
+    pure (modifyMatchedGraphemes (++matched) out, mz')
 
+matchCategoryEl :: MultiZipper t Grapheme -> CategoryElement a -> Maybe ([Grapheme], MultiZipper t Grapheme)
+matchCategoryEl mz BoundaryEl = if atBoundary mz then Just ([], mz) else Nothing
+matchCategoryEl mz (GraphemeEl g) = ([g],) <$> matchGrapheme g mz
+                
 matchGrapheme :: Grapheme -> MultiZipper t Grapheme -> Maybe (MultiZipper t Grapheme)
 matchGrapheme g = matchGraphemeP (==g)
 
@@ -175,19 +187,61 @@ matchGraphemeP p mz = value mz >>= \cs -> if p cs then fwd mz else Nothing
 -- though the outputs are given as a list of indices and graphemes
 -- rather than as a single index and grapheme.
 matchMany :: OneOf a 'Target 'Env
+          => MatchOutput
+          -> Maybe Grapheme
+          -> [Lexeme a]
+          -> MultiZipper t Grapheme
+          -> [(MatchOutput, MultiZipper t Grapheme)]
+matchMany out _ [] mz = [(out, mz)]
+matchMany out prev (l:ls) mz =
+    match out prev l mz >>= \(out', mz') ->
+    matchMany  out' (lastMay (matchedGraphemes out') <|> prev) ls mz'
+
+-- | 'matchMany' without any previous match output.
+matchMany' :: OneOf a 'Target 'Env
           => Maybe Grapheme
           -> [Lexeme a]
           -> MultiZipper t Grapheme
           -> [(MatchOutput, MultiZipper t Grapheme)]
-matchMany = go (MatchOutput [] [] [])
-  where
-    go out _ [] mz = [(out, mz)]
-    go out prev (l:ls) mz = match prev l mz >>= \(out', mz') ->
-        go (out <> out') (lastMay (matchedGraphemes out') <|> prev) ls mz'
+matchMany' = matchMany (MatchOutput [] [] [])
 
 -- Small utility function, not exported
 lastMay :: [a] -> Maybe a
 lastMay l = if null l then Nothing else Just (last l)
+
+data ReplacementIndices = ReplacementIndices
+    { ixInCategories :: Int
+    , ixInOptionals :: Int
+
+    , forcedCategory :: Maybe CategoryNumber
+    } deriving (Show)
+
+data CategoryNumber = CategoryNumber Int | Nondeterministic
+    deriving (Show)
+
+advanceCategory :: ReplacementIndices -> Int -> (CategoryNumber, ReplacementIndices)
+advanceCategory ix cslen =
+    case forcedCategory ix of
+        Just i -> (i, ix { forcedCategory = Nothing })
+        Nothing ->
+            let i = ixInCategories ix in
+                ( if i < cslen then CategoryNumber i else Nondeterministic
+                , ix { ixInCategories = i+1 }
+                )
+
+advanceOptional :: ReplacementIndices -> (Int, ReplacementIndices)
+advanceOptional ix =
+    let i = ixInOptionals ix
+    in (i, ix { ixInOptionals = i+1 })
+
+forceCategory :: CategoryNumber -> ReplacementIndices -> ReplacementIndices
+forceCategory i ixs = ixs { forcedCategory = Just i }
+
+-- | Partially safe list indexing
+(!?) :: [a] -> Int -> Maybe a
+(x:_ ) !? 0 = Just x
+(_:xs) !? n = xs !? (n-1)
+[]     !? _ = Nothing
 
 -- | Given a list of 'Lexeme's specifying a replacement, generate all
 -- possible replacements and apply them to the given input.
@@ -196,39 +250,59 @@ mkReplacement
     -> [Lexeme 'Replacement]    -- ^ The 'Lexeme's specifying the replacement.
     -> MultiZipper t Grapheme
     -> [MultiZipper t Grapheme]
-mkReplacement = \out ls -> fmap (fst . snd) . go out ls . (,Nothing)
+mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
   where
-    go out []     (mz, prev) = [(out, (mz, prev))]
-    go out (l:ls) (mz, prev) = do
-        (out', (mz', prev')) <- replaceLex out l mz prev
-        go out' ls (mz', prev')
+    startIxs = ReplacementIndices 0 0 Nothing
+
+    go
+        :: ReplacementIndices
+        -> [Lexeme 'Replacement]
+        -> (MultiZipper t Grapheme, Maybe Grapheme)
+        -> [(ReplacementIndices, (MultiZipper t Grapheme, Maybe Grapheme))]
+    go ixs []     (mz, prev) = [(ixs, (mz, prev))]
+    go ixs (l:ls) (mz, prev) = do
+        (ixs', (mz', prev')) <- replaceLex ixs l mz prev
+        go ixs' ls (mz', prev')
+
+    numCatsMatched = length $ matchedCatIxs out
 
     replaceLex
-        :: MatchOutput
+        :: ReplacementIndices
         -> Lexeme 'Replacement
         -> MultiZipper t Grapheme
         -> Maybe Grapheme
-        -> [(MatchOutput, (MultiZipper t Grapheme, Maybe Grapheme))]
-    replaceLex out (Grapheme g) mz _prev = [(out, (insert g mz, Just g))]
-    replaceLex out@MatchOutput{matchedCatIxs=(i:is)} (Category gs) mz _prev =
-        fmap (out{matchedCatIxs=is},) $
-            if i < length gs
-            then case gs !! i of GraphemeEl g -> [(insert g mz, Just g)]
-            else [(insert "\xfffd" mz, Nothing)]  -- Unicode replacement character
-    replaceLex out (Category gs) mz _prev =
-        gs <&> \(GraphemeEl g) -> (out, (insert g mz, Just g))
-    replaceLex MatchOutput{matchedOptionals=(o:os), ..} (Optional ls) mz prev =
-        let out' = MatchOutput{matchedOptionals=os, ..}
-        in if o
-           then go out' ls (mz, prev)
-           else [(out', (mz, Nothing))]
-    replaceLex out (Optional ls) mz prev = (out, (mz, Nothing)) : go out ls (mz, prev)
-    replaceLex out@MatchOutput{matchedGraphemes}     Metathesis  mz _prev =
-        [(out, (flip insertMany mz $ reverse matchedGraphemes, listToMaybe matchedGraphemes))]
-    replaceLex out                                   Geminate    mz prev =
-        [(out, (flip insertMany mz $ maybeToList prev, prev))]
-    replaceLex out@MatchOutput{matchedCatIxs=(_:is)} Discard mz prev = [(out{matchedCatIxs=is}, (mz, prev))]
-    replaceLex out@MatchOutput{matchedCatIxs=[]} Discard mz prev = [(out, (mz, prev))]
+        -> [(ReplacementIndices, (MultiZipper t Grapheme, Maybe Grapheme))]
+    replaceLex ixs (Grapheme g) mz _prev = [(ixs, (insert g mz, Just g))]
+    replaceLex ixs (Category gs) mz _prev =
+        case advanceCategory ixs numCatsMatched of
+            (CategoryNumber ci, ixs') ->
+                let i = matchedCatIxs out !! ci in
+                    case gs !? i of
+                        Just (GraphemeEl g) -> [(ixs', (insert g mz, Just g))]
+                        Nothing             -> [(ixs', (insert "\xfffd" mz, Nothing))]  -- Unicode replacement character
+            (Nondeterministic, ixs') -> gs <&> \(GraphemeEl g) -> (ixs', (insert g mz, Just g))
+    replaceLex ixs (Optional ls) mz prev =
+        let (co, ixs') = advanceOptional ixs in
+            case matchedOptionals out !? co of
+                Just True -> go ixs' ls (mz, prev)
+                Just False -> [(ixs', (mz, Nothing))]
+                Nothing    ->  (ixs', (mz, Nothing)) : go ixs ls (mz, prev)
+    replaceLex ixs Metathesis mz _prev =
+        [( ixs
+         , ( flip insertMany mz $ reverse $ matchedGraphemes out
+           , listToMaybe $ matchedGraphemes out)
+         )]
+    replaceLex ixs Geminate mz prev =
+        [(ixs, (flip insertMany mz $ maybeToList prev, prev))]
+    replaceLex ixs Discard mz prev =
+        let (_, ixs') = advanceCategory ixs numCatsMatched
+        in [(ixs', (mz, prev))]
+    replaceLex ixs (Backreference i c) mz prev =
+        let ixs' = forceCategory (CategoryNumber $ i-1) ixs -- 1-based indexing!
+        in replaceLex ixs' (Category c) mz prev
+    replaceLex ixs (Multiple c) mz prev =
+        let ixs' = forceCategory Nondeterministic ixs
+        in replaceLex ixs' (Category c) mz prev
 
 -- | Given a 'Rule' and a 'MultiZipper', determines whether the
 -- 'exception' of that rule (if any) applies starting at the current
@@ -236,10 +310,10 @@ mkReplacement = \out ls -> fmap (fst . snd) . go out ls . (,Nothing)
 -- first element of each matching 'target'.
 exceptionAppliesAtPoint :: [Lexeme 'Target] -> Environment -> MultiZipper RuleTag Grapheme -> [Int]
 exceptionAppliesAtPoint target (ex1, ex2) mz = fmap fst $ flip runRuleAp mz $ do
-    _ <- RuleAp $ matchMany Nothing ex1
+    _ <- RuleAp $ matchMany' Nothing ex1
     pos <- gets curPos
-    MatchOutput{matchedGraphemes} <- RuleAp $ matchMany Nothing target
-    _ <- RuleAp $ matchMany (listToMaybe matchedGraphemes) ex2
+    MatchOutput{matchedGraphemes} <- RuleAp $ matchMany' Nothing target
+    _ <- RuleAp $ matchMany' (listToMaybe matchedGraphemes) ex2
     return pos
 
 -- | Given a 'Rule', determine if that rule matches. If so, for each
@@ -251,11 +325,11 @@ matchRuleAtPoint
     -> MultiZipper RuleTag Grapheme
     -> [(MatchOutput, MultiZipper RuleTag Grapheme)]
 matchRuleAtPoint Rule{environment = (env1, env2), ..} mz = flip runRuleAp mz $ do
-    _ <- RuleAp $ matchMany Nothing env1
+    _ <- RuleAp $ matchMany' Nothing env1
     modify $ tag TargetStart
-    matchResult <- RuleAp $ matchMany Nothing target
+    matchResult <- RuleAp $ matchMany' Nothing target
     modify $ tag TargetEnd
-    _ <- RuleAp $ matchMany (listToMaybe $ matchedGraphemes matchResult) env2
+    _ <- RuleAp $ matchMany' (listToMaybe $ matchedGraphemes matchResult) env2
     return matchResult
 
 -- | Given a 'Rule', determine if the rule matches at the current

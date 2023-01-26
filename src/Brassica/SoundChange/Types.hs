@@ -100,6 +100,10 @@ data Lexeme (a :: LexemeType) where
     Kleene   :: OneOf a 'Target 'Env => Lexeme a -> Lexeme a
     -- | In Brassica sound-change syntax, specified as @~@
     Discard  :: Lexeme 'Replacement
+    -- | In Brassica sound-change syntax, specified as \@i before a category
+    Backreference :: OneOf a 'Target 'Replacement => Int -> [CategoryElement a] -> Lexeme a
+    -- | In Brassica sound-change syntax, specified as \@? before a category
+    Multiple :: [CategoryElement 'Replacement] -> Lexeme 'Replacement
 
 deriving instance Show (Lexeme a)
 
@@ -113,6 +117,8 @@ instance NFData (Lexeme a) where
     rnf (Wildcard l) = rnf l
     rnf (Kleene l) = rnf l
     rnf Discard = ()
+    rnf (Backreference i l) = seq i $ rnf l
+    rnf (Multiple l) = rnf l
 
 -- | The elements allowed in a 'Category': currently, only
 -- t'Grapheme's and word boundaries.
