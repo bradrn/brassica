@@ -258,21 +258,22 @@ ruleParser = do
     _ <- lexeme $ oneOf "/→"
     replacement <- parseLexemes
 
-    let parseEnvironment = do
-            _ <- symbol "/"
-            env1 <- parseLexemes
-            _ <- symbol "_"
-            env2 <- parseLexemes
-            exception <- optional $ (,) <$> (symbol "/" *> parseLexemes) <* symbol "_" <*> parseLexemes
-            return (env1, env2, exception)
+    envs' <- many $ do
+        notFollowedBy $ symbol "//"  -- for exceptions
+        _ <- symbol "/"
+        env1 <- parseLexemes
+        _ <- symbol "_"
+        env2 <- parseLexemes
+        return (env1, env2)
+    let envs = if null envs' then [([], [])] else envs'
 
-    (env1, env2, exception) <- parseEnvironment <|> pure ([], [], Nothing)
+    exception <- optional $ (,) <$> (symbol "//" *> parseLexemes) <* symbol "_" <*> parseLexemes
 
     _ <- optional scn   -- consume newline after rule if present
 
     o' <- getOffset
     let plaintext = takeWhile notNewline $ (fst . fromJust) (takeN_ (o' - o) s)
-    return Rule{environment=(env1,env2), ..}
+    return Rule{environment=envs, ..}
   where
     notNewline c = (c /= '\n') && (c /= '\r')
 

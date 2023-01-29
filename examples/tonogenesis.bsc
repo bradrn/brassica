@@ -24,7 +24,7 @@ C ʔ V / C V ʔ / #_
 C h V / C V h / #_
 
 ; l-vocalisation
-l / w / V (ʔ) _ / _ V
+l / w / V (ʔ) _ // _ V
 l / j / C_V
 
 ; vowel splitting
@@ -45,5 +45,5 @@ end
 [V +Unassigned] / [V +Low]
 
 ; syllable structure simplification
-Stop / / V_ / _V
+Stop / / V_ // _V
 C / / _ Aprx V

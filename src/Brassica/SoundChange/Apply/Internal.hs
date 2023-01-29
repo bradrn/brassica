@@ -316,15 +316,17 @@ exceptionAppliesAtPoint target (ex1, ex2) mz = fmap fst $ flip runRuleAp mz $ do
     _ <- RuleAp $ matchMany' (listToMaybe matchedGraphemes) ex2
     return pos
 
--- | Given a 'Rule', determine if that rule matches. If so, for each
--- match, set the appropriate 'RuleTag's and return a tuple of @(is,
--- gs)@, where @gs@ is a list of matched t'Grapheme's, and @is@ is a
--- list of indices, one for each 'Category' lexeme matched.
+-- | Given a target and environment, determine if they rule
+-- matches. If so, for each match, set the appropriate 'RuleTag's and
+-- return a tuple of @(is, gs)@, where @gs@ is a list of matched
+-- t'Grapheme's, and @is@ is a list of indices, one for each
+-- 'Category' lexeme matched.
 matchRuleAtPoint
-    :: Rule
+    :: [Lexeme 'Target]
+    -> Environment
     -> MultiZipper RuleTag Grapheme
     -> [(MatchOutput, MultiZipper RuleTag Grapheme)]
-matchRuleAtPoint Rule{environment = (env1, env2), ..} mz = flip runRuleAp mz $ do
+matchRuleAtPoint target (env1,env2) mz = flip runRuleAp mz $ do
     _ <- RuleAp $ matchMany' Nothing env1
     modify $ tag TargetStart
     matchResult <- RuleAp $ matchMany' Nothing target
@@ -335,30 +337,33 @@ matchRuleAtPoint Rule{environment = (env1, env2), ..} mz = flip runRuleAp mz $ d
 -- | Given a 'Rule', determine if the rule matches at the current
 -- point; if so, apply the rule, adding appropriate tags.
 applyOnce :: Rule -> StateT (MultiZipper RuleTag Grapheme) [] Bool
-applyOnce r@Rule{target, replacement, exception} = do
-    modify $ tag AppStart
-    result <- try (matchRuleAtPoint r)
-    case result of
-        Just out -> do
-            exs <- case exception of
-                Nothing -> pure []
-                Just ex -> gets $ join . toList .
-                    extend' (exceptionAppliesAtPoint target ex)
-            gets (locationOf TargetStart) >>= \p ->
-                if maybe True (`elem` exs) p
-                then return False
-                else do
-                    modifyMay $ modifyBetween (TargetStart, TargetEnd) $ const []
-                    modifyMay $ seek TargetStart
-                    modifyM $ mkReplacement out replacement
-                    return True
-        Nothing -> return False
+applyOnce r@Rule{target, replacement, exception} =
+    modify (tag AppStart) >> go (environment r)
+  where
+    go [] = return False
+    go (env:envs) = do
+        result <- try (matchRuleAtPoint target env)
+        case result of
+            Just out -> do
+                exs <- case exception of
+                    Nothing -> pure []
+                    Just ex -> gets $ join . toList .
+                        extend' (exceptionAppliesAtPoint target ex)
+                gets (locationOf TargetStart) >>= \p ->
+                    if maybe True (`elem` exs) p
+                    then return False
+                    else do
+                        modifyMay $ modifyBetween (TargetStart, TargetEnd) $ const []
+                        modifyMay $ seek TargetStart
+                        modifyM $ mkReplacement out replacement
+                        return True
+            Nothing -> modifyMay (seek AppStart) >> go envs
 
 -- | Remove tags and advance the current index to the next t'Grapheme'
 -- after the rule application.
 setupForNextApplication :: Bool -> Rule -> MultiZipper RuleTag Grapheme -> Maybe (MultiZipper RuleTag Grapheme)
-setupForNextApplication success r@Rule{flags=Flags{applyDirection}} = fmap untag .
-    case applyDirection of
+setupForNextApplication success r@Rule{flags=Flags{applyDirection}} =
+    fmap untag . case applyDirection of
         RTL -> seek AppStart >=> bwd
         LTR ->
             if success

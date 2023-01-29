@@ -105,6 +105,12 @@ Or the comment may be added after the rule (though this is not recommended):
 i / y / _ a    ; replace i with y before a
 ```
 
+A rule may have more than one environment, in which case it applies if any of the environments match.
+For instance, the following rule deletes ⟨ʔ⟩ at the beginning or the end of a word:
+```
+ʔ / / _ # / # _
+```
+
 ### Categories
 
 It is extremely common for a sound change to affect several different graphemes at once.
@@ -471,15 +477,13 @@ This flag is particularly useful in rules of primary stress assignment
   (for rules like, ‘assign primary stress to the first syllable’).
 
 In some situations it might be desirable to apply a rule normally *except* when a specific condition applies.
-Such exceptions can be specified by including another slash after the environment,
+Such exceptions can be specified by including two slashes after the environment,
   then specifying the exceptional environment.
 For instance, a rule to degeminate consonants everywhere *except* intervocalically might be written as follows:
 
 ```
-C / / _ > / V _ V
+C / / _ > // V _ V
 ```
-
-Arbitrarily many exceptions can be specified using the same syntax; the rule will fail to apply if any exception is matched.
 
 (Note that some SCAs place restrictions on what can be used in an exception clause.
 Brassica has no such restriction.

@@ -176,12 +176,12 @@ defFlags = Flags
     }
 
 -- | A single sound change rule: in Brassica sound-change syntax with all elements specified,
--- @-flags target / replacement \/ environment \/ exception@.
+-- @-flags target / replacement \/ environment1 | environment2 | … \/ exception@.
 -- (And usually the 'plaintext' of the rule will contain a 'String' resembling that pattern.)
 data Rule = Rule
   { target      :: [Lexeme 'Target]
   , replacement :: [Lexeme 'Replacement]
-  , environment :: Environment
+  , environment :: [Environment]
   , exception   :: Maybe Environment
   , flags       :: Flags
   , plaintext   :: String
