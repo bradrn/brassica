@@ -8,6 +8,7 @@
 module Main where
 
 import Control.Applicative (liftA2)
+import Data.Bool (bool)
 import Data.FileEmbed (makeRelativeToProject, embedFile)
 import Data.Map.Strict (fromList, Map)
 import Data.Text.Encoding (decodeUtf8)
@@ -23,8 +24,7 @@ import Common
 import Brassica.SoundChange.Frontend.Internal
        ( ApplicationMode(..)
        , HighlightMode(..)
-       , MDFOutputMode(MDFOutput)
-       , TokenisationMode (Normal)
+       , OutputMode(..)
        , ApplicationOutput(..)
        , InputLexiconFormat(Raw)
        , parseTokeniseAndApplyRules
@@ -41,7 +41,7 @@ applyRules (prev, (changes, ws, mode)) =
     case parseSoundChanges (T.unpack changes) of
         Left e -> (Nothing, "<pre>" <> T.pack (errorBundlePretty e) <> "</pre>")
         Right statements ->
-            case parseTokeniseAndApplyRules statements (T.unpack ws) Raw Normal mode prev of
+            case parseTokeniseAndApplyRules statements (T.unpack ws) Raw mode prev of
                 ParseError e -> (Nothing, "<pre>" <> T.pack (errorBundlePretty e) <> "</pre>")
                 HighlightedWords result ->
                     (Just $ (fmap.fmap) fst result, T.pack $ escape $ detokeniseWords' highlightWord result)
@@ -122,17 +122,26 @@ main = mainWidgetWithCss style $ el "div" $ do
         (applyBtn, reportBtn, mode, viewLiveBtn, setExample) <- elClass "div" "block" $ do
             applyBtn  <- button "Apply"
             reportBtn <- button "Report rules applied"
-            mode <- el "fieldset" $ do
-                el "legend" $ text "Output highlighting"
+            outputMode <- el "fieldset" $ do
+                el "legend" $ text "Output mode"
+                _wordsonly  <- radio "Wordlist"      "wordlist"  "output" True
+                br
+                inputoutput <- radio "Input→output" "withproto" "output" False
+                pure $ ffor inputoutput $ \case
+                    False -> WordsOnlyOutput
+                    True -> WordsWithProtoOutput
+            hlMode <- el "fieldset" $ do
+                el "legend" $ text "Highlighting mode"
                 _nohighlight <- radio "No highlighting"       "nohighlight" "highlighting" True
                 br
                 dlastrun     <- radio "Different to last run" "dlastrun"    "highlighting" False
                 br
                 dinput       <- radio "Different to input"    "dinput"      "highlighting" False
-                pure $ ffor2 dlastrun dinput $ \dl di -> flip ApplyRules MDFOutput $
+                pure $ ffor2 dlastrun dinput $ \dl di ->
                     if dl then DifferentToLastRun else
                         if di then DifferentToInput else
                             NoHighlight
+            let mode = ApplyRules <$> hlMode <*> outputMode
             br
             viewLiveBtn <- checkbox "View results live" "viewlive" False
             br

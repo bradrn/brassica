@@ -26,7 +26,7 @@ import Brassica.SoundChange.Types
 
 -- | Rule application mode of the SCA.
 data ApplicationMode
-    = ApplyRules HighlightMode MDFOutputMode
+    = ApplyRules HighlightMode OutputMode
     | ReportRulesApplied
     deriving (Show, Eq)
 
@@ -46,15 +46,23 @@ instance Enum HighlightMode where
     toEnum 2 = DifferentToInput
     toEnum _ = undefined
 
-data MDFOutputMode = MDFOutput | WordsOnlyOutput
+data OutputMode
+    = MDFOutput
+    | WordsOnlyOutput
+    | MDFOutputWithEtymons
+    | WordsWithProtoOutput
     deriving (Show, Eq)
-instance Enum MDFOutputMode where
+instance Enum OutputMode where
     -- used for conversion to and from C, so want control over values
     fromEnum MDFOutput = 0
     fromEnum WordsOnlyOutput = 1
+    fromEnum MDFOutputWithEtymons = 2
+    fromEnum WordsWithProtoOutput = 3
 
     toEnum 0 = MDFOutput
     toEnum 1 = WordsOnlyOutput
+    toEnum 2 = MDFOutputWithEtymons
+    toEnum 3 = WordsWithProtoOutput
     toEnum _ = undefined
 
 data TokenisationMode = Normal | AddEtymons
@@ -67,6 +75,10 @@ instance Enum TokenisationMode where
     toEnum 0 = Normal
     toEnum 1 = AddEtymons
     toEnum _ = undefined
+
+tokenisationModeFor :: ApplicationMode -> TokenisationMode
+tokenisationModeFor (ApplyRules _ MDFOutputWithEtymons) = AddEtymons
+tokenisationModeFor _ = Normal
 
 -- | Output of a single application of rules to a wordlist: either a
 -- list of possibly highlighted words, an applied rules table, or a
@@ -92,10 +104,20 @@ instance Enum InputLexiconFormat where
 data ParseOutput a = ParsedRaw [Component a] | ParsedMDF (MDF [Component a])
     deriving (Show, Functor)
 
-componentise :: MDFOutputMode -> ParseOutput a -> [Component a]
-componentise _               (ParsedRaw cs) = cs
-componentise MDFOutput       (ParsedMDF mdf) = componentiseMDF mdf
-componentise WordsOnlyOutput (ParsedMDF mdf) = componentiseMDFWordsOnly mdf
+componentise :: OutputMode -> [a] -> ParseOutput a -> [Component a]
+componentise WordsWithProtoOutput ws (ParsedRaw cs) = intersperseWords ws cs
+componentise _                    _ (ParsedRaw cs) = cs
+componentise MDFOutput            _ (ParsedMDF mdf) = componentiseMDF mdf
+componentise MDFOutputWithEtymons _ (ParsedMDF mdf) = componentiseMDF mdf
+componentise WordsOnlyOutput      _ (ParsedMDF mdf) = componentiseMDFWordsOnly mdf
+componentise WordsWithProtoOutput ws (ParsedMDF mdf) = intersperseWords ws $ componentiseMDFWordsOnly mdf
+
+intersperseWords :: [a] -> [Component a] -> [Component a]
+intersperseWords (w:ws) (Word c:cs) =
+    Word w : Separator " → " : Word c : Separator "\n" : intersperseWords ws cs
+intersperseWords ws (_:cs) = intersperseWords ws cs
+intersperseWords [] cs = cs
+intersperseWords _ [] = []
 
 tokeniseAccordingToInputFormat
     :: InputLexiconFormat
@@ -112,6 +134,10 @@ tokeniseAccordingToInputFormat MDF AddEtymons cs =
     . second (duplicateEtymologies $ ('*':) . detokeniseWords)
     . withFirstCategoriesDecl parseMDFWithTokenisation cs
 
+getParsedWords :: ParseOutput a -> [a]
+getParsedWords (ParsedRaw cs) = getWords cs
+getParsedWords (ParsedMDF mdf) = getWords $ componentiseMDF mdf
+
 -- | Top-level dispatcher for an interactive frontend: given a textual
 -- wordlist and a list of sound changes, returns the result of running
 -- the changes in the specified mode.
@@ -119,30 +145,34 @@ parseTokeniseAndApplyRules
     :: SoundChanges -- ^ changes
     -> String       -- ^ words
     -> InputLexiconFormat
-    -> TokenisationMode
     -> ApplicationMode
     -> Maybe [Component PWord]  -- ^ previous results
     -> ApplicationOutput PWord Statement
-parseTokeniseAndApplyRules statements ws intype tmode mode prev =
+parseTokeniseAndApplyRules statements ws intype mode prev =
+    let tmode = tokenisationModeFor mode in
     case tokeniseAccordingToInputFormat intype tmode statements ws of
         Left e -> ParseError e
-        Right toks -> case mode of
+        Right toks
+          | ws' <- getParsedWords toks
+          -> case mode of
             ReportRulesApplied ->
                 AppliedRulesTable $ mapMaybe toPWordLog $ concat $
-                    getWords $ componentise WordsOnlyOutput $
+                    getWords $ componentise WordsOnlyOutput [] $
                         applyChangesWithLog statements <$> toks
             ApplyRules DifferentToLastRun mdfout ->
                 let result = concatMap (splitMultipleResults " ") $
-                      componentise mdfout $ applyChanges statements <$> toks
+                      componentise mdfout (fmap pure ws') $ applyChanges statements <$> toks
                 in HighlightedWords $
                     zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
                         (thisWord, thisWord /= prevWord)
             ApplyRules DifferentToInput mdfout ->
                 HighlightedWords $ concatMap (splitMultipleResults " ") $
-                    componentise mdfout $ applyChangesWithChanges statements <$> toks
+                    componentise mdfout (fmap (pure . (,False)) ws') $
+                        applyChangesWithChanges statements <$> toks
             ApplyRules NoHighlight mdfout ->
                 HighlightedWords $ (fmap.fmap) (,False) $ concatMap (splitMultipleResults " ") $
-                    componentise mdfout $ applyChanges statements <$> toks
+                    componentise mdfout (fmap pure ws') $
+                        applyChanges statements <$> toks
   where
     -- Zips two tokenised input strings. Compared to normal 'zipWith'
     -- this has two special properties:

@@ -36,6 +36,7 @@ private:
     QRadioButton *mdfoutBtn;
     QRadioButton *mdfetymoutBtn;
     QRadioButton *rawoutBtn;
+    QRadioButton *inoutBtn;
     QPushButton *reportRulesBtn;
     QCheckBox *viewLive;
     QTextEdit *outputEdit;

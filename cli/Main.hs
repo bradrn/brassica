@@ -7,13 +7,12 @@ import Control.Exception (Exception)
 
 import Conduit
 import qualified Data.ByteString as B
-import Data.Text (pack, unpack, Text)
+import Data.Text (pack, unpack, snoc, Text)
 import Data.Text.Encoding (decodeUtf8)
 import Options.Applicative
 
 import Brassica.SoundChange
 import Brassica.SoundChange.Frontend.Internal
-
 
 main :: IO ()
 main = do
@@ -28,7 +27,7 @@ main = do
             withSinkFileIf outWordsFile $ \outC ->
             runConduit $
                 inC
-                .| processWords (incrFor wordsFormat) rules wordsFormat tokMode outMode
+                .| processWords (incrFor wordsFormat) rules wordsFormat outMode
                 .| outC
 
   where
@@ -39,13 +38,20 @@ main = do
             (metavar "RULES" <> help "File containing sound changes")
         <*> flag Raw MDF
             (long "mdf" <> help "Parse input words in MDF format")
-        <*> flag Normal AddEtymons
-            (long "etymons" <> help "With --mdf, add etymologies to output")
-        <*> (flag' ReportRulesApplied
+        <*> asum
+            [ flag' ReportRulesApplied
                 (long "report" <> help "Report rules applied rather than outputting words")
-            <|>
-            flag (ApplyRules NoHighlight MDFOutput) (ApplyRules NoHighlight WordsOnlyOutput)
-                (long "wordlist" <> help "With --mdf, output only a list of the derived words"))
+            , flag' (ApplyRules NoHighlight MDFOutput)
+                (long "mdf-out" <> help "With --mdf, output MDF dictionary")
+            , flag' (ApplyRules NoHighlight MDFOutputWithEtymons)
+                (long "etymons" <> help "With --mdf, output MDF dictionary with etymologies")
+            , flag' (ApplyRules NoHighlight WordsWithProtoOutput)
+                (long "show-input" <> help "Output an input→output wordlist")
+            , flag
+                (ApplyRules NoHighlight WordsOnlyOutput)
+                (ApplyRules NoHighlight WordsOnlyOutput)
+                (long "wordlist" <> help "Output only a list of the derived words (default)")
+            ]
         <*> optional (strOption
             (long "in" <> short 'i' <> help "File containing input words (if not specified will read from stdin)"))
         <*> optional (strOption
@@ -63,7 +69,6 @@ main = do
 data Options = Options
     { rulesFile :: String
     , wordsFormat :: InputLexiconFormat
-    , tokMode :: TokenisationMode
     , outMode :: ApplicationMode
     , inWordsFile :: Maybe String
     , outWordsFile :: Maybe String
@@ -74,18 +79,16 @@ processWords
     => Bool  -- split into lines?
     -> SoundChanges
     -> InputLexiconFormat
-    -> TokenisationMode
     -> ApplicationMode
     -> ConduitT B.ByteString B.ByteString m ()
-processWords incr rules wordsFormat tokMode outMode =
+processWords incr rules wordsFormat outMode =
     decodeUtf8C
     .| (if incr then linesUnboundedC else mapC id)
-    .| mapC (processApplicationOutput . evolve . unpack)
+    .| mapC (processApplicationOutput . evolve . unpack . (`snoc` '\n'))
     .| throwOnLeft
-    .| (if incr then unlinesC else mapC id)
     .| encodeUtf8C
   where
-    evolve ws = parseTokeniseAndApplyRules rules ws wordsFormat tokMode outMode Nothing
+    evolve ws = parseTokeniseAndApplyRules rules ws wordsFormat outMode Nothing
 
     throwOnLeft :: (MonadThrow m, Exception e) => ConduitT (Either e r) r m ()
     throwOnLeft = awaitForever $ \case

@@ -37,7 +37,15 @@ MainWindow::MainWindow(QWidget *parent)
     connect(rulesEdit, &QPlainTextEdit::textChanged, this, &MainWindow::reparseCategories);
 
     connect(mdfBtn, &QRadioButton::toggled, [this](bool checked) {
-        if (checked) outputFormatBox->show(); else outputFormatBox->hide();
+        if (checked) {
+            mdfoutBtn->setEnabled(true);
+            mdfetymoutBtn->setEnabled(true);
+        } else {
+            if (mdfoutBtn->isChecked() || mdfetymoutBtn->isChecked())
+                rawoutBtn->setChecked(true);
+            mdfoutBtn->setEnabled(false);
+            mdfetymoutBtn->setEnabled(false);
+        }
     });
 }
 
@@ -101,20 +109,24 @@ void MainWindow::setupWidgets(QWidget *central)
     mdfBtn = new QRadioButton("MDF file");
     inputFormatLayout->addWidget(mdfBtn);
 
-    outputFormatBox = new QGroupBox("MDF output format");
+    outputFormatBox = new QGroupBox("Output format");
     QVBoxLayout *outputFormatLayout = new QVBoxLayout(outputFormatBox);
     midLayout->addWidget(outputFormatBox);
-    outputFormatBox->hide();
+
+    rawoutBtn = new QRadioButton("Wordlist");
+    rawoutBtn->setChecked(true);
+    outputFormatLayout->addWidget(rawoutBtn);
+
+    inoutBtn = new QRadioButton("Input→output");
+    outputFormatLayout->addWidget(inoutBtn);
 
     mdfoutBtn = new QRadioButton("MDF output");
-    mdfoutBtn->setChecked(true);
+    mdfoutBtn->setEnabled(false);
     outputFormatLayout->addWidget(mdfoutBtn);
 
     mdfetymoutBtn = new QRadioButton("MDF output with etymologies");
+    mdfetymoutBtn->setEnabled(false);
     outputFormatLayout->addWidget(mdfetymoutBtn);
-
-    rawoutBtn = new QRadioButton("Wordlist");
-    outputFormatLayout->addWidget(rawoutBtn);
 
     viewLive = new QCheckBox("View results live");
     midLayout->addWidget(viewLive);
@@ -194,19 +206,18 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
     if (diffhighlightBtn->isChecked()) checkedHl = 1;
     else if (inputhighlightBtn->isChecked()) checkedHl = 2;
 
-    int mdfOut = 0;
-    int tokmode = 0;
-    if (mdfetymoutBtn->isChecked()) tokmode = 1;
-    else if (rawoutBtn->isChecked()) mdfOut = 1;
+    int outMode = 1; // default to wordlist / rawoutBtn
+    if (mdfoutBtn->isChecked()) outMode = 0;
+    else if (mdfetymoutBtn->isChecked()) outMode = 2;
+    else if (inoutBtn->isChecked()) outMode = 3;
 
     QByteArray output = QByteArray((char*) parseTokeniseAndApplyRules_hs(
                                        rules.toUtf8().data(),
                                        words.toUtf8().data(),
                                        reportRules,
                                        infmt,
-                                       tokmode,
                                        checkedHl,
-                                       mdfOut,
+                                       outMode,
                                        hsResults));
     outputEdit->setHtml(QString::fromUtf8(output));
 }
