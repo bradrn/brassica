@@ -4,11 +4,11 @@
 
 ## Using Brassica
 
-Brassica comes in four versions: a graphical interface on the desktop, a similar interface [online](http://bradrn.com/brassica/index.html), and as a command-line program.
-The former two are recommended for prototyping new sound changes, while the latter is more useful for evolving long lists of words.
-Both graphical interaces work in the same way and are organised very similarly, though the online interface supports fewer features than the desktop one.
+Brassica may be used as an interactive application in two ways:
+  either using the standalone desktop program, or using the [online version](http://bradrn.com/brassica/index.html).
+Both of these graphical interaces work in the same way and are organised very similarly, though the online interface supports fewer features than the desktop one.
 
-The desktop interface appears as follows:
+The desktop application appears as follows:
 
 ![Image of Brassica GUI](./gui-interface.png)
 
@@ -21,86 +21,84 @@ Finally, enabling the checkbox labeled ‘View results live’ causes the result
 This can be extremely useful when prototyping new rules, but is very slow for longer rulesets.
 For this reason, live updating is disabled by default.
 
-The command-line interface offers somewhat fewer options than the graphical interfaces do.
-However, it can be much easier to use for batch applications, e.g. processing all words in a dictionary file.
-Invoke Brassica on the command-line by running `brassica path/to/your/rules.bsc`.
+Brassica also offers a command-line interace.
+This is designed to support batch processing of dictionaries and other large files.
+Invoke Brassica on the command-line by running `path/to/brassica path/to/your/rules.bsc`.
 By default `brassica` takes words as input on stdin, and outputs to stdout the results of applying the selected ruleset to these words.
 However these defaults can be changed by means of the `--in`/`-i` and `--out`/`-o` command-line arguments respectively.
 For more details on using the command-line interface, run `brassica --help`.
 
-In addition to the two user interfaces, the library which powers Brassica can also be used directly from a Haskell program.
-For now, the best way to understand this library is simply by reading the commented source code in [`./src`](./src).
+The library which powers Brassica can also be used directly as a Haskell package.
+View the documentation at https://hackage.haskell.org/package/brassica.
 
 ## Basic rule syntax
 
 ### Writing simple rules
 
 The basic form of a sound change rule in Brassica is as follows:
-
 ```
 target / replacement / before _ after
 ```
-
 This will replace `target` by `replacement` only when preceded by `before` and followed by `after`.
-I will refer to the entire `before _ after` section as the ‘environment’.
-Note that the initial `/` can alternately be replaced by `→`; Brassica accepts both variants.
-This style is preferred by some people, but will not be followed in this guide.
+The entire `before _ after` section is called the ‘environment’.
+Note that `before` or `after` (or both) may be absent:
+  in that case there are no constraints on what must precede or follow the target.
 
-In the most basic rules, the target and replacement will be a single character.
+If you prefer, the initial `/` can be replaced by `→`, as in standard linguistic notation:
+```
+target → replacement / before _ after
+```
+However this guide does not use that variant.
+
+In the most basic rules, the target and replacement are a single letter.
 For instance, a rule to replace ⟨θ⟩ by ⟨f⟩ unconditionally (as found in some English dialects) can be specified as follows:
-
 ```
 θ / f / _
 ```
-
-Unconditional rules are common, so Brassica provides a shortcut syntax for this case,
-  in which unconditional rules may be specified by simply leaving off the environment:
-  
+Such unconditional rules are common.
+Brassica provides a shortcut syntax for this situation, in which unconditional rules may be specified by simply leaving off the environment:
 ```
 θ / f
 ```
+Brassica refers to elements like `θ` or `f` as *graphemes*.
 
-Henceforth I will refer to elements such as `θ` or `f` as *graphemes*.
-
-Multiple graphemes in a target, replacement or environment may be specified by leaving spaces between them.
+A target, replacement or environment can contain multiple graphemes.
+However, **they must have spaces between them**.
+(This is important!
+See the section below on [multigraphs](#multigraphs) for details.)
 For instance, the following rule changes ⟨ki⟩ to ⟨č⟩:
-
 ```
 k i / č
 ```
 
 Word boundaries may be specified in the environment as `#`.
 For instance, this rule changes ⟨n⟩ to ⟨ŋ⟩ at the end of a word:
-
 ```
 n / ŋ / _ #
 ```
 
-Both the target and the replacement may be blank.
-If the target is blank, the rule inserts the replacement in every position where the environment holds.
-For instance, this rule inserts ⟨ʔ⟩ between two ⟨a⟩s:
-
-```
-/ ʔ / a _ a
-```
-
-If the replacement is blank, the rule deletes the target in every position where the environment holds.
+Either the target or the replacement may be left blank.
+If the replacement is blank, the target is deleted (i.e. replaced with nothing) in every position where the environment holds.
 For instance, this rule deletes word-final ⟨i⟩:
-
 ```
 i / / _ #
 ```
 
-Plain-text *comments* can be added between rules by prefacing them with a semicolon.
-These can be useful for explaining what a complex rule does:
+On the other hand, if the target is blank, the replacement is inserted in every position where the environment holds.
+For instance, this rule inserts ⟨ʔ⟩ between any two adjacent ⟨a⟩s:
+```
+/ ʔ / a _ a
+```
+
+Plain-text *comments* can be added by beginning them with a semicolon.
+These can be useful for explaining what a complex rule does, for instance:
 
 ```
 ; replace i with y before a
 i / y / _ a
 ```
-
-Or the comment may be added after the rule (though this is not recommended):
-
+Comment are usually added on their own line, as in the above example.
+They may also go on the same line as a rule, after that rule (though this is not recommended):
 ```
 i / y / _ a    ; replace i with y before a
 ```
@@ -114,43 +112,49 @@ For instance, the following rule deletes ⟨ʔ⟩ at the beginning or the end of
 ### Categories
 
 It is extremely common for a sound change to affect several different graphemes at once.
-This can be simulated in Brassica by listing several different graphemes within square brackets:
-  a *category* such as `[a e i o u]` will match any of ⟨a⟩, ⟨e⟩, ⟨i⟩, ⟨o⟩ or ⟨u⟩.
-For instance, this rule will insert ⟨ʔ⟩ between any two vowels (assuming a five-vowel system):
+Brassica handles this case using *categories*, consisting of a list of graphemes within square brackets.
+In a rule, a category will match any of the graphemes within it.
 
+For instance, `[a e i o u]` will match any of ⟨a⟩, ⟨e⟩, ⟨i⟩, ⟨o⟩ or ⟨u⟩.
+This means the following rule will insert ⟨ʔ⟩ between any two vowels (assuming a five-vowel system):
 ```
 / ʔ / [a e i o u] _ [a e i o u]
 ```
-
 And this rule will delete any consonant occurring immediately before another
-  (assuming the consonant inventory of Maybrat):
-
+  (assuming the relatively small consonant inventory of the Papuan language Maybrat):
 ```
 [p t k m n f s x r w y] / / _ [p t k m n f s x r w y]
 ```
 
-Categories can be used to map one set of graphemes to another.
-If a category appears in the target of a rule, it will be mapped to any corresponding category in the replacement.
-The first grapheme in the target category will be replaced by the first of the replacement category,
-  the second grapheme in the target will be replaced by the second of the replacement,
+Often we want to convert each of a set of graphemes to another, related grapheme.
+For instance, we might want to convert voiceless stops to nasals when word-final:
+```
+p / m / _ #
+t / n / _ #
+k / ŋ / _ #
+```
+Obviously this gets tedious for long sets of graphemes!
+Thus, Brassica lets you use categories for the same purpose.
+If a category appears in the replacement of a rule, it will take its value from a corresponding category in the target.
+The first grapheme listed in the target category will be replaced by the first in the replacement category,
+  the second grapheme in the target will be replaced by the second in the replacement,
   and so on.
-Thus the following two rules replace a stop with a nasal when word-final or before a consonant:
-
+Thus the following single rule does the same as the three rules above:
 ```
 [p t k] / [m n ŋ] / _ #
-[p t k] / [m n ŋ] / _ [p t k m n f s x r w y]
 ```
 
-Note that there exists a way to shorten this rule.
 In the environment only, a word boundary can be included within a category.
-Thus the rules above can be rewritten as follows:
-
+Thus, to delete ⟨ʔ⟩ before a stop or the end of a word, the following rule works:
 ```
-[p t k] / [m n ŋ] / _ [p t k m n f s x r w y #]
+ʔ / / _ [p t k b d g #]
 ```
 
-The same applies when there are multiple categories in the replacement,
-  in which case each is matched up one-to-one with categories in the target.
+You can also use multiple categories in the replacement.
+In this case each is matched up one-to-one with a category in the target:
+  the first in the replacement with the first in the target,
+  the second in the replacement with the second in the target,
+  and so on.
 For instance, the following (rather contrived) rule will replace stop–nasal sequences with nasal–stop sequences,
   but preserving places of articulation (e.g. ⟨km⟩ → ⟨ŋp⟩):
   
@@ -158,27 +162,26 @@ For instance, the following (rather contrived) rule will replace stop–nasal se
 [p t k] [m n ŋ] / [m n ŋ] [p t k]
 ```
 
-More complex rules may require deleting a category entirely from the output.
+More complex rules may require ignoring a category in the target entirely.
 For instance, consider a rule of monophthongisation
   in which the first vowel deletes and the second centralises.
+(For instance, ⟨ai⟩ would turn into ⟨ɨ⟩.)
 We might attempt to write this as follows:
-
 ```
 [a e i o u] [a e i o u] / [ɐ ə ɨ ə ɨ]
 ```
-
 But this will not work as expected:
-  the *first* category in the input will correspond to `[ɐ ə ɨ ə ɨ]` in the output,
+  the *first* category in the input corresponds to `[ɐ ə ɨ ə ɨ]` in the output,
   leaving the second category to be deleted.
-This can be resolved using the special symbol `~` (a tilde),
+This can be resolved using the special symbol `~`,
   which corresponds to one category in the input, but produces no output:
-  
 ```
 [a e i o u] [a e i o u] / ~ [ɐ ə ɨ ə ɨ]
 ```
+As English, this rule can be read as: ‘delete the first vowel, and centralise the second vowel’ — exactly what we want!
 
 
-### Category blocks
+### Defining categories
 
 It can be inconvenient to repeatedly type out the same categories over and over again.
 Thus Brassica allows the use of *predefined categories*.
@@ -191,15 +194,14 @@ V = a e i o u
 end
 ```
 
-After such a definition, any reference to e.g. `V` will act as if you had typed `[a e i o u]`.
-(Indeed, the rule applier itself sees no difference whatsoever between the two —
-  the former is merely a convenient layer over the latter.)
+After this definition, any reference to e.g. `V` will act the same as `[a e i o u]`.
+(Indeed, Brassica itself sees no difference whatsoever between the two!)
 For the remainder of this guide, I will assume that `C` and `V` have been defined
   to be the set of all consonants and all vowels respectively.
-  
-In normal usage, it is expected that every grapheme used in a ruleset should belong to at least one category.
-To enforce this convention, whenever Brassica encounters a category block,
-  it replaces any graphemes not listed in the block with the Unicode replacement character �.
+
+In normal usage, every grapheme used in a ruleset should belong to at least one category.
+To enforce this, whenever Brassica encounters a category block,
+  it replaces any grapheme not listed in the block with the Unicode replacement character �.
 This behaviour is particularly useful in cases where sound changes dramatically change the phoneme inventory of a language.
 In such cases, multiple category blocks can be used,
   with each corresponding to the inventory at a particular point in time, such as in the following example:
@@ -219,18 +221,17 @@ V = a e ŏ o i ŭ u
 end
 ```
 
-If the output from the sound changes includes a sound outside the expected inventory,
-  the unexpected sound will then be replaced by �, allowing the mistake to be immediately highlighted.
+In the above example, the later definition of `V` replaces the earlier definition of `V`.
+If the output from the sound changes includes a sound outside the expected final inventory,
+  the second category block will cause the unexpected sound to be replaced by �, immediately highlighting the mistake.
 
-Note that in the example above, the later definition of `V` overrode the earlier definition of `V`.
-This is always the case with multiple category blocks.
-In some cases the phonology will have changed so dramatically that nearly all categories will need to be overridden.
-For these situations, the category block may be introduced with `new categories`;
-  such a declaration will clear all pre-existing category assignments.
+In some cases the phonology will have changed so dramatically that all categories will need to be replaced entirely.
+For this case, Brassica allows the category block to be introduced with `new categories` rather than `categories`.
+Such a declaration will clear all pre-existing category assignments.
 
-Useful tip: don’t forget that you can write rules before the first category definition!
+Furthermore, don’t forget that you can write rules before the first category definition!
 This is a good place to do operations such as deromanisation.
-Otherwise, Brassica would replace all unknown graphemes from the romanisation with the replacement character �.
+Otherwise, Brassica would replace any unknown graphemes in the romanisation with the replacement character �.
 
 ### Operations on categories
 
@@ -245,7 +246,7 @@ This matches all members of `C` which are also members of `D`.
 The *subtraction* of two categories can be found using the syntax `[C -D]`.
 This matches all members of `C` which are not also members of `D`.
 
-The operations above can be combined, in which case they are interpreted left to right.
+The operations above can be combined, in which case Brassica applies them from left to right.
 For instance, consider the following predefined categories:
 
 ```
@@ -278,10 +279,9 @@ With these categories, the expression `[Affr Fric +Pal +Vcd Aprx -r]` is interpr
 - `[Affr Fric +Pal +Vcd Aprx]` is `[j ž w r l y]`
 - `[Affr Fric +Pal +Vcd Aprx -r]` is `[j ž w l y]`.
 
-That is, `[Affr Fric +Pal +Vcd Aprx -r]` is just a rather long and complex way of writing `[j ž w l y]` —
-  and in fact, the two expressions are precisely equivalent after going through the parser.
+That is, `[Affr Fric +Pal +Vcd Aprx -r]` is just a rather long and complex way of writing `[j ž w l y]`.
   
-These sort of expressions can be particularly useful in writing sound changes in an almost ‘featural’ way.
+These sort of expressions can be particularly useful in writing sound changes in a ‘featural’ way.
 For instance, with the categories defined above,
   intervocalic fricative voicing can be written as `[Fric -Vcd] / [Fric +Vcd] / V _ V`,
   and nasalisation of an initial voiced stop in a stop cluster can be written as `[Stop +Vcd] / Nasl / _ Stop`.
@@ -301,9 +301,9 @@ However, the second rule here is incorrect, as is obvious if you expand it out:
 ```
 
 Here the nasals and approximants have no voiceless variants;
-  thus a word such as ⟨kayte⟩ will result in nonsense output.
-(In such cases Brassica will use the replacement character, returning the output ⟨ka�te⟩.)
-Assuming you do *not* want nasals and approximants to undergo this change,
+  thus a word such as ⟨kayte⟩ will result in an output ⟨ka�te⟩.
+This makes intuitive sense: the categories never did define a voiceless counterpart of /y/!
+Assuming we do *not* want nasals and approximants to undergo this change,
   it is easiest to simply exclude such consonants from the rule using the subtraction operator:
   
 ```
@@ -311,7 +311,7 @@ Assuming you do *not* want nasals and approximants to undergo this change,
 [C +Vcd -Nasl -Aprx] / [C -Vcd] / _ [C -Vcd]
 ```
 
-One more thing which is useful to know is that all this syntax can also be used in predefined categories.
+All of these category operations can also be used in predefined categories.
 Thus, in the previous example, the `C` category could have been written as follows:
 
 ```
@@ -328,13 +328,64 @@ Vls = C -Vcd
 end
 ```
 
-In general, this syntax is recommended, as it prevents your categories from going out of sync.
+In general, this syntax is recommended, as it prevents your categories from getting out of sync if you change them.
+
+### Multigraphs
+
+So far, all of the examples have contained graphemes consisting of only one letter each.
+However it is often desirable to use *multigraphs* such as ⟨ng⟩, ⟨th⟩, ⟨aa⟩ or ⟨eqh⟩.
+But multigraphs can be problematic when combined with other rules:
+  for instance, a rule such as `h / / _` will wrongly convert ⟨th⟩ to ⟨t⟩.
+Thus many other sound change applies struggle with multigraphs.
+
+By contrast, Brassica allows rules to contain true multigraphs.
+Specify multigraphs by omitting the space between letters.
+For instance, the following rule will convert any `t`+`h` sequences in the input into a single multigraph `th`.
+```
+t h / th
+```
+
+Note that Brassica treats a multigraph like `th` as its own grapheme,
+  distinct from a sequence of two graphemes `t`+`h`!
+Thus rules such as `h / / _` will not affect multigraphs,
+  while rules such as `th / s` will not affect sequences of single-letter graphemes.
+Similarly, rules involving categories, gemination and metathesis will treat multigraphs as single elements:
+
+```
+C C / ~ C / _                      ; will convert ⟨athke⟩→⟨ake⟩ (but *⟨athe⟩→⟨ahe⟩ will not occur)
+[f s th x] / [f s th x] > / _ #    ; will convert ⟨bath⟩→⟨bathth⟩
+y [m n ng] / \ / _ V               ; will convert ⟨ynga⟩→⟨ngya⟩
+```
+
+Also, any valid grapheme may be used as a category name.
+This explains why the examples above were able to use category names with multiple letters.
+
+Incidentally, be careful to include spaces between graphemes which are *not* multigraphs!
+If you accidentally write a rule such as `ā / ay`, it will produce odd results, since Brassica will interpret the replacement ⟨ay⟩ as a single grapheme.
+Use `ā / a y` instead to avoid this issue.
+
+By default, Brassica tokenises input words into single-letter graphemes:
+  ⟨bath⟩ becomes `b`+`a`+`t`+`h`, and ⟨enga⟩ becomes `e`+`n`+`g`+`a`,
+  even if subsequent rules use multigraphs `th` and `ng`.
+The user would then need to use rules such as `t h / th` to introduce multigraphs.
+However Brassica assumes that any multigraphs listed in the first category block
+  will be present in the input.
+Thus the input will be tokenised into multigraphs *only if* those multigraphs are listed in the first category block.
+Because Brassica encourages a style where each category block contains every grapheme used at that point in rule application,
+  this will usually result in correct tokenisation.
+
+Some languages have a romanisation in which a multigraph and the corresponding letter sequence are both used for different consonants.
+This can be observed e.g. in some Australian languages which use ⟨ng⟩ for /ŋ/ but ⟨n⟩+⟨g⟩ for /nɡ/.
+Often the latter is represented ⟨n’g⟩ or ⟨n.g⟩ in text, as seen for instance in the language name Ngan’gityemerri /ŋanɡicemeri/.
+Such a situation can be dealt with in Brassica using a rule which removes the separator, such as `’ / / _`.
+A sequence such as ⟨n’g⟩ will be tokenised to `n`+`’`+`g`, after which this rule will remove the separator leaving `n`+`g` as desired,
+  while a sequence such as ⟨ng⟩ will be straightforwardly tokenised to the multigraph `ng`.
 
 ### Miscellaneous useful elements
 
 Several useful elements have not been covered yet.
 The symbol `>` represents *gemination*.
-When used in the target or environment, it matches exactly the same grapheme as was matched immediately prior:
+When used in the target or environment, it matches exactly the same grapheme as the last one matched:
 
 ```
 [b d g] > / [p t k]   ; converts ⟨bb⟩→⟨p⟩, ⟨dd⟩→⟨t⟩, ⟨gg⟩→⟨k⟩
@@ -342,7 +393,7 @@ V / / C > _ #         ; converts ⟨amme⟩→⟨amm⟩, ⟨kappa⟩→⟨kapp�
 C / / _ >             ; converts ⟨amme⟩→⟨ame⟩,  ⟨kappa⟩→⟨kapa⟩
 ```
 
-When used in the replacement, it repeats the previous grapheme in the output:
+When used in the replacement, it repeats the previous grapheme:
 
 ```
 C / C > / _ #         ; converts ⟨ap⟩→⟨app⟩
@@ -368,91 +419,41 @@ An optional element in the replacement will be included in the output
   only if the corresponding element in the target was matched:
 
 ```
-Alv (y) i / Pal (e) ə / _   ; converts ⟨ti⟩→⟨čə⟩, ⟨nyi⟩→⟨ñeə⟩
+Alv (y) i / Pal (i) ə / _   ; converts ⟨ti⟩→⟨čə⟩, ⟨nyi⟩→⟨ñjə⟩
 ```
 
 Warning: be careful when including optional categories in the environment!
 In a rule like `Alv (Aprx) [i e] / Alv [ɨ ə]`,
-  the category `[ɨ ə]` in the replacement will correspond to the *optional* category `Aprx` if it is matched.
+  the category `[ɨ ə]` in the replacement will correspond to the *optional* category `Aprx` when the latter is matched.
 To avoid this, use the discard character: `Alv (Aprx) [i e] / Alv (~) [ɨ ə]`.
 
 Sometimes rules can apply over long distances.
-For instance, vowel harmony will alter a vowel based on the next vowel, irrespective of how many consonants intervene.
-Such rules can be implemented using the *wildcard* `*`.
-When placed after another element, it will match as many of that element as possible.
+For instance, progressive vowel harmony changes vowels depending on the preceding vowel, irrespective of how many consonants intervene.
+Such rules can be written in Brassica using the *wildcard* `*`.
+When placed after another element, it will match as many repetitions of that element as possible.
 Thus, if the two vowel classes are called e.g. `V` and `V̈`, progressive vowel harmony can be written as follows:
 
 ```
 V / V̈ / V̈ C* _       ; converts ⟨ämpte⟩→⟨ämptë⟩
 ```
 
-(Note: this rule actually will not work for words of more than one vowel.
-This is because Brassica applies rules left to right by default.
-This can be fixed by adding `-rtl` before the rule.
-More on this later.)
+(Note: this rule will not work for words of more than one vowel!
+This is a known issue with Brassica, relating to the fact that in such cases the target and replacement overlap.
+For now, a suitable fix is to simply repeat this rule a number of times.)
 
 The `^` character represents another type of wildcard.
-If placed before another element, it will match any number of *any* symbol until it can match that element.
+If placed before another element, it will match any number of repetitions of *any* letter until it can match that element.
 This can be used to implement retrogressive vowel harmony:
 
 ```
 V / V̈ / _ ^V̈          ; converts ⟨amptë⟩→⟨ämptë⟩
 ```
 
-Generally `*` is more useful than `^`
-  (e.g. `^` can only be used for retrogressive harmony while `*` can be used for both progressive and retrogressive),
-  but the latter has its uses as well.
-
 One often wants to include a *gloss* in the list of input words.
 Such glosses should not be affected by sound changes.
 This can be achieved by surrounding the gloss in square brackets.
 Any part of the input surrounded by square brackets will be ignored by all sound changes.
 
-### Multigraphs
-
-So far, all of the examples have manipulated graphemes consisting of only one letter each.
-However it is often desirable to use *multigraphs* such as ⟨ng⟩, ⟨th⟩, ⟨aa⟩ or ⟨eqh⟩.
-But multigraphs can be problematic when combined with other rules:
-  for instance, a rule such as `h / / _` will wrongly convert ⟨th⟩ to ⟨t⟩.
-Thus, Brassica allows rules to contain multigraphs.
-For instance:
-
-```
-t h / th
-```
-
-This rule will convert any `t`+`h` sequences in the input into a single multigraph `th`.
-Note that Brassica treats a multigraph like `th` as its own grapheme,
-  distinct from a sequence of two graphemes `t`+`h`!
-Thus rules such as `h / / _` will not affect multigraphs,
-  while rules such as `th / s` will not affect sequences of single-letter graphemes.
-Similarly, rules involving categories, gemination and metathesis will treat multigraphs as single elements:
-
-```
-C C / ~ C / _                      ; will convert ⟨athke⟩→⟨ake⟩ (but *⟨athe⟩→⟨ahe⟩ will not occur)
-[f s th x] / [f s th x] > / _ #    ; will convert ⟨bath⟩→⟨bathth⟩
-y [m n ng] / \ / _ V               ; will convert ⟨ynga⟩→⟨ngya⟩
-```
-
-Also, any valid grapheme may be used as a category name.
-This explains why the examples above were able to use category names with multiple letters.
-
-By default, Brassica tokenises input words into single-letter graphemes:
-  ⟨bath⟩ becomes `b`+`a`+`t`+`h`, and ⟨enga⟩ becomes `e`+`n`+`g`+`a`,
-  even if subsequent rules use multigraphs `th` and `ng`.
-The user would then need to use rules such as `t h / th` to introduce multigraphs.
-However Brassica assumes that any multigraphs listed in the first category block
-  will be present in the input.
-Thus the input will be tokenised into multigraphs *only if* those multigraphs are listed in the first category block.
-Because Brassica encourages a style where each category block contains every grapheme used at that point in rule application,
-  this will usually result in correct tokenisation.
-
-Some languages have a romanisation in which a multigraph and the corresponding letter sequence are both used for different consonants.
-This can be observed e.g. in some Australian languages which use ⟨ng⟩ for /ŋ/ but ⟨n⟩+⟨g⟩ for /nɡ/.
-Often the latter is represented ⟨n’g⟩ or ⟨n.g⟩ in text, as seen for instance in the language name Ngan’gityemerri /ŋanɡicemeri/.
-Such a situation can be dealt with in Brassica by using a rule which simply removes the separator, such as `’ / / _`.
-A sequence such as ⟨n’g⟩ will be tokenised to `n`+`’`+`g`, allowing this rule to remove the separator leaving `n`+`g` as desired,
-  while a sequence such as ⟨ng⟩ will be straightforwardly tokenised to the multigraph `ng`.
 
 ## Advanced features
 
@@ -463,6 +464,7 @@ Thus a rule such as `a / b / _ b` will convert an input like ⟨aaaab⟩ to ⟨a
   Brassica traverses the input from left to right, so only ‘sees’ the `b` immediately after the last `a`,
   and cannot go back and change the `a` which is now followed by a new `b`.
 More realistically, this problem can occur in rules such as vowel harmony or stress assignment.
+
 Problems such as these can be solved by adding ‘flags’ to rules.
 A *flag* in Brassica is an element at the beginning of the rule preceded by `-` and followed by whitespace.
 Here, the relevant flag is `-rtl`: when placed at the beginning of a rule, it changes rule application to be right-to-left.
@@ -491,10 +493,10 @@ Any element, even optional elements or wildcards, can be used in an exception in
 
 ### Backreferences
 
-Recall that Brassica matches up each category in the target to the corresponding category in the replacement,
+Recall that Brassica matches up each category in the replacement to the corresponding category in the target,
   going in order from left to right.
 Thus, a rule `[p t k] [m n ŋ] / [m n ŋ] [p t k]` will change ⟨pŋ⟩ to ⟨mk⟩ and ⟨tm⟩ to ⟨np⟩.
-We can picture this as follows:
+We can picture this as follows, with the first category in the replacement associated to the first category in the target, and similarly for the second categories:
 ```
 [p t k] [m n ŋ] / [m n ŋ] [p t k]
 ───┬─── ───╥───   ───┬─── ───╥───
@@ -504,11 +506,10 @@ We can picture this as follows:
 ```
 (NB. If the picture looks wonky, try copying it into Notepad or a similar text editing application.)
 
-However, this is sometimes inconvenient.
-For instance, consider the cross-linguistically common sound change converting V₁ʔC to V₁ʔV₁C
-  (where of course V and C are vowels and consonants respectively).
+However, this behaviour can be inconvenient.
+For instance, consider the cross-linguistically common sound change converting V₁ʔC to V₁ʔV₁C.
 Though not impossible, this is difficult to write using only the syntax covered above.
-A rule like `V ʔ / V ʔ V / _ C` fails, since the second `V` in the replacement has no corresponding category in the target:
+A rule like `V ʔ / V ʔ V / _ C` fails, since the second `V` in the replacement corresponds to no category in the target:
 ```
 V ʔ / V ʔ V / _ C
 ┬     ┬   ┬
@@ -563,7 +564,7 @@ This may be written as:
 
 ### Sporadic rules and multiple results
 
-On some occasions we might want a sound change rule to have more than one output at a time.
+Sometimes we might want a sound change rule with more than one possible output.
 The most common situation where this is useful is that of *sporadic rules*:
   sound changes which unpredictably apply to some words but not others.
 In Brassica, these can be simulated by placing the flag `-?` before the rule.
@@ -571,14 +572,12 @@ For rules with this flag, two outputs are generated:
   one for the situation in which the rule has been applied,
   and one for the situation in which it has not been applied.
 (In the output wordlist, these are displayed separated by a single space.)
-Thus, for instance, the rule `-? i / / a _ #` applied to the word ⟨kanai⟩ will produce the two outputs ⟨kanai⟩ and ⟨kana⟩.
+For instance, the rule `-? i / / a _ #` applied to the word ⟨kanai⟩ will produce the two outputs ⟨kanai⟩ and ⟨kana⟩.
 This allows us to manually inspect both outputs, so we can decide which one we prefer for later usage.
 
-We can also produce rules with two or more different outputs, all of which are different to the input.
-We can do this using categories and optional elements in the replacement which cannot be matched with any in the target.
-As mentioned above, if categories or optional elements are used in the replacement,
-  Brassica will attempt to match them with corresponding elements in the target.
-Thus, for instance, `[ɪ ʊ] (q) / [i u] (k) / _ #` will convert ⟨nɪ⟩→⟨ni⟩ and ⟨lʊq⟩→⟨luk⟩.
+We can also produce rules with two or more different outputs, where all the outputs have undergone some change.
+One way of doing this involves categories or optional elements in the replacement which cannot be matched with any in the target.
+As mentioned above, categories or optional elements used in the replacement are matched one-to-one with corresponding elements in the target.
 However, if an output element is found with no corresponding input element, Brassica will instead produce *all possible* outputs.
 This allows us to, for instance, summarise the history of close back vowels from Middle to Modern English as:
 ```
@@ -590,16 +589,16 @@ This behaviour can also be forced by adding `@?` before a category:
   thus `[i u] / @? [i u]` will output both ⟨i⟩ and ⟨u⟩ for any high vowel in the input.
 
 Rarely, Brassica will produce multiple results even when this is not explicitly specified.
-This occurs when there is more than one way to apply a given rule to a particular word.
-This happens most often with optional elements in the target or environment:
-  e.g. if the rule `o (m) / u (ŋ)` is applied to the word ⟨tom⟩, then both ⟨tum⟩ and ⟨tuŋ⟩ are possible outputs,
-  depending on whether the nasal is matched or not.
+This occurs when it detects that there are multiple valid ways to apply a rule to a word.
+This situation comes up most often with optional elements in the target or environment.
+For instance, if the rule `o (m) / u (ŋ)` is applied to the word ⟨tom⟩, then both ⟨tum⟩ and ⟨tuŋ⟩ are possible outputs,
+  depending on whether ⟨m⟩ is included in the target or not.
 However, more subtle cases also occur.
-For instance, consider the following rule applied to the word ⟨ʔʔan⟩:
+For instance, consider the following rule:
 ```
 ʔ / / [# ʔ] _
 ```
-Here, there are two different ways to apply this rule to the given word.
+There are two different ways to apply this rule to the word ⟨ʔʔan⟩.
 On one hand, we can notice that the very first `ʔ` is at the beginning of the word, so it can be deleted;
   this then brings the second `ʔ` to the beginning of the word, where it too can be deleted to give the result ⟨an⟩.
 On the other hand, we can notice that there are two `ʔ`s in a row, so by this rule the second can be deleted;
@@ -678,30 +677,31 @@ Each category specified in the declaration must have the same number of elements
 
 ### Output highlighting
 
-Both of Brassica’s graphical interfaces (desktop and online) contain options to highlight output words which satisfy various conditions.
+Brassica’s interactive interfaces contain options to highlight output words which satisfy various conditions.
 These options are located in the ‘output highlighting’ box near the right of the window.
 The highlighting is updated every time the rules are applied.
 (That is, every time the ‘apply’ button is pressed;
   or, with live previewing enabled, every time the input or rules are changed.)
-The default is ‘No highlighting’.
-Select ‘Different to last run’ to highlight all words for which
+
+The default option is ‘No highlighting’.
+Select ‘Different to last run’ to highlight all words where
   the current application of the rules gave a different output to the last application of the rules.
 This option can be useful when investigating the effect of a particular rule on the output:
-  while this option is enabled, toggling the rule on and off will highlight all words which are affected by this rule.
-Select ‘Different to input’ to highlight all words for which
-  at least one rule alters the input.
+  while this option is enabled, adding and removing the rule will highlight all words which are affected by this rule.
+
+Select ‘Different to input’ to highlight all words which have been affected by at least one rule.
 This option can be useful when prototyping a new set of sound changes:
   when conlanging, the ideal situation is one in which every word is affected by at least one rule,
   i.e. every word is highlighted.
 
-Note that when the latter option is selected, some rules cause undesirable highlighting.
+Note that when ‘Different to input’ selected, some rules can cause undesirable highlighting.
 For instance, it is often useful to use rules which remove romanisation conventions, mark syllable boundaries or similar.
 Such rules tend to alter a large portion of the input;
   all those words are then highlighted even though, linguistically speaking, they have undergone no change.
 For this reason, Brassica provides the `-x` flag.
-If a word has only been affected by `-x` rules, that word will not be highlighted —
-  that is, `-x` rules are treated by Brassica as effectively causing no change for the purposes of output highlighting.
-Thus, it is recommended to annotate rules with `-x` when they cause only cosmetic change,
+If a word has only been affected by rules marked with `-x` rules, that word will not be highlighted.
+That is, `-x` rules are treated by Brassica as effectively causing no change for the purposes of output highlighting.
+It is recommended to annotate rules with `-x` when they cause only cosmetic change,
   so only rules corresponding to actual phonetic change will trigger output highlighting.
 
 ### MDF dictionaries
@@ -710,11 +710,11 @@ All examples above have involved input given as a simple list of words.
 However, Brassica also allows input to be given in ‘Multi-Dictionary Formatter’ (MDF) notation,
   as generated by dictionary-editing programs such as [SIL Toolbox](https://software.sil.org/toolbox/).
 (For details on the MDF format itself, see [Coward and Grimes’s original manual](https://web.archive.org/web/20211008115829/http://downloads.sil.org/legacy/shoebox/MDF_2000.pdf),
-  or [MDF documentation for SIL](http://www.fieldlinguiststoolbox.org/MDFDocumentation.zip) formatted for use with SIL Toolbox.)
+  or [SIL’s MDF documentation](http://www.fieldlinguiststoolbox.org/MDFDocumentation.zip) formatted for use with SIL Toolbox.)
 
-To use MDF input files with the desktop interface, the ‘MDF file’ button must be enabled.
-This button will automatically be enabled when an MDF file is opened using the ‘Open lexicon’ dialog box.
-Similarly, enabling the button labeled ‘Wordlist + glosses’ will make Brassica treat the input as a simple wordlist with glosses.
+To use MDF input files with the desktop interface, the ‘MDF file’ option must be enabled.
+This option will automatically be enabled when an MDF file is opened using the ‘Open lexicon’ dialog box.
+Similarly, enabling the option labeled ‘Wordlist + glosses’ will make Brassica treat the input as a simple wordlist with glosses.
 MDF files can also be processed when using Brassica in batch mode from the command-line:
   this can be done by supplying the `--mdf` command-line argument.
   
