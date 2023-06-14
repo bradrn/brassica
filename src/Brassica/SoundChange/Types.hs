@@ -6,8 +6,10 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -17,11 +19,12 @@
 module Brassica.SoundChange.Types
        (
        -- * Words and graphemes
-         Grapheme
+         Grapheme(..)
        , PWord
+       , concatWithBoundary
        -- * Lexemes
        , Lexeme(..)
-       , CategoryElement(..)
+       , pattern Boundary
        , LexemeType(..)
        -- * Rules
        , Rule(..)
@@ -41,6 +44,7 @@ module Brassica.SoundChange.Types
 import Control.DeepSeq (NFData(..))
 import Data.Kind (Constraint)
 import GHC.Generics (Generic)
+import GHC.OldList (dropWhileEnd)
 import GHC.TypeLits
 
 -- | The constraint @OneOf a x y@ is satisfied if @a ~ x@ or @a ~ y@.
@@ -60,9 +64,11 @@ type family OneOf a x y :: Constraint where
                      ':<>: 'Text " or "
                      ':<>: 'ShowType c))
 
--- | The type of graphemes, or more accurately multigraphs: for
--- instance, @"a", "ch", "c̓" :: t'Grapheme'@.
-type Grapheme = [Char]
+-- | The type of graphemes within a word.
+data Grapheme
+    = GMulti [Char]  -- ^ A multigraph: for instance @GMulti "a", GMulti "ch", GMulti "c̓" :: t'Grapheme'@.
+    | GBoundary      -- ^ A non-letter element representing a word boundary which sound changes can manipulate
+    deriving (Eq, Ord, Show, Generic, NFData)
 
 -- | A word (or a subsequence of one) can be viewed as a list of
 -- @Grapheme@s: e.g. Portuguese "filha" becomes
@@ -73,6 +79,16 @@ type Grapheme = [Char]
 -- with @Prelude.'Prelude.Word'@.)
 type PWord = [Grapheme]
 
+-- | Render a 'PWord' as a 'String'. Very much like 'concat', but
+-- treating 'GBoundary's specially. Word-external boundaries are
+-- deleted, while word-internal boundaries are converted to @"#"@.
+concatWithBoundary :: PWord -> String
+concatWithBoundary = go . dropWhile (==GBoundary) . dropWhileEnd (==GBoundary)
+  where
+    go = concatMap $ \case
+        GMulti g -> g
+        GBoundary -> "#"
+
 -- | The part of a 'Rule' in which a 'Lexeme' may occur: either the
 -- target, the replacement or the environment.
 data LexemeType = Target | Replacement | Env
@@ -82,12 +98,11 @@ data LexemeType = Target | Replacement | Env
 -- variable specifies where each different variety of 'Lexeme' may
 -- occur.
 data Lexeme (a :: LexemeType) where
-    -- | In Brassica sound-change syntax, one or more letters without intervening whitespace
+    -- | In Brassica sound-change syntax, one or more letters without intervening whitespace,
+    -- or a word boundary specified as @#@
     Grapheme :: Grapheme -> Lexeme a
     -- | In Brassica sound-change syntax, delimited by square brackets
-    Category :: [CategoryElement a] -> Lexeme a
-    -- | In Brassica sound-change syntax, specified as @#@
-    Boundary :: Lexeme 'Env
+    Category :: [Grapheme] -> Lexeme a
     -- | In Brassica sound-change syntax, delimited by parentheses
     Optional :: [Lexeme a] -> Lexeme a
     -- | In Brassica sound-change syntax, specified as @\@
@@ -101,16 +116,19 @@ data Lexeme (a :: LexemeType) where
     -- | In Brassica sound-change syntax, specified as @~@
     Discard  :: Lexeme 'Replacement
     -- | In Brassica sound-change syntax, specified as \@i before a category
-    Backreference :: OneOf a 'Target 'Replacement => Int -> [CategoryElement a] -> Lexeme a
+    Backreference :: OneOf a 'Target 'Replacement => Int -> [Grapheme] -> Lexeme a
     -- | In Brassica sound-change syntax, specified as \@? before a category
-    Multiple :: [CategoryElement 'Replacement] -> Lexeme 'Replacement
+    Multiple :: [Grapheme] -> Lexeme 'Replacement
+
+-- | A 'Lexeme' matching a single word boundary, specified as @#@ in Brassica syntax.
+pattern Boundary :: Lexeme a
+pattern Boundary = Grapheme GBoundary
 
 deriving instance Show (Lexeme a)
 
 instance NFData (Lexeme a) where
     rnf (Grapheme g) = rnf g
     rnf (Category cs) = rnf cs
-    rnf Boundary = ()
     rnf (Optional ls) = rnf ls
     rnf Metathesis = ()
     rnf Geminate = ()
@@ -119,20 +137,6 @@ instance NFData (Lexeme a) where
     rnf Discard = ()
     rnf (Backreference i l) = seq i $ rnf l
     rnf (Multiple l) = rnf l
-
--- | The elements allowed in a 'Category': currently, only
--- t'Grapheme's and word boundaries.
-data CategoryElement (a :: LexemeType) where
-    GraphemeEl :: Grapheme -> CategoryElement a
-    BoundaryEl :: CategoryElement 'Env
-
-deriving instance Show (CategoryElement a)
-deriving instance Eq (CategoryElement a)
-deriving instance Ord (CategoryElement a)
-
-instance NFData (CategoryElement a) where
-    rnf (GraphemeEl a) = rnf a
-    rnf BoundaryEl = ()
 
 -- | An 'Environment' is a tuple of @(before, after)@ components,
 -- corresponding to a ‘/ before _ after’ component of a sound change.

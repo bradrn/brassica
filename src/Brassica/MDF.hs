@@ -34,7 +34,7 @@ import Text.Megaparsec
 import Text.Megaparsec.Char
 
 import Brassica.SoundChange.Tokenise
-import Brassica.SoundChange.Types (Grapheme, PWord)
+import Brassica.SoundChange.Types (PWord)
 import Data.Maybe (fromMaybe)
 
 -- | An MDF (Multi-Dictionary Formatter) file, represented as a list
@@ -89,7 +89,7 @@ parseMDFRaw = runParser (fmap MDF $ sc *> many (entry parseToSlash) <* eof) ""
 -- | Parse an MDF file to an 'MDF', parsing the 'Vernacular' fields
 -- into 'Component's in the process.
 parseMDFWithTokenisation
-    :: [Grapheme]
+    :: [String]
     -> String
     -> Either (ParseErrorBundle String Void) (MDF [Component PWord])
 parseMDFWithTokenisation (sortByDescendingLength -> gs) =

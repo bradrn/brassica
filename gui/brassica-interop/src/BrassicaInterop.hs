@@ -51,8 +51,8 @@ parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) infmtC hlModeC out
                     GHC.newCString utf8 $ surroundTable $
                         concatMap (reportAsHtmlRows plaintext') items
   where
-    highlightWord (s, False) = concat s
-    highlightWord (s, True) = "<b>" ++ concat s ++ "</b>"
+    highlightWord (s, False) = concatWithBoundary s
+    highlightWord (s, True) = "<b>" ++ concatWithBoundary s ++ "</b>"
 
     surroundTable :: String -> String
     surroundTable s = "<table>" ++ s ++ "</table>"

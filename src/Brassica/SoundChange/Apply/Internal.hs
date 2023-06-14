@@ -141,8 +141,9 @@ match out prev (Optional l) mz =
     (out <> MatchOutput [] [False] [], mz) :
     matchMany (out <> MatchOutput [] [True] []) prev l mz
 match out prev w@(Wildcard l) mz = case match out prev l mz of
-    [] -> maybeToList (consume mz) >>= \(g, mz') ->
-        match (appendGrapheme out g) prev w mz'
+    [] -> maybeToList (consume mz) >>= \case
+        (GBoundary, _) -> []   -- don't continue past word boundary
+        (g, mz') -> match (appendGrapheme out g) prev w mz'
     r -> r
 match out prev k@(Kleene l) mz = case match out prev l mz of
     [] -> [(MatchOutput [] [] [], mz)]
@@ -159,10 +160,6 @@ match out _ (Category gs) mz =
     -- ...and take all matches
     & (>>= maybeToList)
     & fmap (\(i, (g, mz')) -> (out <> MatchOutput [i] [] g, mz'))
-match out _ Boundary mz =
-    if atBoundary mz
-    then [(out <> MatchOutput [] [] [], mz)]
-    else []
 match out prev Geminate mz = case prev of
     Nothing -> []
     Just prev' -> (out <> MatchOutput [] [] [prev'],) <$> maybeToList (matchGrapheme prev' mz)
@@ -172,10 +169,9 @@ match out _prev (Backreference i gs) mz = maybeToList $ do
     (matched, mz') <- matchCategoryEl mz g
     pure (modifyMatchedGraphemes (++matched) out, mz')
 
-matchCategoryEl :: MultiZipper t Grapheme -> CategoryElement a -> Maybe ([Grapheme], MultiZipper t Grapheme)
-matchCategoryEl mz BoundaryEl = if atBoundary mz then Just ([], mz) else Nothing
-matchCategoryEl mz (GraphemeEl g) = ([g],) <$> matchGrapheme g mz
-                
+matchCategoryEl :: MultiZipper t Grapheme -> Grapheme -> Maybe ([Grapheme], MultiZipper t Grapheme)
+matchCategoryEl mz g = ([g],) <$> matchGrapheme g mz
+
 matchGrapheme :: Grapheme -> MultiZipper t Grapheme -> Maybe (MultiZipper t Grapheme)
 matchGrapheme g = matchGraphemeP (==g)
 
@@ -212,7 +208,6 @@ lastMay l = if null l then Nothing else Just (last l)
 data ReplacementIndices = ReplacementIndices
     { ixInCategories :: Int
     , ixInOptionals :: Int
-
     , forcedCategory :: Maybe CategoryNumber
     } deriving (Show)
 
@@ -278,9 +273,9 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
             (CategoryNumber ci, ixs') ->
                 let i = matchedCatIxs out !! ci in
                     case gs !? i of
-                        Just (GraphemeEl g) -> [(ixs', (insert g mz, Just g))]
-                        Nothing             -> [(ixs', (insert "\xfffd" mz, Nothing))]  -- Unicode replacement character
-            (Nondeterministic, ixs') -> gs <&> \(GraphemeEl g) -> (ixs', (insert g mz, Just g))
+                        Just g   -> [(ixs', (insert g mz, Just g))]
+                        Nothing  -> [(ixs', (insert (GMulti "\xfffd") mz, Nothing))]  -- Unicode replacement character
+            (Nondeterministic, ixs') -> gs <&> \g -> (ixs', (insert g mz, Just g))
     replaceLex ixs (Optional ls) mz prev =
         let (co, ixs') = advanceOptional ixs in
             case matchedOptionals out !? co of
@@ -328,11 +323,17 @@ matchRuleAtPoint
     -> [(MatchOutput, MultiZipper RuleTag Grapheme)]
 matchRuleAtPoint target (env1,env2) mz = flip runRuleAp mz $ do
     _ <- RuleAp $ matchMany' Nothing env1
-    modify $ tag TargetStart
-    matchResult <- RuleAp $ matchMany' Nothing target
-    modify $ tag TargetEnd
-    _ <- RuleAp $ matchMany' (listToMaybe $ matchedGraphemes matchResult) env2
-    return matchResult
+    -- start of target needs to be INSIDE 'MultiZipper'!
+    -- otherwise get weird things like /x/#_ resulting in
+    -- #abc#→#xabd#x when it should be #abc#→#xabc#
+    gets atBoundary >>= \case
+        True -> RuleAp $ const []
+        False -> do
+            modify $ tag TargetStart
+            matchResult <- RuleAp $ matchMany' Nothing target
+            modify $ tag TargetEnd
+            _ <- RuleAp $ matchMany' (listToMaybe $ matchedGraphemes matchResult) env2
+            return matchResult
 
 -- | Given a 'Rule', determine if the rule matches at the current
 -- point; if so, apply the rule, adding appropriate tags.
@@ -402,7 +403,9 @@ applyRule r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
 -- the given 'CategoriesDecl', replacing all unlisted graphemes with
 -- U+FFFD.
 checkGraphemes :: CategoriesDecl -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme
-checkGraphemes (CategoriesDecl gs) = fmap $ \g -> if g `elem` gs then g else "\xfffd"
+checkGraphemes (CategoriesDecl gs) = fmap $ \case
+    GBoundary -> GBoundary
+    g -> if g `elem` gs then g else GMulti "\xfffd"
 
 -- | Apply a 'Statement' to a 'MultiZipper'. This is a simple wrapper
 -- around 'applyRule' and 'checkGraphemes'.
@@ -469,12 +472,12 @@ toPWordLog ls@(l : _) = Just $ PWordLog
 -- +------+---+-------+-------------+ 
 
 reportAsHtmlRows :: (r -> String) -> PWordLog r -> String
-reportAsHtmlRows render item = go (concat $ initialWord item) (derivations item)
+reportAsHtmlRows render item = go (concatWithBoundary $ initialWord item) (derivations item)
   where
     go _ [] = ""
     go cell1 ((output, action) : ds) =
         ("<tr><td>" ++ cell1 ++ "</td><td>&rarr;</td><td>"
-         ++ concat output
+         ++ concatWithBoundary output
          ++ "</td><td>(" ++ render action ++ ")</td></tr>")
         ++ go "" ds
 
@@ -495,10 +498,10 @@ reportAsHtmlRows render item = go (concat $ initialWord item) (derivations item)
 -- >   -> tazh   (V / / _ #)
 reportAsText :: (r -> String) -> PWordLog r -> String
 reportAsText render item = unlines $
-    concat (initialWord item) : fmap toLine (alignWithPadding $ derivations item)
+    concatWithBoundary (initialWord item) : fmap toLine (alignWithPadding $ derivations item)
   where
     alignWithPadding ds =
-        let (fmap concat -> outputs, actions) = unzip ds
+        let (fmap concatWithBoundary -> outputs, actions) = unzip ds
             maxlen = maximum $ length <$> outputs
             padded = outputs <&> \o -> o ++ replicate (maxlen - length o) ' '
         in zip padded actions
