@@ -62,7 +62,7 @@ executable brassica
                   , bytestring >=0.10 && <0.12
                   , conduit ^>=1.3
                   , optparse-applicative ^>=0.17
-                  , text ^>=1.2
+                  , text >=1.2 && <2.1
 
   default-language: Haskell2010
 
@@ -103,7 +103,7 @@ test-suite changes-test
                   , tasty ^>=1.4
                   , tasty-golden ^>=2.3
                   , bytestring
-                  , text ^>=1.2
+                  , text >=1.2 && <2.1
                   , transformers ^>=0.5
                   , conduit ^>=1.3
                   , utf8-string ^>=1.0
