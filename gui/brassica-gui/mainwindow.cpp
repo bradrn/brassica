@@ -30,10 +30,10 @@ MainWindow::MainWindow(QWidget *parent)
     setupMenuBar();
     applySettings();
 
-    connect(applyBtn      , &QPushButton::clicked  , [this] { applySoundChanges(false, false); });
-    connect(reportRulesBtn, &QPushButton::clicked  , [this] { applySoundChanges(false, true); } );
-    connect(rulesEdit, &QPlainTextEdit::textChanged, [this] { applySoundChanges(true, false); });
-    connect(wordsEdit, &QPlainTextEdit::textChanged, [this] { applySoundChanges(true, false); });
+    connect(applyBtn      , &QPushButton::clicked  , this, [this] { applySoundChanges(false, false); });
+    connect(reportRulesBtn, &QPushButton::clicked  , this, [this] { applySoundChanges(false, true); } );
+    connect(rulesEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
+    connect(wordsEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
 
     connect(rulesEdit, &QPlainTextEdit::textChanged, this, &MainWindow::reparseCategories);
 
@@ -43,7 +43,7 @@ MainWindow::MainWindow(QWidget *parent)
         if (checked) updateOutputFromWordsSlider(wordsEditVScroll->value());
     });
 
-    connect(mdfBtn, &QRadioButton::toggled, [this](bool checked) {
+    connect(mdfBtn, &QRadioButton::toggled, this, [this](bool checked) {
         if (checked) {
             mdfoutBtn->setEnabled(true);
             mdfetymoutBtn->setEnabled(true);
@@ -365,7 +365,8 @@ void MainWindow::reparseCategories()
             else if (line == "end") inCategories = false;
             else if (line.contains("feature"))
             {
-                lineParts = line.split(QRegularExpression("=|/|feature"));
+                static const QRegularExpression featureRegex("=|/|feature");
+                lineParts = line.split(featureRegex);
                 // every second part from the end is a category name,
                 for (int i = lineParts.length()-2; i>=0; i-=2)
                     categories.append(lineParts[i].trimmed());
