@@ -10,6 +10,7 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QRadioButton>
+#include <QScrollBar>
 #include <QTextCodec>
 #include <QTextStream>
 #include <Qt>
@@ -35,6 +36,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(wordsEdit, &QPlainTextEdit::textChanged, [this] { applySoundChanges(true, false); });
 
     connect(rulesEdit, &QPlainTextEdit::textChanged, this, &MainWindow::reparseCategories);
+
+    connect(wordsEditVScroll , &QAbstractSlider::valueChanged, this, &MainWindow::updateOutputFromWordsSlider);
+    connect(outputEditVScroll, &QAbstractSlider::valueChanged, this, &MainWindow::updateWordsFromOutputSlider);
+    connect(synchroniseScrolls, &QCheckBox::toggled, this, [this](bool checked) {
+        if (checked) updateOutputFromWordsSlider(wordsEditVScroll->value());
+    });
 
     connect(mdfBtn, &QRadioButton::toggled, [this](bool checked) {
         if (checked) {
@@ -77,6 +84,8 @@ void MainWindow::setupWidgets(QWidget *central)
     wordsEdit = new QPlainTextEdit;
     wordsLayout->addWidget(wordsLbl);
     wordsLayout->addWidget(wordsEdit);
+
+    wordsEditVScroll = wordsEdit->verticalScrollBar();
 
     applyBtn = new QPushButton("Apply");
     midLayout->addWidget(applyBtn);
@@ -131,11 +140,17 @@ void MainWindow::setupWidgets(QWidget *central)
     viewLive = new QCheckBox("View results live");
     midLayout->addWidget(viewLive);
 
+    synchroniseScrolls = new QCheckBox("Synchronise scroll positions");
+    synchroniseScrolls->setChecked(true);
+    midLayout->addWidget(synchroniseScrolls);
+
     QLabel *outputLbl = new QLabel("Output lexicon:");
     outputEdit = new QTextEdit;
     outputEdit->setReadOnly(true);
     outputLayout->addWidget(outputLbl);
     outputLayout->addWidget(outputEdit);
+
+    outputEditVScroll = outputEdit->verticalScrollBar();
 }
 
 void MainWindow::setupMenuBar()
@@ -219,7 +234,12 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
                                        checkedHl,
                                        outMode,
                                        hsResults));
+
+    blockScrollTrackingEvent = true;
     outputEdit->setHtml(QString::fromUtf8(output));
+
+    blockScrollTrackingEvent = false;
+    updateOutputFromWordsSlider(wordsEditVScroll->value());
 }
 
 void MainWindow::openRules()
@@ -275,6 +295,44 @@ void MainWindow::saveLexiconAs()
     QString fileName = QFileDialog::getSaveFileName(this, "Open lexicon", QString(), "Lexicon files (*.lex);;MDF files (*.mdf *.txt);;All files (*.*)");
     doSaveLexicon(fileName);
     currentLexiconFile = fileName;
+}
+
+void MainWindow::updateOutputFromWordsSlider(int value)
+{
+    if (!synchroniseScrolls->isChecked()) return;
+
+    if (blockScrollTrackingEvent) {
+        blockScrollTrackingEvent = false;
+    } else {
+        float wordsMin = wordsEditVScroll->minimum();
+        float wordsMax = wordsEditVScroll->maximum();
+        float outputMin = outputEditVScroll->minimum();
+        float outputMax = outputEditVScroll->maximum();
+
+        float ratio = (value - wordsMin) / (wordsMax - wordsMin);
+        blockScrollTrackingEvent = true;
+        outputEditVScroll->setValue(
+            (ratio * (outputMax - outputMin)) + outputMin);
+    }
+}
+
+void MainWindow::updateWordsFromOutputSlider(int value)
+{
+    if (!synchroniseScrolls->isChecked()) return;
+
+    if (blockScrollTrackingEvent) {
+        blockScrollTrackingEvent = false;
+    } else {
+        float wordsMin = wordsEditVScroll->minimum();
+        float wordsMax = wordsEditVScroll->maximum();
+        float outputMin = outputEditVScroll->minimum();
+        float outputMax = outputEditVScroll->maximum();
+
+        float ratio = (value - outputMin) / (outputMax - outputMin);
+        blockScrollTrackingEvent = true;
+        wordsEditVScroll->setValue(
+            (ratio * (wordsMax - wordsMin)) + wordsMin);
+    }
 }
 
 void MainWindow::showParadigmBuilder()
