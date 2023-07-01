@@ -56,6 +56,7 @@ module Brassica.SoundChange.Apply.Internal
        ) where
 
 import Control.Applicative ((<|>))
+import Control.Category ((>>>))
 import Data.Containers.ListUtils (nubOrd)
 import Data.Function ((&))
 import Data.Functor ((<&>))
@@ -428,7 +429,12 @@ applyRuleStr r s = nubOrd $ fmap toList $ applyRule r $ fromListStart s
 -- are removed. To keep duplicates, use the lower-level internal
 -- function 'applyStatement' directly.
 applyStatementStr :: Statement -> PWord -> [PWord]
-applyStatementStr st s = nubOrd $ fmap toList $ applyStatement st $ fromListStart s
+applyStatementStr st =
+    addBoundaries
+    >>> fromListStart
+    >>> applyStatement st
+    >>> fmap (toList >>> removeBoundaries)
+    >>> nubOrd
 
 -- | A log item representing a single application of an action. (In
 -- practise this will usually be a 'Statement'.) Specifies the action

@@ -21,6 +21,8 @@ module Brassica.SoundChange.Types
        -- * Words and graphemes
          Grapheme(..)
        , PWord
+       , addBoundaries
+       , removeBoundaries
        , concatWithBoundary
        -- * Lexemes
        , Lexeme(..)
@@ -79,11 +81,19 @@ data Grapheme
 -- with @Prelude.'Prelude.Word'@.)
 type PWord = [Grapheme]
 
+-- Add a 'GBoundary' at the beginning and end of the 'PWord'.
+addBoundaries :: PWord -> PWord
+addBoundaries w = GBoundary : w ++ [GBoundary]
+
+-- Remove 'GBoundary's from the beginning and end of the 'PWord'.
+removeBoundaries :: PWord -> PWord
+removeBoundaries = dropWhile (==GBoundary) . dropWhileEnd (==GBoundary)
+
 -- | Render a 'PWord' as a 'String'. Very much like 'concat', but
 -- treating 'GBoundary's specially. Word-external boundaries are
 -- deleted, while word-internal boundaries are converted to @"#"@.
 concatWithBoundary :: PWord -> String
-concatWithBoundary = go . dropWhile (==GBoundary) . dropWhileEnd (==GBoundary)
+concatWithBoundary = go . removeBoundaries
   where
     go = concatMap $ \case
         GMulti g -> g

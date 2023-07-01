@@ -81,15 +81,12 @@ splitMultipleResults _ (Gloss g) = [Gloss g]
 -- Note: the second parameter __must__ be 'sortByDescendingLength'-ed;
 -- otherwise multigraphs will not be parsed correctly.
 wordParser :: [Char] -> [String] -> ParsecT Void String Identity PWord
-wordParser excludes gs = fmap addBoundaries $ some $
+wordParser excludes gs = some $
     (GBoundary <$ single '#')
     <|> choice (fmap GMulti . chunk <$> gs)
     <|> (GMulti . pure <$> satisfy (not . exclude))
   where
     exclude = (||) <$> isSpace <*> (`elem` excludes)
-
-    addBoundaries :: [Grapheme] -> [Grapheme]
-    addBoundaries w = GBoundary : w ++ [GBoundary]
 
 -- | Megaparsec parser for 'Component's. Similarly to 'wordParser',
 -- usually it’s easier to use 'tokeniseWords' instead.
@@ -123,13 +120,13 @@ sortByDescendingLength = sortBy (compare `on` Down . length)
 -- treat that character as its own t'Grapheme'. For instance:
 --
 -- >>> tokeniseWord [] "cherish"
--- Right [GBoundary,GMulti "c",GMulti "h",GMulti "e",GMulti "r",GMulti "i",GMulti "s",GMulti "h",GBoundary]
+-- Right [GMulti "c",GMulti "h",GMulti "e",GMulti "r",GMulti "i",GMulti "s",GMulti "h"]
 -- 
 -- >>> tokeniseWord ["e","h","i","r","s","sh"] "cherish"
--- Right [GBoundary,GMulti "c",GMulti "h",GMulti "e",GMulti "r",GMulti "i",GMulti "sh",GBoundary]
+-- Right [GMulti "c",GMulti "h",GMulti "e",GMulti "r",GMulti "i",GMulti "sh"]
 -- 
 -- >>> tokeniseWord ["c","ch","e","h","i","r","s","sh"] "cherish"
--- Right [GBoundary,GMulti "ch",GMulti "e",GMulti "r",GMulti "i",GMulti "sh",GBoundary]
+-- Right [GMulti "ch",GMulti "e",GMulti "r",GMulti "i",GMulti "sh"]
 tokeniseWord :: [String] -> String -> Either (ParseErrorBundle String Void) PWord
 tokeniseWord (sortByDescendingLength -> gs) = parse (wordParser "[" gs) ""
 
