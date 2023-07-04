@@ -232,6 +232,7 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
                                        reportRules,
                                        infmt,
                                        checkedHl,
+                                       5000000,  // 5 s
                                        outMode,
                                        hsResults));
 

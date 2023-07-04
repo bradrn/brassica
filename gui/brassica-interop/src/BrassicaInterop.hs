@@ -4,11 +4,14 @@
 
 module BrassicaInterop where
 
+import Control.DeepSeq (force)
+import Control.Exception (evaluate)
 import Data.IORef
 import Foreign.C hiding (newCString, peekCString) -- hide these so we don't accidentally use them
 import Foreign.StablePtr
 import qualified GHC.Foreign as GHC
 import GHC.IO.Encoding (utf8)
+import System.Timeout
 
 import Brassica.SoundChange
 import Brassica.SoundChange.Frontend.Internal
@@ -21,9 +24,19 @@ parseTokeniseAndApplyRules_hs
     -> CInt        -- ^ input format
     -> CInt        -- ^ highlighting mode
     -> CInt        -- ^ output mode
+    -> CInt        -- ^ timeout (μs)
     -> StablePtr (IORef (Maybe [Component PWord]))  -- ^ previous results
     -> IO CString  -- ^ output (either wordlist or parse error)
-parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) infmtC hlModeC outModeC prevPtr = do
+parseTokeniseAndApplyRules_hs
+  changesRaw
+  wsRaw
+  (CBool report)
+  infmtC
+  hlModeC
+  timeoutC
+  outModeC
+  prevPtr
+  = do
     changesText <- GHC.peekCString utf8 changesRaw
     wsText      <- GHC.peekCString utf8 wsRaw
 
@@ -40,13 +53,18 @@ parseTokeniseAndApplyRules_hs changesRaw wsRaw (CBool report) infmtC hlModeC out
 
     case parseSoundChanges changesText of
         Left e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
-        Right statements ->
-            case parseTokeniseAndApplyRules statements wsText infmt mode prev of
-                ParseError e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
-                HighlightedWords result -> do
+        Right statements -> do
+            result' <-
+                timeout (fromIntegral timeoutC) $
+                    evaluate $ force $
+                        parseTokeniseAndApplyRules statements wsText infmt mode prev
+            case result' of
+                Nothing -> GHC.newCString utf8 "&lt;timeout&gt;"
+                Just (ParseError e) -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
+                Just (HighlightedWords result) -> do
                     writeIORef prevRef $ Just $ (fmap.fmap) fst result
                     GHC.newCString utf8 $ escape $ detokeniseWords' highlightWord result
-                AppliedRulesTable items -> do
+                Just (AppliedRulesTable items) -> do
                     writeIORef prevRef Nothing
                     GHC.newCString utf8 $ surroundTable $
                         concatMap (reportAsHtmlRows plaintext') items
@@ -81,6 +99,7 @@ foreign export ccall parseTokeniseAndApplyRules_hs
     :: CString
     -> CString
     -> CBool
+    -> CInt
     -> CInt
     -> CInt
     -> CInt
