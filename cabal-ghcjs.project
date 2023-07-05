@@ -1,4 +1,0 @@
-packages: ./brassica.cabal
-          ./gui/brassica-web/brassica-web.cabal
-          -- ./gui/brassica-interop/brassica-interop.cabal - don't need this one for GHCJS
-compiler: ghcjs

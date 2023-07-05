@@ -1,0 +1,16 @@
+{
+  "name": "brassica-web",
+  "version": "0.0.3",
+  "description": "",
+  "private": true,
+  "type": "module",
+  "author": "",
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "@bjorn3/browser_wasi_shim": "^0.2.14"
+  },
+  "devDependencies": {
+    "webpack": "^5.88.1",
+    "webpack-cli": "^5.1.4"
+  }
+}
