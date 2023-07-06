@@ -40,19 +40,25 @@ function decodeStableCStringLen(stableCStringLen) {
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
-function applyChanges(changes, words, reportRules) {
+const results = hs.initResults();  // NB: not const on Haskell side!
+
+function applyChanges(changes, words, reportRules, highlightMode) {
     const inputChanges = encoder.encode(changes);
     const inputWords = encoder.encode(words);
     const reportRulesC = reportRules ? 1 : 0;
+    var hlModeC = 0;
+    switch (highlightMode) {
+    case 'differentToLastRun': hlModeC = 1; break;
+    case 'differentToInput':   hlModeC = 2; break;
+    }
     var output = "";
     withBytesPtr(inputChanges, (inputChangesPtr, inputChangesLen) => {
         withBytesPtr(inputWords, (inputWordsPtr, inputWordsLen) => {
             try {
-                const results = hs.initResults();
                 const outputStableCStringLen = hs.parseTokeniseAndApplyRules_hs(
                     inputChangesPtr, inputChangesLen,
                     inputWordsPtr, inputWordsLen,
-                    reportRules, 0, 0, 1, results);
+                    reportRules, 0, hlModeC, 1, results);
                 output = decodeStableCStringLen(outputStableCStringLen);
             } catch (err) {
                 output = err;
@@ -68,7 +74,8 @@ form.addEventListener("submit", (event) => {
     const data = new FormData(form);
     const rules = data.get("rules");
     const words = data.get("words");
+    const highlightMode = data.get("highlightMode");
     const reportRules = event.submitter.id === "report-btn";
-    const output = applyChanges(rules, words, reportRules);
+    const output = applyChanges(rules, words, reportRules, highlightMode);
     document.getElementById("results").innerHTML = output;
 });

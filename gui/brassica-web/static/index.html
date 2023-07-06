@@ -44,6 +44,21 @@
       <div id="controls">
         <input type="submit" id="apply-btn" value="Apply" />
         <input type="submit" id="report-btn" value="Report rules applied" />
+        <fieldset>
+          <legend>Output highlighting</legend>
+          <div>
+            <input type="radio" id="hl-none" name="highlightMode" value="noHighlight" checked />
+            <label for="hl-none">No highlighting</label>
+          </div>
+          <div>
+            <input type="radio" id="hl-last" name="highlightMode" value="differentToLastRun" />
+            <label for="hl-last">Different to last run</label>
+          </div>
+          <div>
+            <input type="radio" id="hl-input" name="highlightMode" value="differentToInput" />
+            <label for="hl-input">Different to input</label>
+          </div>
+        </fieldset>
       </div>
       <div>
         <label>Results</label>
