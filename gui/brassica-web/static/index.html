@@ -18,6 +18,12 @@
       #results {
           overflow: scroll;
       }
+      #controls {
+          display: flex;
+          flex-flow: column nowrap;
+          justify-content: start;
+          align-items: flex-start;
+      }
     </style>
   </head>
   <body>
@@ -32,8 +38,9 @@
         <br />
         <textarea id="words" name="words"></textarea>
       </div>
-      <div>
-        <input type="submit" value="Apply" />
+      <div id="controls">
+        <input type="submit" id="apply-btn" value="Apply" />
+        <input type="submit" id="report-btn" value="Report rules applied" />
       </div>
       <div id="results"></div>
     </form>

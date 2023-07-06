@@ -40,9 +40,10 @@ function decodeStableCStringLen(stableCStringLen) {
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
-function applyChanges(changes, words) {
+function applyChanges(changes, words, reportRules) {
     const inputChanges = encoder.encode(changes);
     const inputWords = encoder.encode(words);
+    const reportRulesC = reportRules ? 1 : 0;
     var output = "";
     withBytesPtr(inputChanges, (inputChangesPtr, inputChangesLen) => {
         withBytesPtr(inputWords, (inputWordsPtr, inputWordsLen) => {
@@ -51,7 +52,7 @@ function applyChanges(changes, words) {
                 const outputStableCStringLen = hs.parseTokeniseAndApplyRules_hs(
                     inputChangesPtr, inputChangesLen,
                     inputWordsPtr, inputWordsLen,
-                    0, 0, 0, 1, results);
+                    reportRules, 0, 0, 1, results);
                 output = decodeStableCStringLen(outputStableCStringLen);
             } catch (err) {
                 output = err;
@@ -67,6 +68,7 @@ form.addEventListener("submit", (event) => {
     const data = new FormData(form);
     const rules = data.get("rules");
     const words = data.get("words");
-    const output = applyChanges(rules, words);
+    const reportRules = event.submitter.id === "report-btn";
+    const output = applyChanges(rules, words, reportRules);
     document.getElementById("results").innerHTML = output;
 });
