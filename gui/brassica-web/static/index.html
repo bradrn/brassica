@@ -17,6 +17,9 @@
       }
       #results {
           overflow: scroll;
+          border: thin solid black;
+          min-width: 5rem;
+          height: 90%;
       }
       #controls {
           display: flex;
@@ -42,7 +45,11 @@
         <input type="submit" id="apply-btn" value="Apply" />
         <input type="submit" id="report-btn" value="Report rules applied" />
       </div>
-      <div id="results"></div>
+      <div>
+        <label>Results</label>
+        <br />
+        <div id="results"></div>
+      </div>
     </form>
     <script src="./index.js"></script>
   </body>
