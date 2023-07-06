@@ -3,14 +3,40 @@
   <head>
     <meta charset="utf-8" />
     <title>Brassica</title>
+    <style>
+      #brassica-form {
+          height: 90vh;
+          display: flex;
+          flex-flow: row nowrap;
+          align-items: stretch;
+          gap: 2rem;
+      }
+      textarea {
+          flex: 1 0 auto;
+          height: 90%;
+      }
+      #results {
+          overflow: scroll;
+      }
+    </style>
   </head>
   <body>
     <form id="brassica-form">
-      <textarea name="rules" rows="50" cols="50">Rules</textarea>
-      <textarea name="words" rows="50" cols="50">Words</textarea>
-      <input type="submit" value="Apply" />
+      <div>
+        <label for="rules">Rules</label>
+        <br />
+        <textarea id="rules" name="rules"></textarea>
+      </div>
+      <div>
+        <label for="rules">Words</label>
+        <br />
+        <textarea id="words" name="words"></textarea>
+      </div>
+      <div>
+        <input type="submit" value="Apply" />
+      </div>
+      <div id="results"></div>
     </form>
-    <div id="results"></div>
     <script src="./index.js"></script>
   </body>
 </html>
