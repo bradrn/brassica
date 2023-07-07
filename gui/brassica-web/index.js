@@ -1,3 +1,4 @@
+import ace from "ace-builds";
 import { WASI } from "@bjorn3/browser_wasi_shim";
 import Split from "split.js";
 
@@ -64,6 +65,110 @@ function applyChanges(changes, words, reportRules, highlightMode) {
     return output;
 }
 
+ace.define('ace/mode/brassica', function(require, exports, module) {
+    var oop = require("ace/lib/oop");
+    var TextMode = require("ace/mode/text").Mode;
+    var BrassicaHighlightRules = require("ace/mode/brassica_highlight_rules").BrassicaHighlightRules;
+
+    var Mode = function() {
+        this.HighlightRules = BrassicaHighlightRules;
+    };
+    oop.inherits(Mode, TextMode);
+
+    (function() {
+        // Extra logic goes here. (see below)
+    }).call(Mode.prototype);
+
+    exports.Mode = Mode;
+});
+
+ace.define('ace/mode/brassica_highlight_rules', function(require, exports, module) {
+    var oop = require("ace/lib/oop");
+    var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+
+    var BrassicaHighlightRules = function() {
+        this.$rules = {
+            start: [
+                { token: "keyword",
+                  regex: ">|#|\\(|\\)|{|}|\\\\|\\^|%|~|\\*|categories|end|new|feature|@[0-9]+|@\\?"
+                },
+                { token: "separator",
+                  regex: "/|_|→"
+                },
+                { token: "comment",
+                  regex: ";.*$"
+                },
+                { token: "category",
+                  regex: "\\[.*?\\]"
+                },
+            ]
+        };
+        this.normalizeRules();
+    };
+
+    oop.inherits(BrassicaHighlightRules, TextHighlightRules);
+    exports.BrassicaHighlightRules = BrassicaHighlightRules;
+});
+
+var editor = ace.edit("rules");
+editor.session.setMode("ace/mode/brassica");
+editor.renderer.setShowGutter(false);
+editor.setHighlightActiveLine(false);
+editor.renderer.setOptions({
+    fontFamily: "monospace",
+    fontSize: "inherit",
+});
+
+var markers = [];
+
+function rehighlight() {
+    // preliminary: remove all markers
+    markers.forEach((id) => editor.session.removeMarker(id));
+
+    const rules = editor.getValue();
+    const rulesLines = rules.split("\n");
+
+    // first pass: accumulate categories
+    let categories = [];
+    const featureRegex = /=|\/|feature/g;
+    let inCategories = false;
+    rulesLines.forEach((line) => {
+        if (line.includes("categories")) {
+            inCategories = true;
+        } else if (line === "end") {
+            inCategories = false;
+        } else if (line.includes("feature")) {
+            let lineParts = line.split(featureRegex);
+            // every second part from the end is a category name,
+            for (let i = lineParts.length-2; i>=0; i-=2) {
+                categories.push(lineParts[i].trim());
+            }
+        } else if (inCategories) {
+            let lineParts = line.split("=");
+            if (lineParts.length > 1) {
+                categories.push(lineParts[0].trim());
+            }
+        }
+    });
+
+    let catsRegex = new RegExp(categories.join("|"), "gd");
+
+    // second pass: find row/column coords of matches
+    // and add them as markers
+    const Range = ace.require("ace/range").Range;
+    let ranges = [];
+    for (let row=0; row<rulesLines.length; ++row) {
+        let results = rulesLines[row].matchAll(catsRegex);
+        for (const result of results) {
+            let r = new Range(
+                row, result.index,
+                row, result.index + result[0].length);
+            let id = editor.session.addMarker(r, "regex_category", "text");
+            markers.push(id);
+        };
+    }
+}
+
 const form = document.getElementById("brassica-form");
 const viewLive = document.getElementById("view-live");
 
@@ -71,7 +176,7 @@ function updateForm(reportRules, needsLive) {
     if (needsLive && !viewLive.checked) return;
 
     const data = new FormData(form);
-    const rules = data.get("rules");
+    const rules = editor.getValue();
     const words = data.get("words");
     const highlightMode = data.get("highlightMode");
 
@@ -85,8 +190,10 @@ form.addEventListener("submit", (event) => {
     updateForm(reportRules, false);
 });
 
-const rulesArea = document.getElementById("rules");
-rulesArea.addEventListener("input", (event) => updateForm(false, true));
+editor.addEventListener("input", (event) => {
+    rehighlight();
+    updateForm(false, true);
+});
 
 const wordsArea = document.getElementById("words");
 wordsArea.addEventListener("input", (event) => updateForm(false, true));
@@ -105,7 +212,7 @@ exampleSelect.addEventListener("change", async (event) => {
     const bsc = await fetch(bscFile).then((response) => response.text());
     const lex = await fetch(lexFile).then((response) => response.text());
 
-    document.getElementById("rules").value = bsc;
+    editor.setValue(bsc);
     document.getElementById("words").value = lex;
 });
 

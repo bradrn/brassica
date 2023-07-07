@@ -89,9 +89,11 @@
           padding: 0.2rem;
           font-weight: bold;
       }
-      textarea {
+      textarea, #rules {
           flex: 1 0 auto;
           width: 100%;
+      }
+      textarea {
           box-sizing: border-box;
           border: none;
           resize: none;
@@ -119,8 +121,17 @@
           font: inherit;
           font-size: 90%;
       }
-      #rules {
-          font-family: monospace;
+
+      .ace-tm .ace_separator {
+          font-weight: bold;
+      }
+      .ace-tm .ace_category,
+      .regex_category {
+          background-color: rgb(245,245,220);
+      }
+      .regex_category {
+          position: absolute;
+          z-index: 20;
       }
 
       .split {
@@ -164,7 +175,7 @@
     <form id="brassica-form">
       <div id="rules-div" class="box-container">
         <label for="rules">Rules</label>
-        <textarea id="rules" name="rules"></textarea>
+        <div id="rules"></div>
       </div>
       <div id="words-div" class="box-container">
         <label for="words">Words</label>

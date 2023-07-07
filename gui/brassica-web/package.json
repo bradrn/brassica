@@ -8,6 +8,7 @@
   "license": "BSD-3-Clause",
   "dependencies": {
     "@bjorn3/browser_wasi_shim": "^0.2.14",
+    "ace-builds": "^1.23.2",
     "split.js": "^1.6.5"
   },
   "devDependencies": {
