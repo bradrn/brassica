@@ -69,13 +69,28 @@ function applyChanges(changes, words, reportRules, highlightMode) {
 }
 
 const form = document.getElementById("brassica-form");
-form.addEventListener("submit", (event) => {
-    event.preventDefault();
+const viewLive = document.getElementById("view-live");
+
+function updateForm(reportRules, needsLive) {
+    if (needsLive && !viewLive.checked) return;
+
     const data = new FormData(form);
     const rules = data.get("rules");
     const words = data.get("words");
     const highlightMode = data.get("highlightMode");
-    const reportRules = event.submitter.id === "report-btn";
+
     const output = applyChanges(rules, words, reportRules, highlightMode);
     document.getElementById("results").innerHTML = output;
+}
+
+form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const reportRules = event.submitter.id === "report-btn";
+    updateForm(reportRules, false);
 });
+
+const rulesArea = document.getElementById("rules");
+rulesArea.addEventListener("input", (event) => updateForm(false, true));
+
+const wordsArea = document.getElementById("words");
+wordsArea.addEventListener("input", (event) => updateForm(false, true));
