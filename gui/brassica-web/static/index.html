@@ -29,8 +29,45 @@
       html {
           font-family: "Source Sans", sans-serif;
       }
+      body {
+          margin: 0px;
+          padding: 10px;
+          display: flex;
+          flex-flow: column nowrap;
+          gap: 10px;
+          height: 100vh;
+          box-sizing: border-box;
+      }
+      h1 {
+          padding: 0px;
+          margin: 0px;
+      }
+      details {
+          border: 1px solid #aaa;
+          border-radius: 4px;
+          padding: 0.5em 0.5em 0;
+          max-width: 75vw;
+      }
+      summary {
+          font-weight: bold;
+          margin: -0.5em -0.5em 0;
+          padding: 0.5em;
+      }
+      details[open] {
+          padding: 0.5em;
+      }
+      details[open] summary {
+          border-bottom: 1px solid #aaa;
+          margin-bottom: 0.5em;
+      }
+      details p:first-of-type {
+          margin-top: 0px;
+      }
+      details p:last-of-type {
+          margin-bottom: 0px;
+      }
       #brassica-form {
-          height: 90vh;
+          flex: 1 0 auto;
           display: flex;
           flex-flow: row nowrap;
           align-items: stretch;
@@ -76,7 +113,6 @@
           flex: 1 0 auto;
           overflow: scroll;
           width: 100%;
-          height: 90%;
           background-color: #fff;
       }
       #words, #results {
@@ -103,6 +139,28 @@
     </style>
   </head>
   <body>
+    <h1>
+      Brassica: online version
+    </h1>
+    <details open>
+      <summary>Click to close</summary>
+      <p>
+        Brassica is an advanced sound change applier with features including multigraphs and phonetic categories.
+        This page runs <b>Brassica 0.0.3</b>.
+      </p>
+      <p>
+        You are currently on the <b>online version</b> of Brassica.
+        You may also want to try the standalone desktop interface,
+        which may be downloaded from the <a href="https://github.com/bradrn/brassica">GitHub repository</a>.
+        This online version does not support all features of Brassica:
+        in particular it does not yet include opening or saving, or syntax highlighting.
+        It may also somewhat slow.
+        However, otherwise it should be fully compatible with the desktop version of Brassica.
+      </p>
+      <p>
+        For more information on how to use Brassica, see the <a href="https://github.com/bradrn/brassica/blob/v0.0.3/Documentation.md">official documentation</a>.
+      </p>
+    </details>
     <form id="brassica-form">
       <div id="rules-div" class="box-container">
         <label for="rules">Rules</label>
