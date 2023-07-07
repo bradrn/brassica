@@ -1,2 +1,0 @@
-packages: ./brassica.cabal
-          ./gui/brassica-interop-wasm/brassica-interop-wasm.cabal
