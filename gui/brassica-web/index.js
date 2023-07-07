@@ -115,3 +115,13 @@ exampleSelect.addEventListener("change", async (event) => {
 });
 
 var split = Split(["#rules-div", "#words-div", "#results-div"]);
+
+const blurb = document.getElementById("blurb");
+const blurbHeader = document.getElementById("blurb-header");
+blurb.addEventListener("toggle", (event) => {
+    if (blurb.open) {
+        blurbHeader.innerHTML = "Click to close";
+    } else {
+        blurbHeader.innerHTML = "Click to open";
+    }
+});
