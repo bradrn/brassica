@@ -4,6 +4,7 @@
  */
 
 import { WASI } from "@bjorn3/browser_wasi_shim";
+import Split from "split.js";
 
 const wasi = new WASI([], [], []);
 const wasm = await WebAssembly.instantiateStreaming(
@@ -112,3 +113,5 @@ exampleSelect.addEventListener("change", async (event) => {
     document.getElementById("rules").value = bsc;
     document.getElementById("words").value = lex;
 });
+
+var split = Split(["#rules-div", "#words-div", "#results-div"]);
