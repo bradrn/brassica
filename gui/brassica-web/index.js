@@ -1,8 +1,3 @@
-/* To build (in ../brassica-interop-wasm/):
- * wasm32-wasi-cabal build brassica-interop-wasm
- * wizer --allow-wasi --wasm-bulk-memory true "$(wasm32-wasi-cabal list-bin -v0 brassica-interop-wasm)" -o "./dist/brassica-interop-wasm.wasm"
- */
-
 import { WASI } from "@bjorn3/browser_wasi_shim";
 import Split from "split.js";
 
