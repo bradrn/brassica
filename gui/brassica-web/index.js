@@ -94,3 +94,21 @@ rulesArea.addEventListener("input", (event) => updateForm(false, true));
 
 const wordsArea = document.getElementById("words");
 wordsArea.addEventListener("input", (event) => updateForm(false, true));
+
+const exampleSelect = document.getElementById("examples");
+const exampleMsg = "This will overwrite your current rules and lexicon. Are you sure you want to proceed?";
+exampleSelect.addEventListener("change", async (event) => {
+    const value = exampleSelect.value;
+    if (value === "") return;
+
+    if (!window.confirm(exampleMsg)) return;
+
+    const bscFile = "examples/" + value + ".bsc";
+    const lexFile = "examples/" + value + ".lex";
+
+    const bsc = await fetch(bscFile).then((response) => response.text());
+    const lex = await fetch(lexFile).then((response) => response.text());
+
+    document.getElementById("rules").value = bsc;
+    document.getElementById("words").value = lex;
+});
