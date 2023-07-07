@@ -4,23 +4,53 @@
     <meta charset="utf-8" />
     <title>Brassica</title>
     <style>
+      @font-face {
+          font-family: 'Source Sans';
+          font-style: normal;
+          font-weight: 400;
+          font-display: swap;
+          src: url(/fonts/SourceSans3-Regular.otf.woff2) format('woff2');
+      }
+      @font-face {
+          font-family: 'Source Sans';
+          font-style: italic;
+          font-weight: 400;
+          font-display: swap;
+          src: url(/fonts/SourceSans3-It.otf.woff2) format('woff2');
+      }
+      @font-face {
+          font-family: 'Source Sans';
+          font-style: normal;
+          font-weight: 700;
+          font-display: swap;
+          src: url(/fonts/SourceSans3-Bold.otf.woff2) format('woff2');
+      }
+
+      html {
+          font-family: "Source Sans", sans-serif;
+      }
       #brassica-form {
           height: 90vh;
           display: flex;
           flex-flow: row nowrap;
           align-items: stretch;
+          background-color: #f3f3f3;
+          padding: 1rem;
       }
       .box-container {
           flex-flow: column nowrap;
           display: flex;
           justify-content: start;
           align-items: flex-start;
-          border: thin solid black;
+          border: #bdcbe1 1px solid;
       }
       .box-container label {
-          border-bottom: thin solid black;
+          background-color: #e1e7f1;
+          border-bottom: #bdcbe1 1px solid;
           width: 100%;
-          padding: 0px;
+          box-sizing: border-box;
+          padding: 0.2rem;
+          font-weight: bold;
       }
       textarea {
           flex: 1 0 auto;
@@ -29,11 +59,32 @@
           border: none;
           resize: none;
       }
+      #controls {
+          padding: 0 5px;
+          display: flex;
+          flex-flow: column nowrap;
+          gap: 5px;
+      }
+      #controls input[type="submit"] {
+          font: inherit;
+          font-weight: bold;
+      }
+      #examples-div {
+          padding-top: 2rem;
+      }
       #results {
           flex: 1 0 auto;
           overflow: scroll;
           width: 100%;
           height: 90%;
+          background-color: #fff;
+      }
+      #words, #results {
+          font: inherit;
+          font-size: 90%;
+      }
+      #rules {
+          font-family: monospace;
       }
 
       .split {
@@ -41,7 +92,7 @@
           flex-direction: row;
       }
       .gutter {
-          background-color: #eee;
+          background-color: #f3f3f3;
           background-repeat: no-repeat;
           background-position: 50%;
       }
@@ -83,7 +134,7 @@
           <input type="checkbox" id="view-live" name="viewLive" />
           <label for="view-live">View results live</label>
         </div>
-        <div>
+        <div id="examples-div">
           Select example here:
           <select id="examples">
             <option value="">&mdash;Choose an example&mdash;</option>
