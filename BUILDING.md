@@ -72,22 +72,28 @@ It should then be possible to distribute `./deploy` freely.
 
 ## Online version
 
-Building the online version of Brassica is more difficult as it uses GHCJS and Reflex.
-Accordingly the [Nix](https://nixos.org/) package manager is required for building.
-First, install Nix if it isn’t present already.
-Next ensure that [`reflex-platform`](https://github.com/reflex-frp/reflex-platform) has been cloned as a submodule of this repository;
-  if not then run `git submodule init && git submodule update`.
-Then run `reflex-platform/try-reflex` to download and install GHCJS and Reflex.
-(Warning: this can take a while.)
-When finished that command should drop into a Nix shell, which can be immediately `exit`ed from.
-After this, run either of the following two commands to build:
-```bash
-# to build as a warp-enabled webserver with GHC, into ./dist-ghc/:
-nix-shell -A shells.ghc --run "cabal --builddir=dist-ghc build brassica-web"
-# to build as a webpage with GHCJS, into ./dist-ghcjs/:
-nix-shell -A shells.ghcjs --run "cabal --project-file=cabal-ghcjs.project --builddir=dist-ghcjs build brassica-web"
-```
-For more details consult the [`reflex-platform` project development guide](https://github.com/reflex-frp/reflex-platform/blob/ac66356c8839d1dc16cc60887c2db5988a60e6c4/docs/project-development.rst).
+Building the online version of Brassica is slightly more difficult as it requires the WebAssembly backend of GHC.
+You will also need [Wizer](https://github.com/bytecodealliance/wizer) to pre-initialise the WASM binary,
+  and [npm](https://www.npmjs.com/) for JavaScript package management.
+
+Follow the instructions at [ghc-wasm-meta](https://gitlab.haskell.org/ghc/ghc-wasm-meta) to install this version.
+Then:
+
+1. In `./gui/brassica-interop-wasm`, run the following commands:
+   ```
+   wasm32-wasi-cabal build brassica-interop-wasm
+   wizer --allow-wasi --wasm-bulk-memory true "$(wasm32-wasi-cabal list-bin -v0 brassica-interop-wasm)" -o "./dist/brassica-interop-wasm.wasm"
+   ```
+   This will create a file `./gui/brassica-interop-wasm/dist/brassica-interop-wasm.wasm` containing the WASM binary.
+2. In `./gui/brassica-web`, run the following commands to copy the required files into `./gui/brassica-web/static`:
+   ```
+   npm install
+   npx webpack
+   cp ../brassica-interop-wasm/dist/brassica-interop-wasm.wasm static/
+   cp -r ../../examples/ static/
+   ```
+3. To test Brassica, you can now run a webserver in `./gui/brassica-web/static`,
+     for instance using `python -m http.server`.
 
 ## Other platforms
 

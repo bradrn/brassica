@@ -1,7 +1,6 @@
-packages: ./brassica.cabal
-          ./gui/brassica-interop/brassica-interop.cabal
-          ./gui/brassica-web/brassica-web.cabal
-with-compiler: ghc
-
-package reflex-dom
-    flags: +use-warp
+if(os(wasi))
+    packages: ./brassica.cabal
+              ./gui/brassica-interop-wasm/brassica-interop-wasm.cabal
+else
+    packages: ./brassica.cabal
+              ./gui/brassica-interop/brassica-interop.cabal

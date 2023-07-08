@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Brassica</title>
+    <style>
+      @font-face {
+          font-family: 'Source Sans';
+          font-style: normal;
+          font-weight: 400;
+          font-display: swap;
+          src: url(/fonts/SourceSans3-Regular.otf.woff2) format('woff2');
+      }
+      @font-face {
+          font-family: 'Source Sans';
+          font-style: italic;
+          font-weight: 400;
+          font-display: swap;
+          src: url(/fonts/SourceSans3-It.otf.woff2) format('woff2');
+      }
+      @font-face {
+          font-family: 'Source Sans';
+          font-style: normal;
+          font-weight: 700;
+          font-display: swap;
+          src: url(/fonts/SourceSans3-Bold.otf.woff2) format('woff2');
+      }
+
+      html {
+          font-family: "Source Sans", sans-serif;
+      }
+      body {
+          margin: 0px;
+          padding: 10px;
+          display: flex;
+          flex-flow: column nowrap;
+          gap: 10px;
+          height: 100vh;
+          box-sizing: border-box;
+      }
+      h1 {
+          padding: 0px;
+          margin: 0px;
+      }
+      details {
+          border: 1px solid #aaa;
+          border-radius: 4px;
+          padding: 0.5em 0.5em 0;
+          max-width: 90vw;
+      }
+      summary {
+          font-weight: bold;
+          margin: -0.5em -0.5em 0;
+          padding: 0.5em;
+      }
+      details[open] {
+          padding: 0.5em;
+      }
+      details[open] summary {
+          border-bottom: 1px solid #aaa;
+          margin-bottom: 0.5em;
+      }
+      details p:first-of-type {
+          margin-top: 0px;
+      }
+      details p:last-of-type {
+          margin-bottom: 0px;
+      }
+      #brassica-form {
+          flex: 1 1 auto;
+          display: flex;
+          flex-flow: row nowrap;
+          align-items: stretch;
+          background-color: #f3f3f3;
+          padding: 1rem;
+          min-height: 10%;
+      }
+      .box-container {
+          flex-flow: column nowrap;
+          display: flex;
+          justify-content: start;
+          align-items: flex-start;
+          border: #bdcbe1 1px solid;
+      }
+      .header {
+          background-color: #e1e7f1;
+          border-bottom: #bdcbe1 1px solid;
+          width: 100%;
+          box-sizing: border-box;
+          padding: 0.2rem;
+      }
+      .header label {
+          font-weight: bold;
+      }
+      .header .file-buttons {
+          margin-left: 1rem;
+      }
+      .hidden-file-input {
+          display: none;
+      }
+      #rules, #words, #results {
+          flex: 1 1 auto;
+          width: 100%;
+      }
+      #words {
+          box-sizing: border-box;
+          border: none;
+          resize: none;
+      }
+      #controls {
+          min-width: 13em;
+          padding: 0 5px;
+          display: flex;
+          flex-flow: column nowrap;
+          gap: 5px;
+      }
+      #controls input[type="submit"] {
+          font: inherit;
+          font-weight: bold;
+      }
+      #examples-div {
+          padding-top: 2rem;
+      }
+      #results {
+          overflow: scroll;
+          background-color: #fff;
+      }
+      #words, #results {
+          font: inherit;
+          font-size: 90%;
+      }
+
+      .ace-tm .ace_separator {
+          font-weight: bold;
+      }
+      .ace-tm .ace_category,
+      .regex_category {
+          background-color: rgb(245,245,220);
+      }
+      .regex_category {
+          position: absolute;
+          z-index: 20;
+      }
+
+      .split {
+          display: flex;
+          flex-direction: row;
+      }
+      .gutter {
+          background-color: #f3f3f3;
+          background-repeat: no-repeat;
+          background-position: 50%;
+      }
+      .gutter.gutter-horizontal {
+          background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+          cursor: col-resize;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>
+      Brassica: online version
+    </h1>
+    <details id="blurb" open>
+      <summary id="blurb-header">Click to close</summary>
+      <p>
+        Brassica is an advanced sound change applier with features including multigraphs and phonetic categories.
+        This page runs <b>Brassica 0.0.3</b>.
+      </p>
+      <p>
+        You are currently on the <b>online version</b> of Brassica.
+        You can also get a standalone desktop version from the <a href="https://github.com/bradrn/brassica">GitHub repository</a>.
+      </p>
+      <p>
+        For help, see the <a href="https://github.com/bradrn/brassica/blob/v0.0.3/Documentation.md">official documentation</a>.
+        <br />
+        Or select an example here:
+        <select id="examples">
+          <option value="">&mdash;Choose an example&mdash;</option>
+          <option value="english">Middle to Modern English</option>
+          <option value="tonogenesis">Tonogenesis</option>
+          <option value="latin2port">Latin to Portuguese</option>
+        </select>
+      </p>
+    </details>
+    <form id="brassica-form">
+      <div id="rules-div" class="box-container">
+        <div class="header">
+          <label for="rules">Rules</label>
+          <span class="file-buttons">
+            <input type="button" id="open-rules" value="Open" />
+            <input type="button" id="download-rules" value="Download" />
+            <input type="file" id="input-file-rules" class="hidden-file-input" />
+          </span>
+        </div>
+        <div id="rules"></div>
+      </div>
+      <div id="words-div" class="box-container">
+        <div class="header">
+          <label for="words">Words</label>
+          <span class="file-buttons">
+            <input type="button" id="open-words" value="Open" />
+            <input type="button" id="download-words" value="Download" />
+            <input type="file" id="input-file-words" class="hidden-file-input" />
+          </span>
+        </div>
+        <textarea id="words" name="words"></textarea>
+      </div>
+      <div id="controls">
+        <input type="submit" id="apply-btn" value="Apply" />
+        <input type="submit" id="report-btn" value="Report rules applied" />
+        <fieldset>
+          <legend>Output highlighting</legend>
+          <div>
+            <input type="radio" id="hl-none" name="highlightMode" value="noHighlight" checked />
+            <label for="hl-none">No highlighting</label>
+          </div>
+          <div>
+            <input type="radio" id="hl-last" name="highlightMode" value="differentToLastRun" />
+            <label for="hl-last">Different to last run</label>
+          </div>
+          <div>
+            <input type="radio" id="hl-input" name="highlightMode" value="differentToInput" />
+            <label for="hl-input">Different to input</label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Output format</legend>
+          <div>
+            <input type="radio" id="fmt-wordlist" name="outputFormat" value="rawout" checked />
+            <label for="fmt-wordlist">Wordlist</label>
+          </div>
+          <div>
+            <input type="radio" id="fmt-inout" name="outputFormat" value="inout" />
+            <label for="fmt-inout">Input&rarr;output</label>
+          </div>
+        </fieldset>
+        <div>
+          <input type="checkbox" id="view-live" name="viewLive" />
+          <label for="view-live">View results live</label>
+        </div>
+      </div>
+      <div id="results-div" class="box-container">
+        <div class="header">
+          <label>Results</label>
+        </div>
+        <div id="results"></div>
+      </div>
+    </form>
+    <script src="./index.js"></script>
+  </body>
+</html>

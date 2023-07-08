@@ -1,0 +1,33 @@
+name:                brassica-interop-wasm
+version:             0.0.3
+-- synopsis:
+-- description:
+license:             BSD3
+-- license-file:        LICENSE
+author:              Brad Neimann
+copyright:           2021-2022 Brad Neimann
+category:            Web
+build-type:          Simple
+-- extra-source-files:  README.md
+cabal-version:       >=1.10
+
+executable brassica-interop-wasm
+  c-sources:           wasm-init.c
+  ghc-options:         -Wall -no-hs-main -optl-mexec-model=reactor -stubdir stub
+                       "-optl-Wl\
+                       \,--export=parseTokeniseAndApplyRules_hs\
+                       \,--export=initResults\
+                       \,--export=getString\
+                       \,--export=getStringLen\
+                       \,--export=freeStableCStringLen\
+                       \,--export=malloc\
+                       \,--export=free\
+                       \"
+  hs-source-dirs:      src
+  main-is:             BrassicaInterop.hs
+  build-depends:       base >= 4.7 && < 5
+                     , brassica
+                     , bytestring
+                     , deepseq
+                     , utf8-string >= 1.0 && < 1.1
+  default-language:    Haskell2010
