@@ -39,7 +39,7 @@ const decoder = new TextDecoder();
 
 const results = hs.initResults();  // NB: not const on Haskell side!
 
-function applyChanges(changes, words, reportRules, highlightMode) {
+function applyChanges(changes, words, reportRules, highlightMode, outputMode) {
     const inputChanges = encoder.encode(changes);
     const inputWords = encoder.encode(words);
     const reportRulesC = reportRules ? 1 : 0;
@@ -48,6 +48,10 @@ function applyChanges(changes, words, reportRules, highlightMode) {
     case 'differentToLastRun': hlModeC = 1; break;
     case 'differentToInput':   hlModeC = 2; break;
     }
+    var outModeC = 0;
+    if (outputMode === 'inout') {
+        outModeC = 3;
+    }
     var output = "";
     withBytesPtr(inputChanges, (inputChangesPtr, inputChangesLen) => {
         withBytesPtr(inputWords, (inputWordsPtr, inputWordsLen) => {
@@ -55,7 +59,7 @@ function applyChanges(changes, words, reportRules, highlightMode) {
                 const outputStableCStringLen = hs.parseTokeniseAndApplyRules_hs(
                     inputChangesPtr, inputChangesLen,
                     inputWordsPtr, inputWordsLen,
-                    reportRules, 0, hlModeC, 1, results);
+                    reportRules, 0, hlModeC, outModeC, results);
                 output = decodeStableCStringLen(outputStableCStringLen);
             } catch (err) {
                 output = err;
@@ -179,8 +183,9 @@ function updateForm(reportRules, needsLive) {
     const rules = editor.getValue();
     const words = data.get("words");
     const highlightMode = data.get("highlightMode");
+    const outputFormat = data.get("outputFormat");
 
-    const output = applyChanges(rules, words, reportRules, highlightMode);
+    const output = applyChanges(rules, words, reportRules, highlightMode, outputFormat);
     document.getElementById("results").innerHTML = output;
 }
 
