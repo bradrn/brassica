@@ -238,6 +238,7 @@ exampleSelect.addEventListener("change", async (event) => {
     const lex = await fetch(lexFile).then((response) => response.text());
 
     rulesEditor.setValue(bsc);
+    rulesEditor.clearSelection();
     document.getElementById("words").value = lex;
 });
 
@@ -281,6 +282,7 @@ inputFileRules.addEventListener("change", (event) => {
         const reader = new FileReader();
         reader.onload = (e) => {
             rulesEditor.setValue(e.target.result);
+            rulesEditor.clearSelection();
         };
         reader.readAsText(file);
     }
