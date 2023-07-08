@@ -457,6 +457,47 @@ Any part of the input surrounded by square brackets will be ignored by all sound
 
 ## Advanced features
 
+### Sound changes across words
+
+Sometimes it can be useful to apply sound changes across two or more words at once.
+For instance:
+
+- Sandhi and liaison processes act across adjacent words
+- Resyllabification can cause a consonant to move across a word boundary
+- Cliticisation and affixisation are associated with the deletion of a phonological boundary
+
+To model these processes, you can explicitly connect words together in the lexicon with the word-boundary marker `#`:
+  for instance, `sītā#etam`, `loː#ænd#oːdɐ`, or `grɑ̃t#ɔm`.
+In most situations these are treated as entirely separate words.
+However, for these words you can reference the word boundary `#` in the target or replacement, or in the middle of an environment.
+For instance, a selection of Sanskrit vowel sandhi rules (taken from <https://ubcsanskrit.ca/lesson3/sandhicharts.html>)
+  can be modeled as follows:
+```
+[a ā] # [a ā] / ā
+[i ī] # [i ī] / ī
+ṛ # / r / _ V
+ai / ā / _ # [a ā]
+; and so on
+```
+And English intrusive /r/ can be represented as:
+```
+/ r / [ə iə ɑː oː] # _ V
+```
+You can even do `# / / _` to remove all interword boundaries in the lexicon, if such a thing is useful.
+
+One trick that can be useful is to add some kind of marker between two words to reflect their relationship,
+  while using word boundaries to keep it separate from the word.
+For instance, clitics might be represented using a multigraph `CL`:
+  with English words this would look like `ði#CL#kæt` or `tʉː#CL#gəʊ`.
+That allows manipulations such as:
+```
+V / ə / _ # CL  ; reduce cliticised vowels
+```
+Or:
+```
+# CL # / / _    ; affixisation of clitics
+```
+
 ### Controlling rule application
 
 By default, Brassica applies rules from left to right.
