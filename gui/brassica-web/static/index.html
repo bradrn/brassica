@@ -100,6 +100,7 @@
           resize: none;
       }
       #controls {
+          min-width: 13em;
           padding: 0 5px;
           display: flex;
           flex-flow: column nowrap;
@@ -170,6 +171,15 @@
       <p>
         For more information on how to use Brassica, see the <a href="https://github.com/bradrn/brassica/blob/v0.0.3/Documentation.md">official documentation</a>.
       </p>
+      <p>
+        Or select an example here:
+        <select id="examples">
+          <option value="">&mdash;Choose an example&mdash;</option>
+          <option value="english">Middle to Modern English</option>
+          <option value="tonogenesis">Tonogenesis</option>
+          <option value="latin2port">Latin to Portuguese</option>
+        </select>
+      </p>
     </details>
     <form id="brassica-form">
       <div id="rules-div" class="box-container">
@@ -212,15 +222,6 @@
         <div>
           <input type="checkbox" id="view-live" name="viewLive" />
           <label for="view-live">View results live</label>
-        </div>
-        <div id="examples-div">
-          Select example here:
-          <select id="examples">
-            <option value="">&mdash;Choose an example&mdash;</option>
-            <option value="english">Middle to Modern English</option>
-            <option value="tonogenesis">Tonogenesis</option>
-            <option value="latin2port">Latin to Portuguese</option>
-          </select>
         </div>
       </div>
       <div id="results-div" class="box-container">
