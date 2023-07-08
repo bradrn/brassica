@@ -24,4 +24,4 @@ Alternately, try it online at http://bradrn.com/brassica.
 As of the time of writing prebuilt binaries exist for Windows and Linux.
 Instructions for building from source are available at [`BUILDING.md`](./BUILDING.md).
 
-![Image of Brassica with some example sound changes](https://raw.githubusercontent.com/bradrn/brassica/v0.0.3/gui-interface-example.png)
+![Image of Brassica with some example sound changes](https://raw.githubusercontent.com/bradrn/brassica/v0.1.0/gui-interface-example.png)
