@@ -4,41 +4,56 @@
 
 module BrassicaInterop where
 
-import Control.DeepSeq (force)
-import Control.Exception (evaluate)
+import Control.Monad ((<=<))
 import Data.IORef
+import qualified Foreign
 import Foreign.C hiding (newCString, peekCString) -- hide these so we don't accidentally use them
 import Foreign.StablePtr
 import qualified GHC.Foreign as GHC
 import GHC.IO.Encoding (utf8)
-import System.Timeout
 
 import Brassica.SoundChange
 import Brassica.SoundChange.Frontend.Internal
-import Brassica.Paradigm (applyParadigm, parseParadigm)
+
+newStableCStringLen :: String -> IO (StablePtr CStringLen)
+newStableCStringLen = newStablePtr <=< GHC.newCStringLen utf8
+
+getString :: StablePtr CStringLen -> IO CString
+getString = fmap fst . deRefStablePtr
+
+getStringLen :: StablePtr CStringLen -> IO Int
+getStringLen = fmap snd . deRefStablePtr
+
+freeStableCStringLen :: StablePtr CStringLen -> IO ()
+freeStableCStringLen ptr = do
+    (cstr, _) <- deRefStablePtr ptr
+    Foreign.free cstr
+    freeStablePtr ptr
 
 parseTokeniseAndApplyRules_hs
     :: CString     -- ^ changes
+    -> Int         -- ^ length of changes
     -> CString     -- ^ words
+    -> Int         -- ^ length of words
     -> CBool       -- ^ report rules applied?
     -> CInt        -- ^ input format
     -> CInt        -- ^ highlighting mode
     -> CInt        -- ^ output mode
-    -> CInt        -- ^ timeout (μs)
     -> StablePtr (IORef (Maybe [Component PWord]))  -- ^ previous results
-    -> IO CString  -- ^ output (either wordlist or parse error)
+    -> IO (StablePtr CStringLen)  -- ^ output (either wordlist or parse error)
 parseTokeniseAndApplyRules_hs
   changesRaw
+  changesRawLen
   wsRaw
+  wsRawLen
   (CBool report)
   infmtC
   hlModeC
-  timeoutC
   outModeC
   prevPtr
   = do
-    changesText <- GHC.peekCString utf8 changesRaw
-    wsText      <- GHC.peekCString utf8 wsRaw
+    changesText <- GHC.peekCStringLen utf8 (changesRaw, changesRawLen)
+    wsText      <- GHC.peekCStringLen utf8 (wsRaw, wsRawLen)
 
     prevRef <- deRefStablePtr prevPtr
     prev <- readIORef prevRef
@@ -52,42 +67,26 @@ parseTokeniseAndApplyRules_hs
             else ApplyRules hlMode outMode
 
     case parseSoundChanges changesText of
-        Left e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
-        Right statements -> do
-            result' <-
-                timeout (fromIntegral timeoutC) $
-                    evaluate $ force $
-                        parseTokeniseAndApplyRules statements wsText infmt mode prev
-            case result' of
-                Nothing -> GHC.newCString utf8 "&lt;timeout&gt;"
-                Just (ParseError e) -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
-                Just (HighlightedWords result) -> do
+        Left e -> newStableCStringLen $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
+        Right statements ->
+            case parseTokeniseAndApplyRules statements wsText infmt mode prev of
+                ParseError e -> newStableCStringLen $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
+                HighlightedWords result -> do
                     writeIORef prevRef $ Just $ (fmap.fmap) fst result
-                    GHC.newCString utf8 $ escape $ detokeniseWords' highlightWord result
-                Just (AppliedRulesTable items) -> do
+                    newStableCStringLen $ escape $ detokeniseWords' highlightWord result
+                AppliedRulesTable items -> do
                     writeIORef prevRef Nothing
-                    GHC.newCString utf8 $ surroundTable $
+                    newStableCStringLen $ surroundTable $
                         concatMap (reportAsHtmlRows plaintext') items
   where
-    highlightWord (s, False) = concatWithBoundary s
-    highlightWord (s, True) = "<b>" ++ concatWithBoundary s ++ "</b>"
+    highlightWord (s, False) = concat s
+    highlightWord (s, True) = "<b>" ++ concat s ++ "</b>"
 
     surroundTable :: String -> String
     surroundTable s = "<table>" ++ s ++ "</table>"
 
 initResults :: IO (StablePtr (IORef (Maybe [Component PWord])))
 initResults = newIORef Nothing >>= newStablePtr
-
-parseAndBuildParadigm_hs
-    :: CString -- ^ paradigm
-    -> CString -- ^ roots
-    -> IO CString
-parseAndBuildParadigm_hs pRaw wsRaw = do
-    pText <- GHC.peekCString utf8 pRaw
-    wsText <- GHC.peekCString utf8 wsRaw
-    case parseParadigm pText of
-        Left e -> GHC.newCString utf8 $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
-        Right p -> GHC.newCString utf8 $ escape $ unlines $ concatMap (applyParadigm p) $ lines wsText
 
 escape :: String -> String
 escape = concatMap $ \case
@@ -97,18 +96,17 @@ escape = concatMap $ \case
 
 foreign export ccall parseTokeniseAndApplyRules_hs
     :: CString
+    -> Int
     -> CString
+    -> Int
     -> CBool
     -> CInt
     -> CInt
     -> CInt
-    -> CInt
     -> StablePtr (IORef (Maybe [Component PWord]))
-    -> IO CString
+    -> IO (StablePtr CStringLen)
 
 foreign export ccall initResults :: IO (StablePtr (IORef (Maybe [Component PWord])))
-
-foreign export ccall parseAndBuildParadigm_hs
-    :: CString -- ^ paradigm
-    -> CString -- ^ words
-    -> IO CString
+foreign export ccall getString :: StablePtr CStringLen -> IO CString
+foreign export ccall getStringLen :: StablePtr CStringLen -> IO Int
+foreign export ccall freeStableCStringLen :: StablePtr CStringLen -> IO ()

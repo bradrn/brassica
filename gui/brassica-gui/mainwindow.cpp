@@ -10,6 +10,7 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QRadioButton>
+#include <QScrollBar>
 #include <QTextCodec>
 #include <QTextStream>
 #include <Qt>
@@ -29,14 +30,20 @@ MainWindow::MainWindow(QWidget *parent)
     setupMenuBar();
     applySettings();
 
-    connect(applyBtn      , &QPushButton::clicked  , [this] { applySoundChanges(false, false); });
-    connect(reportRulesBtn, &QPushButton::clicked  , [this] { applySoundChanges(false, true); } );
-    connect(rulesEdit, &QPlainTextEdit::textChanged, [this] { applySoundChanges(true, false); });
-    connect(wordsEdit, &QPlainTextEdit::textChanged, [this] { applySoundChanges(true, false); });
+    connect(applyBtn      , &QPushButton::clicked  , this, [this] { applySoundChanges(false, false); });
+    connect(reportRulesBtn, &QPushButton::clicked  , this, [this] { applySoundChanges(false, true); } );
+    connect(rulesEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
+    connect(wordsEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
 
     connect(rulesEdit, &QPlainTextEdit::textChanged, this, &MainWindow::reparseCategories);
 
-    connect(mdfBtn, &QRadioButton::toggled, [this](bool checked) {
+    connect(wordsEditVScroll , &QAbstractSlider::valueChanged, this, &MainWindow::updateOutputFromWordsSlider);
+    connect(outputEditVScroll, &QAbstractSlider::valueChanged, this, &MainWindow::updateWordsFromOutputSlider);
+    connect(synchroniseScrolls, &QCheckBox::toggled, this, [this](bool checked) {
+        if (checked) updateOutputFromWordsSlider(wordsEditVScroll->value());
+    });
+
+    connect(mdfBtn, &QRadioButton::toggled, this, [this](bool checked) {
         if (checked) {
             mdfoutBtn->setEnabled(true);
             mdfetymoutBtn->setEnabled(true);
@@ -77,6 +84,8 @@ void MainWindow::setupWidgets(QWidget *central)
     wordsEdit = new QPlainTextEdit;
     wordsLayout->addWidget(wordsLbl);
     wordsLayout->addWidget(wordsEdit);
+
+    wordsEditVScroll = wordsEdit->verticalScrollBar();
 
     applyBtn = new QPushButton("Apply");
     midLayout->addWidget(applyBtn);
@@ -131,21 +140,27 @@ void MainWindow::setupWidgets(QWidget *central)
     viewLive = new QCheckBox("View results live");
     midLayout->addWidget(viewLive);
 
+    synchroniseScrolls = new QCheckBox("Synchronise scroll positions");
+    synchroniseScrolls->setChecked(true);
+    midLayout->addWidget(synchroniseScrolls);
+
     QLabel *outputLbl = new QLabel("Output lexicon:");
     outputEdit = new QTextEdit;
     outputEdit->setReadOnly(true);
     outputLayout->addWidget(outputLbl);
     outputLayout->addWidget(outputEdit);
+
+    outputEditVScroll = outputEdit->verticalScrollBar();
 }
 
 void MainWindow::setupMenuBar()
 {
     QMenu *fileMenu = menuBar()->addMenu("&File");
-    fileMenu->addAction("Open rules", this, &MainWindow::openRules, QKeySequence(Qt::CTRL | Qt::Key_O));
-    fileMenu->addAction("Save rules", this, &MainWindow::saveRules, QKeySequence(Qt::CTRL | Qt::Key_S));
+    fileMenu->addAction("Open rules", QKeySequence(Qt::CTRL | Qt::Key_O), this, &MainWindow::openRules);
+    fileMenu->addAction("Save rules", QKeySequence(Qt::CTRL | Qt::Key_S), this, &MainWindow::saveRules);
     fileMenu->addAction("Save rules as", this, &MainWindow::saveRulesAs);
-    fileMenu->addAction("Open lexicon", this, &MainWindow::openLexicon, QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_O));
-    fileMenu->addAction("Save lexicon", this, &MainWindow::saveLexicon, QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_S));
+    fileMenu->addAction("Open lexicon", QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_O), this, &MainWindow::openLexicon);
+    fileMenu->addAction("Save lexicon", QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_S), this, &MainWindow::saveLexicon);
     fileMenu->addAction("Save lexicon as", this, &MainWindow::saveLexiconAs);
 
     QMenu *toolsMenu = menuBar()->addMenu("&Tools");
@@ -217,9 +232,15 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
                                        reportRules,
                                        infmt,
                                        checkedHl,
+                                       5000000,  // 5 s
                                        outMode,
                                        hsResults));
+
+    blockScrollTrackingEvent = true;
     outputEdit->setHtml(QString::fromUtf8(output));
+
+    blockScrollTrackingEvent = false;
+    updateOutputFromWordsSlider(wordsEditVScroll->value());
 }
 
 void MainWindow::openRules()
@@ -277,6 +298,44 @@ void MainWindow::saveLexiconAs()
     currentLexiconFile = fileName;
 }
 
+void MainWindow::updateOutputFromWordsSlider(int value)
+{
+    if (!synchroniseScrolls->isChecked()) return;
+
+    if (blockScrollTrackingEvent) {
+        blockScrollTrackingEvent = false;
+    } else {
+        float wordsMin = wordsEditVScroll->minimum();
+        float wordsMax = wordsEditVScroll->maximum();
+        float outputMin = outputEditVScroll->minimum();
+        float outputMax = outputEditVScroll->maximum();
+
+        float ratio = (value - wordsMin) / (wordsMax - wordsMin);
+        blockScrollTrackingEvent = true;
+        outputEditVScroll->setValue(
+            (ratio * (outputMax - outputMin)) + outputMin);
+    }
+}
+
+void MainWindow::updateWordsFromOutputSlider(int value)
+{
+    if (!synchroniseScrolls->isChecked()) return;
+
+    if (blockScrollTrackingEvent) {
+        blockScrollTrackingEvent = false;
+    } else {
+        float wordsMin = wordsEditVScroll->minimum();
+        float wordsMax = wordsEditVScroll->maximum();
+        float outputMin = outputEditVScroll->minimum();
+        float outputMax = outputEditVScroll->maximum();
+
+        float ratio = (value - outputMin) / (outputMax - outputMin);
+        blockScrollTrackingEvent = true;
+        wordsEditVScroll->setValue(
+            (ratio * (wordsMax - wordsMin)) + wordsMin);
+    }
+}
+
 void MainWindow::showParadigmBuilder()
 {
     ParadigmWindow *pw = new ParadigmWindow(this);
@@ -307,7 +366,8 @@ void MainWindow::reparseCategories()
             else if (line == "end") inCategories = false;
             else if (line.contains("feature"))
             {
-                lineParts = line.split(QRegularExpression("=|/|feature"));
+                static const QRegularExpression featureRegex("=|/|feature");
+                lineParts = line.split(featureRegex);
                 // every second part from the end is a category name,
                 for (int i = lineParts.length()-2; i>=0; i-=2)
                     categories.append(lineParts[i].trimmed());

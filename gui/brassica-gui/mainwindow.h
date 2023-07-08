@@ -26,6 +26,7 @@ public:
 private:
     QPlainTextEdit *rulesEdit;
     QPlainTextEdit *wordsEdit;
+    QScrollBar *wordsEditVScroll;
     QPushButton *applyBtn;
     QRadioButton *nohighlightBtn;
     QRadioButton *diffhighlightBtn;
@@ -39,7 +40,11 @@ private:
     QRadioButton *inoutBtn;
     QPushButton *reportRulesBtn;
     QCheckBox *viewLive;
+    QCheckBox *synchroniseScrolls;
     QTextEdit *outputEdit;
+    QScrollBar *outputEditVScroll;
+
+    bool blockScrollTrackingEvent = false;
 
     RulesHighlighter *rulesHl;
 
@@ -70,6 +75,9 @@ private slots:
     void openLexicon();
     void saveLexicon();
     void saveLexiconAs();
+
+    void updateOutputFromWordsSlider(int value);
+    void updateWordsFromOutputSlider(int value);
 
     void showParadigmBuilder();
 
