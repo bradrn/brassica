@@ -250,3 +250,56 @@ blurb.addEventListener("toggle", (event) => {
         blurbHeader.innerHTML = "Click to open";
     }
 });
+
+// adapted from https://stackoverflow.com/a/33542499/
+function save(filename, data) {
+    const blob = new Blob([data]);
+    const elem = window.document.createElement('a');
+    const url = window.URL.createObjectURL(blob);
+    elem.href = url;
+    elem.download = filename;
+    elem.style.display = 'none';
+    document.body.appendChild(elem);
+    elem.click();
+    document.body.removeChild(elem);
+    URL.revokeObjectURL(url);
+}
+
+document.getElementById("download-rules").addEventListener("click", (event) => {
+    event.preventDefault();
+    save("rules.bsc", rulesEditor.getValue());
+});
+document.getElementById("download-words").addEventListener("click", (event) => {
+    event.preventDefault();
+    save("words.lex", wordsArea.value);
+});
+
+const inputFileRules = document.getElementById("input-file-rules");
+inputFileRules.addEventListener("change", (event) => {
+    const file = inputFileRules.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            rulesEditor.setValue(e.target.result);
+        };
+        reader.readAsText(file);
+    }
+});
+document
+    .getElementById("open-rules")
+    .addEventListener("click", (event) => inputFileRules.click());
+
+const inputFileWords = document.getElementById("input-file-words");
+inputFileWords.addEventListener("change", (event) => {
+    const file = inputFileWords.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            wordsArea.value = e.target.result;
+        };
+        reader.readAsText(file);
+    }
+});
+document
+    .getElementById("open-words")
+    .addEventListener("click", (event) => inputFileWords.click());

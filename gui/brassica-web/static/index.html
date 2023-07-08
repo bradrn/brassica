@@ -82,13 +82,21 @@
           align-items: flex-start;
           border: #bdcbe1 1px solid;
       }
-      .box-container label {
+      .header {
           background-color: #e1e7f1;
           border-bottom: #bdcbe1 1px solid;
           width: 100%;
           box-sizing: border-box;
           padding: 0.2rem;
+      }
+      .header label {
           font-weight: bold;
+      }
+      .header .file-buttons {
+          margin-left: 1rem;
+      }
+      .hidden-file-input {
+          display: none;
       }
       #rules, #words, #results {
           flex: 1 1 auto;
@@ -183,11 +191,25 @@
     </details>
     <form id="brassica-form">
       <div id="rules-div" class="box-container">
-        <label for="rules">Rules</label>
+        <div class="header">
+          <label for="rules">Rules</label>
+          <span class="file-buttons">
+            <input type="button" id="open-rules" value="Open" />
+            <input type="button" id="download-rules" value="Download" />
+            <input type="file" id="input-file-rules" class="hidden-file-input" />
+          </span>
+        </div>
         <div id="rules"></div>
       </div>
       <div id="words-div" class="box-container">
-        <label for="words">Words</label>
+        <div class="header">
+          <label for="words">Words</label>
+          <span class="file-buttons">
+            <input type="button" id="open-words" value="Open" />
+            <input type="button" id="download-words" value="Download" />
+            <input type="file" id="input-file-words" class="hidden-file-input" />
+          </span>
+        </div>
         <textarea id="words" name="words"></textarea>
       </div>
       <div id="controls">
@@ -225,7 +247,9 @@
         </div>
       </div>
       <div id="results-div" class="box-container">
-        <label>Results</label>
+        <div class="header">
+          <label>Results</label>
+        </div>
         <div id="results"></div>
       </div>
     </form>
