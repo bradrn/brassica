@@ -2,6 +2,11 @@ import ace from "ace-builds";
 import { WASI } from "@bjorn3/browser_wasi_shim";
 import Split from "split.js";
 
+
+/***********************
+ * Haskell interop     *
+ ***********************/
+
 const wasi = new WASI([], [], []);
 const wasm = await WebAssembly.instantiateStreaming(
     fetch("brassica-interop-wasm.wasm"),
@@ -42,16 +47,20 @@ const results = hs.initResults();  // NB: not const on Haskell side!
 function applyChanges(changes, words, reportRules, highlightMode, outputMode) {
     const inputChanges = encoder.encode(changes);
     const inputWords = encoder.encode(words);
+
     const reportRulesC = reportRules ? 1 : 0;
+
     var hlModeC = 0;
     switch (highlightMode) {
     case 'differentToLastRun': hlModeC = 1; break;
     case 'differentToInput':   hlModeC = 2; break;
     }
+
     var outModeC = 0;
     if (outputMode === 'inout') {
         outModeC = 3;
     }
+
     var output = "";
     withBytesPtr(inputChanges, (inputChangesPtr, inputChangesLen) => {
         withBytesPtr(inputWords, (inputWordsPtr, inputWordsLen) => {
@@ -68,6 +77,11 @@ function applyChanges(changes, words, reportRules, highlightMode, outputMode) {
     });
     return output;
 }
+
+
+/***********************
+ * Syntax highlighting *
+ ***********************/
 
 ace.define('ace/mode/brassica', function(require, exports, module) {
     var oop = require("ace/lib/oop");
@@ -114,20 +128,10 @@ ace.define('ace/mode/brassica_highlight_rules', function(require, exports, modul
     exports.BrassicaHighlightRules = BrassicaHighlightRules;
 });
 
-var editor = ace.edit("rules");
-editor.session.setMode("ace/mode/brassica");
-editor.renderer.setShowGutter(false);
-editor.setHighlightActiveLine(false);
-editor.renderer.setOptions({
-    fontFamily: "monospace",
-    fontSize: "inherit",
-});
-
-var markers = [];
-
-function rehighlight() {
+var categoryMarkers = [];
+function rehighlightCategories(editor) {
     // preliminary: remove all markers
-    markers.forEach((id) => editor.session.removeMarker(id));
+    categoryMarkers.forEach((id) => editor.session.removeMarker(id));
 
     const rules = editor.getValue();
     const rulesLines = rules.split("\n");
@@ -162,25 +166,46 @@ function rehighlight() {
     const Range = ace.require("ace/range").Range;
     let ranges = [];
     for (let row=0; row<rulesLines.length; ++row) {
-        let results = rulesLines[row].matchAll(catsRegex);
-        for (const result of results) {
+        let matches = rulesLines[row].matchAll(catsRegex);
+        for (const match of matches) {
             let r = new Range(
-                row, result.index,
-                row, result.index + result[0].length);
+                row, match.index,
+                row, match.index + match[0].length);
             let id = editor.session.addMarker(r, "regex_category", "text");
-            markers.push(id);
+            categoryMarkers.push(id);
         };
     }
 }
 
+
+/***********************
+ * Set up content      *
+ ***********************/
+
+var rulesEditor = ace.edit("rules");
+rulesEditor.session.setMode("ace/mode/brassica");
+rulesEditor.renderer.setShowGutter(false);
+rulesEditor.setHighlightActiveLine(false);
+rulesEditor.renderer.setOptions({
+    fontFamily: "monospace",
+    fontSize: "inherit",
+});
+rulesEditor.addEventListener("input", (event) => {
+    rehighlightCategories(rulesEditor);
+    updateForm(false, true);
+});
+
+Split(["#rules-div", "#words-div", "#results-div"]);
+
 const form = document.getElementById("brassica-form");
 const viewLive = document.getElementById("view-live");
+const wordsArea = document.getElementById("words");
 
 function updateForm(reportRules, needsLive) {
     if (needsLive && !viewLive.checked) return;
 
     const data = new FormData(form);
-    const rules = editor.getValue();
+    const rules = rulesEditor.getValue();
     const words = data.get("words");
     const highlightMode = data.get("highlightMode");
     const outputFormat = data.get("outputFormat");
@@ -195,13 +220,8 @@ form.addEventListener("submit", (event) => {
     updateForm(reportRules, false);
 });
 
-editor.addEventListener("input", (event) => {
-    rehighlight();
-    updateForm(false, true);
-});
-
-const wordsArea = document.getElementById("words");
-wordsArea.addEventListener("input", (event) => updateForm(false, true));
+wordsArea.addEventListener("input", (event) =>
+    updateForm(false, true));
 
 const exampleSelect = document.getElementById("examples");
 const exampleMsg = "This will overwrite your current rules and lexicon. Are you sure you want to proceed?";
@@ -217,11 +237,9 @@ exampleSelect.addEventListener("change", async (event) => {
     const bsc = await fetch(bscFile).then((response) => response.text());
     const lex = await fetch(lexFile).then((response) => response.text());
 
-    editor.setValue(bsc);
+    rulesEditor.setValue(bsc);
     document.getElementById("words").value = lex;
 });
-
-var split = Split(["#rules-div", "#words-div", "#results-div"]);
 
 const blurb = document.getElementById("blurb");
 const blurbHeader = document.getElementById("blurb-header");
