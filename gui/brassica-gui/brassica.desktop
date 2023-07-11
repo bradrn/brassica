@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Brassica
+Comment=Featureful sound change applier
+Exec=brassica-gui
+Icon=brassica
+Categories=Science;

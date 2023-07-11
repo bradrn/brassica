@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 COMPONENTS Widgets Core5Compat REQUIRED)
+qt_standard_project_setup()
 
 set(BRASSICA_INTEROP_DIR ${CMAKE_CURRENT_LIST_DIR}/../brassica-interop/ CACHE PATH "Path to /gui directory of Brassica source code")
 if(WIN32)
@@ -63,4 +64,13 @@ elseif(LINUX)
     target_link_libraries(brassica-gui
         PRIVATE brassica-interop ${GHC_LINK}
         Qt::Widgets Qt::Core5Compat)
+
+    install(TARGETS brassica-gui
+        BUNDLE DESTINATION .
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+    qt_generate_deploy_app_script(
+        TARGET brassica-gui
+        OUTPUT_SCRIPT deploy_script)
+    install(SCRIPT ${deploy_script})
 endif()
