@@ -12,10 +12,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  if os(windows)
-    ghc-options:         -stubdir stub -o brassica-interop.a -static -optl-static -staticlib -Wall
-  else
-    ghc-options:         -stubdir stub -o libbrassica-interop.so -dynamic -shared -fPIC -fPIE -flink-rts -Wall
+  ghc-options:         -stubdir stub -o libbrassica-interop.so -dynamic
   hs-source-dirs:      src
   exposed-modules:     BrassicaInterop
   build-depends:       base >= 4.7 && < 5
