@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 
+class BrassicaProcess;
 class QPlainTextEdit;
 class QTextEdit;
 
@@ -10,7 +11,7 @@ class ParadigmWindow : public QMainWindow
 {
     Q_OBJECT
 public:
-    ParadigmWindow(QWidget *parent = nullptr);
+    ParadigmWindow(BrassicaProcess *proc, QWidget *parent = nullptr);
 
 private slots:
     void rebuildResult();
@@ -25,6 +26,7 @@ private:
     QPlainTextEdit *rootsEdit;
     QTextEdit *outputEdit;
 
+    BrassicaProcess *proc;
 };
 
 #endif // PARADIGMWINDOW_H

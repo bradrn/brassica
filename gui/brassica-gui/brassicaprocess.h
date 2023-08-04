@@ -1,6 +1,7 @@
 #ifndef BRASSICAPROCESS_H
 #define BRASSICAPROCESS_H
 
+#include <QJsonDocument>
 #include <QProcess>
 
 class BrassicaProcess : public QObject
@@ -40,11 +41,14 @@ public:
         HighlightMode hlMode,
         OutputMode outMode,
         QJsonValue *&prev);
+    QString parseAndBuildParadigm(QString paradigm, QString roots);
 
 private:
     QProcess *proc;
     bool valid;
     QProcess::ProcessError _errorState;  // if any
+
+    QJsonDocument request(QJsonDocument req);
 
     QString toJson(InputLexiconFormat val);
     QString toJson(HighlightMode val);

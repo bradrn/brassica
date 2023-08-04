@@ -340,7 +340,7 @@ void MainWindow::updateWordsFromOutputSlider(int value)
 
 void MainWindow::showParadigmBuilder()
 {
-    ParadigmWindow *pw = new ParadigmWindow(this);
+    ParadigmWindow *pw = new ParadigmWindow(proc, this);
     pw->show();
 }
 

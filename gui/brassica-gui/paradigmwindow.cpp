@@ -1,3 +1,4 @@
+#include "brassicaprocess.h"
 #include "paradigmwindow.h"
 
 #include <QPlainTextEdit>
@@ -8,8 +9,9 @@
 #include <QMenuBar>
 #include <QFileDialog>
 
-ParadigmWindow::ParadigmWindow(QWidget *parent)
+ParadigmWindow::ParadigmWindow(BrassicaProcess *proc, QWidget *parent)
     : QMainWindow(parent)
+    , proc(proc)
 {
     setWindowTitle("Brassica Paradigm Builder");
 
@@ -63,17 +65,12 @@ ParadigmWindow::ParadigmWindow(QWidget *parent)
 
 void ParadigmWindow::rebuildResult()
 {
-    /*TODO
     QString paradigm = paradigmEdit->toPlainText();
     QString roots = rootsEdit->toPlainText();
 
-    QByteArray output =
-            QByteArray((char*) parseAndBuildParadigm_hs(
-                           paradigm.toUtf8().data(),
-                           roots   .toUtf8().data()));
+    QString output = proc->parseAndBuildParadigm(paradigm, roots);
 
-    outputEdit->setHtml(QString::fromUtf8(output));
-    */
+    outputEdit->setHtml(output);
 }
 
 void ParadigmWindow::openParadigm()

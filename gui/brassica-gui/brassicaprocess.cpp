@@ -52,18 +52,7 @@ QString BrassicaProcess::parseTokeniseAndApplyRules(
     req.insert("outMode", toJson(outMode));
     req.insert("prev", *prev);
 
-    QJsonDocument doc(req);
-    proc->write(doc.toJson(QJsonDocument::Compact));
-
-    QByteArray resp;
-    do {
-        proc->waitForReadyRead();
-        resp.append(proc->readAll());
-    } while (!resp.endsWith('\027'));
-    resp.chop(1);
-
-    QJsonDocument respdoc = QJsonDocument::fromJson(resp);
-    QJsonObject obj = respdoc.object();
+    QJsonObject obj = request(QJsonDocument(req)).object();
     QString method = obj.value("method").toString();
     if (method == "Error") {
         return obj.value("contents").toString();
@@ -72,6 +61,34 @@ QString BrassicaProcess::parseTokeniseAndApplyRules(
         prev = new QJsonValue(obj.value("prev"));
         return obj.value("output").toString();
     }
+}
+
+QString BrassicaProcess::parseAndBuildParadigm(QString paradigm, QString roots)
+{
+    QJsonObject req = QJsonObject();
+    req.insert("method", "Paradigm");
+    req.insert("pText", paradigm);
+    req.insert("input", roots);
+
+    QJsonObject obj = request(QJsonDocument(req)).object();
+    QString method = obj.value("method").toString();
+    if (method == "Error") {
+        return obj.value("contents").toString();
+    } else if (method == "Paradigm") {
+        return obj.value("output").toString();
+    }
+}
+
+QJsonDocument BrassicaProcess::request(QJsonDocument req)
+{
+    proc->write(req.toJson(QJsonDocument::Compact));
+    QByteArray resp;
+    do {
+        proc->waitForReadyRead();
+        resp.append(proc->readAll());
+    } while (!resp.endsWith('\027'));
+    resp.chop(1);
+    return QJsonDocument::fromJson(resp);
 }
 
 QString BrassicaProcess::toJson(InputLexiconFormat val)
