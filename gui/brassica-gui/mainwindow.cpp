@@ -1,4 +1,3 @@
-#include "BrassicaInterop_stub.h"
 #include "mainwindow.h"
 #include "paradigmwindow.h"
 #include "settingsdialog.h"
@@ -6,6 +5,7 @@
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QJsonValue>
 #include <QLabel>
 #include <QMenu>
 #include <QMenuBar>
@@ -15,13 +15,14 @@
 #include <QTextStream>
 #include <Qt>
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
     : QMainWindow(parent)
     , settings()
+    , proc(proc)
 {
-    setWindowTitle("Brassica");
+    prev = new QJsonValue(QJsonValue::Null);
 
-    hsResults = initResults();
+    setWindowTitle("Brassica");
 
     QWidget *window = new QWidget;
     setCentralWidget(window);
@@ -58,6 +59,8 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    delete prev;
+    // proc is deleted in main()
 }
 
 void MainWindow::setupWidgets(QWidget *central)
@@ -214,30 +217,29 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
 
     //QString output = proc->applyRules(categories, rules, words);
 
-    int infmt = 0;
-    if (mdfBtn->isChecked()) infmt = 1;
+    BrassicaProcess::InputLexiconFormat infmt = BrassicaProcess::Raw;
+    if (mdfBtn->isChecked()) infmt = BrassicaProcess::MDF;
 
-    int checkedHl = 0;
-    if (diffhighlightBtn->isChecked()) checkedHl = 1;
-    else if (inputhighlightBtn->isChecked()) checkedHl = 2;
+    BrassicaProcess::HighlightMode checkedHl = BrassicaProcess::NoHighlight;
+    if (diffhighlightBtn->isChecked()) checkedHl = BrassicaProcess::DifferentToLastRun;
+    else if (inputhighlightBtn->isChecked()) checkedHl = BrassicaProcess::DifferentToInput;
 
-    int outMode = 1; // default to wordlist / rawoutBtn
-    if (mdfoutBtn->isChecked()) outMode = 0;
-    else if (mdfetymoutBtn->isChecked()) outMode = 2;
-    else if (inoutBtn->isChecked()) outMode = 3;
+    BrassicaProcess::OutputMode outMode = BrassicaProcess::WordsOnlyOutput;
+    if (mdfoutBtn->isChecked()) outMode = BrassicaProcess::MDFOutput;
+    else if (mdfetymoutBtn->isChecked()) outMode = BrassicaProcess::MDFOutputWithEtymons;
+    else if (inoutBtn->isChecked()) outMode = BrassicaProcess::WordsWithProtoOutput;
 
-    QByteArray output = QByteArray((char*) parseTokeniseAndApplyRules_hs(
-                                       rules.toUtf8().data(),
-                                       words.toUtf8().data(),
-                                       reportRules,
-                                       infmt,
-                                       checkedHl,
-                                       5000000,  // 5 s
-                                       outMode,
-                                       hsResults));
+    QString output = proc->parseTokeniseAndApplyRules(
+        rules,
+        words,
+        reportRules,
+        infmt,
+        checkedHl,
+        outMode,
+        prev);
 
     blockScrollTrackingEvent = true;
-    outputEdit->setHtml(QString::fromUtf8(output));
+    outputEdit->setHtml(output);
 
     blockScrollTrackingEvent = false;
     updateOutputFromWordsSlider(wordsEditVScroll->value());

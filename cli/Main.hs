@@ -13,27 +13,31 @@ import Options.Applicative
 
 import Brassica.SoundChange
 import Brassica.SoundChange.Frontend.Internal
+import Server
 
 main :: IO ()
-main = do
-    Options{..} <- execParser opts
-    changesText <- unpack . decodeUtf8 <$> B.readFile rulesFile
+main = execParser opts >>= \case
+    Server -> serve
+    Options{..} -> do
+        changesText <- unpack . decodeUtf8 <$> B.readFile rulesFile
 
-    case parseSoundChanges changesText of
-        Left err ->
-            putStrLn $ errorBundlePretty err
-        Right rules ->
-            withSourceFileIf inWordsFile $ \inC ->
-            withSinkFileIf outWordsFile $ \outC ->
-            runConduit $
-                inC
-                .| processWords (incrFor wordsFormat) rules wordsFormat outMode
-                .| outC
+        case parseSoundChanges changesText of
+            Left err ->
+                putStrLn $ errorBundlePretty err
+            Right rules ->
+                withSourceFileIf inWordsFile $ \inC ->
+                withSinkFileIf outWordsFile $ \outC ->
+                runConduit $
+                    inC
+                    .| processWords (incrFor wordsFormat) rules wordsFormat outMode
+                    .| outC
 
   where
     opts = info (args <**> helper) fullDesc
 
-    args = Options
+    args = batchArgs <|> serverArgs
+    serverArgs = flag' Server (long "server" <> help "Run server (for internal use only)")
+    batchArgs = Options
         <$> strArgument
             (metavar "RULES" <> help "File containing sound changes")
         <*> flag Raw MDF
@@ -72,7 +76,9 @@ data Options = Options
     , outMode :: ApplicationMode
     , inWordsFile :: Maybe String
     , outWordsFile :: Maybe String
-    } deriving (Show)
+    }
+    | Server
+    deriving (Show)
 
 processWords
     :: (MonadIO m, MonadThrow m)

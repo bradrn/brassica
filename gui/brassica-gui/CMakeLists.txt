@@ -14,32 +14,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt6 COMPONENTS Widgets Core5Compat REQUIRED)
 qt_standard_project_setup()
 
-set(BRASSICA_INTEROP_DIR ${CMAKE_CURRENT_LIST_DIR}/../brassica-interop/ CACHE PATH "Path to /gui directory of Brassica source code")
-if(WIN32)
-    find_program(HAS_GHCUP "ghcup")
-    if(HAS_GHCUP)
-        execute_process(COMMAND ghcup whereis -d ghc OUTPUT_VARIABLE GHC_BIN_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-    else() # try Stack if no GHCup
-        execute_process(COMMAND stack path --compiler-bin OUTPUT_VARIABLE GHC_BIN_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-    endif()
-    set(GHC_INCLUDE_DIR ${GHC_BIN_DIR}/../lib/include CACHE PATH "Path to includes directory of GHC")
-elseif(LINUX)
-    execute_process(COMMAND ghc --print-libdir    OUTPUT_VARIABLE GHC_LIB_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-    execute_process(COMMAND ghc --numeric-version OUTPUT_VARIABLE GHC_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
-    file(GLOB_RECURSE GHC_INCLUDE_DIR "${GHC_LIB_DIR}/HsFFI.h")
-    cmake_path(REMOVE_FILENAME GHC_INCLUDE_DIR)
-    file(GLOB_RECURSE GHC_LINK "${GHC_LIB_DIR}/libHSrts-1.0.2-ghc${GHC_VERSION}.so")
-    message(STATUS "Found Brassica interop location: ${BRASSICA_INTEROP_DIR}")
-    message(STATUS "Found GHC include location: ${GHC_INCLUDE_DIR}")
-    message(STATUS "Found libHSrts: ${GHC_LINK}")
-endif()
-
-include_directories(${BRASSICA_INTEROP_DIR}/stub ${GHC_INCLUDE_DIR})
-
-if(LINUX)
-    add_library(brassica-interop SHARED IMPORTED)
-    set_target_properties(brassica-interop PROPERTIES IMPORTED_LOCATION ${BRASSICA_INTEROP_DIR}/libbrassica-interop.so)
-endif()
+execute_process(COMMAND cabal exec -- which brassica OUTPUT_VARIABLE BRASSICA_CLI OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 add_executable(brassica-gui WIN32
   main.cpp
@@ -54,23 +29,24 @@ add_executable(brassica-gui WIN32
   settings.cpp
   settings.h
   resources.rc
-#  brassicaprocess.h
-#  brassicaprocess.cpp
+  brassicaprocess.h
+  brassicaprocess.cpp
 )
 
-if(WIN32)
-    target_link_libraries(brassica-gui PRIVATE ${BRASSICA_INTEROP_DIR}/brassica-interop.a Qt::Widgets Qt::Core5Compat ws2_32 psapi dbghelp winmm)
-elseif(LINUX)
-    target_link_libraries(brassica-gui
-        PRIVATE brassica-interop ${GHC_LINK}
-        Qt::Widgets Qt::Core5Compat)
+target_link_libraries(brassica-gui
+    PRIVATE Qt::Widgets Qt::Core5Compat)
 
-    install(TARGETS brassica-gui
-        BUNDLE DESTINATION .
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+add_custom_command(
+    TARGET brassica-gui
+    POST_BUILD
+    COMMAND cp ${BRASSICA_CLI} "${CMAKE_CURRENT_BINARY_DIR}/brassica"
+    DEPENDS ${BRASSICA_CLI})
 
-    qt_generate_deploy_app_script(
-        TARGET brassica-gui
-        OUTPUT_SCRIPT deploy_script)
-    install(SCRIPT ${deploy_script})
-endif()
+install(TARGETS brassica-gui
+    BUNDLE DESTINATION .
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+qt_generate_deploy_app_script(
+    TARGET brassica-gui
+    OUTPUT_SCRIPT deploy_script)
+install(SCRIPT ${deploy_script})

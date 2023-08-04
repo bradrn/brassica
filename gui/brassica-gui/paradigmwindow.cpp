@@ -1,4 +1,3 @@
-#include "BrassicaInterop_stub.h"
 #include "paradigmwindow.h"
 
 #include <QPlainTextEdit>
@@ -64,6 +63,7 @@ ParadigmWindow::ParadigmWindow(QWidget *parent)
 
 void ParadigmWindow::rebuildResult()
 {
+    /*TODO
     QString paradigm = paradigmEdit->toPlainText();
     QString roots = rootsEdit->toPlainText();
 
@@ -73,6 +73,7 @@ void ParadigmWindow::rebuildResult()
                            roots   .toUtf8().data()));
 
     outputEdit->setHtml(QString::fromUtf8(output));
+    */
 }
 
 void ParadigmWindow::openParadigm()

@@ -1,7 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "HsFFI.h"
+#include "brassicaprocess.h"
 #include "ruleshighlighter.h"
 #include "settings.h"
 
@@ -20,7 +20,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(BrassicaProcess *proc, QWidget *parent = nullptr);
     ~MainWindow();
 
 private:
@@ -48,7 +48,8 @@ private:
 
     RulesHighlighter *rulesHl;
 
-    //BrassicaProcess *proc;
+    BrassicaProcess *proc;
+    QJsonValue *prev;
 
     void setupWidgets(QWidget *centralWidget);
     void setupMenuBar();
@@ -63,8 +64,6 @@ private:
 
     Settings settings;
     void applySettings();
-
-    HsStablePtr hsResults;
 
 private slots:
     void applySoundChanges(bool live, bool reportRules);
