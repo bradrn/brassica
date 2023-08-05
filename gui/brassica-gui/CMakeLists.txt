@@ -42,7 +42,7 @@ if(WIN32)
         POST_BUILD
         COMMAND copy ${BRASSICA_CLI} "${CMAKE_CURRENT_BINARY_DIR_WIN}\\brassica"
         DEPENDS ${BRASSICA_CLI})
-elseif(LINUX)
+elseif(UNIX)
     execute_process(COMMAND cabal exec -- which brassica OUTPUT_VARIABLE BRASSICA_CLI OUTPUT_STRIP_TRAILING_WHITESPACE)
     add_custom_command(
         TARGET brassica-gui
@@ -54,8 +54,3 @@ endif()
 install(TARGETS brassica-gui
     BUNDLE DESTINATION .
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-
-qt_generate_deploy_app_script(
-    TARGET brassica-gui
-    OUTPUT_SCRIPT deploy_script)
-install(SCRIPT ${deploy_script})
