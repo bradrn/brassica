@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Brassica CLI
+Comment=Featureful sound change applier
+Exec=brassica
+Icon=brassica
+Terminal=true
+Categories=Science;

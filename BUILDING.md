@@ -44,9 +44,14 @@ Then, to build the AppImage, run:
 ```
 linuxdeploy-x86_64.AppImage --executable ./brassica-gui --appdir AppDir -d ../brassica-gui/brassica.desktop -i ../brassica-gui/brassica.png --plugin qt
 cp ./brassica AppDir/usr/bin
-linuxdeploy-x86_64.AppImage --appdir AppDir --output appimage-d ../brassica-gui/brassica.desktop -i ../brassica-gui/brassica.png --plugin qt
+linuxdeploy-x86_64.AppImage --appdir AppDir --output appimage
 ```
 (You may need to `export QMAKE=/usr/bin/qmake6` if you’re using a distribution such as Debian where Qt 5 is the default.)
+
+Similarly the CLI can be deployed to an AppImage with something like:
+```
+linuxdeploy-x86_64.AppImage --executable brassica --appdir AppDirCLI path/to/brassica-gui/brassica.desktop -i path/to/brassica-gui/brassica.png --output appimage
+```
 
 ## Online version
 
