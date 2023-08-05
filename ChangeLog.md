@@ -2,6 +2,9 @@
 
 ## Unreleased changes
 
+- Rewrote executables with a client/server architecture for better Windows support.
+  The library remains unchanged.
+
 ## v0.1.0
 
 - Add new syntax with `#` in lexicon to create word boundaries which can be manipulated by sound changes
