@@ -2,6 +2,8 @@
 
 ## Desktop
 
+### Building
+
 Brassica can be built using much the same process on both Windows and Linux.
 (And probably Mac, though I haven’t tried it there.)
 First, build the command-line interface with [Cabal](https://www.haskell.org/cabal/) (which can be installed using [GHCup](https://www.haskell.org/ghcup/)):
@@ -10,7 +12,7 @@ cabal build exe:brassica
 ```
 
 Next, build the GUI interface, in `./gui/brassica-gui`.
-Brassica uses [Qt](https://www.qt.io/),
+Brassica uses [Qt](https://www.qt.io/) version 6,
   and relies on [CMake](https://cmake.org/) for building.
 The CMake configuration uses `cabal` to find the location of the command-line executable,
   so make sure `cabal` is on your PATH first.
@@ -32,6 +34,19 @@ C:\Qt\Tools\CMake_64\bin\cmake.exe -S . -B ../build -G Ninja -DCMAKE_BUILD_TYPE:
 cd ../build
 ninja
 ```
+
+### Deployment
+
+On Linux, the preferred deployment method is using [AppImages](https://appimage.org/).
+First download [linuxdeploy](https://github.com/linuxdeploy/linuxdeploy) and [linuxdeploy-plugin-qt](https://github.com/linuxdeploy/linuxdeploy-plugin-qt).
+Then run `cabal build`, `cmake` and `make` as described above.
+Then, to build the AppImage, run:
+```
+linuxdeploy-x86_64.AppImage --executable ./brassica-gui --appdir AppDir -d ../brassica-gui/brassica.desktop -i ../brassica-gui/brassica.png --plugin qt
+cp ./brassica AppDir/usr/bin
+linuxdeploy-x86_64.AppImage --appdir AppDir --output appimage-d ../brassica-gui/brassica.desktop -i ../brassica-gui/brassica.png --plugin qt
+```
+(You may need to `export QMAKE=/usr/bin/qmake6` if you’re using a distribution such as Debian where Qt 5 is the default.)
 
 ## Online version
 
