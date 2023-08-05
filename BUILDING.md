@@ -26,11 +26,11 @@ cmake -S . -B ../build
 cd ../build
 make
 ```
-On Windows it is more involved, since you need to set the appropriate paths, substituting `<version>` with your version of Qt:
+On Windows it is more involved, since you need to set the appropriate paths, substituting `<version>` as appropriate:
 ```
 cd gui/brassica-gui
-set PATH=%PATH%;C:\Qt\Tools\Ninja\
-C:\Qt\Tools\CMake_64\bin\cmake.exe -S . -B ../build -G Ninja -DCMAKE_BUILD_TYPE:String=Release -DQT_QMAKE_EXECUTABLE:STRING=C:/Qt/<version>/mingw81_64/bin/qmake.exe -DCMAKE_PREFIX_PATH:STRING=C:/Qt/<version>/mingw81_64 -DCMAKE_C_COMPILER:STRING=C:/Qt/Tools/mingw810_64/bin/gcc.exe -DCMAKE_CXX_COMPILER:STRING=C:/Qt/Tools/mingw810_64/bin/g++.exe
+set PATH=%PATH%;C:\Qt\Tools\Ninja\;C:\Qt\Tools\mingw1120_64\bin
+C:\Qt\Tools\CMake_64\bin\cmake.exe -S . -B ../build -G Ninja -DCMAKE_BUILD_TYPE:String=Release -DQT_QMAKE_EXECUTABLE:STRING=C:/Qt/<version>/mingw81_64/bin/qmake.exe -DCMAKE_PREFIX_PATH:STRING=C:/Qt/<version>/mingw_64 -DCMAKE_C_COMPILER:STRING=C:/Qt/Tools/mingw<version>/bin/gcc.exe -DCMAKE_CXX_COMPILER:STRING=C:/Qt/Tools/mingw<version>/bin/g++.exe
 cd ../build
 ninja
 ```
@@ -52,6 +52,10 @@ Similarly the CLI can be deployed to an AppImage with something like:
 ```
 linuxdeploy-x86_64.AppImage --executable brassica --appdir AppDirCLI path/to/brassica-gui/brassica.desktop -i path/to/brassica-gui/brassica.png --output appimage
 ```
+
+On Windows, first copy `brassica.exe` and `brassica-gui.exe` into `.\deploy`, and `.\examples` into `.\deploy\examples`.
+Then use [`windeployqt`](https://doc.qt.io/qt-6/windows-deployment.html) on `brassica-gui.exe` to copy over the relevant files for Qt.
+Finally, use [NSIS](https://nsis.sourceforge.io/Main_Page) with the given `installer.nsi` to generate an installer.
 
 ## Online version
 
