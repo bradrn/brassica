@@ -3,4 +3,3 @@ if(os(wasi))
               ./gui/brassica-interop-wasm/brassica-interop-wasm.cabal
 else
     packages: ./brassica.cabal
-              ./gui/brassica-interop/brassica-interop.cabal
