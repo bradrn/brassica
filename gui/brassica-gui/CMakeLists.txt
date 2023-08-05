@@ -40,7 +40,7 @@ if(WIN32)
     add_custom_command(
         TARGET brassica-gui
         POST_BUILD
-        COMMAND copy ${BRASSICA_CLI} "${CMAKE_CURRENT_BINARY_DIR_WIN}\\brassica"
+        COMMAND copy ${BRASSICA_CLI} "${CMAKE_CURRENT_BINARY_DIR_WIN}\\brassica.exe"
         DEPENDS ${BRASSICA_CLI})
 elseif(UNIX)
     execute_process(COMMAND cabal exec -- which brassica OUTPUT_VARIABLE BRASSICA_CLI OUTPUT_STRIP_TRAILING_WHITESPACE)
