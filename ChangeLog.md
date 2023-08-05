@@ -1,7 +1,5 @@
 # Brassica changelog
 
-## Unreleased changes
-
 ## v0.1.1
 
 - Rewrote executables with a client/server architecture for better Windows support.
