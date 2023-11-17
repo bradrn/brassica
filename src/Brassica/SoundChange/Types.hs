@@ -126,7 +126,7 @@ data Lexeme (a :: LexemeType) where
     -- | In Brassica sound-change syntax, specified as @~@
     Discard  :: Lexeme 'Replacement
     -- | In Brassica sound-change syntax, specified as \@i before a category
-    Backreference :: OneOf a 'Target 'Replacement => Int -> [Grapheme] -> Lexeme a
+    Backreference :: Int -> [Grapheme] -> Lexeme a
     -- | In Brassica sound-change syntax, specified as \@? before a category
     Multiple :: [Grapheme] -> Lexeme 'Replacement
 

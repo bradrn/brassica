@@ -184,10 +184,7 @@ parseKleene l = (Kleene l <$ symbol "*") <|> pure l
 parseMultiple :: Parser (Lexeme 'Replacement)
 parseMultiple = Multiple <$> (symbol "@?" *> parseCategory')
 
-parseBackreference
-    :: forall a.
-       (OneOf a 'Target 'Replacement, ParseLexeme a)
-    => Parser (Lexeme a)
+parseBackreference :: forall a. ParseLexeme a => Parser (Lexeme a)
 parseBackreference =
     Backreference
     <$> (symbol "@" *> nonzero)
@@ -227,6 +224,7 @@ instance ParseLexeme 'Env where
         , parseOptional
         , parseGeminate
         , parseWildcard
+        , parseBackreference
         , parseGraphemeOrCategory
         ] >>= parseKleene
 

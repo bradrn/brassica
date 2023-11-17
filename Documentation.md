@@ -603,6 +603,12 @@ This may be written as:
    └──────────────────────┘
 ```
 
+Backreferences in the environment have a similar meaning to backreferences in the target.
+However, they have a limitation:
+  categories after the target are counted separately from categories before the target.
+Thus, it is invalid to use an environment such as `V _ @1 V`, since this backreference stretches across the target.
+This limitation should be lifted in a future version of Brassica.
+
 ### Sporadic rules and multiple results
 
 Sometimes we might want a sound change rule with more than one possible output.
