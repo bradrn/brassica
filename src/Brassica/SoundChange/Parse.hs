@@ -72,8 +72,14 @@ parseGrapheme = lexeme $ parseBoundary <|> parseMulti
     parseBoundary = (GBoundary,False) <$ char '#'
 
     parseMulti = (,)
-        <$> fmap GMulti (takeWhile1P Nothing (not . ((||) <$> isSpace <*> (`elem` keyChars))))
+        <$> fmap GMulti
+            (withStar $ takeWhile1P Nothing (not . ((||) <$> isSpace <*> (`elem` keyChars))))
         <*> (isJust <$> optional (char '~'))
+
+    withStar :: Parser String -> Parser String
+    withStar p = optional (char '*') >>= \case
+        Just _ -> ('*':) <$> p
+        Nothing -> p
 
 parseGrapheme' :: Parser Grapheme
 parseGrapheme' = lexeme $ GMulti <$> takeWhile1P Nothing (not . ((||) <$> isSpace <*> (=='=')))
