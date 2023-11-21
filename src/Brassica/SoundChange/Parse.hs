@@ -185,7 +185,9 @@ parseDiscard :: Parser (Lexeme 'Replacement)
 parseDiscard = Discard <$ symbol "~"
 
 parseKleene :: OneOf a 'Target 'Env => Lexeme a -> Parser (Lexeme a)
-parseKleene l = (Kleene l <$ symbol "*") <|> pure l
+parseKleene l =
+    try (lexeme $ Kleene l <$ char '*' <* notFollowedBy parseGrapheme')
+    <|> pure l
 
 parseMultiple :: Parser (Lexeme 'Replacement)
 parseMultiple = Multiple <$> (symbol "@?" *> parseCategory')
