@@ -15,9 +15,10 @@ module Brassica.SoundChange.Parse
     ) where
 
 import Data.Char (isSpace)
+import Data.Either (isRight)
 import Data.Foldable (asum)
 import Data.List (transpose)
-import Data.Maybe (isNothing, isJust, fromJust)
+import Data.Maybe (isNothing, isJust, fromJust, mapMaybe)
 import Data.Void (Void)
 
 import Control.Applicative.Permutations
@@ -32,7 +33,7 @@ import Brassica.SoundChange.Types
 import qualified Brassica.SoundChange.Category as C
 
 newtype Config = Config
-    { categories :: C.Categories Grapheme
+    { categories :: C.Categories Grapheme [Lexeme 'AnyPart]
     }
 type Parser = ParsecT Void String (State Config)
 
@@ -84,12 +85,12 @@ parseGrapheme = lexeme $ parseBoundary <|> parseMulti
 parseGrapheme' :: Parser Grapheme
 parseGrapheme' = lexeme $ GMulti <$> takeWhile1P Nothing (not . ((||) <$> isSpace <*> (=='=')))
 
-data CategoryModification
-    = Union     Grapheme
-    | Intersect Grapheme
-    | Subtract  Grapheme
+data CategoryModification a
+    = Union     (Either Grapheme [Lexeme a])
+    | Intersect (Either Grapheme [Lexeme a])
+    | Subtract  (Either Grapheme [Lexeme a])
 
-parseGraphemeOrCategory :: ParseLexeme a => Parser (Lexeme a)
+parseGraphemeOrCategory :: Parser (Lexeme a)
 parseGraphemeOrCategory = do
     (g, isntCat) <- parseGrapheme
     if isntCat
@@ -98,19 +99,20 @@ parseGraphemeOrCategory = do
             cats <- gets categories
             return $ case C.lookup g cats of
                 Nothing -> Grapheme g
-                Just c  -> Category $ C.bake c
+                Just c  -> Category $ (fmap.fmap.fmap) generalise $ C.bake c
 
 parseCategory :: ParseLexeme a => Parser (Lexeme a)
 parseCategory = Category <$> parseCategory'
 
-parseCategory' :: Parser [Grapheme]
+parseCategory' :: ParseLexeme a => Parser [Either Grapheme [Lexeme a]]
 parseCategory' = do
     mods <- symbol "[" *> someTill parseCategoryModification (symbol "]")
     cats <- gets categories
     return $ C.bake $
-        C.expand cats (toCategory mods)
+        C.expand ((fmap.fmap.fmap.fmap) generalise cats) (toCategory mods)
 
-parseCategoryStandalone :: Parser (Grapheme, C.Category 'C.Expanded Grapheme)
+parseCategoryStandalone
+    :: Parser (Grapheme, C.Category 'C.Expanded (Either Grapheme [Lexeme 'AnyPart]))
 parseCategoryStandalone = do
     g <- parseGrapheme'
     _ <- symbol "="
@@ -129,7 +131,9 @@ categoriesDeclParse = do
     _ <- some $ parseFeature <|> parseCategoryDecl
     _ <- symbol "end" <* scn
     Config catsNew <- get
-    return $ CategoriesDecl (C.values catsNew)
+    return $ CategoriesDecl $
+        mapMaybe (\case Left g -> Just g; _ -> Nothing) $
+        C.values catsNew
   where
     parseFeature = do
         _ <- symbol "feature"
@@ -138,9 +142,14 @@ categoriesDeclParse = do
         cats <- gets categories
         let plainCat = C.expand cats $ toCategory modsPlain
             plain = C.bake plainCat
+        when (any isRight plain) $ fail "Cannot use {…} as a base grapheme"
         modifiedCats <- some (symbol "/" *> parseCategoryStandalone) <* scn
         let modified = C.bake . snd <$> modifiedCats
-            syns = zipWith (\a b -> (a, C.UnionOf [C.Node a, C.categorise b])) plain $ transpose modified
+            syns :: [(Grapheme, C.Category 'C.Expanded (Either Grapheme [Lexeme 'AnyPart]))]
+            syns =
+                zipWith (\a b -> (a, C.UnionOf [C.Node (Left a), C.categorise b]))
+                (fromLeft' <$> plain)
+                (transpose modified)
         modify $ \(Config cs) -> Config $ M.unions
                 [ M.fromList syns
                 , M.fromList modifiedCats
@@ -153,15 +162,21 @@ categoriesDeclParse = do
         (k, c) <- try parseCategoryStandalone <* scn
         modify $ \(Config cs) -> Config (M.insert k c cs)
 
-parseCategoryModification :: Parser CategoryModification
-parseCategoryModification = parsePrefix <*> (fst <$> parseGrapheme)
+    fromLeft' :: Either a b -> a
+    fromLeft' (Left a) = a
+    fromLeft' _ = error "fromLeft': unexpected case!"
+
+parseCategoryModification :: ParseLexeme a => Parser (CategoryModification a)
+parseCategoryModification = parsePrefix <*>
+    ( (Right <$> (symbol "{" *> manyTill parseLexeme (symbol "}")))
+    <|> (Left . fst <$> parseGrapheme))
   where
     parsePrefix =
         (Intersect <$ char '+')
         <|> (Subtract <$ char '-')
         <|> pure Union
 
-toCategory :: [CategoryModification] -> C.Category 'C.Unexpanded Grapheme
+toCategory :: [CategoryModification a] -> C.Category 'C.Unexpanded (Either Grapheme [Lexeme a])
 toCategory = go C.Empty
   where
     go c [] = c
@@ -198,7 +213,7 @@ parseBackreference =
     <$> (symbol "@" *> nonzero)
     <*> (parseCategory' <|> parseGraphemeCategory)
   where
-    parseGraphemeCategory :: Parser [Grapheme]
+    parseGraphemeCategory :: Parser [Either Grapheme [Lexeme a]]
     parseGraphemeCategory = label "category" $ try $
         (parseGraphemeOrCategory @a) >>= \case
             Category gs -> pure gs
@@ -235,6 +250,13 @@ instance ParseLexeme 'Env where
         , parseBackreference
         , parseGraphemeOrCategory
         ] >>= parseKleene
+
+instance ParseLexeme 'AnyPart where
+    parseLexeme = asum
+        [ parseCategory
+        , parseOptional
+        , parseGraphemeOrCategory
+        ]
 
 parseLexemes :: ParseLexeme a => Parser [Lexeme a]
 parseLexemes = many parseLexeme
@@ -287,7 +309,10 @@ parseRule = parseRuleWithCategories M.empty
 
 -- | Same as 'parseRule', but also allows passing in some predefined
 -- categories to substitute.
-parseRuleWithCategories :: C.Categories Grapheme -> String -> Either (ParseErrorBundle String Void) Rule
+parseRuleWithCategories
+    :: C.Categories Grapheme [Lexeme 'AnyPart]
+    -> String
+    -> Either (ParseErrorBundle String Void) Rule
 parseRuleWithCategories cs s = flip evalState (Config cs) $ runParserT (scn *> ruleParser <* eof) "" s
 
 -- | Parse a list of 'SoundChanges'.

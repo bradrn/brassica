@@ -28,6 +28,7 @@ module Brassica.SoundChange.Types
        , Lexeme(..)
        , pattern Boundary
        , LexemeType(..)
+       , generalise
        -- * Rules
        , Rule(..)
        , Environment
@@ -100,8 +101,8 @@ concatWithBoundary = go . removeBoundaries
         GBoundary -> "#"
 
 -- | The part of a 'Rule' in which a 'Lexeme' may occur: either the
--- target, the replacement or the environment.
-data LexemeType = Target | Replacement | Env
+-- target, the replacement or the environment, or in any of those.
+data LexemeType = Target | Replacement | Env | AnyPart
 
 -- | A 'Lexeme' is the smallest part of a sound change. Both matches
 -- and replacements are made up of 'Lexeme's: the phantom type
@@ -112,7 +113,7 @@ data Lexeme (a :: LexemeType) where
     -- or a word boundary specified as @#@
     Grapheme :: Grapheme -> Lexeme a
     -- | In Brassica sound-change syntax, delimited by square brackets
-    Category :: [Grapheme] -> Lexeme a
+    Category :: [Either Grapheme [Lexeme a]] -> Lexeme a
     -- | In Brassica sound-change syntax, delimited by parentheses
     Optional :: [Lexeme a] -> Lexeme a
     -- | In Brassica sound-change syntax, specified as @\@
@@ -126,15 +127,24 @@ data Lexeme (a :: LexemeType) where
     -- | In Brassica sound-change syntax, specified as @~@
     Discard  :: Lexeme 'Replacement
     -- | In Brassica sound-change syntax, specified as \@i before a category
-    Backreference :: Int -> [Grapheme] -> Lexeme a
+    Backreference :: Int -> [Either Grapheme [Lexeme a]] -> Lexeme a
     -- | In Brassica sound-change syntax, specified as \@? before a category
-    Multiple :: [Grapheme] -> Lexeme 'Replacement
+    Multiple :: [Either Grapheme [Lexeme 'Replacement]] -> Lexeme 'Replacement
+
+generalise :: Lexeme 'AnyPart -> Lexeme a
+generalise (Grapheme g) = Grapheme g
+generalise (Category es) = Category $ (fmap.fmap.fmap) generalise es
+generalise (Optional ls) = Optional $ generalise <$> ls
+generalise Geminate = Geminate
+generalise (Backreference i es) = Backreference i $ (fmap.fmap.fmap) generalise es
 
 -- | A 'Lexeme' matching a single word boundary, specified as @#@ in Brassica syntax.
 pattern Boundary :: Lexeme a
 pattern Boundary = Grapheme GBoundary
 
 deriving instance Show (Lexeme a)
+deriving instance Eq (Lexeme a)
+deriving instance Ord (Lexeme a)
 
 instance NFData (Lexeme a) where
     rnf (Grapheme g) = rnf g

@@ -150,6 +150,13 @@ Thus, to delete ⟨ʔ⟩ before a stop or the end of a word, the following rule 
 ʔ / / _ [p t k b d g #]
 ```
 
+Sometimes you might want to match a sequence of zero or more graphemes.
+Do this in a category by surrounding them with curly brackets `{`/`}`, as in:
+```
+[eː oː] / [{j ə} {w ə}]
+[{ŋ g} ŋ] → [ŋ {}] / _#
+```
+
 You can also use multiple categories in the replacement.
 In this case each is matched up one-to-one with a category in the target:
   the first in the replacement with the first in the target,

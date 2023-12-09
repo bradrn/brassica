@@ -1,5 +1,9 @@
 # Brassica changelog
 
+## Unreleased changes
+
+- Allow lexeme sequences in categories using `{…}` syntax
+
 ## v0.1.1
 
 - Rewrote executables with a client/server architecture for better Windows support.

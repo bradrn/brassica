@@ -11,19 +11,20 @@ module Brassica.SoundChange.Category
        -- * Category expansion
        , Categories
        , Brassica.SoundChange.Category.lookup
-       , mapCategories
+       , mapCrossrefs
        , expand
        -- * Obtaining values
        , bake
        , values
        ) where
 
+import Data.Bifunctor (first)
 import Data.Coerce
+import Data.Containers.ListUtils (nubOrd)
 import Data.List (intersect)
 import Data.Maybe (fromMaybe)
 
 import qualified Data.Map.Strict as M
-import Data.Containers.ListUtils (nubOrd)
 
 -- | Type-level tag for 'Category'. When parsing a category definition
 -- from a string, usually categories will refer to other
@@ -59,15 +60,15 @@ data Category (s :: CategoryState) a
 
 -- | A map from names to the (expanded) categories they
 -- reference. Used to resolve cross-references between categories.
-type Categories a = M.Map a (Category 'Expanded a)
+type Categories a b = M.Map a (Category 'Expanded (Either a b))
 
 -- | @Data.Map.Strict.'Data.Map.Strict.lookup'@, specialised to 'Categories'.
-lookup :: Ord a => a -> Categories a -> Maybe (Category 'Expanded a)
+lookup :: Ord a => a -> Categories a b -> Maybe (Category 'Expanded (Either a b))
 lookup = M.lookup
 
--- | Map a function over all the values in a set of 'Categories'.
-mapCategories :: Ord b => (a -> b) -> Categories a -> Categories b
-mapCategories f = M.map (fmap f) . M.mapKeys f
+-- | Map a function over all the cross-references in a set of 'Categories'.
+mapCrossrefs :: Ord b => (a -> b) -> Categories a c -> Categories b c
+mapCrossrefs f = M.map (fmap $ first f) . M.mapKeys f
 
 -- | Given a list of values, return a 'Category' which matches only
 -- those values. (This is a simple wrapper around 'Node' and
@@ -77,9 +78,10 @@ categorise = UnionOf . fmap Node
 
 -- | Expand an 'Unexpanded' category by inlining its references. The
 -- references should only be to categories in the given 'Categories'.
-expand :: Ord a => Categories a -> Category 'Unexpanded a -> Category 'Expanded a
+expand :: Ord a => Categories a b -> Category 'Unexpanded (Either a b) -> Category 'Expanded (Either a b)
 expand _  Empty           = Empty
-expand cs n@(Node a)      = fromMaybe (coerce n) $ M.lookup a cs
+expand cs n@(Node (Left a)) = fromMaybe (coerce n) $ M.lookup a cs
+expand _  (Node (Right b)) = Node (Right b)
 expand cs (UnionOf u)     = UnionOf $ expand cs <$> u
 expand cs (Intersect a b) = Intersect (expand cs a) (expand cs b)
 expand cs (Subtract a b)  = Subtract  (expand cs a) (expand cs b)
@@ -100,7 +102,7 @@ bake (Subtract  a b) = bake a `difference` bake b
 -- 'Intersect'ed or 'Subtract'ed out: e.g. given 'Categories'
 -- including @[a b -a]@, this will return a list including
 -- @["a","b"]@, not just @["b"]@.
-values :: Ord a => Categories a -> [a]
+values :: (Ord a, Ord b) => Categories a b -> [Either a b]
 values = nubOrd . concatMap go . M.elems
   where
     go Empty           = []

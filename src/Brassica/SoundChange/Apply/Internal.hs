@@ -58,7 +58,6 @@ module Brassica.SoundChange.Apply.Internal
 import Control.Applicative ((<|>))
 import Control.Category ((>>>))
 import Data.Containers.ListUtils (nubOrd)
-import Data.Function ((&))
 import Data.Functor ((<&>))
 import Data.Maybe (maybeToList, fromMaybe, listToMaybe, mapMaybe)
 import GHC.Generics (Generic)
@@ -128,10 +127,14 @@ appendGrapheme out g = modifyMatchedGraphemes (++[g]) out
 instance Semigroup MatchOutput where
     (MatchOutput a1 b1 c1) <> (MatchOutput a2 b2 c2) = MatchOutput (a1++a2) (b1++b2) (c1++c2)
 
+zipWith' :: [a] -> [b] -> (a -> b -> c) -> [c]
+zipWith' xs ys f = zipWith f xs ys
+
 -- | Match a single 'Lexeme' against a 'MultiZipper', and advance the
 -- 'MultiZipper' past the match. For each match found, returns the
 -- 'MatchOutput' tupled with the updated 'MultiZipper'.
-match :: OneOf a 'Target 'Env
+match :: forall a t.
+         OneOf a 'Target 'Env
       => MatchOutput          -- ^ The previous 'MatchOutput'
       -> Maybe Grapheme       -- ^ The previously-matched grapheme, if any. (Used to match a 'Geminate'.)
       -> Lexeme a             -- ^ The lexeme to match.
@@ -152,26 +155,21 @@ match out prev k@(Kleene l) mz = case match out prev l mz of
         [] -> error "match: Kleene should never fail"
         r' -> r'
 match out _ (Grapheme g) mz = (out <> MatchOutput [] [] [g],) <$> maybeToList (matchGrapheme g mz)
-match out _ (Category gs) mz =
-    gs
-    -- Attempt to match each option in category...
-    & fmap (matchCategoryEl mz)
-    -- ...get the index of each match...
-    & zipWith (\i m -> fmap (i,) m) [0..]
-    -- ...and take all matches
-    & (>>= maybeToList)
-    & fmap (\(i, (g, mz')) -> (out <> MatchOutput [i] [] g, mz'))
+match out prev (Category gs) mz =
+    concat $ zipWith' gs [0..] $ \e i ->
+        first (<> MatchOutput [i] [] []) <$>
+            case e of
+                Left  g  -> match out prev (Grapheme g :: Lexeme a) mz
+                Right ls -> matchMany out prev ls mz
 match out prev Geminate mz = case prev of
     Nothing -> []
     Just prev' -> (out <> MatchOutput [] [] [prev'],) <$> maybeToList (matchGrapheme prev' mz)
-match out _prev (Backreference i gs) mz = maybeToList $ do
-    catIx <- matchedCatIxs out !? (i-1)
-    g <- gs !? catIx
-    (matched, mz') <- matchCategoryEl mz g
-    pure (modifyMatchedGraphemes (++matched) out, mz')
-
-matchCategoryEl :: MultiZipper t Grapheme -> Grapheme -> Maybe ([Grapheme], MultiZipper t Grapheme)
-matchCategoryEl mz g = ([g],) <$> matchGrapheme g mz
+match out prev (Backreference i gs) mz = do
+    e <- maybeToList $
+        (gs !?) =<< matchedCatIxs out !? (i-1)
+    case e of
+        Left  g  -> match out prev (Grapheme g :: Lexeme a) mz
+        Right ls -> matchMany out prev ls mz
 
 matchGrapheme :: Grapheme -> MultiZipper t Grapheme -> Maybe (MultiZipper t Grapheme)
 matchGrapheme g = matchGraphemeP (==g)
@@ -269,14 +267,17 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
         -> Maybe Grapheme
         -> [(ReplacementIndices, (MultiZipper t Grapheme, Maybe Grapheme))]
     replaceLex ixs (Grapheme g) mz _prev = [(ixs, (insert g mz, Just g))]
-    replaceLex ixs (Category gs) mz _prev =
+    replaceLex ixs (Category gs) mz prev =
         case advanceCategory ixs numCatsMatched of
             (CategoryNumber ci, ixs') ->
                 let i = matchedCatIxs out !! ci in
                     case gs !? i of
-                        Just g   -> [(ixs', (insert g mz, Just g))]
+                        Just (Left g) -> [(ixs', (insert g mz, Just g))]
+                        Just (Right ls) -> go ixs' ls (mz, prev)
                         Nothing  -> [(ixs', (insert (GMulti "\xfffd") mz, Nothing))]  -- Unicode replacement character
-            (Nondeterministic, ixs') -> gs <&> \g -> (ixs', (insert g mz, Just g))
+            (Nondeterministic, ixs') -> gs >>= \case
+                Left g -> [(ixs', (insert g mz, Just g))]
+                Right ls -> go ixs' ls (mz, prev)
     replaceLex ixs (Optional ls) mz prev =
         let (co, ixs') = advanceOptional ixs in
             case matchedOptionals out !? co of
