@@ -108,6 +108,10 @@ parseTokeniseAndApplyRulesWrapper ReqRules{..} =
                     (escape $ detokeniseWords' highlightWord result)
                 AppliedRulesTable items -> RespRules Nothing $
                     surroundTable $ concatMap (reportAsHtmlRows plaintext') items
+                ExpandError err -> RespError $ ("<pre>"++) $ (++"</pre>") $ case err of
+                    (NotFound s) -> "Could not find category: " ++ s
+                    InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
+                    MismatchedLengths -> "Mismatched lengths in feature definition"
   where
     highlightWord (s, False) = concatWithBoundary s
     highlightWord (s, True) = "<b>" ++ concatWithBoundary s ++ "</b>"

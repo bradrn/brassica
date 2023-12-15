@@ -10,6 +10,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PolyKinds             #-}
 {-# LANGUAGE PatternSynonyms       #-}
+{-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -29,17 +30,27 @@ module Brassica.SoundChange.Types
        , pattern Boundary
        , LexemeType(..)
        , generalise
+       -- * Categories
+       , mapCategory
+       , mapCategoryA
+       , Expanded(..)
+       , generaliseExpanded
        -- * Rules
        , Rule(..)
        , Environment
        , Direction(..)
        , Flags(..)
        , defFlags
-       -- * Categories and statements
-       , CategoriesDecl(..)
+       -- * Statements
        , Statement(..)
        , plaintext'
        , SoundChanges
+       -- * Directives
+       , CategoryModification(..)
+       , CategorySpec(..)
+       , FeatureSpec(..)
+       , CategoryDefinition(..)
+       , Directive(..)
        -- * Utility
        , OneOf
        ) where
@@ -106,47 +117,89 @@ data LexemeType = Target | Replacement | Env | AnyPart
 
 -- | A 'Lexeme' is the smallest part of a sound change. Both matches
 -- and replacements are made up of 'Lexeme's: the phantom type
--- variable specifies where each different variety of 'Lexeme' may
--- occur.
-data Lexeme (a :: LexemeType) where
+-- variable @a@ specifies where each different variety of 'Lexeme' may
+-- occur. 'Lexeme's are also parameterised by their category type,
+-- which may be 'Expanded' or something else.
+data Lexeme category (a :: LexemeType) where
     -- | In Brassica sound-change syntax, one or more letters without intervening whitespace,
     -- or a word boundary specified as @#@
-    Grapheme :: Grapheme -> Lexeme a
+    Grapheme :: Grapheme -> Lexeme category a
     -- | In Brassica sound-change syntax, delimited by square brackets
-    Category :: [Either Grapheme [Lexeme a]] -> Lexeme a
+    Category :: category a -> Lexeme category a
     -- | In Brassica sound-change syntax, delimited by parentheses
-    Optional :: [Lexeme a] -> Lexeme a
+    Optional :: [Lexeme category a] -> Lexeme category a
     -- | In Brassica sound-change syntax, specified as @\@
-    Metathesis :: Lexeme 'Replacement
+    Metathesis :: Lexeme category 'Replacement
     -- | In Brassica sound-change syntax, specified as @>@
-    Geminate :: Lexeme a
+    Geminate :: Lexeme category a
     -- | In Brassica sound-change syntax, specified as @^@ before another 'Lexeme'
-    Wildcard :: OneOf a 'Target 'Env => Lexeme a -> Lexeme a
+    Wildcard :: OneOf a 'Target 'Env => Lexeme category a -> Lexeme category a
     -- | In Brassica sound-change syntax, specified as @*@ after another 'Lexeme'
-    Kleene   :: OneOf a 'Target 'Env => Lexeme a -> Lexeme a
+    Kleene   :: OneOf a 'Target 'Env => Lexeme category a -> Lexeme category a
     -- | In Brassica sound-change syntax, specified as @~@
-    Discard  :: Lexeme 'Replacement
+    Discard  :: Lexeme category 'Replacement
     -- | In Brassica sound-change syntax, specified as \@i before a category
-    Backreference :: Int -> [Either Grapheme [Lexeme a]] -> Lexeme a
+    Backreference :: Int -> category a -> Lexeme category a
     -- | In Brassica sound-change syntax, specified as \@? before a category
-    Multiple :: [Either Grapheme [Lexeme 'Replacement]] -> Lexeme 'Replacement
+    Multiple :: category 'Replacement -> Lexeme category 'Replacement
 
-generalise :: Lexeme 'AnyPart -> Lexeme a
-generalise (Grapheme g) = Grapheme g
-generalise (Category es) = Category $ (fmap.fmap.fmap) generalise es
-generalise (Optional ls) = Optional $ generalise <$> ls
-generalise Geminate = Geminate
-generalise (Backreference i es) = Backreference i $ (fmap.fmap.fmap) generalise es
+mapCategory :: (forall x. c x -> c' x) -> Lexeme c a -> Lexeme c' a
+mapCategory _ (Grapheme g) = Grapheme g
+mapCategory f (Category c) = Category (f c)
+mapCategory f (Optional ls) = Optional (mapCategory f <$> ls)
+mapCategory _ Metathesis = Metathesis
+mapCategory _ Geminate = Geminate
+mapCategory f (Wildcard l) = Wildcard (mapCategory f l)
+mapCategory f (Kleene l) = Kleene (mapCategory f l)
+mapCategory _ Discard = Discard
+mapCategory f (Backreference i c) = Backreference i (f c)
+mapCategory f (Multiple c) = Multiple (f c)
+
+mapCategoryA
+    :: Applicative t
+    => (forall x. c x -> t (c' x))
+    -> Lexeme c a
+    -> t (Lexeme c' a)
+mapCategoryA _ (Grapheme g) = pure $ Grapheme g
+mapCategoryA f (Category c) = Category <$> f c
+mapCategoryA f (Optional ls) = Optional <$> traverse (mapCategoryA f) ls
+mapCategoryA _ Metathesis = pure Metathesis
+mapCategoryA _ Geminate = pure Geminate
+mapCategoryA f (Wildcard l) = Wildcard <$> mapCategoryA f l
+mapCategoryA f (Kleene l) = Kleene <$> mapCategoryA f l
+mapCategoryA _ Discard = pure Discard
+mapCategoryA f (Backreference i c) = Backreference i <$> f c
+mapCategoryA f (Multiple c) = Multiple <$> f c
+
+-- | The type of a category after expansion.
+newtype Expanded a = FromElements { elements :: [Either Grapheme [Lexeme Expanded a]] }
+    deriving (Eq, Ord, Show)
+
+instance Semigroup (Expanded a) where
+    (FromElements es) <> (FromElements es') = FromElements (es <> es')
+
+instance Monoid (Expanded a) where
+    mempty = FromElements []
+
+generalise :: (c 'AnyPart -> c a) -> Lexeme c 'AnyPart -> Lexeme c a
+generalise _ (Grapheme g) = Grapheme g
+generalise f (Category es) = Category $ f es
+generalise f (Optional ls) = Optional $ generalise f <$> ls
+generalise _ Geminate = Geminate
+generalise f (Backreference i es) = Backreference i $ f es
+
+generaliseExpanded :: Expanded 'AnyPart -> Expanded a
+generaliseExpanded = FromElements . (fmap.fmap.fmap) (generalise generaliseExpanded) . elements
 
 -- | A 'Lexeme' matching a single word boundary, specified as @#@ in Brassica syntax.
-pattern Boundary :: Lexeme a
+pattern Boundary :: Lexeme c a
 pattern Boundary = Grapheme GBoundary
 
-deriving instance Show (Lexeme a)
-deriving instance Eq (Lexeme a)
-deriving instance Ord (Lexeme a)
+deriving instance (forall x. Show (c x)) => Show (Lexeme c a)
+deriving instance (forall x. Eq (c x)) => Eq (Lexeme c a)
+deriving instance (forall x. Ord (c x)) => Ord (Lexeme c a)
 
-instance NFData (Lexeme a) where
+instance (forall x. NFData (c x)) => NFData (Lexeme c a) where
     rnf (Grapheme g) = rnf g
     rnf (Category cs) = rnf cs
     rnf (Optional ls) = rnf ls
@@ -162,7 +215,7 @@ instance NFData (Lexeme a) where
 -- corresponding to a ‘/ before _ after’ component of a sound change.
 --
 -- Note that an empty environment is just @([], [])@.
-type Environment = ([Lexeme 'Env], [Lexeme 'Env])
+type Environment c = ([Lexeme c 'Env], [Lexeme c 'Env])
 
 -- | Specifies application direction of rule — either left-to-right or right-to-left.
 data Direction = LTR | RTL
@@ -202,33 +255,62 @@ defFlags = Flags
 -- | A single sound change rule: in Brassica sound-change syntax with all elements specified,
 -- @-flags target / replacement \/ environment1 | environment2 | … \/ exception@.
 -- (And usually the 'plaintext' of the rule will contain a 'String' resembling that pattern.)
-data Rule = Rule
-  { target      :: [Lexeme 'Target]
-  , replacement :: [Lexeme 'Replacement]
-  , environment :: [Environment]
-  , exception   :: Maybe Environment
+data Rule c = Rule
+  { target      :: [Lexeme c 'Target]
+  , replacement :: [Lexeme c 'Replacement]
+  , environment :: [Environment c]
+  , exception   :: Maybe (Environment c)
   , flags       :: Flags
   , plaintext   :: String
-  } deriving (Show, Generic, NFData)
+  } deriving (Generic)
 
--- | Corresponds to a category declaration in a set of sound
--- changes. Category declarations are mostly desugared away by the
--- parser, but for rule application we still need to be able to filter
--- out all unknown t'Grapheme's; thus, a 'CategoriesDecl' lists the
--- t'Grapheme's which are available at a given point.
-newtype CategoriesDecl = CategoriesDecl { graphemes :: [Grapheme] }
-  deriving (Show, Generic, NFData)
+deriving instance (forall a. Show (c a)) => Show (Rule c)
+deriving instance (forall a. NFData (c a)) => NFData (Rule c)
 
 -- | A 'Statement' can be either a single sound change rule, or a
--- category declaration.
-data Statement = RuleS Rule | CategoriesDeclS CategoriesDecl
-    deriving (Show, Generic, NFData)
+-- directive (e.g. category definition).
+data Statement c decl = RuleS (Rule c) | DirectiveS decl
+    deriving (Generic)
+
+deriving instance (forall a. Show (c a), Show decl) => Show (Statement c decl)
+deriving instance (forall a. NFData (c a), NFData decl) => NFData (Statement c decl)
 
 -- | A simple wrapper around 'plaintext' for 'Statement's. Returns
--- @"categories … end"@ for all 'CategoriesDecl' inputs.
-plaintext' :: Statement -> String
+-- @"<directive>"@ for all 'DirectiveS' inputs.
+plaintext' :: Statement c decl -> String
 plaintext' (RuleS r) = plaintext r
-plaintext' (CategoriesDeclS _) = "categories … end"
+plaintext' (DirectiveS _) = "<directive>"
 
 -- | A set of 'SoundChanges' is simply a list of 'Statement's.
-type SoundChanges = [Statement]
+type SoundChanges c decl = [Statement c decl]
+
+-- | The individual operations used to construct a category in
+-- Brassica sound-change syntax.
+data CategoryModification = Union | Intersect | Subtract
+    deriving (Show, Eq, Ord)
+
+-- | The specification of a category in Brassica sound-change syntax.
+data CategorySpec a
+    = CategorySpec [(CategoryModification, Either Grapheme [Lexeme CategorySpec a])]
+    | MustInline String  -- ^ A single grapheme assumed to have been specified earlier as a category
+    deriving (Show, Eq, Ord)
+
+-- | The specification of a suprasegmental feature in Brassica
+-- sound-change syntax.
+data FeatureSpec = FeatureSpec
+    { featureBaseName :: Maybe String
+    , featureBaseValues :: CategorySpec 'AnyPart
+    , featureDerived :: [(String, CategorySpec 'AnyPart)]
+    }
+    deriving (Show, Eq, Ord)
+
+-- | A definition of a new category, either directly or via features.
+data CategoryDefinition
+    = DefineCategory String (CategorySpec 'AnyPart)
+    | DefineFeature FeatureSpec
+    deriving (Show, Eq, Ord)
+
+-- | A directive used in Brassica sound-change syntax: currently only
+-- @categories … end@ or @new categories … end@
+data Directive = Categories Bool [CategoryDefinition]
+    deriving (Show, Eq, Ord)

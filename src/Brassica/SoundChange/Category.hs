@@ -1,112 +1,151 @@
-{-# LANGUAGE DataKinds      #-}
-{-# LANGUAGE DeriveFunctor  #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TupleSections #-}
 
 module Brassica.SoundChange.Category
-       (
-       -- * Category construction
-         Category(..)
-       , CategoryState(..)
-       , categorise
-       -- * Category expansion
-       , Categories
+       ( Categories
        , Brassica.SoundChange.Category.lookup
-       , mapCrossrefs
-       , expand
-       -- * Obtaining values
-       , bake
        , values
+       , ExpandError(..)
+       , expand
+       , expandRule
+       , extend
+       , expandSoundChanges
        ) where
 
-import Data.Bifunctor (first)
-import Data.Coerce
+import Prelude hiding (lookup)
+import Control.DeepSeq (NFData)
+import Control.Monad (foldM, unless)
+import Control.Monad.State.Strict (StateT, evalStateT, lift, get, put)
 import Data.Containers.ListUtils (nubOrd)
-import Data.List (intersect)
-import Data.Maybe (fromMaybe)
+import Data.List (intersect, (\\), transpose, foldl')
+import Data.Maybe (mapMaybe)
+import GHC.Generics (Generic)
 
 import qualified Data.Map.Strict as M
 
--- | Type-level tag for 'Category'. When parsing a category definition
--- from a string, usually categories will refer to other
--- categories. This is the 'Unexpanded' state. Once 'Expanded', these
--- references will have been inlined, and the category no longer
--- depends on other categories.
-data CategoryState = Unexpanded | Expanded
-
--- | A set of values (usually representing phonemes) which behave the
--- same way in a sound change. A 'Category' is constructed using the
--- set operations supplied as constructors, possibly referencing other
--- 'Category's; these references can then be 'expand'ed, allowing the
--- 'Category' to be 'bake'd to a list of matching values.
---
--- Note that Brassica makes no distinction between ad-hoc categories
--- and predefined categories beyond the sound change parser; the
--- latter is merely syntax sugar for the former, and both are
--- represented using the same 'Category' type. In practise this is not
--- usually a problem, since 'Category's are still quite convenient to
--- construct manually.
-data Category (s :: CategoryState) a
-    = Empty
-    -- ^ The empty category (@[]@ in Brassica syntax)
-    | Node a
-    -- ^ A single value (@[a]@)
-    | UnionOf [Category s a]
-    -- ^ The union of multiple categories (@[Ca Cb Cc]@)
-    | Intersect (Category s a) (Category s a)
-    -- ^ The intersection of two categories (@[Ca +Cb]@)
-    | Subtract (Category s a) (Category s a)
-    -- ^ The second category subtracted from the first (@[Ca -Cb]@)
-    deriving (Show, Eq, Ord, Functor)
+import Brassica.SoundChange.Types
+import Data.Traversable (for)
 
 -- | A map from names to the (expanded) categories they
 -- reference. Used to resolve cross-references between categories.
-type Categories a b = M.Map a (Category 'Expanded (Either a b))
+type Categories = M.Map String (Expanded 'AnyPart)
 
--- | @Data.Map.Strict.'Data.Map.Strict.lookup'@, specialised to 'Categories'.
-lookup :: Ord a => a -> Categories a b -> Maybe (Category 'Expanded (Either a b))
-lookup = M.lookup
-
--- | Map a function over all the cross-references in a set of 'Categories'.
-mapCrossrefs :: Ord b => (a -> b) -> Categories a c -> Categories b c
-mapCrossrefs f = M.map (fmap $ first f) . M.mapKeys f
-
--- | Given a list of values, return a 'Category' which matches only
--- those values. (This is a simple wrapper around 'Node' and
--- 'UnionOf'.)
-categorise :: Ord a => [a] -> Category 'Expanded a
-categorise = UnionOf . fmap Node
-
--- | Expand an 'Unexpanded' category by inlining its references. The
--- references should only be to categories in the given 'Categories'.
-expand :: Ord a => Categories a b -> Category 'Unexpanded (Either a b) -> Category 'Expanded (Either a b)
-expand _  Empty           = Empty
-expand cs n@(Node (Left a)) = fromMaybe (coerce n) $ M.lookup a cs
-expand _  (Node (Right b)) = Node (Right b)
-expand cs (UnionOf u)     = UnionOf $ expand cs <$> u
-expand cs (Intersect a b) = Intersect (expand cs a) (expand cs b)
-expand cs (Subtract a b)  = Subtract  (expand cs a) (expand cs b)
-
--- | Given an 'Expanded' category, return the list of values which it
--- matches.
-bake :: Eq a => Category 'Expanded a -> [a]
-bake Empty           = []
-bake (Node    a)     = [a]
-bake (UnionOf u)     = concatMap bake u
-bake (Intersect a b) = bake a `intersect` bake b
-bake (Subtract  a b) = bake a `difference` bake b
-  where
-    difference l m = filter (not . (`elem` m)) l
+-- | Lookup a category name in 'Categories'.
+lookup :: String -> Categories -> Maybe (Expanded a)
+lookup = (fmap generaliseExpanded .) . M.lookup
 
 -- | Returns a list of every value mentioned in a set of
--- 'Categories'. This includes all values, even those which are
--- 'Intersect'ed or 'Subtract'ed out: e.g. given 'Categories'
--- including @[a b -a]@, this will return a list including
--- @["a","b"]@, not just @["b"]@.
-values :: (Ord a, Ord b) => Categories a b -> [Either a b]
-values = nubOrd . concatMap go . M.elems
+-- 'Categories'
+values :: Categories -> [Either Grapheme [Lexeme Expanded 'AnyPart]]
+values = nubOrd . concatMap elements . M.elems
+
+-- Errors which can be emitted while inlining or expanding category
+-- definitions.
+data ExpandError
+    = NotFound String
+      -- ^ A category with that name was not found
+    | InvalidBaseValue
+      -- ^ A 'Lexeme' was used as a base value in a feature
+    | MismatchedLengths
+      -- ^ A 'FeatureSpec' contained a mismatched number of values
+    deriving (Show, Generic, NFData)
+
+-- | Given a category, return the list of values which it
+-- matches.
+expand :: Categories -> CategorySpec a -> Either ExpandError (Expanded a)
+expand cs (MustInline g) = maybe (Left $ NotFound g) Right $ lookup g cs
+expand cs (CategorySpec spec) = FromElements <$> foldM go [] spec
   where
-    go Empty           = []
-    go (Node    a)     = [a]
-    go (UnionOf u)     = concatMap go u
-    go (Intersect a b) = go a ++ go b
-    go (Subtract  a b) = go a ++ go b
+    go es (modifier, e) = do
+        new <- case e of
+            Left (GMulti g)
+                | Just (FromElements c) <- lookup g cs
+                -> pure c
+                | otherwise -> pure [Left (GMulti g)]
+            Left GBoundary -> pure [Left GBoundary]
+            Right ls -> pure . Right <$> traverse (expandLexeme cs) ls
+        pure $ case modifier of
+            Union -> es ++ new
+            Intersect -> es `intersect` new
+            Subtract -> es \\ new
+
+expandLexeme :: Categories -> Lexeme CategorySpec a -> Either ExpandError (Lexeme Expanded a)
+expandLexeme cs (Grapheme (GMulti g)) = Right $
+    case lookup g cs of
+        Just c -> Category c
+        Nothing -> Grapheme (GMulti g)
+expandLexeme _  (Grapheme GBoundary) = Right $ Grapheme GBoundary
+expandLexeme cs (Category c) = Category <$> expand cs c
+expandLexeme cs (Optional ls) = Optional <$> traverse (expandLexeme cs) ls
+expandLexeme _  Metathesis = Right Metathesis
+expandLexeme _  Geminate = Right Geminate
+expandLexeme cs (Wildcard l) = Wildcard <$> expandLexeme cs l
+expandLexeme cs (Kleene l) = Kleene <$> expandLexeme cs l
+expandLexeme _  Discard = Right Discard
+expandLexeme cs (Backreference i c) = Backreference i <$> expand cs c
+expandLexeme cs (Multiple c) = Multiple <$> expand cs c
+
+expandRule :: Categories -> Rule CategorySpec -> Either ExpandError (Rule Expanded)
+expandRule cs r = Rule
+    <$> traverse (expandLexeme cs) (target r)
+    <*> traverse (expandLexeme cs) (replacement r)
+    <*> traverse expandEnvironment (environment r)
+    <*> traverse expandEnvironment (exception r)
+    <*> pure (flags r)
+    <*> pure (plaintext r)
+  where
+    expandEnvironment (e1, e2) = (,)
+        <$> traverse (expandLexeme cs) e1
+        <*> traverse (expandLexeme cs) e2
+
+extend :: Categories -> Directive -> Either ExpandError Categories
+extend cs' (Categories overwrite defs) =
+    foldM go (if overwrite then M.empty else cs') defs
+  where
+    go :: Categories -> CategoryDefinition -> Either ExpandError Categories
+    go cs (DefineCategory name val) = flip (M.insert name) cs <$> expand cs val
+    go cs (DefineFeature spec) = do
+        baseValues <- expand cs $ featureBaseValues spec
+        derivedCats <- traverse (traverse $ expand cs) $ featureDerived spec
+
+        baseValues' <- for (elements baseValues) $ \case
+            Left (GMulti g) -> Right g
+            _ -> Left InvalidBaseValue
+        let baseLen = length baseValues'
+            derivedValues = elements . snd <$> derivedCats
+        unless (all ((==baseLen) . length) derivedValues) $
+            Left MismatchedLengths
+
+        let features = zipWith
+               (\base ds -> (base, FromElements $ Left (GMulti base) : ds))
+               baseValues'
+               (transpose derivedValues)
+            newCats =
+                maybe [] (pure . (,baseValues)) (featureBaseName spec)
+                ++ derivedCats
+                ++ features
+        Right $ foldl' (flip $ uncurry M.insert) cs newCats
+
+expandSoundChanges
+    :: SoundChanges CategorySpec Directive
+    -> Either ExpandError (SoundChanges Expanded [Grapheme])
+expandSoundChanges = flip evalStateT M.empty . traverse go
+  where
+    go  :: Statement CategorySpec Directive
+        -> StateT Categories (Either ExpandError) (Statement Expanded [Grapheme])
+    go (RuleS r) = do
+        cs <- get
+        lift $ RuleS <$> expandRule cs r
+    go (DirectiveS d) = do
+        cs <- get
+        cs' <- lift $ extend cs d
+        put cs'
+        pure $ DirectiveS $ mapMaybe left $ values cs'
+
+    left (Left l) = Just l
+    left (Right _) = Nothing

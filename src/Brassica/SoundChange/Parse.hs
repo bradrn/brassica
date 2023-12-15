@@ -1,44 +1,35 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE KindSignatures   #-}
-{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards  #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications #-}
 
 module Brassica.SoundChange.Parse
     ( parseRule
-    , parseRuleWithCategories
     , parseSoundChanges
       -- ** Re-export
     , errorBundlePretty
     ) where
 
 import Data.Char (isSpace)
-import Data.Either (isRight)
 import Data.Foldable (asum)
-import Data.List (transpose)
-import Data.Maybe (isNothing, isJust, fromJust, mapMaybe)
+import Data.Maybe (isNothing, isJust, fromJust)
 import Data.Void (Void)
 
 import Control.Applicative.Permutations
-import Control.Monad.State
-import qualified Data.Map.Strict as M
+import Control.Monad (void, guard)
 
 import Text.Megaparsec hiding (State)
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
 import Brassica.SoundChange.Types
-import qualified Brassica.SoundChange.Category as C
 
-newtype Config = Config
-    { categories :: C.Categories Grapheme [Lexeme 'AnyPart]
-    }
-type Parser = ParsecT Void String (State Config)
+type Parser = Parsec Void String
 
 class ParseLexeme (a :: LexemeType) where
-    parseLexeme :: Parser (Lexeme a)
+    parseLexeme :: Parser (Lexeme CategorySpec a)
 
 -- space consumer which does not match newlines
 sc :: Parser ()
@@ -67,198 +58,140 @@ nonzero = label "nonzero postive number" $ try $ do
     guard $ n>0
     pure n
 
-parseGrapheme :: Parser (Grapheme, Bool)
-parseGrapheme = lexeme $ parseBoundary <|> parseMulti
-  where
-    parseBoundary = (GBoundary,False) <$ char '#'
+parseGrapheme :: Parser Grapheme
+parseGrapheme = lexeme $
+    GBoundary <$ char '#'
+    <|> GMulti <$> parseGrapheme'
 
-    parseMulti = (,)
-        <$> fmap GMulti
-            (withStar $ takeWhile1P Nothing (not . ((||) <$> isSpace <*> (`elem` keyChars))))
-        <*> (isJust <$> optional (char '~'))
+parseGrapheme' :: Parser String
+parseGrapheme' = lexeme $ do
+    star <- optional (char '*')
+    rest <- takeWhile1P Nothing (not . ((||) <$> isSpace <*> (`elem` keyChars)))
+    nocat <- optional (char '~')
+    pure .
+        maybe id (const ('*':)) star .
+        maybe id (const (++"~")) nocat
+        $ rest
 
-    withStar :: Parser String -> Parser String
-    withStar p = optional (char '*') >>= \case
-        Just _ -> ('*':) <$> p
-        Nothing -> p
+parseExplicitCategory :: ParseLexeme a => Parser (Lexeme CategorySpec a)
+parseExplicitCategory = Category <$> parseExplicitCategory'
 
-parseGrapheme' :: Parser Grapheme
-parseGrapheme' = lexeme $ GMulti <$> takeWhile1P Nothing (not . ((||) <$> isSpace <*> (=='=')))
+parseExplicitCategory' :: ParseLexeme a => Parser (CategorySpec a)
+parseExplicitCategory' =
+    CategorySpec <$> (symbol "[" *> someTill parseCategoryModification (symbol "]"))
 
-data CategoryModification a
-    = Union     (Either Grapheme [Lexeme a])
-    | Intersect (Either Grapheme [Lexeme a])
-    | Subtract  (Either Grapheme [Lexeme a])
+-- This is unused currently, but convenient to keep around just in case
+-- parseCategory :: ParseLexeme a => Parser (Lexeme CategorySpec a)
+-- parseCategory = Category <$> parseCategory'
 
-parseGraphemeOrCategory :: Parser (Lexeme a)
-parseGraphemeOrCategory = do
-    (g, isntCat) <- parseGrapheme
-    if isntCat
-        then return $ Grapheme g
-        else do
-            cats <- gets categories
-            return $ case C.lookup g cats of
-                Nothing -> Grapheme g
-                Just c  -> Category $ (fmap.fmap.fmap) generalise $ C.bake c
-
-parseCategory :: ParseLexeme a => Parser (Lexeme a)
-parseCategory = Category <$> parseCategory'
-
-parseCategory' :: ParseLexeme a => Parser [Either Grapheme [Lexeme a]]
-parseCategory' = do
-    mods <- symbol "[" *> someTill parseCategoryModification (symbol "]")
-    cats <- gets categories
-    return $ C.bake $
-        C.expand ((fmap.fmap.fmap.fmap) generalise cats) (toCategory mods)
+parseCategory' :: ParseLexeme a => Parser (CategorySpec a)
+parseCategory' = parseExplicitCategory' <|> MustInline <$> parseGrapheme'
 
 parseCategoryStandalone
-    :: Parser (Grapheme, C.Category 'C.Expanded (Either Grapheme [Lexeme 'AnyPart]))
+    :: Parser (String, CategorySpec 'AnyPart)
 parseCategoryStandalone = do
     g <- parseGrapheme'
     _ <- symbol "="
-    -- Use Target here because it only allows graphemes, not boundaries
     mods <- some parseCategoryModification
-    cats <- gets categories
-    return (g, C.expand cats $ toCategory mods)
+    return (g, CategorySpec mods)
 
-categoriesDeclParse :: Parser CategoriesDecl
-categoriesDeclParse = do
-    overwrite <- isJust <$> optional (symbol "new")
-    when overwrite $ put $ Config M.empty
-    _ <- symbol "categories" <* scn
-    -- parse category declarations, adding to the set of known
-    -- categories as each is parsed
-    _ <- some $ parseFeature <|> parseCategoryDecl
-    _ <- symbol "end" <* scn
-    Config catsNew <- get
-    return $ CategoriesDecl $
-        mapMaybe (\case Left g -> Just g; _ -> Nothing) $
-        C.values catsNew
-  where
-    parseFeature = do
-        _ <- symbol "feature"
-        namePlain <- optional $ try $ parseGrapheme' <* symbol "="
-        modsPlain <- some parseCategoryModification
-        cats <- gets categories
-        let plainCat = C.expand cats $ toCategory modsPlain
-            plain = C.bake plainCat
-        when (any isRight plain) $ fail "Cannot use {…} as a base grapheme"
-        modifiedCats <- some (symbol "/" *> parseCategoryStandalone) <* scn
-        let modified = C.bake . snd <$> modifiedCats
-            syns :: [(Grapheme, C.Category 'C.Expanded (Either Grapheme [Lexeme 'AnyPart]))]
-            syns =
-                zipWith (\a b -> (a, C.UnionOf [C.Node (Left a), C.categorise b]))
-                (fromLeft' <$> plain)
-                (transpose modified)
-        modify $ \(Config cs) -> Config $ M.unions
-                [ M.fromList syns
-                , M.fromList modifiedCats
-                , case namePlain of
-                      Nothing -> M.empty
-                      Just n -> M.singleton n plainCat
-                , cs
-                ]
-    parseCategoryDecl = do
-        (k, c) <- try parseCategoryStandalone <* scn
-        modify $ \(Config cs) -> Config (M.insert k c cs)
+parseFeature :: Parser FeatureSpec
+parseFeature = do
+    _ <- symbol "feature"
+    featureBaseName <- optional $ try $ parseGrapheme' <* symbol "="
+    featureBaseValues <- CategorySpec <$> some parseCategoryModification
+    featureDerived <- some (symbol "/" *> parseCategoryStandalone) <* scn
+    pure FeatureSpec { featureBaseName, featureBaseValues, featureDerived }
 
-    fromLeft' :: Either a b -> a
-    fromLeft' (Left a) = a
-    fromLeft' _ = error "fromLeft': unexpected case!"
-
-parseCategoryModification :: ParseLexeme a => Parser (CategoryModification a)
-parseCategoryModification = parsePrefix <*>
-    ( (Right <$> (symbol "{" *> manyTill parseLexeme (symbol "}")))
-    <|> (Left . fst <$> parseGrapheme))
+parseCategoryModification
+    :: ParseLexeme a
+    => Parser (CategoryModification, Either Grapheme [Lexeme CategorySpec a])
+parseCategoryModification = (,)
+    <$> parsePrefix
+    <*> ( (Right <$> (symbol "{" *> manyTill parseLexeme (symbol "}")))
+        <|> (Left <$> parseGrapheme))
   where
     parsePrefix =
         (Intersect <$ char '+')
         <|> (Subtract <$ char '-')
         <|> pure Union
 
-toCategory :: [CategoryModification a] -> C.Category 'C.Unexpanded (Either Grapheme [Lexeme a])
-toCategory = go C.Empty
-  where
-    go c [] = c
-    go c (Union e    :es) = go (C.UnionOf  [c, C.Node e]) es
-    go c (Intersect e:es) = go (C.Intersect c (C.Node e)) es
-    go c (Subtract e :es) = go (C.Subtract  c (C.Node e)) es
+parseDirective :: Parser Directive
+parseDirective = do
+    overwrite <- isJust <$> optional (symbol "new")
+    _ <- symbol "categories" <* scn
+    cs <- some $
+        DefineFeature <$> parseFeature <|>
+        uncurry DefineCategory <$> (try parseCategoryStandalone <* scn)
+    _ <- symbol "end" <* scn
+    pure $ Categories overwrite cs
 
-parseOptional :: ParseLexeme a => Parser (Lexeme a)
+parseOptional :: ParseLexeme a => Parser (Lexeme CategorySpec a)
 parseOptional = Optional <$> between (symbol "(") (symbol ")") (some parseLexeme)
 
-parseGeminate :: Parser (Lexeme a)
+parseGeminate :: Parser (Lexeme CategorySpec a)
 parseGeminate = Geminate <$ symbol ">"
 
-parseMetathesis :: Parser (Lexeme 'Replacement)
+parseMetathesis :: Parser (Lexeme CategorySpec 'Replacement)
 parseMetathesis = Metathesis <$ symbol "\\"
 
-parseWildcard :: (ParseLexeme a, OneOf a 'Target 'Env) => Parser (Lexeme a)
+parseWildcard :: (ParseLexeme a, OneOf a 'Target 'Env) => Parser (Lexeme CategorySpec a)
 parseWildcard = Wildcard <$> (symbol "^" *> parseLexeme)
 
-parseDiscard :: Parser (Lexeme 'Replacement)
+parseDiscard :: Parser (Lexeme CategorySpec 'Replacement)
 parseDiscard = Discard <$ symbol "~"
 
-parseKleene :: OneOf a 'Target 'Env => Lexeme a -> Parser (Lexeme a)
+parseKleene :: OneOf a 'Target 'Env => Lexeme CategorySpec a -> Parser (Lexeme CategorySpec a)
 parseKleene l =
     try (lexeme $ Kleene l <$ char '*' <* notFollowedBy parseGrapheme')
     <|> pure l
 
-parseMultiple :: Parser (Lexeme 'Replacement)
+parseMultiple :: Parser (Lexeme CategorySpec 'Replacement)
 parseMultiple = Multiple <$> (symbol "@?" *> parseCategory')
 
-parseBackreference :: forall a. ParseLexeme a => Parser (Lexeme a)
-parseBackreference =
-    Backreference
-    <$> (symbol "@" *> nonzero)
-    <*> (parseCategory' <|> parseGraphemeCategory)
-  where
-    parseGraphemeCategory :: Parser [Either Grapheme [Lexeme a]]
-    parseGraphemeCategory = label "category" $ try $
-        (parseGraphemeOrCategory @a) >>= \case
-            Category gs -> pure gs
-            _ -> empty
+parseBackreference :: forall a. ParseLexeme a => Parser (Lexeme CategorySpec a)
+parseBackreference = Backreference <$> (symbol "@" *> nonzero) <*> parseCategory'
 
 instance ParseLexeme 'Target where
     parseLexeme = asum
-        [ parseCategory
+        [ parseExplicitCategory
         , parseOptional
         , parseGeminate
         , parseWildcard
         , parseBackreference
-        , parseGraphemeOrCategory
+        , Grapheme <$> parseGrapheme
         ] >>= parseKleene
 
 instance ParseLexeme 'Replacement where
     parseLexeme = asum
-        [ parseCategory
+        [ parseExplicitCategory
         , parseOptional
         , parseMetathesis
         , parseDiscard
         , parseGeminate
         , parseMultiple
         , parseBackreference
-        , parseGraphemeOrCategory
+        , Grapheme <$> parseGrapheme
         ]
 
 instance ParseLexeme 'Env where
     parseLexeme = asum
-        [ parseCategory
+        [ parseExplicitCategory
         , parseOptional
         , parseGeminate
         , parseWildcard
         , parseBackreference
-        , parseGraphemeOrCategory
+        , Grapheme <$> parseGrapheme
         ] >>= parseKleene
 
 instance ParseLexeme 'AnyPart where
     parseLexeme = asum
-        [ parseCategory
+        [ parseExplicitCategory
         , parseOptional
-        , parseGraphemeOrCategory
+        , Grapheme <$> parseGrapheme
         ]
 
-parseLexemes :: ParseLexeme a => Parser [Lexeme a]
+parseLexemes :: ParseLexeme a => Parser [Lexeme CategorySpec a]
 parseLexemes = many parseLexeme
 
 parseFlags :: Parser Flags
@@ -268,7 +201,7 @@ parseFlags = runPermutation $ Flags
     <*> toPermutation (isJust <$> optional (symbol "-1"))
     <*> toPermutation (isJust <$> optional (symbol "-?"))
 
-ruleParser :: Parser Rule
+ruleParser :: Parser (Rule CategorySpec)
 ruleParser = do
     -- This is an inlined version of 'match' from @megaparsec@;
     -- 'match' itself would be tricky to use here, since it would need
@@ -304,21 +237,13 @@ ruleParser = do
 -- 'Rule'. Returns 'Left' if the input string is malformed.
 --
 -- For details on the syntax, refer to <https://github.com/bradrn/brassica/blob/v0.1.1/Documentation.md#basic-rule-syntax>.
-parseRule :: String -> Either (ParseErrorBundle String Void) Rule
-parseRule = parseRuleWithCategories M.empty
-
--- | Same as 'parseRule', but also allows passing in some predefined
--- categories to substitute.
-parseRuleWithCategories
-    :: C.Categories Grapheme [Lexeme 'AnyPart]
-    -> String
-    -> Either (ParseErrorBundle String Void) Rule
-parseRuleWithCategories cs s = flip evalState (Config cs) $ runParserT (scn *> ruleParser <* eof) "" s
+parseRule :: String -> Either (ParseErrorBundle String Void) (Rule CategorySpec)
+parseRule = runParser (scn *> ruleParser <* eof) ""
 
 -- | Parse a list of 'SoundChanges'.
-parseSoundChanges :: String -> Either (ParseErrorBundle String Void) SoundChanges
-parseSoundChanges s = flip evalState (Config M.empty) $ runParserT (scn *> parser <* eof) "" s
+parseSoundChanges :: String -> Either (ParseErrorBundle String Void) (SoundChanges CategorySpec Directive)
+parseSoundChanges = runParser (scn *> parser <* eof) ""
   where
     parser = many $
-        CategoriesDeclS <$> categoriesDeclParse
+        DirectiveS <$> parseDirective
         <|> RuleS <$> ruleParser

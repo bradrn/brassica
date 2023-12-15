@@ -14,9 +14,10 @@ import qualified Data.ByteString.UTF8 as B8
 import qualified Data.Text as T
 
 import Brassica.SoundChange (applyChanges, splitMultipleResults, applyChangesWithLogs, reportAsText)
+import Brassica.SoundChange.Category (expandSoundChanges)
 import Brassica.SoundChange.Parse (parseSoundChanges, errorBundlePretty)
 import Brassica.SoundChange.Tokenise (tokeniseWords, detokeniseWords, withFirstCategoriesDecl, Component, getWords)
-import Brassica.SoundChange.Types (SoundChanges, PWord, plaintext')
+import Brassica.SoundChange.Types (SoundChanges, PWord, plaintext', Expanded, Grapheme)
 
 main :: IO ()
 main = defaultMain $ testGroup "brassica-tests"
@@ -29,7 +30,7 @@ main = defaultMain $ testGroup "brassica-tests"
     showLogs logs = unlines $ fmap (reportAsText plaintext') $ concat $ getWords logs
 
 proto21eTest
-    :: (SoundChanges -> PWord -> [a])
+    :: (SoundChanges Expanded [Grapheme] -> PWord -> [a])
     -> ([Component [a]] -> String)
     -> String
     -> FilePath
@@ -41,10 +42,15 @@ proto21eTest applyFn showWord testName outName goldenName =
     in goldenVsFile testName goldenName' outName' $
         withFile outName' WriteMode $ \outFile -> fmap (either id id) . runExceptT $ do
             soundChangesData <- B8.toString <$> liftIO (B.readFile "test/proto21e.bsc")
-            soundChanges <- catchEither (parseSoundChanges soundChangesData) $ \err -> do
+            soundChanges' <- catchEither (parseSoundChanges soundChangesData) $ \err -> do
                 liftIO $ putStrLn $
                     "Cannot parse the SCA file because:\n" ++
                     errorBundlePretty err
+                throwE ()
+            soundChanges <- catchEither (expandSoundChanges soundChanges') $ \err -> do
+                liftIO $ putStrLn $
+                    "Cannot expand the SCA file because:\n" ++
+                    show err
                 throwE ()
             let output pre = B8.fromString . (++"\n") . (pre ++)
                 prettyError  = output "SCA Error:" . errorBundlePretty
