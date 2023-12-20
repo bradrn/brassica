@@ -3,6 +3,9 @@
 ## Unreleased changes
 
 - Allow lexeme sequences in categories using `{…}` syntax
+- Allow backreferences to occur in the environment
+- Allow user to choose separator used between multiple results (previously a space)
+- Internal refactor: category expansion is now separate from parsing
 
 ## v0.1.1
 
