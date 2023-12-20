@@ -40,7 +40,8 @@ QString BrassicaProcess::parseTokeniseAndApplyRules(
     InputLexiconFormat inFmt,
     HighlightMode hlMode,
     OutputMode outMode,
-    QJsonValue *&prev)
+    QJsonValue *&prev,
+    QString sep)
 {
     QJsonObject req = QJsonObject();
     req.insert("method", "Rules");
@@ -51,6 +52,7 @@ QString BrassicaProcess::parseTokeniseAndApplyRules(
     req.insert("hlMode", toJson(hlMode));
     req.insert("outMode", toJson(outMode));
     req.insert("prev", *prev);
+    req.insert("sep", sep);
 
     QJsonObject obj = request(QJsonDocument(req)).object();
     QString method = obj.value("method").toString();

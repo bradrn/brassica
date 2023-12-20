@@ -35,6 +35,7 @@ data Request
         , hlMode :: HighlightMode
         , outMode :: OutputMode
         , prev :: Maybe [Component PWord]
+        , sep :: String
         }
     | ReqParadigm
         { pText :: String
@@ -95,7 +96,7 @@ parseTokeniseAndApplyRulesWrapper ReqRules{..} =
     let mode =
             if report
             then ReportRulesApplied
-            else ApplyRules hlMode outMode
+            else ApplyRules hlMode outMode sep
     in case parseSoundChanges changes of
         Left e -> RespError $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
         Right statements ->

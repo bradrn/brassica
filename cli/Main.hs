@@ -42,20 +42,22 @@ main = execParser opts >>= \case
             (metavar "RULES" <> help "File containing sound changes")
         <*> flag Raw MDF
             (long "mdf" <> help "Parse input words in MDF format")
-        <*> asum
-            [ flag' ReportRulesApplied
-                (long "report" <> help "Report rules applied rather than outputting words")
-            , flag' (ApplyRules NoHighlight MDFOutput)
-                (long "mdf-out" <> help "With --mdf, output MDF dictionary")
-            , flag' (ApplyRules NoHighlight MDFOutputWithEtymons)
-                (long "etymons" <> help "With --mdf, output MDF dictionary with etymologies")
-            , flag' (ApplyRules NoHighlight WordsWithProtoOutput)
-                (long "show-input" <> help "Output an input→output wordlist")
-            , flag
-                (ApplyRules NoHighlight WordsOnlyOutput)
-                (ApplyRules NoHighlight WordsOnlyOutput)
-                (long "wordlist" <> help "Output only a list of the derived words (default)")
-            ]
+        <*> (asum
+                [ flag' (const ReportRulesApplied)
+                    (long "report" <> help "Report rules applied rather than outputting words")
+                , flag' (ApplyRules NoHighlight MDFOutput)
+                    (long "mdf-out" <> help "With --mdf, output MDF dictionary")
+                , flag' (ApplyRules NoHighlight MDFOutputWithEtymons)
+                    (long "etymons" <> help "With --mdf, output MDF dictionary with etymologies")
+                , flag' (ApplyRules NoHighlight WordsWithProtoOutput)
+                    (long "show-input" <> help "Output an input→output wordlist")
+                , flag
+                    (ApplyRules NoHighlight WordsOnlyOutput)
+                    (ApplyRules NoHighlight WordsOnlyOutput)
+                    (long "wordlist" <> help "Output only a list of the derived words (default)")
+                ]
+            <*> strOption
+                (long "separator" <> short 's' <> value "/" <> help "Separator between multiple results (default: /)"))
         <*> optional (strOption
             (long "in" <> short 'i' <> help "File containing input words (if not specified will read from stdin)"))
         <*> optional (strOption

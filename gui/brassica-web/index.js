@@ -44,9 +44,10 @@ const decoder = new TextDecoder();
 
 const results = hs.initResults();  // NB: not const on Haskell side!
 
-function applyChanges(changes, words, reportRules, highlightMode, outputMode) {
+function applyChanges(changes, words, sep, reportRules, highlightMode, outputMode) {
     const inputChanges = encoder.encode(changes);
     const inputWords = encoder.encode(words);
+    const sepEncoded = encoder.encode(sep);
 
     const reportRulesC = reportRules ? 1 : 0;
 
@@ -64,15 +65,18 @@ function applyChanges(changes, words, reportRules, highlightMode, outputMode) {
     var output = "";
     withBytesPtr(inputChanges, (inputChangesPtr, inputChangesLen) => {
         withBytesPtr(inputWords, (inputWordsPtr, inputWordsLen) => {
-            try {
-                const outputStableCStringLen = hs.parseTokeniseAndApplyRules_hs(
-                    inputChangesPtr, inputChangesLen,
-                    inputWordsPtr, inputWordsLen,
-                    reportRules, 0, hlModeC, outModeC, results);
-                output = decodeStableCStringLen(outputStableCStringLen);
-            } catch (err) {
-                output = err;
-            }
+            withBytesPtr(sepEncoded, (sepPtr, sepLen) => {
+                try {
+                    const outputStableCStringLen = hs.parseTokeniseAndApplyRules_hs(
+                        inputChangesPtr, inputChangesLen,
+                        inputWordsPtr, inputWordsLen,
+                        sepPtr, sepLen,
+                        reportRules, 0, hlModeC, outModeC, results);
+                    output = decodeStableCStringLen(outputStableCStringLen);
+                } catch (err) {
+                    output = err;
+                }
+            });
         });
     });
     return output;
@@ -207,10 +211,11 @@ function updateForm(reportRules, needsLive) {
     const data = new FormData(form);
     const rules = rulesEditor.getValue();
     const words = data.get("words");
+    const sep = data.get("sep");
     const highlightMode = data.get("highlightMode");
     const outputFormat = data.get("outputFormat");
 
-    const output = applyChanges(rules, words, reportRules, highlightMode, outputFormat);
+    const output = applyChanges(rules, words, sep, reportRules, highlightMode, outputFormat);
     document.getElementById("results").innerHTML = output;
 }
 

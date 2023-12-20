@@ -27,7 +27,7 @@ import Brassica.SoundChange.Types
 
 -- | Rule application mode of the SCA.
 data ApplicationMode
-    = ApplyRules HighlightMode OutputMode
+    = ApplyRules HighlightMode OutputMode String
     | ReportRulesApplied
     deriving (Show, Eq)
 
@@ -78,7 +78,7 @@ instance Enum TokenisationMode where
     toEnum _ = undefined
 
 tokenisationModeFor :: ApplicationMode -> TokenisationMode
-tokenisationModeFor (ApplyRules _ MDFOutputWithEtymons) = AddEtymons
+tokenisationModeFor (ApplyRules _ MDFOutputWithEtymons _) = AddEtymons
 tokenisationModeFor _ = Normal
 
 -- | Output of a single application of rules to a wordlist: either a
@@ -164,18 +164,18 @@ parseTokeniseAndApplyRules statements ws intype mode prev =
                         AppliedRulesTable $ mapMaybe toPWordLog $ concat $
                             getWords $ componentise WordsOnlyOutput [] $
                                 applyChangesWithLog statements' <$> toks
-                    ApplyRules DifferentToLastRun mdfout ->
-                        let result = concatMap (splitMultipleResults " ") $
+                    ApplyRules DifferentToLastRun mdfout sep ->
+                        let result = concatMap (splitMultipleResults sep) $
                               componentise mdfout (fmap pure ws') $ applyChanges statements' <$> toks
                         in HighlightedWords $
                             zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
                                 (thisWord, thisWord /= prevWord)
-                    ApplyRules DifferentToInput mdfout ->
-                        HighlightedWords $ concatMap (splitMultipleResults " ") $
+                    ApplyRules DifferentToInput mdfout sep ->
+                        HighlightedWords $ concatMap (splitMultipleResults sep) $
                             componentise mdfout (fmap (pure . (,False)) ws') $
                                 applyChangesWithChanges statements' <$> toks
-                    ApplyRules NoHighlight mdfout ->
-                        HighlightedWords $ (fmap.fmap) (,False) $ concatMap (splitMultipleResults " ") $
+                    ApplyRules NoHighlight mdfout sep ->
+                        HighlightedWords $ (fmap.fmap) (,False) $ concatMap (splitMultipleResults sep) $
                             componentise mdfout (fmap pure ws') $
                                 applyChanges statements' <$> toks
   where

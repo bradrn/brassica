@@ -7,6 +7,7 @@
 
 #include <QCheckBox>
 #include <QGroupBox>
+#include <QLineEdit>
 #include <QMainWindow>
 #include <QPlainTextEdit>
 #include <QProcess>
@@ -41,6 +42,7 @@ private:
     QPushButton *reportRulesBtn;
     QCheckBox *viewLive;
     QCheckBox *synchroniseScrolls;
+    QLineEdit *multiResultSep;
     QTextEdit *outputEdit;
     QScrollBar *outputEditVScroll;
 

@@ -40,7 +40,7 @@ public:
         InputLexiconFormat inFmt,
         HighlightMode hlMode,
         OutputMode outMode,
-        QJsonValue *&prev);
+        QJsonValue *&prev, QString sep);
     QString parseAndBuildParadigm(QString paradigm, QString roots);
 
 private:

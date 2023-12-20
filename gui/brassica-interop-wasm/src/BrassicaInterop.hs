@@ -35,6 +35,8 @@ parseTokeniseAndApplyRules_hs
     -> Int         -- ^ length of changes
     -> CString     -- ^ words
     -> Int         -- ^ length of words
+    -> CString     -- ^ separator
+    -> Int         -- ^ length of separator
     -> CBool       -- ^ report rules applied?
     -> CInt        -- ^ input format
     -> CInt        -- ^ highlighting mode
@@ -46,6 +48,8 @@ parseTokeniseAndApplyRules_hs
   changesRawLen
   wsRaw
   wsRawLen
+  sepRaw
+  sepRawLen
   (CBool report)
   infmtC
   hlModeC
@@ -54,6 +58,7 @@ parseTokeniseAndApplyRules_hs
   = do
     changesText <- GHC.peekCStringLen utf8 (changesRaw, changesRawLen)
     wsText      <- GHC.peekCStringLen utf8 (wsRaw, wsRawLen)
+    sepText     <- GHC.peekCStringLen utf8 (sepRaw, sepRawLen)
 
     prevRef <- deRefStablePtr prevPtr
     prev <- readIORef prevRef
@@ -64,7 +69,7 @@ parseTokeniseAndApplyRules_hs
         mode =
             if report == 1
             then ReportRulesApplied
-            else ApplyRules hlMode outMode
+            else ApplyRules hlMode outMode sepText
 
     case parseSoundChanges changesText of
         Left e -> newStableCStringLen $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
@@ -101,6 +106,8 @@ escape = concatMap $ \case
 
 foreign export ccall parseTokeniseAndApplyRules_hs
     :: CString
+    -> Int
+    -> CString
     -> Int
     -> CString
     -> Int
