@@ -1,5 +1,1 @@
-if(os(wasi))
-    packages: ./brassica.cabal
-              ./gui/brassica-interop-wasm/brassica-interop-wasm.cabal
-else
-    packages: ./brassica.cabal
+packages: ./brassica.cabal

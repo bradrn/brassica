@@ -60,18 +60,21 @@ Finally, use [NSIS](https://nsis.sourceforge.io/Main_Page) with the given `insta
 ## Online version
 
 Building the online version of Brassica is slightly more difficult as it requires the WebAssembly backend of GHC.
+It is easiest to get this using GHCup’s [WASM cross bindists](https://www.haskell.org/ghcup/guide/#cross-support).
 You will also need [Wizer](https://github.com/bytecodealliance/wizer) to pre-initialise the WASM binary,
   and [npm](https://www.npmjs.com/) for JavaScript package management.
 
-Follow the instructions at [ghc-wasm-meta](https://gitlab.haskell.org/ghc/ghc-wasm-meta) to install this version.
 Then:
 
 1. In `./gui/brassica-interop-wasm`, run the following commands:
    ```
-   wasm32-wasi-cabal build brassica-interop-wasm
+   cabal build --project-file=cabal-wasm.project brassica-interop-wasm
    wizer --allow-wasi --wasm-bulk-memory true "$(wasm32-wasi-cabal list-bin -v0 brassica-interop-wasm)" -o "./dist/brassica-interop-wasm.wasm"
    ```
    This will create a file `./gui/brassica-interop-wasm/dist/brassica-interop-wasm.wasm` containing the WASM binary.
+
+   (Note: it can also be convenient to set `CABAL_DIR` so that WASM packages are installed to a different location.)
+
 2. In `./gui/brassica-web`, run the following commands to copy the required files into `./gui/brassica-web/static`:
    ```
    npm install
