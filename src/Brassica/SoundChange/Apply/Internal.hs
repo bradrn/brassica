@@ -311,10 +311,10 @@ exceptionAppliesAtPoint
     -> Environment Expanded
     -> MultiZipper RuleTag Grapheme -> [Int]
 exceptionAppliesAtPoint target (ex1, ex2) mz = fmap fst $ flip runRuleAp mz $ do
-    _ <- RuleAp $ matchMany' Nothing ex1
+    ex1Out <- RuleAp $ matchMany' Nothing ex1
     pos <- gets curPos
     MatchOutput{matchedGraphemes} <- RuleAp $ matchMany' Nothing target
-    _ <- RuleAp $ matchMany' (listToMaybe matchedGraphemes) ex2
+    _ <- RuleAp $ matchMany ex1Out (listToMaybe matchedGraphemes) ex2
     return pos
 
 -- | Given a target and environment, determine if they rule
@@ -328,7 +328,7 @@ matchRuleAtPoint
     -> MultiZipper RuleTag Grapheme
     -> [(MatchOutput, MultiZipper RuleTag Grapheme)]
 matchRuleAtPoint target (env1,env2) mz = flip runRuleAp mz $ do
-    _ <- RuleAp $ matchMany' Nothing env1
+    env1Out <- RuleAp $ matchMany' Nothing env1
     -- start of target needs to be INSIDE 'MultiZipper'!
     -- otherwise get weird things like /x/#_ resulting in
     -- #abc#→#xabd#x when it should be #abc#→#xabc#
@@ -338,7 +338,7 @@ matchRuleAtPoint target (env1,env2) mz = flip runRuleAp mz $ do
             modify $ tag TargetStart
             matchResult <- RuleAp $ matchMany' Nothing target
             modify $ tag TargetEnd
-            _ <- RuleAp $ matchMany' (listToMaybe $ matchedGraphemes matchResult) env2
+            _ <- RuleAp $ matchMany env1Out (listToMaybe $ matchedGraphemes matchResult) env2
             return matchResult
 
 -- | Given a 'Rule', determine if the rule matches at the current
