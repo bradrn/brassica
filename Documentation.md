@@ -587,7 +587,7 @@ For instance, the following rule will cause a nasal to assimilate in place of ar
            ╚══════════════════════╝
 ```
 
-Backreferences can also be used in the target, in which case they match repeated or corresponding graphemes.
+Backreferences can also be used in the target or environment, in which case they match repeated or corresponding graphemes.
 For instance, consider a rule deleting ⟨ə⟩ between identical consonants.
 This may be written:
 ```
@@ -609,12 +609,6 @@ This may be written as:
    ├─────────┘            │
    └──────────────────────┘
 ```
-
-Backreferences in the environment have a similar meaning to backreferences in the target.
-However, they have a limitation:
-  categories after the target are counted separately from categories before the target.
-Thus, it is invalid to use an environment such as `V _ @1 V`, since this backreference stretches across the target.
-This limitation should be lifted in a future version of Brassica.
 
 ### Sporadic rules and multiple results
 
