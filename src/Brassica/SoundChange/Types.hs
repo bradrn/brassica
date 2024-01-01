@@ -177,7 +177,7 @@ mapCategoryA f (Multiple c) = Multiple <$> f c
 
 -- | The type of a category after expansion.
 newtype Expanded a = FromElements { elements :: [Either Grapheme [Lexeme Expanded a]] }
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord, Show, Generic, NFData)
 
 instance Semigroup (Expanded a) where
     (FromElements es) <> (FromElements es') = FromElements (es <> es')
@@ -291,13 +291,13 @@ type SoundChanges c decl = [Statement c decl]
 -- | The individual operations used to construct a category in
 -- Brassica sound-change syntax.
 data CategoryModification = Union | Intersect | Subtract
-    deriving (Show, Eq, Ord)
+    deriving (Show, Eq, Ord, Generic, NFData)
 
 -- | The specification of a category in Brassica sound-change syntax.
 data CategorySpec a
     = CategorySpec [(CategoryModification, Either Grapheme [Lexeme CategorySpec a])]
     | MustInline String  -- ^ A single grapheme assumed to have been specified earlier as a category
-    deriving (Show, Eq, Ord)
+    deriving (Show, Eq, Ord, Generic, NFData)
 
 -- | The specification of a suprasegmental feature in Brassica
 -- sound-change syntax.
@@ -306,15 +306,15 @@ data FeatureSpec = FeatureSpec
     , featureBaseValues :: CategorySpec 'AnyPart
     , featureDerived :: [(String, CategorySpec 'AnyPart)]
     }
-    deriving (Show, Eq, Ord)
+    deriving (Show, Eq, Ord, Generic, NFData)
 
 -- | A definition of a new category, either directly or via features.
 data CategoryDefinition
     = DefineCategory String (CategorySpec 'AnyPart)
     | DefineFeature FeatureSpec
-    deriving (Show, Eq, Ord)
+    deriving (Show, Eq, Ord, Generic, NFData)
 
 -- | A directive used in Brassica sound-change syntax: currently only
 -- @categories … end@ or @new categories … end@
 data Directive = Categories Bool [CategoryDefinition]
-    deriving (Show, Eq, Ord)
+    deriving (Show, Eq, Ord, Generic, NFData)
