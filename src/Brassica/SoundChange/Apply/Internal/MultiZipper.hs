@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE TupleSections #-}
 
 {-| __Warning:__ This module is __internal__, and does __not__ follow
   the Package Versioning Policy. It may be useful for extending
@@ -37,13 +38,16 @@ module Brassica.SoundChange.Apply.Internal.MultiZipper
        , query
        , untag
        , untagWhen
-       , modifyBetween
+       , delete
        , extend
        , extend'
        ) where
 
 import Control.Applicative (Alternative((<|>)))
 import Data.Foldable (Foldable(foldl'))
+import Data.Vector ((!?), (!))
+import Data.Vector.Mutable (write)
+import qualified Data.Vector as V
 import qualified Data.Map.Strict as M
 
 -- | A 'MultiZipper' is a list zipper (list+current index), with the
@@ -64,25 +68,25 @@ import qualified Data.Map.Strict as M
 -- 'MultiZipper' and then move to the next element immediately after
 -- the processed portion, allowing another function to be run to
 -- process the next part of the 'MultiZipper'.)
-data MultiZipper t a = MultiZipper [a] Int (M.Map t Int)
+data MultiZipper t a = MultiZipper (V.Vector a) Int (M.Map t Int)
     deriving (Show, Functor, Foldable, Traversable)
 
 -- | Convert a list to a 'MultiZipper' positioned at the start of that
 -- list.
 fromListStart :: [a] -> MultiZipper t a
-fromListStart as = MultiZipper as 0 M.empty
+fromListStart as = MultiZipper (V.fromList as) 0 M.empty
 
 -- | Convert a list to a 'MultiZipper' at a specific position in the
 -- list. Returns 'Nothing' if the index is invalid.
 fromListPos :: [a] -> Int -> Maybe (MultiZipper t a)
 fromListPos as pos =
-    if invalid pos as
+    if invalid pos (length as)
     then Nothing
-    else Just $ MultiZipper as pos M.empty
+    else Just $ MultiZipper (V.fromList as) pos M.empty
 
 -- | Get the list stored in a 'MultiZipper'.
 toList :: MultiZipper t a -> [a]
-toList (MultiZipper as _ _) = as
+toList (MultiZipper as _ _) = V.toList as
 
 -- | The current position of the 'MultiZipper'.
 curPos :: MultiZipper t a -> Int
@@ -108,10 +112,7 @@ atBoundary = (||) <$> atStart <*> atEnd
 -- list’ (recall this actually means that the 'MultiZipper' is
 -- positioned /after/ the last element of its list).
 value :: MultiZipper t a -> Maybe a
-value (MultiZipper as pos _) =
-    if atNonvalue pos as
-    then Nothing
-    else Just $ as !! pos
+value (MultiZipper as pos _) = as !? pos
 
 -- | @valueN n mz@ returns the next @n@ elements of @mz@ starting from
 -- the current position, as well as returning a new 'MultiZipper'
@@ -122,9 +123,9 @@ value (MultiZipper as pos _) =
 valueN :: Int -> MultiZipper t a -> Maybe ([a], MultiZipper t a)
 valueN i (MultiZipper as pos ts) =
     let pos' = pos + i in
-        if invalid pos' as || i < 0
+        if invalid pos' (V.length as) || i < 0
         then Nothing
-        else Just (take i $ drop pos as, MultiZipper as pos' ts)
+        else Just (take i $ drop pos $ V.toList as, MultiZipper as pos' ts)
 
 -- | Given a tag, return its position
 locationOf :: Ord t => t -> MultiZipper t a -> Maybe Int
@@ -136,7 +137,7 @@ query (MultiZipper _ pos ts) = M.keys $ M.filter (==pos) ts
 
 seekIx :: Int -> MultiZipper t a -> Maybe (MultiZipper t a)
 seekIx i (MultiZipper as _ ts) =
-    if invalid i as
+    if invalid i (V.length as)
     then Nothing
     else Just (MultiZipper as i ts)
 
@@ -159,9 +160,7 @@ bwd = move (-1)
 -- over
 consume :: MultiZipper t a -> Maybe (a, MultiZipper t a)
 consume (MultiZipper as pos ts) =
-    if invalid (pos+1) as
-    then Nothing
-    else Just (as!!pos, MultiZipper as (pos+1) ts)
+    fmap (,MultiZipper as (pos+1) ts) (as!?pos)
 
 -- | Move the 'MultiZipper' to be at the specified tag. Returns
 -- 'Nothing' if that tag is not present.
@@ -186,8 +185,11 @@ yank p mz = bwd mz >>= \mz' -> (value mz' >>= p) <|> yank p mz'
 -- | Insert a new element at point and move forward by one position.
 insert :: a -> MultiZipper t a -> MultiZipper t a
 insert a (MultiZipper as pos ts) =
-    case splitAt pos as of
-        (as1, as2) -> MultiZipper (as1 ++ [a] ++ as2) (pos+1) $ correctIxsFrom pos (+1) ts
+    case V.splitAt pos as of
+        (as1, as2) -> MultiZipper
+            (as1 V.++ V.cons a as2)
+            (pos+1)
+            (correctIxsFrom pos (+1) ts)
 
 -- | Insert multiple elements at point and move after them. A simple
 -- wrapper around 'insert'.
@@ -204,11 +206,9 @@ zap p = \mz@(MultiZipper as pos ts) -> case go as (pos-1) of
     go _ (-1) = Nothing
     go as pos
       | pos == length as = go as (pos-1)
-      | otherwise = case p (as !! pos) of
+      | otherwise = case p (as ! pos) of
         Nothing -> go as (pos-1)
-        Just a' -> case splitAt pos as of
-            (as1, _:as2) -> Just $ as1 ++ (a':as2)
-            _ -> error "error in zap: impossible case reached"
+        Just a' -> Just $ V.modify (\v -> write v pos a') as
 
 -- | Set a tag at the current position.
 tag :: Ord t => t -> MultiZipper t a -> MultiZipper t a
@@ -217,7 +217,7 @@ tag t (MultiZipper as pos ts) = MultiZipper as pos $ M.insert t pos ts
 -- | Set a tag at a given position if possible, otherwise return 'Nothing'.
 tagAt :: Ord t => t -> Int -> MultiZipper t a -> Maybe (MultiZipper t a)
 tagAt t i (MultiZipper as pos ts) =
-    if invalid i as
+    if invalid i (length as)
     then Nothing
     else Just $ MultiZipper as pos $ M.insert t i ts
 
@@ -229,25 +229,23 @@ untagWhen p (MultiZipper as pos ts) = MultiZipper as pos $ snd $ M.partitionWith
 untag :: MultiZipper t a -> MultiZipper t a
 untag (MultiZipper as pos _) = MultiZipper as pos M.empty
 
--- | Modify a 'MultiZipper' between the selected tags. Returns
--- 'Nothing' if a nonexistent tag is selected, else returns the
--- modified 'MultiZipper'.
-modifyBetween :: Ord t
-              => (t, t)
-              -- ^ Selected tags. Note that the resulting interval
-              -- will be [inclusive, exclusive).
-              -> ([a] -> [a])
-              -- ^ Function to modify designated interval.
-              -> MultiZipper t a
-              -> Maybe (MultiZipper t a)
-modifyBetween (t1, t2) f mz@(MultiZipper as pos ts) = do
+-- | Delete the portion of a 'MultiZipper' between the selected tags.
+-- Returns 'Nothing' if a nonexistent tag is selected, else returns
+-- the modified 'MultiZipper'.
+delete
+    :: Ord t
+    => (t, t)
+    -- ^ Selected tags. Note that the resulting interval
+    -- will be [inclusive, exclusive).
+    -> MultiZipper t a
+    -> Maybe (MultiZipper t a)
+delete (t1, t2) mz@(MultiZipper as pos ts) = do
     (i1, i2) <- fmap correctOrder $ (,) <$> locationOf t1 mz <*> locationOf t2 mz
-    let (before_t1, after_t1) = splitAt i1 as
-        (cut_part, after_t2) = splitAt (i2-i1) after_t1
-        replacement = f cut_part
-        dEnd = length replacement - length cut_part
-        pos' = pos + dEnd
-    return $ MultiZipper (before_t1 ++ replacement ++ after_t2) pos' (correctIxsFrom i2 (+dEnd) ts)
+    let (before_t1, after_t1) = V.splitAt i1 as
+        (cut_part, after_t2) = V.splitAt (i2-i1) after_t1
+        removed = length cut_part
+        pos' = pos - removed
+    return $ MultiZipper (before_t1 V.++ after_t2) pos' (correctIxsFrom i2 (subtract removed) ts)
   where
     correctOrder (m, n) = if m <= n then (m, n) else (n, m)
 
@@ -261,21 +259,18 @@ modifyBetween (t1, t2) f mz@(MultiZipper as pos ts) = do
 extend :: (MultiZipper t a -> b) -> MultiZipper t a -> MultiZipper t b
 extend f (MultiZipper as pos ts) = MultiZipper as' pos ts
   where
-    as' = fmap (\i -> f $ MultiZipper as i ts) [0 .. length as - 1]
+    as' = V.map (\i -> f $ MultiZipper as i ts) $ V.enumFromN 0 (length as)
 
 -- | Like 'extend', but includes the end position of the zipper, thus
 -- increasing the 'MultiZipper' length by one when called.
 extend' :: (MultiZipper t a -> b) -> MultiZipper t a -> MultiZipper t b
 extend' f (MultiZipper as pos ts) = MultiZipper as' pos ts
   where
-    as' = fmap (\i -> f $ MultiZipper as i ts) [0 .. length as]
+    as' = V.map (\i -> f $ MultiZipper as i ts) $ V.enumFromN 0 (length as + 1)
 
 -- Utility functions for checking and modifying indices in lists:
-invalid :: Int -> [a] -> Bool
-invalid pos as = (pos < 0) || (pos > length as)
-
-atNonvalue :: Int -> [a] -> Bool
-atNonvalue pos as = (pos < 0) || (pos >= length as)
+invalid :: Int -> Int -> Bool
+invalid pos len = (pos < 0) || (pos > len)
 
 correctIxsFrom :: Int -> (Int -> Int) -> M.Map t Int -> M.Map t Int
 correctIxsFrom i f = M.map $ \pos -> if pos >= i then f pos else pos

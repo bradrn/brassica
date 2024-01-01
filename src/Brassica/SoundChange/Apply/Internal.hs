@@ -360,7 +360,7 @@ applyOnce r@Rule{target, replacement, exception} =
                     if maybe True (`elem` exs) p
                     then return False
                     else do
-                        modifyMay $ modifyBetween (TargetStart, TargetEnd) $ const []
+                        modifyMay $ delete (TargetStart, TargetEnd)
                         modifyMay $ seek TargetStart
                         modifyM $ mkReplacement out replacement
                         return True
