@@ -57,6 +57,7 @@ module Brassica.SoundChange.Types
 
 import Control.DeepSeq (NFData(..))
 import Data.Kind (Constraint)
+import Data.String (IsString(..))
 import GHC.Generics (Generic)
 import GHC.OldList (dropWhileEnd)
 import GHC.TypeLits
@@ -83,6 +84,9 @@ data Grapheme
     = GMulti [Char]  -- ^ A multigraph: for instance @GMulti "a", GMulti "ch", GMulti "c̓" :: t'Grapheme'@.
     | GBoundary      -- ^ A non-letter element representing a word boundary which sound changes can manipulate
     deriving (Eq, Ord, Show, Generic, NFData)
+
+instance IsString Grapheme where
+    fromString = GMulti
 
 -- | A word (or a subsequence of one) can be viewed as a list of
 -- @Grapheme@s: e.g. Portuguese "filha" becomes
