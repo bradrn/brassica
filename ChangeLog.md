@@ -7,6 +7,7 @@
 - Allow user to choose separator used between multiple results (previously a space)
 - Internal refactor: category expansion is now separate from parsing
 - Add `--version` command-line option
+- Store `MultiZipper` data in a `Vector` rather than a linked list (for performance)
 
 ## v0.1.1
 
