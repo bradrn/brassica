@@ -22,7 +22,7 @@ import Control.DeepSeq (NFData)
 import Control.Monad (foldM, unless)
 import Control.Monad.State.Strict (StateT, evalStateT, lift, get, put)
 import Data.Containers.ListUtils (nubOrd)
-import Data.List (intersect, (\\), transpose, foldl')
+import Data.List (intersect, transpose, foldl')
 import Data.Maybe (mapMaybe)
 import GHC.Generics (Generic)
 
@@ -72,7 +72,10 @@ expand cs (CategorySpec spec) = FromElements <$> foldM go [] spec
         pure $ case modifier of
             Union -> es ++ new
             Intersect -> es `intersect` new
-            Subtract -> es \\ new
+            Subtract -> es `subtractAll` new
+
+    -- NB. normal (\\) only removes the first matching element
+    subtractAll xs ys = filter (`notElem` ys) xs
 
 expandLexeme :: Categories -> Lexeme CategorySpec a -> Either ExpandError (Lexeme Expanded a)
 expandLexeme cs (Grapheme (GMulti g))

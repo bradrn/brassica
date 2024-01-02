@@ -8,6 +8,7 @@
 - Internal refactor: category expansion is now separate from parsing
 - Add `--version` command-line option
 - Store `MultiZipper` data in a `Vector` rather than a linked list (for performance)
+- Bugfix: subtraction now removes all subtracted graphemes
 
 ## v0.1.1
 
