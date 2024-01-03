@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Brassica: Paradigm Builder</title>
+    <link href="./style.css" rel="stylesheet"/>
+  </head>
+  <body>
+    <h1>
+      Brassica paradigm builder: online version
+    </h1>
+    <details id="blurb" open>
+      <summary id="blurb-header">Click to close</summary>
+      <p>
+        <a href="./index.html">Brassica</a> is an advanced sound change applier.
+        This page runs the paradigm builder accompanying <b>Brassica 0.1.0</b>.
+      </p>
+      <p>
+        You are currently on the online version of Brassica.
+        For supported platforms a standalone desktop version is available from <a href="https://github.com/bradrn/brassica">GitHub repository</a>.
+      </p>
+      <p>
+        For help, see the <a href="https://github.com/bradrn/brassica/blob/master/Documentation.md#paradigm-builder">official documentation</a>.
+      </p>
+    </details>
+    <form id="brassica-form">
+      <div id="paradigm-div" class="box-container">
+        <div class="header">
+          <label for="paradigm">Paradigm</label>
+        </div>
+        <textarea id="paradigm" name="paradigm" class="input-box"></textarea>
+      </div>
+      <div id="roots-div" class="box-container">
+        <div class="header">
+          <label for="roots">Roots</label>
+        </div>
+        <textarea id="roots" name="roots" class="input-box"></textarea>
+      </div>
+      <div id="controls">
+        <input type="submit" id="build-btn" value="Build" />
+        <div>
+          <input type="checkbox" id="separate-lines" name="separateLines" />
+          <label for="separate-lines">Each word on its own line</label>
+        </div>
+      </div>
+      <div id="output-div" class="box-container">
+        <div class="header">
+          <label for="output">Output</label>
+        </div>
+        <div id="output" name="output" class="input-box"></textarea>
+      </div>
+    </form>
+    <script src="./builder.js"></script>
+  </body>
+</html>

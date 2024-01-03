@@ -60,7 +60,7 @@ details p:first-of-type {
 details p:last-of-type {
     margin-bottom: 0px;
 }
-#brassica-form {
+form {
     flex: 1 1 auto;
     display: flex;
     flex-flow: row nowrap;
@@ -92,21 +92,29 @@ details p:last-of-type {
 .hidden-file-input {
     display: none;
 }
-#rules, #words, #results {
+.input-box {
     flex: 1 1 auto;
     width: 100%;
 }
-#words {
+.input-box:not(.lib-config) {
+    font: inherit;
+    font-size: 90%;
+}
+div.input-box:not(.lib-config) {
+    overflow: scroll;
+    background-color: #fff;
+}
+textarea.input-box:not(.lib-config) {
     box-sizing: border-box;
     border: none;
     resize: none;
 }
 #controls {
-    min-width: 13em;
     padding: 0 5px;
     display: flex;
     flex-flow: column nowrap;
     gap: 5px;
+    min-width: 13em;
 }
 #controls input[type="submit"] {
     font: inherit;
@@ -114,14 +122,6 @@ details p:last-of-type {
 }
 #examples-div {
     padding-top: 2rem;
-}
-#results {
-    overflow: scroll;
-    background-color: #fff;
-}
-#words, #results {
-    font: inherit;
-    font-size: 90%;
 }
 
 .ace-tm .ace_separator {

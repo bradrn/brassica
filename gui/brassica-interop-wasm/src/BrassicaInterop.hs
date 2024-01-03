@@ -6,12 +6,14 @@ module BrassicaInterop where
 
 import Control.Monad ((<=<))
 import Data.IORef
+import Data.Foldable (toList)
 import qualified Foreign
 import Foreign.C hiding (newCString, peekCString) -- hide these so we don't accidentally use them
 import Foreign.StablePtr
 import qualified GHC.Foreign as GHC
 import GHC.IO.Encoding (utf8)
 
+import Brassica.Paradigm
 import Brassica.SoundChange
 import Brassica.SoundChange.Frontend.Internal
 
@@ -104,6 +106,31 @@ escape = concatMap $ \case
     -- '\t' -> "&#9;"  -- this doesn't seem to do anything - keeping it here in case I eventually figure out how to do tabs in Qt
     c    -> pure c
 
+parseAndBuildParadigm_hs
+    :: CString  -- ^ paradigm text
+    -> Int      -- ^ length of paradigm text
+    -> CString  -- ^ input words
+    -> Int      -- ^ length of input words
+    -> CBool    -- ^ separate lines? / non-compact?
+    -> IO (StablePtr CStringLen)
+parseAndBuildParadigm_hs
+  paradigmRaw
+  paradigmRawLen
+  inputRaw
+  inputRawLen
+  (CBool separateLines)
+  = do
+    paradigmText <- GHC.peekCStringLen utf8 (paradigmRaw, paradigmRawLen)
+    inputText <- GHC.peekCStringLen utf8 (inputRaw, inputRawLen)
+
+    newStableCStringLen $ case parseParadigm paradigmText of
+        Left e -> "<pre>" ++ errorBundlePretty e ++ "</pre>"
+        Right p -> escape $
+            (if separateLines == 1
+                then unlines . toList
+                else formatNested id)
+            $ Node $ applyParadigm p <$> lines inputText
+
 foreign export ccall parseTokeniseAndApplyRules_hs
     :: CString
     -> Int
@@ -116,6 +143,14 @@ foreign export ccall parseTokeniseAndApplyRules_hs
     -> CInt
     -> CInt
     -> StablePtr (IORef (Maybe [Component PWord]))
+    -> IO (StablePtr CStringLen)
+
+foreign export ccall parseAndBuildParadigm_hs
+    :: CString
+    -> Int
+    -> CString
+    -> Int
+    -> CBool
     -> IO (StablePtr CStringLen)
 
 foreign export ccall initResults :: IO (StablePtr (IORef (Maybe [Component PWord])))

@@ -6,7 +6,8 @@ const __dirname = path.dirname(__filename);
 
 const baseConfig = {
   entry: {
-      index: './src/index.js',
+    index: './src/index.js',
+    builder: './src/builder.js',
   },
   devServer: {
     static: './dist',

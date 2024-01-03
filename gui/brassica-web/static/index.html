@@ -30,6 +30,9 @@
           <option value="latin2port">Latin to Portuguese</option>
         </select>
       </p>
+      <p>
+        Also: try the accompanying <a href="./builder.html">paradigm builder</a>!
+      </p>
     </details>
     <form id="brassica-form">
       <div id="rules-div" class="box-container">
@@ -41,7 +44,7 @@
             <input type="file" id="input-file-rules" class="hidden-file-input" />
           </span>
         </div>
-        <div id="rules"></div>
+        <div id="rules" class="input-box lib-config"></div>
       </div>
       <div id="words-div" class="box-container">
         <div class="header">
@@ -52,7 +55,7 @@
             <input type="file" id="input-file-words" class="hidden-file-input" />
           </span>
         </div>
-        <textarea id="words" name="words"></textarea>
+        <textarea id="words" name="words" class="input-box"></textarea>
       </div>
       <div id="controls">
         <input type="submit" id="apply-btn" value="Apply" />
@@ -96,7 +99,7 @@
         <div class="header">
           <label>Results</label>
         </div>
-        <div id="results"></div>
+        <div id="results" class="input-box"></div>
       </div>
     </form>
     <script src="./index.js"></script>

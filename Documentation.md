@@ -822,7 +822,7 @@ Further modifications can then be made to the output while keeping the etymologi
 
 Brassica includes an inbuilt paradigm builder.
 It may be accessed using the ‘Tools⇒Paradigm Builder’ menu item in the graphical interface,
-  or by visiting <https://bradrn.com/brassica/builder/>.
+  or by visiting <https://bradrn.com/brassica/builder.html>.
 
 The paradigm builder consists of three textboxes and a button.
 The leftmost textbox contains a description of the paradigm using the syntax described below.

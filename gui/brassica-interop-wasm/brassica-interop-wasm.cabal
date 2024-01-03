@@ -16,6 +16,7 @@ executable brassica-interop-wasm
   ghc-options:         -Wall -no-hs-main -optl-mexec-model=reactor -stubdir stub
                        "-optl-Wl\
                        \,--export=parseTokeniseAndApplyRules_hs\
+                       \,--export=parseAndBuildParadigm_hs\
                        \,--export=initResults\
                        \,--export=getString\
                        \,--export=getStringLen\
