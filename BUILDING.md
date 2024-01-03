@@ -69,7 +69,7 @@ Then:
 1. In `./gui/brassica-interop-wasm`, run the following commands:
    ```
    cabal build --project-file=cabal-wasm.project brassica-interop-wasm
-   wizer --allow-wasi --wasm-bulk-memory true "$(wasm32-wasi-cabal list-bin -v0 brassica-interop-wasm)" -o "./dist/brassica-interop-wasm.wasm"
+   wizer --allow-wasi --wasm-bulk-memory true "$(cabal --project-file=cabal-wasm.project list-bin -v0 brassica-interop-wasm)" -o "./dist/brassica-interop-wasm.wasm"
    ```
    This will create a file `./gui/brassica-interop-wasm/dist/brassica-interop-wasm.wasm` containing the WASM binary.
 
