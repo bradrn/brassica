@@ -12,5 +12,5 @@ gui/build*
 stub/
 CMakeLists.txt.user
 stack.yaml.lock
-gui/brassica-web/static/*.js
-gui/brassica-web/static/examples/
+gui/brassica-web/dist/*.js
+gui/brassica-web/dist/examples/

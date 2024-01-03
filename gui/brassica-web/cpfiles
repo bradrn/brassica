@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+cp static/* dist/
+cp ../brassica-interop-wasm/dist/* dist/
+cp -r ../../examples dist/

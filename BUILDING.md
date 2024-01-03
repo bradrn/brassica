@@ -75,12 +75,9 @@ Then:
 
    (Note: it can also be convenient to set `CABAL_DIR` so that WASM packages are installed to a different location.)
 
-2. In `./gui/brassica-web`, run the following commands to copy the required files into `./gui/brassica-web/static`:
-   ```
-   npm install
-   npx webpack
-   cp ../brassica-interop-wasm/dist/brassica-interop-wasm.wasm static/
-   cp -r ../../examples/ static/
-   ```
-3. To test Brassica, you can now run a webserver in `./gui/brassica-web/static`,
-     for instance using `python -m http.server`.
+2. In `./gui/brassica-web`, run `mkdir dist; ./cpfiles` to copy the asset files into `dist`.
+3. Install JavaScript dependencies using `npm install`.
+
+   Now you can use [webpack](https://webpack.js.org/) to bundle the JavaScript files.
+   For instance, use `npx webpack serve` to run a development server,
+     or `npx webpack --mode=production` to prepare a release.
