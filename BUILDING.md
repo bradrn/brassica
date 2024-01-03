@@ -76,6 +76,7 @@ Then:
    (Note: it can also be convenient to set `CABAL_DIR` so that WASM packages are installed to a different location.)
 
 2. In `./gui/brassica-web`, run `mkdir dist; ./cpfiles` to copy the asset files into `dist`.
+   Note that you’ll need to redo this every time you update a static file (HTML or CSS or WASM)!
 3. Install JavaScript dependencies using `npm install`.
 
    Now you can use [webpack](https://webpack.js.org/) to bundle the JavaScript files.
