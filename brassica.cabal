@@ -43,8 +43,8 @@ library
   build-depends:
                    base >=4.7 && <5
                  , containers >=0.6 && <0.7
-                 , deepseq >=1.4 && <1.5
-                 , megaparsec >=8.0 && <9.3
+                 , deepseq >=1.4 && <1.6
+                 , megaparsec >=8.0 && <9.7
                  , mtl >=2.2 && <2.4
                  , parser-combinators >=1.2 && <1.3
                  , split >=0.2 && <0.3
@@ -63,12 +63,12 @@ executable brassica
                   , brassica
                   , aeson ^>=2.2
                   , attoparsec-aeson ^>=2.2
-                  , bytestring >=0.10 && <0.12
+                  , bytestring >=0.10 && <0.13
                   , conduit ^>=1.3
                   , conduit-extra ^>=1.3
-                  , deepseq >=1.4 && <1.5
+                  , deepseq >=1.4 && <1.6
                   , optparse-applicative ^>=0.17 || ^>=0.18
-                  , text >=1.2 && <2.1
+                  , text >=1.2 && <2.2
 
   default-language: Haskell2010
 
