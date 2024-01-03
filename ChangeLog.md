@@ -3,6 +3,7 @@
 ## Unreleased changes
 
 - Allow grapheme to begin with star
+- Documented abstract features in paradigm builder (previously present but undocumented)
 
 ## v0.1.1
 
