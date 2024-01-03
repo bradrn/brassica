@@ -843,8 +843,9 @@ Thus each affix is either:
 
 - A prefix in slot *n*, specified as `-n.prefix`;
 - A suffix in slot *n*, specified as `n.suffix`;
-- An empty affix, specified as `()`; or
-- A combination of other affixes, specified as `(affix1 affix2 ...)`.
+- An empty affix, specified as `()`;
+- A combination of other affixes, specified as `(affix1 affix2 ...)`; or
+- An *abstract feature*, specified simply as `featurename` (more on this below).
 
 Thus an example of a basic paradigm definition would be as follows:
 
@@ -933,3 +934,38 @@ A condition takes the form `when (<feature name> <operator> <affix>)`,
   where `<operator>` is either `is` or `not`.
 The output will contain the following feature only in words where the condition is satisfied;
   in all other words that feature will be absent.
+
+Earlier, brief reference was made to *abstract features*.
+These are similar to affixes, but are not associated with any one slot.
+Instead, one or more abstract features can be *mapped* to an affix,
+  by writing on a separate line:
+```
+feature1 feature2 … > affix
+```
+The `affix` will then be included in the result when all of the specified features are present.
+This allows for implementing fusional morphology, for instance the Latin first declension:
+```
+NOM VOC ACC GEN DAT ABL
+SG PL
+NOM SG > 1.a
+NOM PL > 1.ae
+VOC SG > 1.a
+VOC PL > 1.ae
+ACC SG > 1.am
+ACC PL > 1.ās
+GEN SG > 1.ae
+GEN PL > 1.ārum
+DAT SG > 1.ae
+DAT PL > 1.īs
+ABL SG > 1.ā
+ABL PL > 1.īs
+```
+When applied to, for instance, `puell`, this produces:
+```
+puella puellae
+puella puellae
+puellam puellās
+puellae puellārum
+puellae puellīs
+puellā puellīs
+```
