@@ -18,6 +18,7 @@ import Data.Aeson.Parser (json')
 import Data.Aeson.TH (deriveJSON, defaultOptions, defaultTaggedObject, constructorTagModifier, sumEncoding, tagFieldName)
 import Data.ByteString (toStrict)
 import Data.Conduit.Attoparsec (conduitParser)
+import Data.Foldable (toList)
 import GHC.Generics (Generic)
 import System.IO (hSetBuffering, stdin, stdout, BufferMode(NoBuffering))
 import System.Timeout
@@ -125,7 +126,7 @@ parseAndBuildParadigmWrapper :: Request -> Response
 parseAndBuildParadigmWrapper ReqParadigm{..} =
     case parseParadigm pText of
         Left e -> RespError $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
-        Right p -> RespParadigm $ escape $ unlines $ concatMap (applyParadigm p) $ lines input
+        Right p -> RespParadigm $ escape $ unlines $ concatMap (toList . applyParadigm p) $ lines input
 parseAndBuildParadigmWrapper _ = error "parseAndBuildParadigmWrapper: unexpected request!"
 
 escape :: String -> String

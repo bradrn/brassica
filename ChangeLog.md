@@ -9,6 +9,7 @@
 - Add `--version` command-line option
 - Store `MultiZipper` data in a `Vector` rather than a linked list (for performance)
 - Bugfix: subtraction now removes all subtracted graphemes
+- Store paradigm builder output in a tree data structure
 
 ## v0.1.1
 

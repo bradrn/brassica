@@ -1,16 +1,29 @@
-{-# LANGUAGE LambdaCase    #-}
+{-# LANGUAGE DeriveFoldable #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE LambdaCase #-}
 
-module Brassica.Paradigm.Apply (applyParadigm) where
+module Brassica.Paradigm.Apply
+       ( ResultsTree(..)
+       , applyParadigm
+       ) where
 
 import Brassica.Paradigm.Types
 
-import Data.List (sortOn)
+import Data.Functor ((<&>))
+import Data.List (sortOn, foldl')
 import Data.Maybe (mapMaybe)
 import Data.Ord (Down(Down))
 
+data ResultsTree a = Node [ResultsTree a] | Result a
+    deriving (Show, Functor, Foldable)
+
+addLevel :: (a -> [a]) -> ResultsTree a -> ResultsTree a
+addLevel f (Result r) = Node $ Result <$> f r
+addLevel f (Node rs) = Node $ addLevel f <$> rs
+
 -- | Apply the given 'Paradigm' to a root, to produce all possible
 -- derived forms.
-applyParadigm :: Paradigm -> String -> [String]
+applyParadigm :: Paradigm -> String -> ResultsTree String
 applyParadigm p w =
     let fs = mapMaybe getFeature p
         ms = mapMaybe getMapping p
@@ -21,18 +34,25 @@ applyParadigm p w =
 
     getMapping (NewMapping k v) = Just (k,v)
     getMapping _ = Nothing
-      
-combinations :: [Feature] -> [[Grammeme]]
-combinations = go []
+
+combinations :: [Feature] -> ResultsTree [Grammeme]
+combinations =
+    (fmap.fmap) snd . foldl' go (Result [])
   where
-    go :: [(Maybe FeatureName, Grammeme)] -> [Feature] -> [[Grammeme]]
-    go acc [] = return $ snd <$> reverse acc
-    go acc (Feature c n gs : fs) =
-        if satisfied (flip lookup acc . Just) c
-        then do
-            g <- gs
-            go ((n,g) : acc) fs
-        else go acc fs
+    addFeature
+        :: Feature
+        -> [(Maybe FeatureName, Grammeme)]
+        -> [[(Maybe FeatureName, Grammeme)]]
+    addFeature (Feature c n gs) acc
+        | satisfied (flip lookup acc . Just) c
+        = gs <&> \g -> (n, g):acc
+        | otherwise
+        = [acc]
+
+    go  :: ResultsTree [(Maybe FeatureName, Grammeme)]
+        -> Feature
+        -> ResultsTree [(Maybe FeatureName, Grammeme)]
+    go rt f = addLevel (addFeature f) rt
 
     satisfied
         :: (FeatureName -> Maybe Grammeme)
