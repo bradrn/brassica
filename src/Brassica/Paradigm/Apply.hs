@@ -5,12 +5,13 @@
 module Brassica.Paradigm.Apply
        ( ResultsTree(..)
        , applyParadigm
+       , formatNested
        ) where
 
 import Brassica.Paradigm.Types
 
 import Data.Functor ((<&>))
-import Data.List (sortOn, foldl')
+import Data.List (sortOn, foldl', intercalate)
 import Data.Maybe (mapMaybe)
 import Data.Ord (Down(Down))
 
@@ -20,6 +21,23 @@ data ResultsTree a = Node [ResultsTree a] | Result a
 addLevel :: (a -> [a]) -> ResultsTree a -> ResultsTree a
 addLevel f (Result r) = Node $ Result <$> f r
 addLevel f (Node rs) = Node $ addLevel f <$> rs
+
+-- | Formats a 'ResultsTree' in a nested way, where the lowest-level
+-- elements are separated by one space, the second-lowest are
+-- separated by one newline, the third-lowest by two newlines, and so
+-- on.
+formatNested :: (a -> String) -> ResultsTree a -> String
+formatNested f = snd . go
+  where
+    go (Result a) = (0, f a)
+    go (Node rts) =
+        let (depths, formatted) = unzip $ go <$> rts
+            depth = maximum depths
+            separator =
+                if depth == 0
+                then " "
+                else replicate depth '\n'
+        in (1+depth, intercalate separator formatted)
 
 -- | Apply the given 'Paradigm' to a root, to produce all possible
 -- derived forms.

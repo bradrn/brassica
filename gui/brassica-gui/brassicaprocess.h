@@ -41,7 +41,7 @@ public:
         HighlightMode hlMode,
         OutputMode outMode,
         QJsonValue *&prev, QString sep);
-    QString parseAndBuildParadigm(QString paradigm, QString roots);
+    QString parseAndBuildParadigm(QString paradigm, QString roots, bool separateLines);
 
 private:
     QProcess *proc;

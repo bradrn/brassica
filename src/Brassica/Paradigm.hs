@@ -1,6 +1,5 @@
 module Brassica.Paradigm
        (
-       -- * Types
          Process(..)
        , Affix
        , Grammeme(..)
@@ -10,10 +9,10 @@ module Brassica.Paradigm
        , FeatureName(..)
        , Statement(..)
        , Paradigm
-       -- * Application
+       , ResultsTree(..)
        , applyParadigm
-       -- * Parsing
        , parseParadigm
+       , formatNested
        -- ** Re-export
        , errorBundlePretty
        ) where

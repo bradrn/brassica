@@ -65,12 +65,13 @@ QString BrassicaProcess::parseTokeniseAndApplyRules(
     }
 }
 
-QString BrassicaProcess::parseAndBuildParadigm(QString paradigm, QString roots)
+QString BrassicaProcess::parseAndBuildParadigm(QString paradigm, QString roots, bool separateLines)
 {
     QJsonObject req = QJsonObject();
     req.insert("method", "Paradigm");
     req.insert("pText", paradigm);
     req.insert("input", roots);
+    req.insert("separateLines", separateLines);
 
     QJsonObject obj = request(QJsonDocument(req)).object();
     QString method = obj.value("method").toString();

@@ -6,6 +6,7 @@
 class BrassicaProcess;
 class QPlainTextEdit;
 class QTextEdit;
+class QCheckBox;
 
 class ParadigmWindow : public QMainWindow
 {
@@ -25,6 +26,7 @@ private:
     QPlainTextEdit *paradigmEdit;
     QPlainTextEdit *rootsEdit;
     QTextEdit *outputEdit;
+    QCheckBox *separateLinesBox;
 
     BrassicaProcess *proc;
 };

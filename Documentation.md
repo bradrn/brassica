@@ -858,87 +858,42 @@ Thus an example of a basic paradigm definition would be as follows:
 The output will then iterate through all combinations of these affixes.
 For instance, applying the paradigm above to the root `kood` gives:
 
-<details>
-<summary>
-(Click to show output)
-</summary>
-<pre>
-<code>
-zhaazhkoodwim
-zhaawkoodwim
-zhaaykoodwim
-woozhkoodwim
-woowkoodwim
-wooykoodwim
-yaazhkoodwim
-yaawkoodwim
-yaaykoodwim
-zhaazhkood
-zhaawkood
-zhaaykood
-woozhkood
-woowkood
-wooykood
-yaazhkood
-yaawkood
-yaaykood
-zhaazhkoodsoo
-zhaawkoodsoo
-zhaaykoodsoo
-woozhkoodsoo
-woowkoodsoo
-wooykoodsoo
-yaazhkoodsoo
-yaawkoodsoo
-yaaykoodsoo
-zhaazhkoodaa
-zhaawkoodaa
-zhaaykoodaa
-woozhkoodaa
-woowkoodaa
-wooykoodaa
-yaazhkoodaa
-yaawkoodaa
-yaaykoodaa
-zhaazhkoodwimen
-zhaawkoodwimen
-zhaaykoodwimen
-woozhkoodwimen
-woowkoodwimen
-wooykoodwimen
-yaazhkoodwimen
-yaawkoodwimen
-yaaykoodwimen
-zhaazhkooden
-zhaawkooden
-zhaaykooden
-woozhkooden
-woowkooden
-wooykooden
-yaazhkooden
-yaawkooden
-yaaykooden
-zhaazhkoodsooen
-zhaawkoodsooen
-zhaaykoodsooen
-woozhkoodsooen
-woowkoodsooen
-wooykoodsooen
-yaazhkoodsooen
-yaawkoodsooen
-yaaykoodsooen
-zhaazhkoodaaen
-zhaawkoodaaen
-zhaaykoodaaen
-woozhkoodaaen
-woowkoodaaen
-wooykoodaaen
-yaazhkoodaaen
-yaawkoodaaen
-yaaykoodaaen
-</code>
-</pre>
-</details>
+```
+zhaazhkoodwim zhaawkoodwim zhaaykoodwim
+woozhkoodwim woowkoodwim wooykoodwim
+yaazhkoodwim yaawkoodwim yaaykoodwim
+
+zhaazhkood zhaawkood zhaaykood
+woozhkood woowkood wooykood
+yaazhkood yaawkood yaaykood
+
+zhaazhkoodsoo zhaawkoodsoo zhaaykoodsoo
+woozhkoodsoo woowkoodsoo wooykoodsoo
+yaazhkoodsoo yaawkoodsoo yaaykoodsoo
+
+zhaazhkoodaa zhaawkoodaa zhaaykoodaa
+woozhkoodaa woowkoodaa wooykoodaa
+yaazhkoodaa yaawkoodaa yaaykoodaa
+
+
+zhaazhkoodwimen zhaawkoodwimen zhaaykoodwimen
+woozhkoodwimen woowkoodwimen wooykoodwimen
+yaazhkoodwimen yaawkoodwimen yaaykoodwimen
+
+zhaazhkooden zhaawkooden zhaaykooden
+woozhkooden woowkooden wooykooden
+yaazhkooden yaawkooden yaaykooden
+
+zhaazhkoodsooen zhaawkoodsooen zhaaykoodsooen
+woozhkoodsooen woowkoodsooen wooykoodsooen
+yaazhkoodsooen yaawkoodsooen yaaykoodsooen
+
+zhaazhkoodaaen zhaawkoodaaen zhaaykoodaaen
+woozhkoodaaen woowkoodaaen wooykoodaaen
+yaazhkoodaaen yaawkoodaaen yaaykoodaaen
+```
+
+(You can also tick the option ‘Each word on its own line’, if you dislike placing multiple words on a single line.)
 
 Note that in the paradigm described above, all affixes on each line are assigned to the same slot.
 This is common in paradigms, so the paradigm builder has a shortcut syntax for this situation,

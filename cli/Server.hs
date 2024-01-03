@@ -25,7 +25,7 @@ import System.Timeout
 
 import Brassica.SoundChange
 import Brassica.SoundChange.Frontend.Internal
-import Brassica.Paradigm (applyParadigm, parseParadigm)
+import Brassica.Paradigm (applyParadigm, parseParadigm, formatNested, ResultsTree (..))
 
 data Request
     = ReqRules
@@ -41,6 +41,7 @@ data Request
     | ReqParadigm
         { pText :: String
         , input :: String
+        , separateLines :: Bool
         }
     deriving (Show)
 
@@ -126,7 +127,11 @@ parseAndBuildParadigmWrapper :: Request -> Response
 parseAndBuildParadigmWrapper ReqParadigm{..} =
     case parseParadigm pText of
         Left e -> RespError $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
-        Right p -> RespParadigm $ escape $ unlines $ concatMap (toList . applyParadigm p) $ lines input
+        Right p -> RespParadigm $ escape $
+            (if separateLines
+                then unlines . toList
+                else formatNested id)
+            $ Node $ applyParadigm p <$> lines input
 parseAndBuildParadigmWrapper _ = error "parseAndBuildParadigmWrapper: unexpected request!"
 
 escape :: String -> String
