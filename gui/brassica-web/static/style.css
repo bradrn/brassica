@@ -1,0 +1,151 @@
+@font-face {
+    font-family: 'Source Sans';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url(/fonts/SourceSans3-Regular.otf.woff2) format('woff2');
+}
+@font-face {
+    font-family: 'Source Sans';
+    font-style: italic;
+    font-weight: 400;
+    font-display: swap;
+    src: url(/fonts/SourceSans3-It.otf.woff2) format('woff2');
+}
+@font-face {
+    font-family: 'Source Sans';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url(/fonts/SourceSans3-Bold.otf.woff2) format('woff2');
+}
+
+html {
+    font-family: "Source Sans", sans-serif;
+}
+body {
+    margin: 0px;
+    padding: 10px;
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 10px;
+    height: 100vh;
+    box-sizing: border-box;
+}
+h1 {
+    padding: 0px;
+    margin: 0px;
+}
+details {
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    padding: 0.5em 0.5em 0;
+    max-width: 90vw;
+}
+summary {
+    font-weight: bold;
+    margin: -0.5em -0.5em 0;
+    padding: 0.5em;
+}
+details[open] {
+    padding: 0.5em;
+}
+details[open] summary {
+    border-bottom: 1px solid #aaa;
+    margin-bottom: 0.5em;
+}
+details p:first-of-type {
+    margin-top: 0px;
+}
+details p:last-of-type {
+    margin-bottom: 0px;
+}
+form {
+    flex: 1 1 auto;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: stretch;
+    background-color: #f3f3f3;
+    padding: 1rem;
+    min-height: 10%;
+}
+.box-container {
+    flex-flow: column nowrap;
+    display: flex;
+    justify-content: start;
+    align-items: flex-start;
+    border: #bdcbe1 1px solid;
+}
+.header {
+    background-color: #e1e7f1;
+    border-bottom: #bdcbe1 1px solid;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.2rem;
+}
+.header label {
+    font-weight: bold;
+}
+.header .file-buttons {
+    margin-left: 1rem;
+}
+.hidden-file-input {
+    display: none;
+}
+.input-box {
+    flex: 1 1 auto;
+    width: 100%;
+}
+.input-box:not(.lib-config) {
+    font: inherit;
+    font-size: 90%;
+}
+div.input-box:not(.lib-config) {
+    overflow: scroll;
+    background-color: #fff;
+}
+textarea.input-box:not(.lib-config) {
+    box-sizing: border-box;
+    border: none;
+    resize: none;
+}
+#controls {
+    padding: 0 5px;
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 5px;
+    min-width: 13em;
+}
+#controls input[type="submit"] {
+    font: inherit;
+    font-weight: bold;
+}
+#examples-div {
+    padding-top: 2rem;
+}
+
+.ace-tm .ace_separator {
+    font-weight: bold;
+}
+.ace-tm .ace_category,
+.regex_category {
+    background-color: rgb(245,245,220);
+}
+.regex_category {
+    position: absolute;
+    z-index: 20;
+}
+
+.split {
+    display: flex;
+    flex-direction: row;
+}
+.gutter {
+    background-color: #f3f3f3;
+    background-repeat: no-repeat;
+    background-position: 50%;
+}
+.gutter.gutter-horizontal {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+    cursor: col-resize;
+}

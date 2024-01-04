@@ -6,12 +6,14 @@ module BrassicaInterop where
 
 import Control.Monad ((<=<))
 import Data.IORef
+import Data.Foldable (toList)
 import qualified Foreign
 import Foreign.C hiding (newCString, peekCString) -- hide these so we don't accidentally use them
 import Foreign.StablePtr
 import qualified GHC.Foreign as GHC
 import GHC.IO.Encoding (utf8)
 
+import Brassica.Paradigm
 import Brassica.SoundChange
 import Brassica.SoundChange.Frontend.Internal
 
@@ -35,6 +37,8 @@ parseTokeniseAndApplyRules_hs
     -> Int         -- ^ length of changes
     -> CString     -- ^ words
     -> Int         -- ^ length of words
+    -> CString     -- ^ separator
+    -> Int         -- ^ length of separator
     -> CBool       -- ^ report rules applied?
     -> CInt        -- ^ input format
     -> CInt        -- ^ highlighting mode
@@ -46,6 +50,8 @@ parseTokeniseAndApplyRules_hs
   changesRawLen
   wsRaw
   wsRawLen
+  sepRaw
+  sepRawLen
   (CBool report)
   infmtC
   hlModeC
@@ -54,6 +60,7 @@ parseTokeniseAndApplyRules_hs
   = do
     changesText <- GHC.peekCStringLen utf8 (changesRaw, changesRawLen)
     wsText      <- GHC.peekCStringLen utf8 (wsRaw, wsRawLen)
+    sepText     <- GHC.peekCStringLen utf8 (sepRaw, sepRawLen)
 
     prevRef <- deRefStablePtr prevPtr
     prev <- readIORef prevRef
@@ -64,7 +71,7 @@ parseTokeniseAndApplyRules_hs
         mode =
             if report == 1
             then ReportRulesApplied
-            else ApplyRules hlMode outMode
+            else ApplyRules hlMode outMode sepText
 
     case parseSoundChanges changesText of
         Left e -> newStableCStringLen $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
@@ -78,6 +85,11 @@ parseTokeniseAndApplyRules_hs
                     writeIORef prevRef Nothing
                     newStableCStringLen $ surroundTable $
                         concatMap (reportAsHtmlRows plaintext') items
+                ExpandError err -> do
+                    newStableCStringLen $ ("<pre>"++) $ (++"</pre>") $ case err of
+                        (NotFound s) -> "Could not find category: " ++ s
+                        InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
+                        MismatchedLengths -> "Mismatched lengths in feature definition"
   where
     highlightWord (s, False) = concatWithBoundary s
     highlightWord (s, True) = "<b>" ++ concatWithBoundary s ++ "</b>"
@@ -94,8 +106,35 @@ escape = concatMap $ \case
     -- '\t' -> "&#9;"  -- this doesn't seem to do anything - keeping it here in case I eventually figure out how to do tabs in Qt
     c    -> pure c
 
+parseAndBuildParadigm_hs
+    :: CString  -- ^ paradigm text
+    -> Int      -- ^ length of paradigm text
+    -> CString  -- ^ input words
+    -> Int      -- ^ length of input words
+    -> CBool    -- ^ separate lines? / non-compact?
+    -> IO (StablePtr CStringLen)
+parseAndBuildParadigm_hs
+  paradigmRaw
+  paradigmRawLen
+  inputRaw
+  inputRawLen
+  (CBool separateLines)
+  = do
+    paradigmText <- GHC.peekCStringLen utf8 (paradigmRaw, paradigmRawLen)
+    inputText <- GHC.peekCStringLen utf8 (inputRaw, inputRawLen)
+
+    newStableCStringLen $ case parseParadigm paradigmText of
+        Left e -> "<pre>" ++ errorBundlePretty e ++ "</pre>"
+        Right p -> escape $
+            (if separateLines == 1
+                then unlines . toList
+                else formatNested id)
+            $ Node $ applyParadigm p <$> lines inputText
+
 foreign export ccall parseTokeniseAndApplyRules_hs
     :: CString
+    -> Int
+    -> CString
     -> Int
     -> CString
     -> Int
@@ -104,6 +143,14 @@ foreign export ccall parseTokeniseAndApplyRules_hs
     -> CInt
     -> CInt
     -> StablePtr (IORef (Maybe [Component PWord]))
+    -> IO (StablePtr CStringLen)
+
+foreign export ccall parseAndBuildParadigm_hs
+    :: CString
+    -> Int
+    -> CString
+    -> Int
+    -> CBool
     -> IO (StablePtr CStringLen)
 
 foreign export ccall initResults :: IO (StablePtr (IORef (Maybe [Component PWord])))

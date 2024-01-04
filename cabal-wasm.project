@@ -1,0 +1,4 @@
+packages:      ./brassica.cabal
+               ./gui/brassica-interop-wasm/brassica-interop-wasm.cabal
+with-compiler: wasm32-wasi-ghc
+with-hc-pkg:   wasm32-wasi-ghc-pkg

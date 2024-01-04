@@ -154,8 +154,8 @@ detokeniseWords = detokeniseWords' concatWithBoundary
 
 -- | Given a list of sound changes, extract the list of multigraphs
 -- defined in the first categories declaration of the 'SoundChange's.
-findFirstCategoriesDecl :: SoundChanges -> [String]
-findFirstCategoriesDecl (CategoriesDeclS (CategoriesDecl gs):_) =
+findFirstCategoriesDecl :: SoundChanges c [Grapheme] -> [String]
+findFirstCategoriesDecl (DirectiveS gs:_) =
     mapMaybe
         (\case GBoundary -> Nothing; GMulti m -> Just m)
         gs
@@ -166,5 +166,5 @@ findFirstCategoriesDecl [] = []
 -- like @'withFirstCategoriesDecl' 'tokeniseWords' changes words@ (to
 -- tokenise using the graphemes from the first categories declaration)
 -- and so on.
-withFirstCategoriesDecl :: ([String] -> t) -> SoundChanges -> t
+withFirstCategoriesDecl :: ([String] -> t) -> SoundChanges c [Grapheme] -> t
 withFirstCategoriesDecl tok ss = tok (findFirstCategoriesDecl ss)

@@ -150,6 +150,13 @@ Thus, to delete ⟨ʔ⟩ before a stop or the end of a word, the following rule 
 ʔ / / _ [p t k b d g #]
 ```
 
+Sometimes you might want to match a sequence of zero or more graphemes.
+Do this in a category by surrounding them with curly brackets `{`/`}`, as in:
+```
+[eː oː] / [{j ə} {w ə}]
+[{ŋ g} ŋ] → [ŋ {}] / _#
+```
+
 You can also use multiple categories in the replacement.
 In this case each is matched up one-to-one with a category in the target:
   the first in the replacement with the first in the target,
@@ -580,7 +587,7 @@ For instance, the following rule will cause a nasal to assimilate in place of ar
            ╚══════════════════════╝
 ```
 
-Backreferences can also be used in the target, in which case they match repeated or corresponding graphemes.
+Backreferences can also be used in the target or environment, in which case they match repeated or corresponding graphemes.
 For instance, consider a rule deleting ⟨ə⟩ between identical consonants.
 This may be written:
 ```
@@ -815,7 +822,7 @@ Further modifications can then be made to the output while keeping the etymologi
 
 Brassica includes an inbuilt paradigm builder.
 It may be accessed using the ‘Tools⇒Paradigm Builder’ menu item in the graphical interface,
-  or by visiting <https://bradrn.com/brassica/builder/>.
+  or by visiting <https://bradrn.com/brassica/builder.html>.
 
 The paradigm builder consists of three textboxes and a button.
 The leftmost textbox contains a description of the paradigm using the syntax described below.
@@ -852,87 +859,42 @@ Thus an example of a basic paradigm definition would be as follows:
 The output will then iterate through all combinations of these affixes.
 For instance, applying the paradigm above to the root `kood` gives:
 
-<details>
-<summary>
-(Click to show output)
-</summary>
-<pre>
-<code>
-zhaazhkoodwim
-zhaawkoodwim
-zhaaykoodwim
-woozhkoodwim
-woowkoodwim
-wooykoodwim
-yaazhkoodwim
-yaawkoodwim
-yaaykoodwim
-zhaazhkood
-zhaawkood
-zhaaykood
-woozhkood
-woowkood
-wooykood
-yaazhkood
-yaawkood
-yaaykood
-zhaazhkoodsoo
-zhaawkoodsoo
-zhaaykoodsoo
-woozhkoodsoo
-woowkoodsoo
-wooykoodsoo
-yaazhkoodsoo
-yaawkoodsoo
-yaaykoodsoo
-zhaazhkoodaa
-zhaawkoodaa
-zhaaykoodaa
-woozhkoodaa
-woowkoodaa
-wooykoodaa
-yaazhkoodaa
-yaawkoodaa
-yaaykoodaa
-zhaazhkoodwimen
-zhaawkoodwimen
-zhaaykoodwimen
-woozhkoodwimen
-woowkoodwimen
-wooykoodwimen
-yaazhkoodwimen
-yaawkoodwimen
-yaaykoodwimen
-zhaazhkooden
-zhaawkooden
-zhaaykooden
-woozhkooden
-woowkooden
-wooykooden
-yaazhkooden
-yaawkooden
-yaaykooden
-zhaazhkoodsooen
-zhaawkoodsooen
-zhaaykoodsooen
-woozhkoodsooen
-woowkoodsooen
-wooykoodsooen
-yaazhkoodsooen
-yaawkoodsooen
-yaaykoodsooen
-zhaazhkoodaaen
-zhaawkoodaaen
-zhaaykoodaaen
-woozhkoodaaen
-woowkoodaaen
-wooykoodaaen
-yaazhkoodaaen
-yaawkoodaaen
-yaaykoodaaen
-</code>
-</pre>
-</details>
+```
+zhaazhkoodwim zhaawkoodwim zhaaykoodwim
+woozhkoodwim woowkoodwim wooykoodwim
+yaazhkoodwim yaawkoodwim yaaykoodwim
+
+zhaazhkood zhaawkood zhaaykood
+woozhkood woowkood wooykood
+yaazhkood yaawkood yaaykood
+
+zhaazhkoodsoo zhaawkoodsoo zhaaykoodsoo
+woozhkoodsoo woowkoodsoo wooykoodsoo
+yaazhkoodsoo yaawkoodsoo yaaykoodsoo
+
+zhaazhkoodaa zhaawkoodaa zhaaykoodaa
+woozhkoodaa woowkoodaa wooykoodaa
+yaazhkoodaa yaawkoodaa yaaykoodaa
+
+
+zhaazhkoodwimen zhaawkoodwimen zhaaykoodwimen
+woozhkoodwimen woowkoodwimen wooykoodwimen
+yaazhkoodwimen yaawkoodwimen yaaykoodwimen
+
+zhaazhkooden zhaawkooden zhaaykooden
+woozhkooden woowkooden wooykooden
+yaazhkooden yaawkooden yaaykooden
+
+zhaazhkoodsooen zhaawkoodsooen zhaaykoodsooen
+woozhkoodsooen woowkoodsooen wooykoodsooen
+yaazhkoodsooen yaawkoodsooen yaaykoodsooen
+
+zhaazhkoodaaen zhaawkoodaaen zhaaykoodaaen
+woozhkoodaaen woowkoodaaen wooykoodaaen
+yaazhkoodaaen yaawkoodaaen yaaykoodaaen
+```
+
+(You can also tick the option ‘Each word on its own line’, if you dislike placing multiple words on a single line.)
 
 Note that in the paradigm described above, all affixes on each line are assigned to the same slot.
 This is common in paradigms, so the paradigm builder has a shortcut syntax for this situation,

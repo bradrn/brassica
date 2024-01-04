@@ -33,7 +33,7 @@ main = execParser opts >>= \case
                     .| outC
 
   where
-    opts = info (args <**> helper) fullDesc
+    opts = info (args <**> helper <**> simpleVersioner "v0.2.0") fullDesc
 
     args = batchArgs <|> serverArgs
     serverArgs = flag' Server (long "server" <> help "Run server (for internal use only)")
@@ -42,20 +42,22 @@ main = execParser opts >>= \case
             (metavar "RULES" <> help "File containing sound changes")
         <*> flag Raw MDF
             (long "mdf" <> help "Parse input words in MDF format")
-        <*> asum
-            [ flag' ReportRulesApplied
-                (long "report" <> help "Report rules applied rather than outputting words")
-            , flag' (ApplyRules NoHighlight MDFOutput)
-                (long "mdf-out" <> help "With --mdf, output MDF dictionary")
-            , flag' (ApplyRules NoHighlight MDFOutputWithEtymons)
-                (long "etymons" <> help "With --mdf, output MDF dictionary with etymologies")
-            , flag' (ApplyRules NoHighlight WordsWithProtoOutput)
-                (long "show-input" <> help "Output an input→output wordlist")
-            , flag
-                (ApplyRules NoHighlight WordsOnlyOutput)
-                (ApplyRules NoHighlight WordsOnlyOutput)
-                (long "wordlist" <> help "Output only a list of the derived words (default)")
-            ]
+        <*> (asum
+                [ flag' (const ReportRulesApplied)
+                    (long "report" <> help "Report rules applied rather than outputting words")
+                , flag' (ApplyRules NoHighlight MDFOutput)
+                    (long "mdf-out" <> help "With --mdf, output MDF dictionary")
+                , flag' (ApplyRules NoHighlight MDFOutputWithEtymons)
+                    (long "etymons" <> help "With --mdf, output MDF dictionary with etymologies")
+                , flag' (ApplyRules NoHighlight WordsWithProtoOutput)
+                    (long "show-input" <> help "Output an input→output wordlist")
+                , flag
+                    (ApplyRules NoHighlight WordsOnlyOutput)
+                    (ApplyRules NoHighlight WordsOnlyOutput)
+                    (long "wordlist" <> help "Output only a list of the derived words (default)")
+                ]
+            <*> strOption
+                (long "separator" <> short 's' <> value "/" <> help "Separator between multiple results (default: /)"))
         <*> optional (strOption
             (long "in" <> short 'i' <> help "File containing input words (if not specified will read from stdin)"))
         <*> optional (strOption
@@ -83,7 +85,7 @@ data Options = Options
 processWords
     :: (MonadIO m, MonadThrow m)
     => Bool  -- split into lines?
-    -> SoundChanges
+    -> SoundChanges CategorySpec Directive
     -> InputLexiconFormat
     -> ApplicationMode
     -> ConduitT B.ByteString B.ByteString m ()
@@ -101,10 +103,14 @@ processWords incr rules wordsFormat outMode =
         Left e -> throwM e
         Right r -> yield r
 
-    processApplicationOutput :: ApplicationOutput PWord Statement -> Either ParseException Text
+    processApplicationOutput :: ApplicationOutput PWord (Statement Expanded [Grapheme]) -> Either ParseException Text
     processApplicationOutput (HighlightedWords cs) = Right $ pack $ detokeniseWords $ (fmap.fmap) fst cs
     processApplicationOutput (AppliedRulesTable is) = Right $ pack $ unlines $ reportAsText plaintext' <$> is
     processApplicationOutput (ParseError e) = Left $ ParseException $ errorBundlePretty e
+    processApplicationOutput (ExpandError e) = Left $ ParseException $ case e of
+        (NotFound s) -> "Could not find category: " ++ s
+        InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
+        MismatchedLengths -> "Mismatched lengths in feature definition"
 
 newtype ParseException = ParseException String
     deriving Show

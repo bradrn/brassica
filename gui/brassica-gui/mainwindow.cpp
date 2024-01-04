@@ -147,6 +147,21 @@ void MainWindow::setupWidgets(QWidget *central)
     synchroniseScrolls->setChecked(true);
     midLayout->addWidget(synchroniseScrolls);
 
+    QHBoxLayout *multiResultLayout = new QHBoxLayout();
+    multiResultLayout->setAlignment(Qt::AlignLeft);
+    midLayout->addLayout(multiResultLayout);
+
+    QLabel *multiResultLabel = new QLabel("Multiple result separator:");
+    multiResultLayout->addWidget(multiResultLabel);
+
+    multiResultSep = new QLineEdit("/");
+    multiResultSep->setMaximumSize(
+        100,
+        multiResultSep->maximumSize().height());
+    multiResultLayout->addWidget(multiResultSep);
+
+    multiResultLayout->addStretch();
+
     QLabel *outputLbl = new QLabel("Output lexicon:");
     outputEdit = new QTextEdit;
     outputEdit->setReadOnly(true);
@@ -236,7 +251,8 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
         infmt,
         checkedHl,
         outMode,
-        prev);
+        prev,
+        multiResultSep->text());
 
     blockScrollTrackingEvent = true;
     outputEdit->setHtml(output);

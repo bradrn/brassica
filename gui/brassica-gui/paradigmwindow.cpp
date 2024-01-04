@@ -8,6 +8,7 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QFileDialog>
+#include <QCheckBox>
 
 ParadigmWindow::ParadigmWindow(BrassicaProcess *proc, QWidget *parent)
     : QMainWindow(parent)
@@ -47,6 +48,9 @@ ParadigmWindow::ParadigmWindow(BrassicaProcess *proc, QWidget *parent)
     outputEdit->setReadOnly(true);
     outputLayout->addWidget(outputEdit);
 
+    separateLinesBox = new QCheckBox("Each word on its own line");
+    outputLayout->addWidget(separateLinesBox);
+
     QPushButton *buildBtn = new QPushButton("Build");
     outputLayout->addWidget(buildBtn);
 
@@ -68,7 +72,8 @@ void ParadigmWindow::rebuildResult()
     QString paradigm = paradigmEdit->toPlainText();
     QString roots = rootsEdit->toPlainText();
 
-    QString output = proc->parseAndBuildParadigm(paradigm, roots);
+    QString output = proc->parseAndBuildParadigm(
+        paradigm, roots, separateLinesBox->isChecked());
 
     outputEdit->setHtml(output);
 }

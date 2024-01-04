@@ -18,13 +18,14 @@ import Data.Aeson.Parser (json')
 import Data.Aeson.TH (deriveJSON, defaultOptions, defaultTaggedObject, constructorTagModifier, sumEncoding, tagFieldName)
 import Data.ByteString (toStrict)
 import Data.Conduit.Attoparsec (conduitParser)
+import Data.Foldable (toList)
 import GHC.Generics (Generic)
 import System.IO (hSetBuffering, stdin, stdout, BufferMode(NoBuffering))
 import System.Timeout
 
 import Brassica.SoundChange
 import Brassica.SoundChange.Frontend.Internal
-import Brassica.Paradigm (applyParadigm, parseParadigm)
+import Brassica.Paradigm (applyParadigm, parseParadigm, formatNested, ResultsTree (..))
 
 data Request
     = ReqRules
@@ -35,10 +36,12 @@ data Request
         , hlMode :: HighlightMode
         , outMode :: OutputMode
         , prev :: Maybe [Component PWord]
+        , sep :: String
         }
     | ReqParadigm
         { pText :: String
         , input :: String
+        , separateLines :: Bool
         }
     deriving (Show)
 
@@ -95,7 +98,7 @@ parseTokeniseAndApplyRulesWrapper ReqRules{..} =
     let mode =
             if report
             then ReportRulesApplied
-            else ApplyRules hlMode outMode
+            else ApplyRules hlMode outMode sep
     in case parseSoundChanges changes of
         Left e -> RespError $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
         Right statements ->
@@ -108,6 +111,10 @@ parseTokeniseAndApplyRulesWrapper ReqRules{..} =
                     (escape $ detokeniseWords' highlightWord result)
                 AppliedRulesTable items -> RespRules Nothing $
                     surroundTable $ concatMap (reportAsHtmlRows plaintext') items
+                ExpandError err -> RespError $ ("<pre>"++) $ (++"</pre>") $ case err of
+                    (NotFound s) -> "Could not find category: " ++ s
+                    InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
+                    MismatchedLengths -> "Mismatched lengths in feature definition"
   where
     highlightWord (s, False) = concatWithBoundary s
     highlightWord (s, True) = "<b>" ++ concatWithBoundary s ++ "</b>"
@@ -120,7 +127,11 @@ parseAndBuildParadigmWrapper :: Request -> Response
 parseAndBuildParadigmWrapper ReqParadigm{..} =
     case parseParadigm pText of
         Left e -> RespError $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
-        Right p -> RespParadigm $ escape $ unlines $ concatMap (applyParadigm p) $ lines input
+        Right p -> RespParadigm $ escape $
+            (if separateLines
+                then unlines . toList
+                else formatNested id)
+            $ Node $ applyParadigm p <$> lines input
 parseAndBuildParadigmWrapper _ = error "parseAndBuildParadigmWrapper: unexpected request!"
 
 escape :: String -> String

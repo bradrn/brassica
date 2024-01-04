@@ -1,8 +1,16 @@
 # Brassica changelog
 
-## Unreleased changes
+## v0.2.0
 
 - Allow grapheme to begin with star
+- Allow lexeme sequences in categories using `{…}` syntax
+- Allow backreferences to occur in the environment
+- Allow user to choose separator used between multiple results (previously a space)
+- Internal refactor: category expansion is now separate from parsing
+- Add `--version` command-line option
+- Store `MultiZipper` data in a `Vector` rather than a linked list (for performance)
+- Bugfix: subtraction now removes all subtracted graphemes
+- Store paradigm builder output in a tree data structure, allowing a more compact output format
 - Documented abstract features in paradigm builder (previously present but undocumented)
 
 ## v0.1.1

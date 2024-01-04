@@ -1,13 +1,15 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Main where
 
-import Criterion.Main (defaultMain, bench, nf, bgroup)
+import Criterion.Main (defaultMain, bench, nf, bgroup, Benchmark)
 import Data.FileEmbed (embedFile)
 import Data.Text (unpack)
 import Data.Text.Encoding (decodeUtf8)
 
 import Brassica.SoundChange
+import Brassica.SoundChange.Frontend.Internal
 
 main :: IO ()
 main = defaultMain
@@ -33,16 +35,19 @@ main = defaultMain
       [ bench "parse" $ nf parseSoundChanges manyChanges
       , bench "parseRun" $ case parseSoundChanges manyChanges of
             Left _ -> error "invalid changes file"
-            Right cs -> case withFirstCategoriesDecl tokeniseWords cs manyWords of
-                Left _ -> error "invalid words file"
-                Right ws -> nf (fmap $ applyChanges cs) $ getWords ws
+            Right cs -> nf (parseTokeniseAndApplyRules
+                    cs
+                    manyWords
+                    Raw
+                    (ApplyRules NoHighlight WordsOnlyOutput "/"))
+                    Nothing
       ]
     ]
   where
     basic = Rule
         { target = [Grapheme "a"]
         , replacement = [Grapheme "b"]
-        , environment = ([], [])
+        , environment = [([], [])]
         , exception = Nothing
         , flags = defFlags
         , plaintext = "a/b"
@@ -50,23 +55,24 @@ main = defaultMain
 
     complex = Rule
         { target =
-            [ Category [GraphemeEl "t", GraphemeEl "d", GraphemeEl "n"]
+            [ Category $ FromElements $ Left <$> ["t", "d", "n"]
             , Optional [Grapheme "y"]
-            , Category [GraphemeEl "i", GraphemeEl "e"]
+            , Category $ FromElements $ Left <$> ["i", "e"]
             ]
         , replacement =
-            [ Category [GraphemeEl "c", GraphemeEl "j", GraphemeEl "nh"]
+            [ Category $ FromElements $ Left <$> ["c", "j", "nh"]
             , Optional [Geminate]
             ]
-        , environment =
-            ( [Category [BoundaryEl, GraphemeEl "a", GraphemeEl "e", GraphemeEl "i"]]
-            , [Category [GraphemeEl "a", GraphemeEl "e", GraphemeEl "i", GraphemeEl "o", GraphemeEl "u"]]
+        , environment = pure
+            ( [Category $ FromElements $ Left <$> [GBoundary, "a", "e", "i"]]
+            , [Category $ FromElements $ Left <$> ["a", "e", "i", "o", "u"]]
             )
         , exception = Nothing
         , flags = defFlags
         , plaintext = "[t d n] (y) [i e] / [č j ñ] (>) / [# a e i] _ [a e i o u]"
         }
 
+    benchChanges :: Rule Expanded -> PWord -> [Benchmark]
     benchChanges cs l =
         -- [ bench "log" $ nf (applyStatementWithLogs (RuleS cs)) l
         -- given the implementation of logging, the above benchmark doesn't help very much at all

@@ -1,52 +1,19 @@
 import ace from "ace-builds";
-import { WASI } from "@bjorn3/browser_wasi_shim";
 import Split from "split.js";
+
+import {hs, withBytesPtr, decodeStableCStringLen, encoder, decoder} from "./interop.js";
 
 
 /***********************
  * Haskell interop     *
  ***********************/
 
-const wasi = new WASI([], [], []);
-const wasm = await WebAssembly.instantiateStreaming(
-    fetch("brassica-interop-wasm.wasm"),
-    {"wasi_snapshot_preview1": wasi.wasiImport}
-);
-wasi.inst = wasm.instance;
-const hs = wasm.instance.exports;
-
-// adapted from https://github.com/fourmolu/fourmolu/blob/main/web/worker/index.js
-function withBytesPtr(bytes, callback) {
-    const len = bytes.byteLength;
-    const ptr = hs.malloc(len);
-    try {
-        new Uint8Array(hs.memory.buffer, ptr, len).set(bytes);
-        callback(ptr, len);
-    } finally {
-        hs.free(ptr);
-    }
-};
-
-function decodeStableCStringLen(stableCStringLen) {
-    try {
-        const cstringptr = hs.getString(stableCStringLen);
-        const cstringlen = hs.getStringLen(stableCStringLen);
-        const outputBytes = new Uint8Array(hs.memory.buffer, cstringptr, cstringlen);
-        var output = decoder.decode(outputBytes);
-    } finally {
-        hs.freeStableCStringLen(stableCStringLen);
-    }
-    return output;
-};
-
-const encoder = new TextEncoder();
-const decoder = new TextDecoder();
-
 const results = hs.initResults();  // NB: not const on Haskell side!
 
-function applyChanges(changes, words, reportRules, highlightMode, outputMode) {
+function applyChanges(changes, words, sep, reportRules, highlightMode, outputMode) {
     const inputChanges = encoder.encode(changes);
     const inputWords = encoder.encode(words);
+    const sepEncoded = encoder.encode(sep);
 
     const reportRulesC = reportRules ? 1 : 0;
 
@@ -64,15 +31,18 @@ function applyChanges(changes, words, reportRules, highlightMode, outputMode) {
     var output = "";
     withBytesPtr(inputChanges, (inputChangesPtr, inputChangesLen) => {
         withBytesPtr(inputWords, (inputWordsPtr, inputWordsLen) => {
-            try {
-                const outputStableCStringLen = hs.parseTokeniseAndApplyRules_hs(
-                    inputChangesPtr, inputChangesLen,
-                    inputWordsPtr, inputWordsLen,
-                    reportRules, 0, hlModeC, outModeC, results);
-                output = decodeStableCStringLen(outputStableCStringLen);
-            } catch (err) {
-                output = err;
-            }
+            withBytesPtr(sepEncoded, (sepPtr, sepLen) => {
+                try {
+                    const outputStableCStringLen = hs.parseTokeniseAndApplyRules_hs(
+                        inputChangesPtr, inputChangesLen,
+                        inputWordsPtr, inputWordsLen,
+                        sepPtr, sepLen,
+                        reportRules, 0, hlModeC, outModeC, results);
+                    output = decodeStableCStringLen(outputStableCStringLen);
+                } catch (err) {
+                    output = err;
+                }
+            });
         });
     });
     return output;
@@ -207,10 +177,11 @@ function updateForm(reportRules, needsLive) {
     const data = new FormData(form);
     const rules = rulesEditor.getValue();
     const words = data.get("words");
+    const sep = data.get("sep");
     const highlightMode = data.get("highlightMode");
     const outputFormat = data.get("outputFormat");
 
-    const output = applyChanges(rules, words, reportRules, highlightMode, outputFormat);
+    const output = applyChanges(rules, words, sep, reportRules, highlightMode, outputFormat);
     document.getElementById("results").innerHTML = output;
 }
 

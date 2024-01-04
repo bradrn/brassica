@@ -21,12 +21,13 @@ import Text.Megaparsec (ParseErrorBundle)
 import Brassica.MDF (MDF, parseMDFWithTokenisation, componentiseMDF, componentiseMDFWordsOnly, duplicateEtymologies)
 import Brassica.SoundChange.Apply
 import Brassica.SoundChange.Apply.Internal (applyChangesWithLog, toPWordLog)
+import Brassica.SoundChange.Category
 import Brassica.SoundChange.Tokenise
 import Brassica.SoundChange.Types
 
 -- | Rule application mode of the SCA.
 data ApplicationMode
-    = ApplyRules HighlightMode OutputMode
+    = ApplyRules HighlightMode OutputMode String
     | ReportRulesApplied
     deriving (Show, Eq)
 
@@ -77,7 +78,7 @@ instance Enum TokenisationMode where
     toEnum _ = undefined
 
 tokenisationModeFor :: ApplicationMode -> TokenisationMode
-tokenisationModeFor (ApplyRules _ MDFOutputWithEtymons) = AddEtymons
+tokenisationModeFor (ApplyRules _ MDFOutputWithEtymons _) = AddEtymons
 tokenisationModeFor _ = Normal
 
 -- | Output of a single application of rules to a wordlist: either a
@@ -87,6 +88,7 @@ data ApplicationOutput a r
     = HighlightedWords [Component (a, Bool)]
     | AppliedRulesTable [PWordLog r]
     | ParseError (ParseErrorBundle String Void)
+    | ExpandError ExpandError
     deriving (Show, Generic, NFData)
 
 -- | Kind of input: either a raw wordlist, or an MDF file.
@@ -122,7 +124,7 @@ intersperseWords _ [] = []
 tokeniseAccordingToInputFormat
     :: InputLexiconFormat
     -> TokenisationMode
-    -> SoundChanges
+    -> SoundChanges Expanded [Grapheme]
     -> String
     -> Either (ParseErrorBundle String Void) (ParseOutput PWord)
 tokeniseAccordingToInputFormat Raw _ cs =
@@ -142,37 +144,40 @@ getParsedWords (ParsedMDF mdf) = getWords $ componentiseMDF mdf
 -- wordlist and a list of sound changes, returns the result of running
 -- the changes in the specified mode.
 parseTokeniseAndApplyRules
-    :: SoundChanges -- ^ changes
+    :: SoundChanges CategorySpec Directive -- ^ changes
     -> String       -- ^ words
     -> InputLexiconFormat
     -> ApplicationMode
     -> Maybe [Component PWord]  -- ^ previous results
-    -> ApplicationOutput PWord Statement
+    -> ApplicationOutput PWord (Statement Expanded [Grapheme])
 parseTokeniseAndApplyRules statements ws intype mode prev =
-    let tmode = tokenisationModeFor mode in
-    case tokeniseAccordingToInputFormat intype tmode statements ws of
-        Left e -> ParseError e
-        Right toks
-          | ws' <- getParsedWords toks
-          -> case mode of
-            ReportRulesApplied ->
-                AppliedRulesTable $ mapMaybe toPWordLog $ concat $
-                    getWords $ componentise WordsOnlyOutput [] $
-                        applyChangesWithLog statements <$> toks
-            ApplyRules DifferentToLastRun mdfout ->
-                let result = concatMap (splitMultipleResults " ") $
-                      componentise mdfout (fmap pure ws') $ applyChanges statements <$> toks
-                in HighlightedWords $
-                    zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
-                        (thisWord, thisWord /= prevWord)
-            ApplyRules DifferentToInput mdfout ->
-                HighlightedWords $ concatMap (splitMultipleResults " ") $
-                    componentise mdfout (fmap (pure . (,False)) ws') $
-                        applyChangesWithChanges statements <$> toks
-            ApplyRules NoHighlight mdfout ->
-                HighlightedWords $ (fmap.fmap) (,False) $ concatMap (splitMultipleResults " ") $
-                    componentise mdfout (fmap pure ws') $
-                        applyChanges statements <$> toks
+    case expandSoundChanges statements of
+        Left e -> ExpandError e
+        Right statements' ->
+            let tmode = tokenisationModeFor mode in
+            case tokeniseAccordingToInputFormat intype tmode statements' ws of
+                Left e -> ParseError e
+                Right toks
+                  | ws' <- getParsedWords toks
+                  -> case mode of
+                    ReportRulesApplied ->
+                        AppliedRulesTable $ mapMaybe toPWordLog $ concat $
+                            getWords $ componentise WordsOnlyOutput [] $
+                                applyChangesWithLog statements' <$> toks
+                    ApplyRules DifferentToLastRun mdfout sep ->
+                        let result = concatMap (splitMultipleResults sep) $
+                              componentise mdfout (fmap pure ws') $ applyChanges statements' <$> toks
+                        in HighlightedWords $
+                            zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
+                                (thisWord, thisWord /= prevWord)
+                    ApplyRules DifferentToInput mdfout sep ->
+                        HighlightedWords $ concatMap (splitMultipleResults sep) $
+                            componentise mdfout (fmap (pure . (,False)) ws') $
+                                applyChangesWithChanges statements' <$> toks
+                    ApplyRules NoHighlight mdfout sep ->
+                        HighlightedWords $ (fmap.fmap) (,False) $ concatMap (splitMultipleResults sep) $
+                            componentise mdfout (fmap pure ws') $
+                                applyChanges statements' <$> toks
   where
     -- Zips two tokenised input strings. Compared to normal 'zipWith'
     -- this has two special properties:

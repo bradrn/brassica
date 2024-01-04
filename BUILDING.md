@@ -60,24 +60,25 @@ Finally, use [NSIS](https://nsis.sourceforge.io/Main_Page) with the given `insta
 ## Online version
 
 Building the online version of Brassica is slightly more difficult as it requires the WebAssembly backend of GHC.
+It is easiest to get this using GHCup’s [WASM cross bindists](https://www.haskell.org/ghcup/guide/#cross-support).
 You will also need [Wizer](https://github.com/bytecodealliance/wizer) to pre-initialise the WASM binary,
   and [npm](https://www.npmjs.com/) for JavaScript package management.
 
-Follow the instructions at [ghc-wasm-meta](https://gitlab.haskell.org/ghc/ghc-wasm-meta) to install this version.
 Then:
 
 1. In `./gui/brassica-interop-wasm`, run the following commands:
    ```
-   wasm32-wasi-cabal build brassica-interop-wasm
-   wizer --allow-wasi --wasm-bulk-memory true "$(wasm32-wasi-cabal list-bin -v0 brassica-interop-wasm)" -o "./dist/brassica-interop-wasm.wasm"
+   cabal build --project-file=cabal-wasm.project brassica-interop-wasm
+   wizer --allow-wasi --wasm-bulk-memory true "$(cabal --project-file=cabal-wasm.project list-bin -v0 brassica-interop-wasm)" -o "./dist/brassica-interop-wasm.wasm"
    ```
    This will create a file `./gui/brassica-interop-wasm/dist/brassica-interop-wasm.wasm` containing the WASM binary.
-2. In `./gui/brassica-web`, run the following commands to copy the required files into `./gui/brassica-web/static`:
-   ```
-   npm install
-   npx webpack
-   cp ../brassica-interop-wasm/dist/brassica-interop-wasm.wasm static/
-   cp -r ../../examples/ static/
-   ```
-3. To test Brassica, you can now run a webserver in `./gui/brassica-web/static`,
-     for instance using `python -m http.server`.
+
+   (Note: it can also be convenient to set `CABAL_DIR` so that WASM packages are installed to a different location.)
+
+2. In `./gui/brassica-web`, run `mkdir dist; ./cpfiles` to copy the asset files into `dist`.
+   Note that you’ll need to redo this every time you update a static file (HTML or CSS or WASM)!
+3. Install JavaScript dependencies using `npm install`.
+
+   Now you can use [webpack](https://webpack.js.org/) to bundle the JavaScript files.
+   For instance, use `npx webpack serve` to run a development server,
+     or `npx webpack --mode=production` to prepare a release.
