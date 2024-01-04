@@ -1,6 +1,6 @@
 # Brassica changelog
 
-## Unreleased changes
+## v0.2.0
 
 - Allow lexeme sequences in categories using `{…}` syntax
 - Allow backreferences to occur in the environment
