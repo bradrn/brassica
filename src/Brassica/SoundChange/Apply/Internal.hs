@@ -131,6 +131,12 @@ instance Semigroup MatchOutput where
 zipWith' :: [a] -> [b] -> (a -> b -> c) -> [c]
 zipWith' xs ys f = zipWith f xs ys
 
+insertAt :: Int -> a -> [a] -> [a]
+insertAt n a as = let (xs,ys) = splitAt n as in xs ++ (a:ys)
+
+insertAtCat :: Int -> Int -> MatchOutput -> MatchOutput
+insertAtCat n i mz = mz { matchedCatIxs = insertAt n i $ matchedCatIxs mz }
+
 -- | Match a single 'Lexeme' against a 'MultiZipper', and advance the
 -- 'MultiZipper' past the match. For each match found, returns the
 -- 'MatchOutput' tupled with the updated 'MultiZipper'.
@@ -158,7 +164,9 @@ match out prev k@(Kleene l) mz = case match out prev l mz of
 match out _ (Grapheme g) mz = (out <> MatchOutput [] [] [g],) <$> maybeToList (matchGrapheme g mz)
 match out prev (Category (FromElements gs)) mz =
     concat $ zipWith' gs [0..] $ \e i ->
-        first (<> MatchOutput [i] [] []) <$>
+        -- make sure to insert new index BEFORE any new ones which
+        -- might be added by the recursive call
+        first (insertAtCat (length $ matchedCatIxs out) i) <$>
             case e of
                 Left  g  -> match out prev (Grapheme g :: Lexeme Expanded a) mz
                 Right ls -> matchMany out prev ls mz

@@ -1,5 +1,13 @@
 # Brassica changelog
 
+## Unreleased changes
+
+### Behaviour
+
+- Bugfix: nested categories are now matched up correctly between target and replacement
+
+### Code
+
 ## v0.2.0
 
 - Allow lexeme sequences in categories using `{…}` syntax
