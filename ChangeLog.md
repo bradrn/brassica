@@ -9,6 +9,7 @@
 
 ### Code
 
+- `optparse-applicative` lower bound tightened to 0.17.1
 - `Brassica.SoundChange.Apply.Internal.applyOnce` now returns a `RuleStatus` value with more detailed information about the rule application, which is now used by `Brassica.SoundChange.Apply.Internal.setupForNextApplication`
 
 ## v0.2.0
