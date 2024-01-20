@@ -5,8 +5,11 @@
 ### Behaviour
 
 - Bugfix: nested categories are now matched up correctly between target and replacement
+- Bugfix: Brassica no longer freezes with rules where the target is entirely optional
 
 ### Code
+
+- `Brassica.SoundChange.Apply.Internal.applyOnce` now returns a `RuleStatus` value with more detailed information about the rule application, which is now used by `Brassica.SoundChange.Apply.Internal.setupForNextApplication`
 
 ## v0.2.0
 

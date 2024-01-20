@@ -28,6 +28,7 @@
 module Brassica.SoundChange.Apply.Internal
        ( -- * Types
          RuleTag(..)
+       , RuleStatus(..)
        -- * Lexeme matching
        , match
        , matchMany
@@ -349,13 +350,16 @@ matchRuleAtPoint target (env1,env2) mz = flip runRuleAp mz $ do
             _ <- RuleAp $ matchMany env1Out (listToMaybe $ matchedGraphemes matchResult) env2
             return matchResult
 
+data RuleStatus = SuccessNormal | SuccessEpenthesis | Failure
+    deriving (Eq, Show)
+
 -- | Given a 'Rule', determine if the rule matches at the current
 -- point; if so, apply the rule, adding appropriate tags.
-applyOnce :: Rule Expanded -> StateT (MultiZipper RuleTag Grapheme) [] Bool
+applyOnce :: Rule Expanded -> StateT (MultiZipper RuleTag Grapheme) [] RuleStatus
 applyOnce r@Rule{target, replacement, exception} =
     modify (tag AppStart) >> go (environment r)
   where
-    go [] = return False
+    go [] = return Failure
     go (env:envs) = do
         result <- try (matchRuleAtPoint target env)
         case result of
@@ -366,32 +370,33 @@ applyOnce r@Rule{target, replacement, exception} =
                         extend' (exceptionAppliesAtPoint target ex)
                 gets (locationOf TargetStart) >>= \p ->
                     if maybe True (`elem` exs) p
-                    then return False
+                    then return Failure
                     else do
                         modifyMay $ delete (TargetStart, TargetEnd)
                         modifyMay $ seek TargetStart
                         modifyM $ mkReplacement out replacement
-                        return True
+                        return $
+                            if null (matchedGraphemes out)
+                                then SuccessEpenthesis
+                                else SuccessNormal
             Nothing -> modifyMay (seek AppStart) >> go envs
 
 -- | Remove tags and advance the current index to the next t'Grapheme'
 -- after the rule application.
 setupForNextApplication
-    :: Bool
+    :: RuleStatus
     -> Rule Expanded
     -> MultiZipper RuleTag Grapheme
     -> Maybe (MultiZipper RuleTag Grapheme)
-setupForNextApplication success r@Rule{flags=Flags{applyDirection}} =
+setupForNextApplication status Rule{flags=Flags{applyDirection}} =
     fmap untag . case applyDirection of
         RTL -> seek AppStart >=> bwd
-        LTR ->
-            if success
-            then
-                if null (target r)
-                then -- need to move forward if applying an epenthesis rule to avoid an infinite loop
-                    seek TargetEnd >=> fwd
-                else seek TargetEnd
-            else seek AppStart >=> fwd
+        LTR -> case status of
+            SuccessNormal -> seek TargetEnd
+            SuccessEpenthesis ->
+                -- need to move forward if applying an epenthesis rule to avoid an infinite loop
+                seek TargetEnd >=> fwd
+            Failure -> seek AppStart >=> fwd
 
 -- | Apply a 'Rule' to a 'MultiZipper'. The application will start at
 -- the beginning of the 'MultiZipper', and will be repeated as many
@@ -407,13 +412,13 @@ applyRule r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
           else result
   where
     repeatRule
-        :: StateT (MultiZipper RuleTag Grapheme) [] Bool
+        :: StateT (MultiZipper RuleTag Grapheme) [] RuleStatus
         -> MultiZipper RuleTag Grapheme
         -> [MultiZipper RuleTag Grapheme]
-    repeatRule m mz = runStateT m mz >>= \(success, mz') ->
-        if success && applyOnceOnly (flags r)
+    repeatRule m mz = runStateT m mz >>= \(status, mz') ->
+        if (status /= Failure) && applyOnceOnly (flags r)
         then [mz']
-        else case setupForNextApplication success r mz' of
+        else case setupForNextApplication status r mz' of
             Just mz'' -> repeatRule m mz''
             Nothing -> [mz']
 
