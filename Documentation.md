@@ -456,6 +456,20 @@ This can be used to implement retrogressive vowel harmony:
 V / V̈ / _ ^V̈          ; converts ⟨amptë⟩→⟨ämptë⟩
 ```
 
+Both `*` and `^` can be used in the replacement of a rule.
+`*` repeats its replacement the same number of times it was matched:
+
+```
+V C* V̈ / V̈ C* V       ; converts ⟨amptë⟩→⟨ämpte⟩
+```
+
+While `^` repeats all the graphemes it matched:
+
+```
+V ^V̈ / V̈ ^V        ; converts ⟨amptë⟩→⟨ämpte⟩
+```
+
+
 One often wants to include a *gloss* in the list of input words.
 Such glosses should not be affected by sound changes.
 This can be achieved by surrounding the gloss in square brackets.

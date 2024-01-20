@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns         #-}
 {-# LANGUAGE CPP                  #-}
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DataKinds             #-}
@@ -116,6 +117,10 @@ data MatchOutput = MatchOutput
       matchedCatIxs    :: [Int]
       -- | For each optional group whether it matched or not
     , matchedOptionals :: [Bool]
+      -- | For each wildcard, the graphemes which it matched
+    , matchedWildcards :: [[Grapheme]]
+      -- | For each Kleene star, how many repititions it matched
+    , matchedKleenes   :: [Int]
       -- | The graphemes which were matched
     , matchedGraphemes :: [Grapheme]
     } deriving (Show)
@@ -127,7 +132,8 @@ appendGrapheme :: MatchOutput -> Grapheme -> MatchOutput
 appendGrapheme out g = modifyMatchedGraphemes (++[g]) out
 
 instance Semigroup MatchOutput where
-    (MatchOutput a1 b1 c1) <> (MatchOutput a2 b2 c2) = MatchOutput (a1++a2) (b1++b2) (c1++c2)
+    (MatchOutput a1 b1 c1 d1 e1) <> (MatchOutput a2 b2 c2 d2 e2) =
+        MatchOutput (a1++a2) (b1++b2) (c1++c2) (d1++d2) (e1++e2)
 
 zipWith' :: [a] -> [b] -> (a -> b -> c) -> [c]
 zipWith' xs ys f = zipWith f xs ys
@@ -137,6 +143,9 @@ insertAt n a as = let (xs,ys) = splitAt n as in xs ++ (a:ys)
 
 insertAtCat :: Int -> Int -> MatchOutput -> MatchOutput
 insertAtCat n i mz = mz { matchedCatIxs = insertAt n i $ matchedCatIxs mz }
+
+insertAtKleene :: Int -> Int -> MatchOutput -> MatchOutput
+insertAtKleene n i mz = mz { matchedKleenes = insertAt n i $ matchedKleenes mz }
 
 -- | Match a single 'Lexeme' against a 'MultiZipper', and advance the
 -- 'MultiZipper' past the match. For each match found, returns the
@@ -150,19 +159,11 @@ match :: forall a t.
       -> [(MatchOutput, MultiZipper t Grapheme)]
       -- ^ The output: a tuple @(g, mz)@ as described below.
 match out prev (Optional l) mz =
-    (out <> MatchOutput [] [False] [], mz) :
-    matchMany (out <> MatchOutput [] [True] []) prev l mz
-match out prev w@(Wildcard l) mz = case match out prev l mz of
-    [] -> maybeToList (consume mz) >>= \case
-        (GBoundary, _) -> []   -- don't continue past word boundary
-        (g, mz') -> match (appendGrapheme out g) prev w mz'
-    r -> r
-match out prev k@(Kleene l) mz = case match out prev l mz of
-    [] -> [(MatchOutput [] [] [], mz)]
-    r -> r >>= \(out', mz') -> case match out' prev k mz' of
-        [] -> error "match: Kleene should never fail"
-        r' -> r'
-match out _ (Grapheme g) mz = (out <> MatchOutput [] [] [g],) <$> maybeToList (matchGrapheme g mz)
+    (out <> MatchOutput [] [False] [] [] [], mz) :
+    matchMany (out <> MatchOutput [] [True] [] [] []) prev l mz
+match out prev (Wildcard l) mz = matchWildcard out prev l mz
+match out prev (Kleene l) mz = matchKleene out prev l mz
+match out _ (Grapheme g) mz = (out <> MatchOutput [] [] [] [] [g],) <$> maybeToList (matchGrapheme g mz)
 match out prev (Category (FromElements gs)) mz =
     concat $ zipWith' gs [0..] $ \e i ->
         -- make sure to insert new index BEFORE any new ones which
@@ -173,13 +174,49 @@ match out prev (Category (FromElements gs)) mz =
                 Right ls -> matchMany out prev ls mz
 match out prev Geminate mz = case prev of
     Nothing -> []
-    Just prev' -> (out <> MatchOutput [] [] [prev'],) <$> maybeToList (matchGrapheme prev' mz)
+    Just prev' -> (out <> MatchOutput [] [] [] [] [prev'],) <$> maybeToList (matchGrapheme prev' mz)
 match out prev (Backreference i (FromElements gs)) mz = do
     e <- maybeToList $
         (gs !?) =<< matchedCatIxs out !? (i-1)
     case e of
         Left  g  -> match out prev (Grapheme g :: Lexeme Expanded a) mz
         Right ls -> matchMany out prev ls mz
+
+matchKleene
+    :: OneOf a 'Target 'Env
+    => MatchOutput
+    -> Maybe Grapheme
+    -> Lexeme Expanded a
+    -> MultiZipper t Grapheme
+    -> [(MatchOutput, MultiZipper t Grapheme)]
+matchKleene origOut = go 0 origOut
+  where
+    go !n out prev l mz = case match out prev l mz of
+        [] -> [
+            ( insertAtKleene (length $ matchedKleenes origOut) n out
+            , mz
+            ) ]
+        r -> r >>= \(out', mz') -> go (n+1) out' prev l mz'
+
+matchWildcard
+    :: OneOf a 'Target 'Env
+    => MatchOutput
+    -> Maybe Grapheme
+    -> Lexeme Expanded a
+    -> MultiZipper t Grapheme
+    -> [(MatchOutput, MultiZipper t Grapheme)]
+matchWildcard = go []
+  where
+    go matched out prev l mz = case match out prev l mz of
+        [] -> maybeToList (consume mz) >>= \case
+            (GBoundary, _) -> []   -- don't continue past word boundary
+            (g, mz') -> go (g:matched) (appendGrapheme out g) prev l mz'
+        r -> r <&> \(out', mz') ->
+            ( out'
+              { matchedWildcards = matchedWildcards out' ++ [reverse matched]
+              }
+            , mz'
+            )
 
 matchGrapheme :: Grapheme -> MultiZipper t Grapheme -> Maybe (MultiZipper t Grapheme)
 matchGrapheme g = matchGraphemeP (==g)
@@ -208,7 +245,7 @@ matchMany' :: OneOf a 'Target 'Env
           -> [Lexeme Expanded a]
           -> MultiZipper t Grapheme
           -> [(MatchOutput, MultiZipper t Grapheme)]
-matchMany' = matchMany (MatchOutput [] [] [])
+matchMany' = matchMany (MatchOutput [] [] [] [] [])
 
 -- Small utility function, not exported
 lastMay :: [a] -> Maybe a
@@ -217,6 +254,8 @@ lastMay l = if null l then Nothing else Just (last l)
 data ReplacementIndices = ReplacementIndices
     { ixInCategories :: Int
     , ixInOptionals :: Int
+    , ixInWildcards :: Int
+    , ixInKleenes :: Int
     , forcedCategory :: Maybe CategoryNumber
     } deriving (Show)
 
@@ -238,6 +277,16 @@ advanceOptional ix =
     let i = ixInOptionals ix
     in (i, ix { ixInOptionals = i+1 })
 
+advanceWildcard :: ReplacementIndices -> (Int, ReplacementIndices)
+advanceWildcard ix =
+    let i = ixInWildcards ix
+    in (i, ix { ixInWildcards = i+1 })
+
+advanceKleene :: ReplacementIndices -> (Int, ReplacementIndices)
+advanceKleene ix =
+    let i = ixInKleenes ix
+    in (i, ix { ixInKleenes = i+1 })
+
 forceCategory :: CategoryNumber -> ReplacementIndices -> ReplacementIndices
 forceCategory i ixs = ixs { forcedCategory = Just i }
 
@@ -256,7 +305,7 @@ mkReplacement
     -> [MultiZipper t Grapheme]
 mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
   where
-    startIxs = ReplacementIndices 0 0 Nothing
+    startIxs = ReplacementIndices 0 0 0 0 Nothing
 
     go
         :: ReplacementIndices
@@ -310,6 +359,17 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
     replaceLex ixs (Multiple c) mz prev =
         let ixs' = forceCategory Nondeterministic ixs
         in replaceLex ixs' (Category c) mz prev
+    replaceLex ixs (Wildcard l) mz prev =
+        let (i, ixs') = advanceWildcard ixs
+        in case matchedWildcards out !? i of
+            Just w -> go ixs' (fmap Grapheme w ++ [l]) (mz, prev)
+            -- need to add 'l' here too
+            Nothing -> replaceLex ixs' l mz prev
+    replaceLex ixs (Kleene l) mz prev =
+        let (i, ixs') = advanceKleene ixs
+        in case matchedKleenes out !? i of
+            Just n -> go ixs' (replicate n l) (mz, prev)
+            Nothing -> [(ixs', (mz, prev))]
 
 -- | Given a 'Rule' and a 'MultiZipper', determines whether the
 -- 'exception' of that rule (if any) applies starting at the current

@@ -137,9 +137,9 @@ data Lexeme category (a :: LexemeType) where
     -- | In Brassica sound-change syntax, specified as @>@
     Geminate :: Lexeme category a
     -- | In Brassica sound-change syntax, specified as @^@ before another 'Lexeme'
-    Wildcard :: OneOf a 'Target 'Env => Lexeme category a -> Lexeme category a
+    Wildcard :: Lexeme category a -> Lexeme category a
     -- | In Brassica sound-change syntax, specified as @*@ after another 'Lexeme'
-    Kleene   :: OneOf a 'Target 'Env => Lexeme category a -> Lexeme category a
+    Kleene   :: Lexeme category a -> Lexeme category a
     -- | In Brassica sound-change syntax, specified as @~@
     Discard  :: Lexeme category 'Replacement
     -- | In Brassica sound-change syntax, specified as \@i before a category
@@ -191,6 +191,8 @@ generalise f (Category es) = Category $ f es
 generalise f (Optional ls) = Optional $ generalise f <$> ls
 generalise _ Geminate = Geminate
 generalise f (Backreference i es) = Backreference i $ f es
+generalise f (Wildcard l) = Wildcard $ generalise f l
+generalise f (Kleene l) = Kleene $ generalise f l
 
 generaliseExpanded :: Expanded 'AnyPart -> Expanded a
 generaliseExpanded = FromElements . (fmap.fmap.fmap) (generalise generaliseExpanded) . elements

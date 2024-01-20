@@ -6,11 +6,13 @@
 
 - Bugfix: nested categories are now matched up correctly between target and replacement
 - Bugfix: Brassica no longer freezes with rules where the target is entirely optional
+- Wildcard symbols can now be used in the replacement of a rule
 
 ### Code
 
 - `optparse-applicative` lower bound tightened to 0.17.1
 - `Brassica.SoundChange.Apply.Internal.applyOnce` now returns a `RuleStatus` value with more detailed information about the rule application, which is now used by `Brassica.SoundChange.Apply.Internal.setupForNextApplication`
+- `Wildcard` and `Kleene` no longer have `OneOf 'Target 'Env` constraint
 
 ## v0.2.0
 

@@ -135,13 +135,13 @@ parseGeminate = Geminate <$ symbol ">"
 parseMetathesis :: Parser (Lexeme CategorySpec 'Replacement)
 parseMetathesis = Metathesis <$ symbol "\\"
 
-parseWildcard :: (ParseLexeme a, OneOf a 'Target 'Env) => Parser (Lexeme CategorySpec a)
+parseWildcard :: ParseLexeme a => Parser (Lexeme CategorySpec a)
 parseWildcard = Wildcard <$> (symbol "^" *> parseLexeme)
 
 parseDiscard :: Parser (Lexeme CategorySpec 'Replacement)
 parseDiscard = Discard <$ symbol "~"
 
-parseKleene :: OneOf a 'Target 'Env => Lexeme CategorySpec a -> Parser (Lexeme CategorySpec a)
+parseKleene :: Lexeme CategorySpec a -> Parser (Lexeme CategorySpec a)
 parseKleene l =
     try (lexeme $ Kleene l <$ char '*' <* notFollowedBy parseGrapheme')
     <|> pure l
@@ -170,9 +170,10 @@ instance ParseLexeme 'Replacement where
         , parseDiscard
         , parseGeminate
         , parseMultiple
+        , parseWildcard
         , parseBackreference
         , Grapheme <$> parseGrapheme
-        ]
+        ] >>= parseKleene
 
 instance ParseLexeme 'Env where
     parseLexeme = asum
@@ -188,8 +189,9 @@ instance ParseLexeme 'AnyPart where
     parseLexeme = asum
         [ parseExplicitCategory
         , parseOptional
+        , parseWildcard
         , Grapheme <$> parseGrapheme
-        ]
+        ] >>= parseKleene
 
 parseLexemes :: ParseLexeme a => Parser [Lexeme CategorySpec a]
 parseLexemes = many parseLexeme
