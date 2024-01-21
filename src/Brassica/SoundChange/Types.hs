@@ -14,7 +14,6 @@
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Brassica.SoundChange.Types
@@ -51,33 +50,12 @@ module Brassica.SoundChange.Types
        , FeatureSpec(..)
        , CategoryDefinition(..)
        , Directive(..)
-       -- * Utility
-       , OneOf
        ) where
 
 import Control.DeepSeq (NFData(..))
-import Data.Kind (Constraint)
 import Data.String (IsString(..))
 import GHC.Generics (Generic)
 import GHC.OldList (dropWhileEnd)
-import GHC.TypeLits
-
--- | The constraint @OneOf a x y@ is satisfied if @a ~ x@ or @a ~ y@.
---
--- (Note: the strange @() ~ Bool@ constraint is just a simple
--- unsatisfiable constraint, so as to not give ‘non-exhaustive pattern
--- match’ errors everywhere.)
-type family OneOf a x y :: Constraint where
-    OneOf a a y = ()
-    OneOf a x a = ()
-    OneOf a b c =
-        ( () ~ Bool
-        , TypeError ('Text "Couldn't match type "
-                     ':<>: 'ShowType a
-                     ':<>: 'Text " with "
-                     ':<>: 'ShowType b
-                     ':<>: 'Text " or "
-                     ':<>: 'ShowType c))
 
 -- | The type of graphemes within a word.
 data Grapheme
@@ -115,9 +93,10 @@ concatWithBoundary = go . removeBoundaries
         GMulti g -> g
         GBoundary -> "#"
 
--- | The part of a 'Rule' in which a 'Lexeme' may occur: either the
--- target, the replacement or the environment, or in any of those.
-data LexemeType = Target | Replacement | Env | AnyPart
+-- | The part of a 'Rule' in which a 'Lexeme' may occur: in a matched
+-- part (target or environment), in replacement, or in either of
+-- those.
+data LexemeType = Matched | Replacement | AnyPart
 
 -- | A 'Lexeme' is the smallest part of a sound change. Both matches
 -- and replacements are made up of 'Lexeme's: the phantom type
@@ -221,7 +200,7 @@ instance (forall x. NFData (c x)) => NFData (Lexeme c a) where
 -- corresponding to a ‘/ before _ after’ component of a sound change.
 --
 -- Note that an empty environment is just @([], [])@.
-type Environment c = ([Lexeme c 'Env], [Lexeme c 'Env])
+type Environment c = ([Lexeme c 'Matched], [Lexeme c 'Matched])
 
 -- | Specifies application direction of rule — either left-to-right or right-to-left.
 data Direction = LTR | RTL
@@ -262,7 +241,7 @@ defFlags = Flags
 -- @-flags target / replacement \/ environment1 | environment2 | … \/ exception@.
 -- (And usually the 'plaintext' of the rule will contain a 'String' resembling that pattern.)
 data Rule c = Rule
-  { target      :: [Lexeme c 'Target]
+  { target      :: [Lexeme c 'Matched]
   , replacement :: [Lexeme c 'Replacement]
   , environment :: [Environment c]
   , exception   :: Maybe (Environment c)

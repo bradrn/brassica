@@ -152,7 +152,7 @@ parseMultiple = Multiple <$> (symbol "@?" *> parseCategory')
 parseBackreference :: forall a. ParseLexeme a => Parser (Lexeme CategorySpec a)
 parseBackreference = Backreference <$> (symbol "@" *> nonzero) <*> parseCategory'
 
-instance ParseLexeme 'Target where
+instance ParseLexeme 'Matched where
     parseLexeme = asum
         [ parseExplicitCategory
         , parseOptional
@@ -170,16 +170,6 @@ instance ParseLexeme 'Replacement where
         , parseDiscard
         , parseGeminate
         , parseMultiple
-        , parseWildcard
-        , parseBackreference
-        , Grapheme <$> parseGrapheme
-        ] >>= parseKleene
-
-instance ParseLexeme 'Env where
-    parseLexeme = asum
-        [ parseExplicitCategory
-        , parseOptional
-        , parseGeminate
         , parseWildcard
         , parseBackreference
         , Grapheme <$> parseGrapheme

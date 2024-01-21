@@ -150,11 +150,9 @@ insertAtKleene n i mz = mz { matchedKleenes = insertAt n i $ matchedKleenes mz }
 -- | Match a single 'Lexeme' against a 'MultiZipper', and advance the
 -- 'MultiZipper' past the match. For each match found, returns the
 -- 'MatchOutput' tupled with the updated 'MultiZipper'.
-match :: forall a t.
-         OneOf a 'Target 'Env
-      => MatchOutput          -- ^ The previous 'MatchOutput'
+match :: MatchOutput          -- ^ The previous 'MatchOutput'
       -> Maybe Grapheme       -- ^ The previously-matched grapheme, if any. (Used to match a 'Geminate'.)
-      -> Lexeme Expanded a    -- ^ The lexeme to match.
+      -> Lexeme Expanded 'Matched  -- ^ The lexeme to match.
       -> MultiZipper t Grapheme   -- ^ The 'MultiZipper' to match against.
       -> [(MatchOutput, MultiZipper t Grapheme)]
       -- ^ The output: a tuple @(g, mz)@ as described below.
@@ -183,10 +181,9 @@ match out prev (Backreference i (FromElements gs)) mz = do
         Right ls -> matchMany out prev ls mz
 
 matchKleene
-    :: OneOf a 'Target 'Env
-    => MatchOutput
+    :: MatchOutput
     -> Maybe Grapheme
-    -> Lexeme Expanded a
+    -> Lexeme Expanded 'Matched
     -> MultiZipper t Grapheme
     -> [(MatchOutput, MultiZipper t Grapheme)]
 matchKleene origOut = go 0 origOut
@@ -199,10 +196,9 @@ matchKleene origOut = go 0 origOut
         r -> r >>= \(out', mz') -> go (n+1) out' prev l mz'
 
 matchWildcard
-    :: OneOf a 'Target 'Env
-    => MatchOutput
+    :: MatchOutput
     -> Maybe Grapheme
-    -> Lexeme Expanded a
+    -> Lexeme Expanded 'Matched
     -> MultiZipper t Grapheme
     -> [(MatchOutput, MultiZipper t Grapheme)]
 matchWildcard = go []
@@ -228,10 +224,9 @@ matchGraphemeP p mz = value mz >>= \cs -> if p cs then fwd mz else Nothing
 -- 'MultiZipper'. Arguments and output are the same as with 'match',
 -- though the outputs are given as a list of indices and graphemes
 -- rather than as a single index and grapheme.
-matchMany :: OneOf a 'Target 'Env
-          => MatchOutput
+matchMany :: MatchOutput
           -> Maybe Grapheme
-          -> [Lexeme Expanded a]
+          -> [Lexeme Expanded 'Matched]
           -> MultiZipper t Grapheme
           -> [(MatchOutput, MultiZipper t Grapheme)]
 matchMany out _ [] mz = [(out, mz)]
@@ -240,9 +235,8 @@ matchMany out prev (l:ls) mz =
     matchMany  out' (lastMay (matchedGraphemes out') <|> prev) ls mz'
 
 -- | 'matchMany' without any previous match output.
-matchMany' :: OneOf a 'Target 'Env
-          => Maybe Grapheme
-          -> [Lexeme Expanded a]
+matchMany' :: Maybe Grapheme
+          -> [Lexeme Expanded 'Matched]
           -> MultiZipper t Grapheme
           -> [(MatchOutput, MultiZipper t Grapheme)]
 matchMany' = matchMany (MatchOutput [] [] [] [] [])
@@ -376,7 +370,7 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
 -- position of the 'MultiZipper'; if it does, returns the index of the
 -- first element of each matching 'target'.
 exceptionAppliesAtPoint
-    :: [Lexeme Expanded 'Target]
+    :: [Lexeme Expanded 'Matched]
     -> Environment Expanded
     -> MultiZipper RuleTag Grapheme -> [Int]
 exceptionAppliesAtPoint target (ex1, ex2) mz = fmap fst $ flip runRuleAp mz $ do
@@ -392,7 +386,7 @@ exceptionAppliesAtPoint target (ex1, ex2) mz = fmap fst $ flip runRuleAp mz $ do
 -- t'Grapheme's, and @is@ is a list of indices, one for each
 -- 'Category' lexeme matched.
 matchRuleAtPoint
-    :: [Lexeme Expanded 'Target]
+    :: [Lexeme Expanded 'Matched]
     -> Environment Expanded
     -> MultiZipper RuleTag Grapheme
     -> [(MatchOutput, MultiZipper RuleTag Grapheme)]
