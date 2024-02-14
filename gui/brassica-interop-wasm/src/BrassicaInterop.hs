@@ -76,7 +76,7 @@ parseTokeniseAndApplyRules_hs
     case parseSoundChanges changesText of
         Left e -> newStableCStringLen $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
         Right statements ->
-            case parseTokeniseAndApplyRules statements wsText infmt mode prev of
+            case parseTokeniseAndApplyRules fmap statements wsText infmt mode prev of
                 ParseError e -> newStableCStringLen $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
                 HighlightedWords result -> do
                     writeIORef prevRef $ Just $ (fmap.fmap) fst result

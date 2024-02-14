@@ -96,7 +96,7 @@ processWords incr rules wordsFormat outMode =
     .| throwOnLeft
     .| encodeUtf8C
   where
-    evolve ws = parseTokeniseAndApplyRules rules ws wordsFormat outMode Nothing
+    evolve ws = parseTokeniseAndApplyRules parFmap rules ws wordsFormat outMode Nothing
 
     throwOnLeft :: (MonadThrow m, Exception e) => ConduitT (Either e r) r m ()
     throwOnLeft = awaitForever $ \case

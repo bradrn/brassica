@@ -3,6 +3,7 @@
 
 module Main where
 
+import Control.Parallel.Strategies (withStrategy, parTraversable, rseq)
 import Criterion.Main (defaultMain, bench, nf, bgroup, Benchmark)
 import Data.FileEmbed (embedFile)
 import Data.Text (unpack)
@@ -36,6 +37,7 @@ main = defaultMain
       , bench "parseRun" $ case parseSoundChanges manyChanges of
             Left _ -> error "invalid changes file"
             Right cs -> nf (parseTokeniseAndApplyRules
+                    fmap
                     cs
                     manyWords
                     Raw
@@ -84,3 +86,6 @@ manyChanges = unpack $ decodeUtf8 $(embedFile "bench/sample-changes.bsc")
 
 manyWords :: String
 manyWords = unpack $ decodeUtf8 $(embedFile "bench/sample-words.lex")
+
+parFmap :: (a -> b) -> ParseOutput a -> ParseOutput b
+parFmap f = withStrategy (parTraversable rseq) . fmap f

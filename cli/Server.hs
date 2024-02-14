@@ -8,11 +8,12 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-incomplete-record-updates #-}
 
-module Server (serve) where
+module Server (serve, parFmap) where
 
 import Conduit (runConduit, (.|), stdinC, stdoutC, mapMC)
 import Control.DeepSeq (force, NFData)
 import Control.Exception (evaluate)
+import Control.Parallel.Strategies (withStrategy, parTraversable, rseq)
 import Data.Aeson (Result(..), encode, fromJSON)
 import Data.Aeson.Parser (json')
 import Data.Aeson.TH (deriveJSON, defaultOptions, defaultTaggedObject, constructorTagModifier, sumEncoding, tagFieldName)
@@ -102,7 +103,7 @@ parseTokeniseAndApplyRulesWrapper ReqRules{..} =
     in case parseSoundChanges changes of
         Left e -> RespError $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
         Right statements ->
-            let result' = parseTokeniseAndApplyRules statements input inFmt mode prev
+            let result' = parseTokeniseAndApplyRules parFmap statements input inFmt mode prev
             in case result' of
                 ParseError e -> RespError $
                     "<pre>" ++ errorBundlePretty e ++ "</pre>"
@@ -122,6 +123,9 @@ parseTokeniseAndApplyRulesWrapper ReqRules{..} =
     surroundTable :: String -> String
     surroundTable s = "<table>" ++ s ++ "</table>"
 parseTokeniseAndApplyRulesWrapper _ = error "parseTokeniseAndApplyRulesWrapper: unexpected request!"
+
+parFmap :: (a -> b) -> ParseOutput a -> ParseOutput b
+parFmap f = withStrategy (parTraversable rseq) . fmap f
 
 parseAndBuildParadigmWrapper :: Request -> Response
 parseAndBuildParadigmWrapper ReqParadigm{..} =

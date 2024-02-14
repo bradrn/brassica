@@ -1,5 +1,5 @@
 {-# LANGUAGE BlockArguments #-}
-{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ViewPatterns #-}
 
@@ -62,7 +62,7 @@ import Data.Maybe (fromMaybe)
 -- >     , ("ge", " ", Left "father")
 -- >     ]
 newtype MDF v = MDF { unMDF :: [(String, String, Either String v)] }
-    deriving (Show, Functor)
+    deriving (Show, Functor, Foldable, Traversable)
 
 type Parser = Parsec Void String
 

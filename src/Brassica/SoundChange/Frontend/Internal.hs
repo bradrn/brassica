@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass  #-}
-{-# LANGUAGE DeriveFunctor   #-}
 {-# LANGUAGE DeriveGeneric   #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE RankNTypes      #-}
 {-# LANGUAGE TupleSections   #-}
 
 {-| __Warning:__ This module is __internal__, and does __not__ follow
@@ -104,7 +105,7 @@ instance Enum InputLexiconFormat where
     toEnum _ = undefined
 
 data ParseOutput a = ParsedRaw [Component a] | ParsedMDF (MDF [Component a])
-    deriving (Show, Functor)
+    deriving (Show, Functor, Foldable, Traversable)
 
 componentise :: OutputMode -> [a] -> ParseOutput a -> [Component a]
 componentise WordsWithProtoOutput ws (ParsedRaw cs) = intersperseWords ws cs
@@ -144,13 +145,14 @@ getParsedWords (ParsedMDF mdf) = getWords $ componentiseMDF mdf
 -- wordlist and a list of sound changes, returns the result of running
 -- the changes in the specified mode.
 parseTokeniseAndApplyRules
-    :: SoundChanges CategorySpec Directive -- ^ changes
+    :: (forall a b. (a -> b) -> ParseOutput a -> ParseOutput b)  -- ^ mapping function to use (for parallelism)
+    -> SoundChanges CategorySpec Directive -- ^ changes
     -> String       -- ^ words
     -> InputLexiconFormat
     -> ApplicationMode
     -> Maybe [Component PWord]  -- ^ previous results
     -> ApplicationOutput PWord (Statement Expanded [Grapheme])
-parseTokeniseAndApplyRules statements ws intype mode prev =
+parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
     case expandSoundChanges statements of
         Left e -> ExpandError e
         Right statements' ->
@@ -163,21 +165,22 @@ parseTokeniseAndApplyRules statements ws intype mode prev =
                     ReportRulesApplied ->
                         AppliedRulesTable $ mapMaybe toPWordLog $ concat $
                             getWords $ componentise WordsOnlyOutput [] $
-                                applyChangesWithLog statements' <$> toks
+                                parFmap (applyChangesWithLog statements') toks
                     ApplyRules DifferentToLastRun mdfout sep ->
                         let result = concatMap (splitMultipleResults sep) $
-                              componentise mdfout (fmap pure ws') $ applyChanges statements' <$> toks
+                              componentise mdfout (fmap pure ws') $
+                                  parFmap (applyChanges statements') toks
                         in HighlightedWords $
                             zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
                                 (thisWord, thisWord /= prevWord)
                     ApplyRules DifferentToInput mdfout sep ->
                         HighlightedWords $ concatMap (splitMultipleResults sep) $
                             componentise mdfout (fmap (pure . (,False)) ws') $
-                                applyChangesWithChanges statements' <$> toks
+                                parFmap (applyChangesWithChanges statements') toks
                     ApplyRules NoHighlight mdfout sep ->
                         HighlightedWords $ (fmap.fmap) (,False) $ concatMap (splitMultipleResults sep) $
                             componentise mdfout (fmap pure ws') $
-                                applyChanges statements' <$> toks
+                                parFmap (applyChanges statements') toks
   where
     -- Zips two tokenised input strings. Compared to normal 'zipWith'
     -- this has two special properties:
