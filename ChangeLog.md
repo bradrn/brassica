@@ -8,6 +8,7 @@
 - Bugfix: Brassica no longer freezes with rules where the target is entirely optional
 - Wildcard symbols can now be used in the replacement of a rule
 - Brassica now applies sound changes to words in parallel, giving a significant speedup on multi-core machines (though not in a webpage)
+- Combining diacritics are now grouped with their base characters as multigraphs
 
 ### Code
 
@@ -18,6 +19,7 @@
 - `Target` and `Environment` `LexemeType`s have been unified as `Matched`
 - `Brassica.SoundChange.Frontend.Internal.parseTokeniseAndApplyRules` now takes another argument specifying how to map over the parse output,
     allowing it to be run both on a single core and in parallel depending on the provided function
+- `Brassica.SoundChange.Tokenise.tokeniseWord` (and related functions) now handle combining diacritics as mentioned above
 
 ## v0.2.0
 
