@@ -1,3 +1,6 @@
+; Latin to Portuguese sound changes
+; adapted from https://www.zompist.com/sca2.html
+
 new categories
 V = a e i o u
 L = ā ē ī ō ū
