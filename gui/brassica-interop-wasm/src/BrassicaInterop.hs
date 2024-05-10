@@ -76,20 +76,22 @@ parseTokeniseAndApplyRules_hs
     case parseSoundChanges changesText of
         Left e -> newStableCStringLen $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
         Right statements ->
-            case parseTokeniseAndApplyRules fmap statements wsText infmt mode prev of
-                ParseError e -> newStableCStringLen $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
-                HighlightedWords result -> do
-                    writeIORef prevRef $ Just $ (fmap.fmap) fst result
-                    newStableCStringLen $ escape $ detokeniseWords' highlightWord result
-                AppliedRulesTable items -> do
-                    writeIORef prevRef Nothing
-                    newStableCStringLen $ surroundTable $
-                        concatMap (reportAsHtmlRows plaintext') items
-                ExpandError err -> do
+            case expandSoundChanges statements of
+                Left err ->
                     newStableCStringLen $ ("<pre>"++) $ (++"</pre>") $ case err of
                         (NotFound s) -> "Could not find category: " ++ s
                         InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
                         MismatchedLengths -> "Mismatched lengths in feature definition"
+                Right statements' ->
+                    case parseTokeniseAndApplyRules fmap statements' wsText infmt mode prev of
+                        ParseError e -> newStableCStringLen $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
+                        HighlightedWords result -> do
+                            writeIORef prevRef $ Just $ (fmap.fmap) fst result
+                            newStableCStringLen $ escape $ detokeniseWords' highlightWord result
+                        AppliedRulesTable items -> do
+                            writeIORef prevRef Nothing
+                            newStableCStringLen $ surroundTable $
+                                concatMap (reportAsHtmlRows plaintext') items
   where
     highlightWord (s, False) = concatWithBoundary s
     highlightWord (s, True) = "<b>" ++ concatWithBoundary s ++ "</b>"

@@ -103,19 +103,21 @@ parseTokeniseAndApplyRulesWrapper ReqRules{..} =
     in case parseSoundChanges changes of
         Left e -> RespError $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
         Right statements ->
-            let result' = parseTokeniseAndApplyRules parFmap statements input inFmt mode prev
-            in case result' of
-                ParseError e -> RespError $
-                    "<pre>" ++ errorBundlePretty e ++ "</pre>"
-                HighlightedWords result -> RespRules
-                    (Just $ (fmap.fmap) fst result)
-                    (escape $ detokeniseWords' highlightWord result)
-                AppliedRulesTable items -> RespRules Nothing $
-                    surroundTable $ concatMap (reportAsHtmlRows plaintext') items
-                ExpandError err -> RespError $ ("<pre>"++) $ (++"</pre>") $ case err of
+            case expandSoundChanges statements of
+                Left err -> RespError $ ("<pre>"++) $ (++"</pre>") $ case err of
                     (NotFound s) -> "Could not find category: " ++ s
                     InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
                     MismatchedLengths -> "Mismatched lengths in feature definition"
+                Right statements' ->
+                    let result' = parseTokeniseAndApplyRules parFmap statements' input inFmt mode prev
+                    in case result' of
+                        ParseError e -> RespError $
+                            "<pre>" ++ errorBundlePretty e ++ "</pre>"
+                        HighlightedWords result -> RespRules
+                            (Just $ (fmap.fmap) fst result)
+                            (escape $ detokeniseWords' highlightWord result)
+                        AppliedRulesTable items -> RespRules Nothing $
+                            surroundTable $ concatMap (reportAsHtmlRows plaintext') items
   where
     highlightWord (s, False) = concatWithBoundary s
     highlightWord (s, True) = "<b>" ++ concatWithBoundary s ++ "</b>"

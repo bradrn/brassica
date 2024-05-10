@@ -22,7 +22,6 @@ import Text.Megaparsec (ParseErrorBundle)
 import Brassica.MDF (MDF, parseMDFWithTokenisation, componentiseMDF, componentiseMDFWordsOnly, duplicateEtymologies)
 import Brassica.SoundChange.Apply
 import Brassica.SoundChange.Apply.Internal (applyChangesWithLog, toPWordLog)
-import Brassica.SoundChange.Category
 import Brassica.SoundChange.Tokenise
 import Brassica.SoundChange.Types
 
@@ -89,7 +88,6 @@ data ApplicationOutput a r
     = HighlightedWords [Component (a, Bool)]
     | AppliedRulesTable [PWordLog r]
     | ParseError (ParseErrorBundle String Void)
-    | ExpandError ExpandError
     deriving (Show, Generic, NFData)
 
 -- | Kind of input: either a raw wordlist, or an MDF file.
@@ -146,41 +144,38 @@ getParsedWords (ParsedMDF mdf) = getWords $ componentiseMDF mdf
 -- the changes in the specified mode.
 parseTokeniseAndApplyRules
     :: (forall a b. (a -> b) -> ParseOutput a -> ParseOutput b)  -- ^ mapping function to use (for parallelism)
-    -> SoundChanges CategorySpec Directive -- ^ changes
+    -> SoundChanges Expanded [Grapheme] -- ^ changes
     -> String       -- ^ words
     -> InputLexiconFormat
     -> ApplicationMode
     -> Maybe [Component PWord]  -- ^ previous results
     -> ApplicationOutput PWord (Statement Expanded [Grapheme])
 parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
-    case expandSoundChanges statements of
-        Left e -> ExpandError e
-        Right statements' ->
-            let tmode = tokenisationModeFor mode in
-            case tokeniseAccordingToInputFormat intype tmode statements' ws of
-                Left e -> ParseError e
-                Right toks
-                  | ws' <- getParsedWords toks
-                  -> case mode of
-                    ReportRulesApplied ->
-                        AppliedRulesTable $ mapMaybe toPWordLog $ concat $
-                            getWords $ componentise WordsOnlyOutput [] $
-                                parFmap (applyChangesWithLog statements') toks
-                    ApplyRules DifferentToLastRun mdfout sep ->
-                        let result = concatMap (splitMultipleResults sep) $
-                              componentise mdfout (fmap pure ws') $
-                                  parFmap (applyChanges statements') toks
-                        in HighlightedWords $
-                            zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
-                                (thisWord, thisWord /= prevWord)
-                    ApplyRules DifferentToInput mdfout sep ->
-                        HighlightedWords $ concatMap (splitMultipleResults sep) $
-                            componentise mdfout (fmap (pure . (,False)) ws') $
-                                parFmap (applyChangesWithChanges statements') toks
-                    ApplyRules NoHighlight mdfout sep ->
-                        HighlightedWords $ (fmap.fmap) (,False) $ concatMap (splitMultipleResults sep) $
-                            componentise mdfout (fmap pure ws') $
-                                parFmap (applyChanges statements') toks
+    let tmode = tokenisationModeFor mode in
+    case tokeniseAccordingToInputFormat intype tmode statements ws of
+        Left e -> ParseError e
+        Right toks
+          | ws' <- getParsedWords toks
+          -> case mode of
+            ReportRulesApplied ->
+                AppliedRulesTable $ mapMaybe toPWordLog $ concat $
+                    getWords $ componentise WordsOnlyOutput [] $
+                        parFmap (applyChangesWithLog statements) toks
+            ApplyRules DifferentToLastRun mdfout sep ->
+                let result = concatMap (splitMultipleResults sep) $
+                      componentise mdfout (fmap pure ws') $
+                          parFmap (applyChanges statements) toks
+                in HighlightedWords $
+                    zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
+                        (thisWord, thisWord /= prevWord)
+            ApplyRules DifferentToInput mdfout sep ->
+                HighlightedWords $ concatMap (splitMultipleResults sep) $
+                    componentise mdfout (fmap (pure . (,False)) ws') $
+                        parFmap (applyChangesWithChanges statements) toks
+            ApplyRules NoHighlight mdfout sep ->
+                HighlightedWords $ (fmap.fmap) (,False) $ concatMap (splitMultipleResults sep) $
+                    componentise mdfout (fmap pure ws') $
+                        parFmap (applyChanges statements) toks
   where
     -- Zips two tokenised input strings. Compared to normal 'zipWith'
     -- this has two special properties:

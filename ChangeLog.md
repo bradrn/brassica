@@ -23,6 +23,8 @@
 - `Brassica.SoundChange.Tokenise.tokeniseWord` (and related functions) now handle combining diacritics as mentioned above
 - `Brassica.SoundChange.Types.Directive` has a new constructor `ExtraGraphemes` for the `extra` directive, with corresponding changes in parsing and expansion
 - `Brassica.SoundChange.Category.extend` has been renamed to `extendCategories`, and now requires pattern-matching on a `Categories` directive before use
+- `Brassica.SoundChange.Frontend.Internal.parseTokeniseAndApplyRules` no longer implements rule expansion,
+   allowing it to take place only once without needing to be repeated for each rule application.
 
 ## v0.2.0
 

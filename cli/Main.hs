@@ -25,12 +25,18 @@ main = execParser opts >>= \case
             Left err ->
                 putStrLn $ errorBundlePretty err
             Right rules ->
-                withSourceFileIf inWordsFile $ \inC ->
-                withSinkFileIf outWordsFile $ \outC ->
-                runConduit $
-                    inC
-                    .| processWords (incrFor wordsFormat) rules wordsFormat outMode
-                    .| outC
+                case expandSoundChanges rules of
+                    Left err -> putStrLn $ case err of
+                        (NotFound s) -> "Could not find category: " ++ s
+                        InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
+                        MismatchedLengths -> "Mismatched lengths in feature definition"
+                    Right rules' ->
+                        withSourceFileIf inWordsFile $ \inC ->
+                        withSinkFileIf outWordsFile $ \outC ->
+                        runConduit $
+                            inC
+                            .| processWords (incrFor wordsFormat) rules' wordsFormat outMode
+                            .| outC
 
   where
     opts = info (args <**> helper <**> simpleVersioner "v0.2.0") fullDesc
@@ -85,7 +91,7 @@ data Options = Options
 processWords
     :: (MonadIO m, MonadThrow m)
     => Bool  -- split into lines?
-    -> SoundChanges CategorySpec Directive
+    -> SoundChanges Expanded [Grapheme]
     -> InputLexiconFormat
     -> ApplicationMode
     -> ConduitT B.ByteString B.ByteString m ()
@@ -107,10 +113,6 @@ processWords incr rules wordsFormat outMode =
     processApplicationOutput (HighlightedWords cs) = Right $ pack $ detokeniseWords $ (fmap.fmap) fst cs
     processApplicationOutput (AppliedRulesTable is) = Right $ pack $ unlines $ reportAsText plaintext' <$> is
     processApplicationOutput (ParseError e) = Left $ ParseException $ errorBundlePretty e
-    processApplicationOutput (ExpandError e) = Left $ ParseException $ case e of
-        (NotFound s) -> "Could not find category: " ++ s
-        InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
-        MismatchedLengths -> "Mismatched lengths in feature definition"
 
 newtype ParseException = ParseException String
     deriving Show
