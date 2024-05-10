@@ -240,6 +240,15 @@ Furthermore, don’t forget that you can write rules before the first category d
 This is a good place to do operations such as deromanisation.
 Otherwise, Brassica would replace any unknown graphemes in the romanisation with the replacement character �.
 
+On occasion, you might want to use special characters which do not fit into any category.
+You can specify this by listing them after the special directive `extra`, before the first category definition.
+This will indicate to Brassica that it should never replace these characters by �.
+Thus, for instance, a sound change which makes used of morpheme and clitic boundaries might specify:
+
+```
+extra - =
+```
+
 ### Operations on categories
 
 It is possible to reference predefined categories in later category expressions.

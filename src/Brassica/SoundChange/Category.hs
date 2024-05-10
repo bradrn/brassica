@@ -13,17 +13,17 @@ module Brassica.SoundChange.Category
        , ExpandError(..)
        , expand
        , expandRule
-       , extend
+       , extendCategories
        , expandSoundChanges
        ) where
 
 import Prelude hiding (lookup)
 import Control.DeepSeq (NFData)
 import Control.Monad (foldM, unless)
-import Control.Monad.State.Strict (StateT, evalStateT, lift, get, put)
+import Control.Monad.State.Strict (StateT, evalStateT, lift, get, put, gets)
 import Data.Containers.ListUtils (nubOrd)
 import Data.List (intersect, transpose, foldl')
-import Data.Maybe (mapMaybe)
+import Data.Maybe (mapMaybe, catMaybes)
 import GHC.Generics (Generic)
 
 import qualified Data.Map.Strict as M
@@ -115,8 +115,11 @@ expandRule cs r = Rule
         <$> traverse (expandLexeme cs) e1
         <*> traverse (expandLexeme cs) e2
 
-extend :: Categories -> Directive -> Either ExpandError Categories
-extend cs' (Categories overwrite defs) =
+extendCategories
+    :: Categories
+    -> (Bool, [CategoryDefinition])  -- ^ The fields of a v'Categories' directive
+    -> Either ExpandError Categories
+extendCategories cs' (overwrite, defs) =
     foldM go (if overwrite then M.empty else cs') defs
   where
     go :: Categories -> CategoryDefinition -> Either ExpandError Categories
@@ -146,18 +149,25 @@ extend cs' (Categories overwrite defs) =
 expandSoundChanges
     :: SoundChanges CategorySpec Directive
     -> Either ExpandError (SoundChanges Expanded [Grapheme])
-expandSoundChanges = flip evalStateT M.empty . traverse go
+expandSoundChanges = fmap catMaybes . flip evalStateT (M.empty, []) . traverse go
   where
     go  :: Statement CategorySpec Directive
-        -> StateT Categories (Either ExpandError) (Statement Expanded [Grapheme])
+        -> StateT
+            (Categories, [String])
+            (Either ExpandError)
+            (Maybe (Statement Expanded [Grapheme]))
     go (RuleS r) = do
-        cs <- get
-        lift $ RuleS <$> expandRule cs r
-    go (DirectiveS d) = do
-        cs <- get
-        cs' <- lift $ extend cs d
-        put cs'
-        pure $ DirectiveS $ mapMaybe left $ values cs'
+        cs <- gets fst
+        lift $ Just . RuleS <$> expandRule cs r
+    go (DirectiveS (ExtraGraphemes extra)) = do
+        (cs, _) <- get
+        put (cs, extra)
+        pure Nothing
+    go (DirectiveS (Categories overwrite defs)) = do
+        (cs, extra) <- get
+        cs' <- lift $ extendCategories cs (overwrite, defs)
+        put (cs', extra)
+        pure $ Just $ DirectiveS $ fmap GMulti extra ++ mapMaybe left (values cs')
 
     left (Left l) = Just l
     left (Right _) = Nothing

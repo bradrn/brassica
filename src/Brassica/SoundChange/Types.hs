@@ -295,7 +295,12 @@ data CategoryDefinition
     | DefineFeature FeatureSpec
     deriving (Show, Eq, Ord, Generic, NFData)
 
--- | A directive used in Brassica sound-change syntax: currently only
--- @categories … end@ or @new categories … end@
-data Directive = Categories Bool [CategoryDefinition]
+-- | A directive used in Brassica sound-change syntax: anything which
+-- is not actually a sound change
+
+data Directive
+    = Categories Bool [CategoryDefinition]
+      -- ^ @categories … end@ or @new categories … end@
+    | ExtraGraphemes [String]
+      -- ^ @extra …@
     deriving (Show, Eq, Ord, Generic, NFData)

@@ -117,14 +117,19 @@ parseCategoryModification = (,)
         <|> pure Union
 
 parseDirective :: Parser Directive
-parseDirective = do
-    overwrite <- isJust <$> optional (symbol "new")
-    _ <- symbol "categories" <* scn
-    cs <- some $
-        DefineFeature <$> parseFeature <|>
-        uncurry DefineCategory <$> (try parseCategoryStandalone <* scn)
-    _ <- symbol "end" <* scn
-    pure $ Categories overwrite cs
+parseDirective = parseCategoriesDirective <|> parseExtraDirective
+  where
+    parseExtraDirective = fmap ExtraGraphemes $
+        symbol "extra" *> many parseGrapheme' <* scn
+
+    parseCategoriesDirective = do
+        overwrite <- isJust <$> optional (symbol "new")
+        _ <- symbol "categories" <* scn
+        cs <- some $
+            DefineFeature <$> parseFeature <|>
+            uncurry DefineCategory <$> (try parseCategoryStandalone <* scn)
+        _ <- symbol "end" <* scn
+        pure $ Categories overwrite cs
 
 parseOptional :: ParseLexeme a => Parser (Lexeme CategorySpec a)
 parseOptional = Optional <$> between (symbol "(") (symbol ")") (some parseLexeme)
