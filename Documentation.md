@@ -313,7 +313,7 @@ For instance, you might be tempted to express regressive voicing assimilation in
 However, the second rule here is incorrect, as is obvious if you expand it out:
 
 ```
-[b d g j v z ž ɣ w r l y m n ñ ŋ] / [p t k c f s š x] / _
+[b d g j v z ž ɣ w r l y m n ñ ŋ] / [p t k c f s š x] / _ [p t k c f s š x]
 ```
 
 Here the nasals and approximants have no voiceless variants;
