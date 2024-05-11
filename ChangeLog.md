@@ -28,6 +28,7 @@
 
 ## v0.2.0
 
+- Allow grapheme to begin with star
 - Allow lexeme sequences in categories using `{…}` syntax
 - Allow backreferences to occur in the environment
 - Allow user to choose separator used between multiple results (previously a space)

@@ -27,10 +27,11 @@
   this module.
 -}
 module Brassica.SoundChange.Apply.Internal
-       ( -- * Types
+       (
+       -- * Lexeme matching
          RuleTag(..)
        , RuleStatus(..)
-       -- * Lexeme matching
+       , MatchOutput(..)
        , match
        , matchMany
        , matchMany'
