@@ -324,11 +324,12 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
     replaceLex ixs (Category (FromElements gs)) mz prev =
         case advanceCategory ixs numCatsMatched of
             (CategoryNumber ci, ixs') ->
-                let i = matchedCatIxs out !! ci in
-                    case gs !? i of
-                        Just (Left g) -> [(ixs', (insert g mz, Just g))]
-                        Just (Right ls) -> go ixs' ls (mz, prev)
-                        Nothing  -> [(ixs', (insert (GMulti "\xfffd") mz, Nothing))]  -- Unicode replacement character
+                case matchedCatIxs out !? ci of
+                    Just i | Just g' <- gs !? i ->
+                        case g' of
+                            Left g -> [(ixs', (insert g mz, Just g))]
+                            Right ls -> go ixs' ls (mz, prev)
+                    _ -> [(ixs', (insert (GMulti "\xfffd") mz, Nothing))]  -- Unicode replacement character
             (Nondeterministic, ixs') -> gs >>= \case
                 Left g -> [(ixs', (insert g mz, Just g))]
                 Right ls -> go ixs' ls (mz, prev)

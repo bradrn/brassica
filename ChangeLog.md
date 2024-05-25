@@ -6,6 +6,7 @@
 
 - Bugfix: nested categories are now matched up correctly between target and replacement
 - Bugfix: Brassica no longer freezes with rules where the target is entirely optional
+- Bugfix: Brassica no longer crashes when a rule refers to nonexistent categories
 - Wildcard symbols can now be used in the replacement of a rule
 - Brassica now applies sound changes to words in parallel, giving a significant speedup on multi-core machines (though not in a webpage)
 - Combining diacritics are now grouped with their base characters as multigraphs
