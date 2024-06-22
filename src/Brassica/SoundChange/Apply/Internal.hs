@@ -139,6 +139,9 @@ instance Semigroup MatchOutput where
 zipWith' :: [a] -> [b] -> (a -> b -> c) -> [c]
 zipWith' xs ys f = zipWith f xs ys
 
+-- Note: see c37afd7028afd4f610d8701799fb6857e2f9b3d9
+-- for motivation for the below functions
+
 insertAt :: Int -> a -> [a] -> [a]
 insertAt n a as = let (xs,ys) = splitAt n as in xs ++ (a:ys)
 
