@@ -207,8 +207,11 @@ ruleParser = do
     s <- getInput
 
     flags <- parseFlags
-    target <- parseLexemes
-    _ <- lexeme $ oneOf "/→"
+    target <- manyTill parseLexeme $ lexeme $ choice
+        [ string "/"
+        , string "→"
+        , string "->"
+        ]
     replacement <- parseLexemes
 
     envs' <- many $ do

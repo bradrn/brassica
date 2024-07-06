@@ -44,9 +44,10 @@ The entire `before _ after` section is called the ‘environment’.
 Note that `before` or `after` (or both) may be absent:
   in that case there are no constraints on what must precede or follow the target.
 
-If you prefer, the initial `/` can be replaced by `→`, as in standard linguistic notation:
+If you prefer, the initial `/` can be replaced by `→` or `->`, as in standard linguistic notation:
 ```
 target → replacement / before _ after
+target -> replacement / before _ after
 ```
 However this guide does not use that variant.
 

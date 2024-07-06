@@ -81,7 +81,7 @@ ace.define('ace/mode/brassica_highlight_rules', function(require, exports, modul
                   regex: ">|#|\\(|\\)|{|}|\\\\|\\^|%|~|\\*|categories|end|new|feature|extra|@[0-9]+|@\\?"
                 },
                 { token: "separator",
-                  regex: "/|_|→"
+                  regex: "/|_|→|->"
                 },
                 { token: "comment",
                   regex: ";.*$"

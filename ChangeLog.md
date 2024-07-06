@@ -12,6 +12,7 @@
 - Combining diacritics are now grouped with their base characters as multigraphs
 - New `extra` directive allows specifying characters which should never be replaced through all category redefinitions
 - Improved placement of etymologies in MDF output
+- Target and replacement can now be separated by `->`
 
 ### Code
 
