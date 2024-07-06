@@ -126,8 +126,8 @@ parseTokeniseAndApplyRulesWrapper ReqRules{..} =
     surroundTable s = "<table>" ++ s ++ "</table>"
 parseTokeniseAndApplyRulesWrapper _ = error "parseTokeniseAndApplyRulesWrapper: unexpected request!"
 
-parFmap :: (a -> b) -> ParseOutput a -> ParseOutput b
-parFmap f = withStrategy (parTraversable rseq) . fmap f
+parFmap :: (a -> b) -> [Component a] -> [Component b]
+parFmap f = withStrategy (parTraversable rseq) . fmap (fmap f)
 
 parseAndBuildParadigmWrapper :: Request -> Response
 parseAndBuildParadigmWrapper ReqParadigm{..} =

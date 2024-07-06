@@ -11,6 +11,7 @@
 - Brassica now applies sound changes to words in parallel, giving a significant speedup on multi-core machines (though not in a webpage)
 - Combining diacritics are now grouped with their base characters as multigraphs
 - New `extra` directive allows specifying characters which should never be replaced through all category redefinitions
+- Improved placement of etymologies in MDF output
 
 ### Code
 
@@ -26,6 +27,12 @@
 - `Brassica.SoundChange.Category.extend` has been renamed to `extendCategories`, and now requires pattern-matching on a `Categories` directive before use
 - `Brassica.SoundChange.Frontend.Internal.parseTokeniseAndApplyRules` no longer implements rule expansion,
    allowing it to take place only once without needing to be repeated for each rule application.
+- MDF support has been comprehensively rewritten:
+  - `Brassica.MDF` has been removed
+  - New module `Brassica.SFM.SFM` implements generic support for SIL Standard Field Marker hierarchies
+  - New module `Brassica.SFM.MDF` describes the standard and alternate MDF hierarchies,
+    and other necessary utilities for working with MDF documents
+  - Some rewrites to `Brassica.SoundChange.Frontend.Internal` to account for the new architecture
 
 ## v0.2.0
 

@@ -11,7 +11,7 @@
 -}
 module Brassica.SoundChange.Frontend.Internal where
 
-import Data.Bifunctor (second)
+import Control.Monad ((<=<))
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Void (Void)
 import GHC.Generics (Generic)
@@ -19,7 +19,8 @@ import GHC.Generics (Generic)
 import Control.DeepSeq (NFData)
 import Text.Megaparsec (ParseErrorBundle)
 
-import Brassica.MDF (MDF, parseMDFWithTokenisation, componentiseMDF, componentiseMDFWordsOnly, duplicateEtymologies)
+import Brassica.SFM.MDF
+import Brassica.SFM.SFM
 import Brassica.SoundChange.Apply
 import Brassica.SoundChange.Apply.Internal (applyChangesWithLog, toPWordLog)
 import Brassica.SoundChange.Tokenise
@@ -30,6 +31,10 @@ data ApplicationMode
     = ApplyRules HighlightMode OutputMode String
     | ReportRulesApplied
     deriving (Show, Eq)
+
+getOutputMode :: ApplicationMode -> OutputMode
+getOutputMode (ApplyRules _ o _) = o
+getOutputMode ReportRulesApplied = WordsOnlyOutput  -- default option
 
 data HighlightMode
     = NoHighlight
@@ -66,21 +71,6 @@ instance Enum OutputMode where
     toEnum 3 = WordsWithProtoOutput
     toEnum _ = undefined
 
-data TokenisationMode = Normal | AddEtymons
-    deriving (Show, Eq)
-instance Enum TokenisationMode where
-    -- used for conversion to and from C, so want control over values
-    fromEnum Normal = 0
-    fromEnum AddEtymons = 1
-
-    toEnum 0 = Normal
-    toEnum 1 = AddEtymons
-    toEnum _ = undefined
-
-tokenisationModeFor :: ApplicationMode -> TokenisationMode
-tokenisationModeFor (ApplyRules _ MDFOutputWithEtymons _) = AddEtymons
-tokenisationModeFor _ = Normal
-
 -- | Output of a single application of rules to a wordlist: either a
 -- list of possibly highlighted words, an applied rules table, or a
 -- parse error.
@@ -102,16 +92,12 @@ instance Enum InputLexiconFormat where
     toEnum 1 = MDF
     toEnum _ = undefined
 
-data ParseOutput a = ParsedRaw [Component a] | ParsedMDF (MDF [Component a])
+data ParseOutput a = ParsedRaw [Component a] | ParsedMDF SFM
     deriving (Show, Functor, Foldable, Traversable)
 
-componentise :: OutputMode -> [a] -> ParseOutput a -> [Component a]
-componentise WordsWithProtoOutput ws (ParsedRaw cs) = intersperseWords ws cs
-componentise _                    _ (ParsedRaw cs) = cs
-componentise MDFOutput            _ (ParsedMDF mdf) = componentiseMDF mdf
-componentise MDFOutputWithEtymons _ (ParsedMDF mdf) = componentiseMDF mdf
-componentise WordsOnlyOutput      _ (ParsedMDF mdf) = componentiseMDFWordsOnly mdf
-componentise WordsWithProtoOutput ws (ParsedMDF mdf) = intersperseWords ws $ componentiseMDFWordsOnly mdf
+componentise :: OutputMode -> [a] -> [Component a] -> [Component a]
+componentise WordsWithProtoOutput ws cs = intersperseWords ws cs
+componentise _                    _  cs = cs
 
 intersperseWords :: [a] -> [Component a] -> [Component a]
 intersperseWords (w:ws) (Word c:cs) =
@@ -122,28 +108,30 @@ intersperseWords _ [] = []
 
 tokeniseAccordingToInputFormat
     :: InputLexiconFormat
-    -> TokenisationMode
+    -> OutputMode
     -> SoundChanges Expanded [Grapheme]
     -> String
-    -> Either (ParseErrorBundle String Void) (ParseOutput PWord)
+    -> Either (ParseErrorBundle String Void) [Component PWord]
 tokeniseAccordingToInputFormat Raw _ cs =
-    fmap ParsedRaw . withFirstCategoriesDecl tokeniseWords cs
-tokeniseAccordingToInputFormat MDF Normal cs =
-    fmap ParsedMDF . withFirstCategoriesDecl parseMDFWithTokenisation cs
-tokeniseAccordingToInputFormat MDF AddEtymons cs =
-    fmap ParsedMDF
-    . second (duplicateEtymologies $ ('*':) . detokeniseWords)
-    . withFirstCategoriesDecl parseMDFWithTokenisation cs
-
-getParsedWords :: ParseOutput a -> [a]
-getParsedWords (ParsedRaw cs) = getWords cs
-getParsedWords (ParsedMDF mdf) = getWords $ componentiseMDF mdf
+    withFirstCategoriesDecl tokeniseWords cs
+tokeniseAccordingToInputFormat MDF MDFOutputWithEtymons cs =
+    withFirstCategoriesDecl tokeniseMDF cs <=<
+    -- TODO don't hard-code hierarchy and filename
+    fmap (fromTree . duplicateEtymologies ('*':) . toTree mdfHierarchy)
+    . parseSFM ""
+tokeniseAccordingToInputFormat MDF o cs = \input -> do
+    sfm <- parseSFM "" input
+    ws <- withFirstCategoriesDecl tokeniseMDF cs sfm
+    pure $ case o of
+        MDFOutput -> ws
+        _ ->  -- need to extract words for other output modes
+            Word <$> getWords ws
 
 -- | Top-level dispatcher for an interactive frontend: given a textual
 -- wordlist and a list of sound changes, returns the result of running
 -- the changes in the specified mode.
 parseTokeniseAndApplyRules
-    :: (forall a b. (a -> b) -> ParseOutput a -> ParseOutput b)  -- ^ mapping function to use (for parallelism)
+    :: (forall a b. (a -> b) -> [Component a] -> [Component b])  -- ^ mapping function to use (for parallelism)
     -> SoundChanges Expanded [Grapheme] -- ^ changes
     -> String       -- ^ words
     -> InputLexiconFormat
@@ -151,11 +139,10 @@ parseTokeniseAndApplyRules
     -> Maybe [Component PWord]  -- ^ previous results
     -> ApplicationOutput PWord (Statement Expanded [Grapheme])
 parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
-    let tmode = tokenisationModeFor mode in
-    case tokeniseAccordingToInputFormat intype tmode statements ws of
+    case tokeniseAccordingToInputFormat intype (getOutputMode mode) statements ws of
         Left e -> ParseError e
         Right toks
-          | ws' <- getParsedWords toks
+          | ws' <- getWords toks
           -> case mode of
             ReportRulesApplied ->
                 AppliedRulesTable $ mapMaybe toPWordLog $ concat $

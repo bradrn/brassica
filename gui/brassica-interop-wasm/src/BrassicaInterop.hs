@@ -83,7 +83,7 @@ parseTokeniseAndApplyRules_hs
                         InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
                         MismatchedLengths -> "Mismatched lengths in feature definition"
                 Right statements' ->
-                    case parseTokeniseAndApplyRules fmap statements' wsText infmt mode prev of
+                    case parseTokeniseAndApplyRules (fmap.fmap) statements' wsText infmt mode prev of
                         ParseError e -> newStableCStringLen $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
                         HighlightedWords result -> do
                             writeIORef prevRef $ Just $ (fmap.fmap) fst result

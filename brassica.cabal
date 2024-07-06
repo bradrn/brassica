@@ -33,7 +33,8 @@ library
                  , Brassica.SoundChange.Parse
                  , Brassica.SoundChange.Tokenise
                  , Brassica.SoundChange.Types
-                 , Brassica.MDF
+                 , Brassica.SFM.MDF
+                 , Brassica.SFM.SFM
                  , Brassica.Paradigm
   other-modules:   Brassica.Paradigm.Apply
                  , Brassica.Paradigm.Parse
