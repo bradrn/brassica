@@ -36,13 +36,16 @@ main = defaultMain
       [ bench "parse" $ nf parseSoundChanges manyChanges
       , bench "parseRun" $ case parseSoundChanges manyChanges of
             Left _ -> error "invalid changes file"
-            Right cs -> nf (parseTokeniseAndApplyRules
-                    fmap
-                    cs
-                    manyWords
-                    Raw
-                    (ApplyRules NoHighlight WordsOnlyOutput "/"))
-                    Nothing
+            Right statements ->
+                case expandSoundChanges statements of
+                    Left _ -> error "invalid changes file"
+                    Right cs -> nf (parseTokeniseAndApplyRules
+                        (fmap . fmap)
+                        cs
+                        manyWords
+                        Raw
+                        (ApplyRules NoHighlight WordsOnlyOutput "/"))
+                        Nothing
       ]
     ]
   where

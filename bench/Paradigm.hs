@@ -3,6 +3,7 @@
 module Main where
 
 import Criterion.Main (bench, nf, defaultMain)
+import Data.Foldable (toList)
 
 import Brassica.Paradigm
 
@@ -14,7 +15,8 @@ main = defaultMain
     , bench "large" $ nf (build largeParadigm) largeWords
     ]
   where
-    build = concatMap . applyParadigm
+    build :: Paradigm -> [String] -> [String]
+    build p = concatMap $ (toList .) $ applyParadigm p
 
 smallParadigm :: Paradigm
 smallParadigm =
