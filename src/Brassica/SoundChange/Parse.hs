@@ -233,6 +233,9 @@ ruleParser = do
   where
     notNewline c = (c /= '\n') && (c /= '\r')
 
+filterParser :: Parser (Filter CategorySpec)
+filterParser = fmap (uncurry Filter) $ match $ symbol "filter" *> parseLexemes <* optional scn
+
 -- | Parse a 'String' in Brassica sound change syntax into a
 -- 'Rule'. Returns 'Left' if the input string is malformed.
 --
@@ -246,4 +249,5 @@ parseSoundChanges = runParser (scn *> parser <* eof) ""
   where
     parser = many $
         DirectiveS <$> parseDirective
+        <|> FilterS <$> filterParser
         <|> RuleS <$> ruleParser

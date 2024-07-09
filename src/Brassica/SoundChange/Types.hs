@@ -41,6 +41,7 @@ module Brassica.SoundChange.Types
        , Flags(..)
        , defFlags
        -- * Statements
+       , Filter(..)
        , Statement(..)
        , plaintext'
        , SoundChanges
@@ -252,9 +253,20 @@ data Rule c = Rule
 deriving instance (forall a. Show (c a)) => Show (Rule c)
 deriving instance (forall a. NFData (c a)) => NFData (Rule c)
 
--- | A 'Statement' can be either a single sound change rule, or a
--- directive (e.g. category definition).
-data Statement c decl = RuleS (Rule c) | DirectiveS decl
+-- | A filter, constraining the output to not match the given elements.
+-- (The 'String' is the plaintext, as with 'Rule'.)
+data Filter c = Filter String [Lexeme c 'Matched]
+    deriving (Generic)
+
+deriving instance (forall a. Show (c a)) => Show (Filter c)
+deriving instance (forall a. NFData (c a)) => NFData (Filter c)
+
+-- | A 'Statement' can be a single sound change rule, a filter,
+-- or a directive (e.g. category definition).
+data Statement c decl
+    = RuleS (Rule c)
+    | FilterS (Filter c)
+    | DirectiveS decl
     deriving (Generic)
 
 deriving instance (forall a. Show (c a), Show decl) => Show (Statement c decl)
@@ -264,6 +276,7 @@ deriving instance (forall a. NFData (c a), NFData decl) => NFData (Statement c d
 -- @"<directive>"@ for all 'DirectiveS' inputs.
 plaintext' :: Statement c decl -> String
 plaintext' (RuleS r) = plaintext r
+plaintext' (FilterS (Filter p _)) = p
 plaintext' (DirectiveS _) = "<directive>"
 
 -- | A set of 'SoundChanges' is simply a list of 'Statement's.

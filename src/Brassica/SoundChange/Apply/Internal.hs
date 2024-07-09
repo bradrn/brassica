@@ -19,7 +19,6 @@
 {-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
-{-# LANGUAGE ViewPatterns          #-}
 
 {-| __Warning:__ This module is __internal__, and does __not__ follow
   the Package Versioning Policy. It may be useful for extending
@@ -481,6 +480,16 @@ applyRule r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
             Just mz'' -> repeatRule m mz''
             Nothing -> [mz']
 
+-- | Check if a 'MultiZipper' matches a 'Filter'.
+filterMatches :: Filter Expanded -> MultiZipper RuleTag Grapheme -> Bool
+filterMatches (Filter _ ls) = go . toBeginning
+  where
+    go mz =
+        let mzs = matchMany' Nothing ls mz
+        in case mzs of
+            [] -> maybe False go $ fwd mz  -- try next position if there is one
+            _ -> True  -- filter has matched
+
 -- | Check that the 'MultiZipper' contains only graphemes listed in
 -- the given 'CategoriesDecl', replacing all unlisted graphemes with
 -- U+FFFD.
@@ -489,13 +498,16 @@ checkGraphemes gs = fmap $ \case
     GBoundary -> GBoundary
     g -> if g `elem` gs then g else GMulti "\xfffd"
 
--- | Apply a 'Statement' to a 'MultiZipper'. This is a simple wrapper
--- around 'applyRule' and 'checkGraphemes'.
+-- | Apply a 'Statement' to a 'MultiZipper', returning zero, one or
+-- more results.
 applyStatement
     :: Statement Expanded [Grapheme]
     -> MultiZipper RuleTag Grapheme
     -> [MultiZipper RuleTag Grapheme]
 applyStatement (RuleS r) mz = applyRule r mz
+applyStatement (FilterS f) mz
+    | filterMatches f mz = []
+    | otherwise = [mz]
 applyStatement (DirectiveS gs) mz = [checkGraphemes gs mz]
 
 -- | Apply a single 'Rule' to a word.
@@ -526,7 +538,7 @@ applyStatementStr st =
 data LogItem r = ActionApplied
     { action :: r
     , input :: PWord
-    , output :: PWord
+    , output :: Maybe PWord
     } deriving (Show, Functor, Generic, NFData)
 
 -- | Logs the evolution of a 'PWord' as various actions are applied to
@@ -534,7 +546,7 @@ data LogItem r = ActionApplied
 data PWordLog r = PWordLog
     { initialWord :: PWord
     -- ^ The initial word, before any actions have been applied
-    , derivations :: [(PWord, r)]
+    , derivations :: [(Maybe PWord, r)]
     -- ^ The state of the word after each action @r@, stored alongside
     -- the action which was applied at each point
     } deriving (Show, Functor, Generic, NFData)
@@ -567,7 +579,7 @@ reportAsHtmlRows render item = go (concatWithBoundary $ initialWord item) (deriv
     go _ [] = ""
     go cell1 ((output, action) : ds) =
         ("<tr><td>" ++ cell1 ++ "</td><td>&rarr;</td><td>"
-         ++ concatWithBoundary output
+         ++ maybe "<i>deleted</i>" concatWithBoundary output
          ++ "</td><td>(" ++ render action ++ ")</td></tr>")
         ++ go "" ds
 
@@ -590,8 +602,10 @@ reportAsText :: (r -> String) -> PWordLog r -> String
 reportAsText render item = unlines $
     concatWithBoundary (initialWord item) : fmap toLine (alignWithPadding $ derivations item)
   where
+    alignWithPadding :: [(Maybe PWord, b)] -> [([Char], b)]
     alignWithPadding ds =
-        let (fmap concatWithBoundary -> outputs, actions) = unzip ds
+        let (rawOutputs, actions) = unzip ds
+            outputs = maybe "(deleted)" concatWithBoundary <$> rawOutputs
             maxlen = maximum $ length <$> outputs
             padded = outputs <&> \o -> o ++ replicate (maxlen - length o) ' '
         in zip padded actions
@@ -606,8 +620,9 @@ applyStatementWithLog
     -> PWord
     -> [LogItem (Statement Expanded [Grapheme])]
 applyStatementWithLog st w = case applyStatementStr st w of
-    [w'] -> if w' == w then [] else [ActionApplied st w w']
-    r -> ActionApplied st w <$> r
+    [] -> [ActionApplied st w Nothing]
+    [w'] | w' == w -> []
+    r -> ActionApplied st w . Just <$> r
 
 -- | Apply 'SoundChanges' to a word. For each possible result, returns
 -- a 'LogItem' for each 'Statement' which altered the input.
@@ -619,8 +634,11 @@ applyChangesWithLog [] _ = [[]]
 applyChangesWithLog (st:sts) w =
     case applyStatementWithLog st w of
         [] -> applyChangesWithLog sts w
-        items -> items >>= \l@ActionApplied{output=w'} ->
-            (l :) <$> applyChangesWithLog sts w'
+        outputActions -> outputActions >>= \l@ActionApplied{output} ->
+            case output of
+                Just w' -> (l :) <$> applyChangesWithLog sts w'
+                -- apply no further changes to a deleted word
+                Nothing -> [[l]]
 
 -- | Apply 'SoundChanges' to a word, returning an 'PWordLog'
 -- for each possible result.
@@ -633,20 +651,22 @@ applyChangesWithLogs scs w = mapMaybe toPWordLog $ applyChangesWithLog  scs w
 -- | Apply a set of 'SoundChanges' to a word.
 applyChanges :: SoundChanges Expanded [Grapheme] -> PWord -> [PWord]
 applyChanges sts w =
-    lastOutput <$> applyChangesWithLog sts w
+    mapMaybe lastOutput $ applyChangesWithLog sts w
   where
-    lastOutput [] = w
+    -- If no changes were applied, output is same as input
+    lastOutput [] = Just w
     lastOutput ls = output $ last ls
 
 -- | Apply 'SoundChanges' to a word returning the final results, as
 -- well as a boolean value indicating whether the word should be
 -- highlighted in a UI due to changes from its initial value. (Note
 -- that this accounts for 'highlightChanges' values.)
-applyChangesWithChanges :: SoundChanges Expanded [Grapheme] -> PWord -> [(PWord, Bool)]
+applyChangesWithChanges :: SoundChanges Expanded [Grapheme] -> PWord -> [(Maybe PWord, Bool)]
 applyChangesWithChanges sts w = applyChangesWithLog sts w <&> \case
-    [] -> (w, False)
+    [] -> (Just w, False)
     logs -> (output $ last logs, hasChanged logs)
   where
     hasChanged = any $ \case
-        ActionApplied{action=RuleS rule} -> highlightChanges $ flags rule
-        ActionApplied{action=DirectiveS _} -> True
+        ActionApplied (RuleS rule) _ _ -> highlightChanges $ flags rule
+        ActionApplied (FilterS _) _ _ -> False  -- cannot highlight nonexistent word
+        ActionApplied (DirectiveS _) _ _ -> True

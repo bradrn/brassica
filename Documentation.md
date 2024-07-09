@@ -682,6 +682,12 @@ On the other hand, we can notice that there are two `ʔ`s in a row, so by this r
   proceeding on to the rest of the word gives the result ⟨ʔan⟩.
 In this situation, Brassica will report both ⟨an⟩ and ⟨ʔan⟩, to account for all possibilities.
 
+On occasion, one might end up with too many results.
+Brassica provides *filters* to remove all results which match a condition.
+For instance, specifying `filter V V` will remove any word which matches `V V`:
+  that is, any word with a sequence of two vowels.
+Note that this includes words with no alternative results — so be careful when using filters!
+
 ### Features
 
 Sound changes often manipulate suprasegmental features such as stress or tone.

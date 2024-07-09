@@ -115,6 +115,9 @@ expandRule cs r = Rule
         <$> traverse (expandLexeme cs) e1
         <*> traverse (expandLexeme cs) e2
 
+expandFilter :: Categories -> Filter CategorySpec -> Either ExpandError (Filter Expanded)
+expandFilter cs (Filter p f) = Filter p <$> traverse (expandLexeme cs) f
+
 extendCategories
     :: Categories
     -> (Bool, [CategoryDefinition])  -- ^ The fields of a v'Categories' directive
@@ -159,6 +162,9 @@ expandSoundChanges = fmap catMaybes . flip evalStateT (M.empty, []) . traverse g
     go (RuleS r) = do
         cs <- gets fst
         lift $ Just . RuleS <$> expandRule cs r
+    go (FilterS f) = do
+        cs <- gets fst
+        lift $ Just . FilterS <$> expandFilter cs f
     go (DirectiveS (ExtraGraphemes extra)) = do
         (cs, _) <- get
         put (cs, extra)

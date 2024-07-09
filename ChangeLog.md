@@ -13,6 +13,7 @@
 - New `extra` directive allows specifying characters which should never be replaced through all category redefinitions
 - Improved placement of etymologies in MDF output
 - Target and replacement can now be separated by `->`
+- New `filter` directive allows removing unwanted results
 
 ### Code
 
@@ -34,6 +35,11 @@
   - New module `Brassica.SFM.MDF` describes the standard and alternate MDF hierarchies,
     and other necessary utilities for working with MDF documents
   - Some rewrites to `Brassica.SoundChange.Frontend.Internal` to account for the new architecture
+- New type `Brassica.SoundChange.Types.Filter`, resulting in other changes:
+  - New `FilterS` constructor added to `Brassica.SoundChange.Types.Statement`
+  - `LogItem` and `PWordLog` (in `Brassica.SoundChange.Apply.Internal`) now use `Maybe PWord`
+    to show cases where a word was deleted
+  - Corresponding changes to parsing, expansion and application
 
 ## v0.2.0
 

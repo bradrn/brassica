@@ -25,6 +25,7 @@ import Brassica.SoundChange.Apply
 import Brassica.SoundChange.Apply.Internal (applyChangesWithLog, toPWordLog)
 import Brassica.SoundChange.Tokenise
 import Brassica.SoundChange.Types
+import Data.Bifunctor (first)
 
 -- | Rule application mode of the SCA.
 data ApplicationMode
@@ -157,8 +158,9 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
                         (thisWord, thisWord /= prevWord)
             ApplyRules DifferentToInput mdfout sep ->
                 HighlightedWords $ concatMap (splitMultipleResults sep) $
-                    componentise mdfout (fmap (pure . (,False)) ws') $
-                        parFmap (applyChangesWithChanges statements) toks
+                    (fmap.fmap) (mapMaybe extractMaybe) $
+                        componentise mdfout (fmap (pure . first Just . (,False)) ws') $
+                            parFmap (applyChangesWithChanges statements) toks
             ApplyRules NoHighlight mdfout sep ->
                 HighlightedWords $ (fmap.fmap) (,False) $ concatMap (splitMultipleResults sep) $
                     componentise mdfout (fmap pure ws') $
@@ -192,3 +194,6 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
     unsafeCastComponent (Word _) = error "unsafeCastComponent: attempted to cast a word!"
     unsafeCastComponent (Separator s) = Separator s
     unsafeCastComponent (Gloss s) = Gloss s
+
+    extractMaybe (Just a, b) = Just (a, b)
+    extractMaybe (Nothing, _) = Nothing
