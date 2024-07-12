@@ -18,6 +18,7 @@
 ### Code
 
 - `optparse-applicative` lower bound tightened to 0.17.1
+- Bugfix: `Brassica.SoundChange.Apply.applyRuleStr` is no longer seriously broken
 - `Brassica.SoundChange.Apply.Internal.applyOnce` now returns a `RuleStatus` value with more detailed information about the rule application, which is now used by `Brassica.SoundChange.Apply.Internal.setupForNextApplication`
 - `Wildcard` and `Kleene` no longer have `OneOf 'Target 'Env` constraint
 - `OneOf` type family is no longer used and has been removed

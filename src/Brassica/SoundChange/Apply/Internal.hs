@@ -517,7 +517,12 @@ applyStatement (DirectiveS gs) mz = [checkGraphemes gs mz]
 -- directly.
 applyRuleStr :: Rule Expanded -> PWord -> [PWord]
 -- Note: 'fromJust' is safe here as 'apply' should always succeed
-applyRuleStr r s = nubOrd $ fmap toList $ applyRule r $ fromListStart s
+applyRuleStr r =
+    addBoundaries
+    >>> fromListStart
+    >>> applyRule r
+    >>> fmap (toList >>> removeBoundaries)
+    >>> nubOrd
 
 -- | Apply a single 'Statement' to a word.
 --
