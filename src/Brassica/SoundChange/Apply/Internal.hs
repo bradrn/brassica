@@ -408,7 +408,10 @@ matchRuleAtPoint target (env1,env2) mz = flip runRuleAp mz $ do
             _ <- RuleAp $ matchMany env1Out (listToMaybe $ matchedGraphemes matchResult) env2
             return matchResult
 
-data RuleStatus = SuccessNormal | SuccessEpenthesis | Failure
+data RuleStatus
+    = SuccessNormal      -- ^ Rule was successful, no need for special handling
+    | SuccessEpenthesis  -- ^ Rule was successful, but cursor was not advanced: need to avoid infinite loop
+    | Failure            -- ^ Rule failed
     deriving (Eq, Show)
 
 -- | Given a 'Rule', determine if the rule matches at the current
@@ -434,7 +437,9 @@ applyOnce r@Rule{target, replacement, exception} =
                         modifyMay $ seek TargetStart
                         modifyM $ mkReplacement out replacement
                         return $
-                            if null (matchedGraphemes out)
+                            -- An epenthesis rule will cause an infinite loop
+                            -- if it matched no graphemes before the replacement
+                            if null (matchedGraphemes out) && null (fst env)
                                 then SuccessEpenthesis
                                 else SuccessNormal
             Nothing -> modifyMay (seek AppStart) >> go envs

@@ -14,6 +14,8 @@
 - Improved placement of etymologies in MDF output
 - Target and replacement can now be separated by `->`
 - New `filter` directive allows removing unwanted results
+- An improved heuristic for avoiding infinite loops in epenthesis rules,
+    such that e.g. `/h/a_a` yields `aaaa`→`ahahaha` rather than previous unexpected *`ahaaha`
 
 ### Code
 
