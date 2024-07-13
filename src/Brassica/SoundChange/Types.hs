@@ -323,8 +323,9 @@ data CategoryDefinition
 -- is not actually a sound change
 
 data Directive
-    = Categories Bool [CategoryDefinition]
-      -- ^ @categories … end@ or @new categories … end@
+    = Categories Bool Bool [CategoryDefinition]
+      -- ^ @categories … end@: first 'Bool' for @new@,
+      -- second for @noreplace@
     | ExtraGraphemes [String]
       -- ^ @extra …@
     deriving (Show, Eq, Ord, Generic, NFData)

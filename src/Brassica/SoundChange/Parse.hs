@@ -124,12 +124,14 @@ parseDirective = parseCategoriesDirective <|> parseExtraDirective
 
     parseCategoriesDirective = do
         overwrite <- isJust <$> optional (symbol "new")
-        _ <- symbol "categories" <* scn
+        _ <- symbol "categories"
+        noreplace <- isJust <$> optional (symbol "noreplace")
+        scn
         cs <- some $
             DefineFeature <$> parseFeature <|>
             uncurry DefineCategory <$> (try parseCategoryStandalone <* scn)
         _ <- symbol "end" <* scn
-        pure $ Categories overwrite cs
+        pure $ Categories overwrite noreplace cs
 
 parseOptional :: ParseLexeme a => Parser (Lexeme CategorySpec a)
 parseOptional = Optional <$> between (symbol "(") (symbol ")") (some parseLexeme)

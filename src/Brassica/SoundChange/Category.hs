@@ -169,11 +169,13 @@ expandSoundChanges = fmap catMaybes . flip evalStateT (M.empty, []) . traverse g
         (cs, _) <- get
         put (cs, extra)
         pure Nothing
-    go (DirectiveS (Categories overwrite defs)) = do
+    go (DirectiveS (Categories overwrite noreplace defs)) = do
         (cs, extra) <- get
         cs' <- lift $ extendCategories cs (overwrite, defs)
         put (cs', extra)
-        pure $ Just $ DirectiveS $ fmap GMulti extra ++ mapMaybe left (values cs')
+        pure $ if noreplace
+            then Nothing
+            else Just $ DirectiveS $ fmap GMulti extra ++ mapMaybe left (values cs')
 
     left (Left l) = Just l
     left (Right _) = Nothing

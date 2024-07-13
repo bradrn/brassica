@@ -17,6 +17,8 @@
 - An improved heuristic for avoiding infinite loops in epenthesis rules,
     such that e.g. `/h/a_a` yields `aaaa`→`ahahaha` rather than previous unexpected *`ahaaha`
 - New `-??` flag to allow for per-occurrence sporadicity
+- `categories` directive can now be specified `noreplace`
+    to prevent replacement of unknown graphemes with U+FFFD (�)
 
 ### Code
 
@@ -45,6 +47,8 @@
     to show cases where a word was deleted
   - Corresponding changes to parsing, expansion and application
 - Rule sporadicity is now represented by a dedicated type, `Brassica.SoundChange.Types.Sporadicity`
+- `Categories` constructor (in `Brassica.SoundChange.Types.Directive`)
+    now has an extra field for `noreplace` directive
 
 ## v0.2.0
 

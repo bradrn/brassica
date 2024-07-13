@@ -250,6 +250,12 @@ Thus, for instance, a sound change which makes used of morpheme and clitic bound
 extra - =
 ```
 
+Finally, if you dislike this behaviour of replacing unknown graphemes by �,
+  you can add the instruction `noreplace` after `categories`.
+(This can still be combined with `new` before `categories`.)
+In this case Brassica will simply leave unknown graphemes unchanged.
+Note that this is not recommended, as it makes mistakes harder to find!
+
 ### Operations on categories
 
 It is possible to reference predefined categories in later category expressions.
