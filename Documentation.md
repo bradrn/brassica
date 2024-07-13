@@ -652,6 +652,12 @@ For rules with this flag, two outputs are generated:
 For instance, the rule `-? i / / a _ #` applied to the word ⟨kanai⟩ will produce the two outputs ⟨kanai⟩ and ⟨kana⟩.
 This allows us to manually inspect both outputs, so we can decide which one we prefer for later usage.
 
+For even more sporadicity the flag `-??` can be used.
+This applies the rule *per-occurrence*, not *per-word*.
+Thus, for instance, the rule `-? o / u` applied to ⟨koko⟩ will produce only two outputs, ⟨koko⟩ and ⟨kuku⟩;
+  changing it to `-?? o / u` will add two more outputs to these, ⟨koku⟩ and ⟨kuko⟩,
+  where the rule has been applied to one occurrence of ⟨o⟩ but not the other.
+
 We can also produce rules with two or more different outputs, where all the outputs have undergone some change.
 One way of doing this involves categories or optional elements in the replacement which cannot be matched with any in the target.
 As mentioned above, categories or optional elements used in the replacement are matched one-to-one with corresponding elements in the target.

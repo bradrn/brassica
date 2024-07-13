@@ -16,6 +16,7 @@
 - New `filter` directive allows removing unwanted results
 - An improved heuristic for avoiding infinite loops in epenthesis rules,
     such that e.g. `/h/a_a` yields `aaaa`→`ahahaha` rather than previous unexpected *`ahaaha`
+- New `-??` flag to allow for per-occurrence sporadicity
 
 ### Code
 
@@ -43,6 +44,7 @@
   - `LogItem` and `PWordLog` (in `Brassica.SoundChange.Apply.Internal`) now use `Maybe PWord`
     to show cases where a word was deleted
   - Corresponding changes to parsing, expansion and application
+- Rule sporadicity is now represented by a dedicated type, `Brassica.SoundChange.Types.Sporadicity`
 
 ## v0.2.0
 

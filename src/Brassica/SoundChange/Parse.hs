@@ -196,7 +196,8 @@ parseFlags = runPermutation $ Flags
     <$> toPermutation (isNothing <$> optional (symbol "-x"))
     <*> toPermutationWithDefault LTR ((LTR <$ symbol "-ltr") <|> (RTL <$ symbol "-rtl"))
     <*> toPermutation (isJust <$> optional (symbol "-1"))
-    <*> toPermutation (isJust <$> optional (symbol "-?"))
+    <*> toPermutationWithDefault ApplyAlways
+        ((PerApplication <$ symbol "-??") <|> (PerWord <$ symbol "-?"))
 
 ruleParser :: Parser (Rule CategorySpec)
 ruleParser = do

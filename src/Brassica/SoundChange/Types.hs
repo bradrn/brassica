@@ -38,6 +38,7 @@ module Brassica.SoundChange.Types
        , Rule(..)
        , Environment
        , Direction(..)
+       , Sporadicity(..)
        , Flags(..)
        , defFlags
        -- * Statements
@@ -207,13 +208,23 @@ type Environment c = ([Lexeme c 'Matched], [Lexeme c 'Matched])
 data Direction = LTR | RTL
     deriving (Eq, Show, Generic, NFData)
 
+-- | Specifies how regularly a rule should be applied.
+data Sporadicity
+    = ApplyAlways
+    -- ^ Always apply the rule
+    | PerWord
+    -- ^ Apply sporadically, either to the whole word or to none of the word
+    | PerApplication
+    -- ^ Apply sporadically, at each application site
+    deriving (Eq, Show, Generic, NFData)
+
 -- | Flags which can be enabled, disabled or altered on a 'Rule' to
 -- change how it is applied.
 data Flags = Flags
   { highlightChanges :: Bool
   , applyDirection   :: Direction
   , applyOnceOnly    :: Bool
-  , sporadic         :: Bool
+  , sporadic         :: Sporadicity
   } deriving (Show, Generic, NFData)
 
 -- | A default selection of flags which are appropriate for most
@@ -235,7 +246,7 @@ defFlags = Flags
     { highlightChanges = True
     , applyDirection = LTR
     , applyOnceOnly = False
-    , sporadic = False
+    , sporadic = ApplyAlways
     }
 
 -- | A single sound change rule: in Brassica sound-change syntax with all elements specified,

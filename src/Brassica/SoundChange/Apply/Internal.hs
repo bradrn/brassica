@@ -86,9 +86,9 @@ data RuleTag
 -- too).
 newtype RuleAp a = RuleAp { runRuleAp :: MultiZipper RuleTag Grapheme -> [(a, MultiZipper RuleTag Grapheme)] }
     deriving (Functor, Applicative, Monad, MonadState (MultiZipper RuleTag Grapheme)
-#if __GLASGOW_HASKELL__ > 806
+
     , MonadFail
-#endif
+
     )
       via (StateT (MultiZipper RuleTag Grapheme) [])
 
@@ -433,9 +433,15 @@ applyOnce r@Rule{target, replacement, exception} =
                     if maybe True (`elem` exs) p
                     then return Failure
                     else do
+                        originalWord <- get
                         modifyMay $ delete (TargetStart, TargetEnd)
                         modifyMay $ seek TargetStart
-                        modifyM $ mkReplacement out replacement
+                        modifyM $ \w ->
+                            let replacedWords = mkReplacement out replacement w
+                            in case sporadic (flags r) of
+                                -- make sure to re-insert original word
+                                PerApplication -> originalWord : replacedWords
+                                _ -> replacedWords
                         return $
                             -- An epenthesis rule will cause an infinite loop
                             -- if it matched no graphemes before the replacement
@@ -470,9 +476,9 @@ applyRule r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
             LTR -> toBeginning mz
             RTL -> toEnd mz
         result = repeatRule (applyOnce r) startingPos
-    in if sporadic $ flags r
-          then mz : result
-          else result
+    in case sporadic (flags r) of
+        PerWord -> mz : result
+        _ -> result  -- PerApplication handled in 'applyOnce'
   where
     repeatRule
         :: StateT (MultiZipper RuleTag Grapheme) [] RuleStatus
