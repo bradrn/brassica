@@ -15,6 +15,7 @@ import Control.Monad ((<=<))
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Void (Void)
 import GHC.Generics (Generic)
+import Myers.Diff (getDiff, PolyDiff(..))
 
 import Control.DeepSeq (NFData)
 import Text.Megaparsec (ParseErrorBundle)
@@ -154,8 +155,9 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
                       componentise mdfout (fmap pure ws') $
                           parFmap (applyChanges statements) toks
                 in HighlightedWords $
-                    zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
-                        (thisWord, thisWord /= prevWord)
+                    mapMaybe polyDiffToHighlight $ getDiff (fromMaybe [] prev) result
+                    -- zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
+                    --     (thisWord, thisWord /= prevWord)
             ApplyRules DifferentToInput mdfout sep ->
                 HighlightedWords $ concatMap (splitMultipleResults sep) $
                     (fmap.fmap) (mapMaybe extractMaybe) $
@@ -166,29 +168,13 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
                     componentise mdfout (fmap pure ws') $
                         parFmap (applyChanges statements) toks
   where
-    -- Zips two tokenised input strings. Compared to normal 'zipWith'
-    -- this has two special properties:
-    --
-    --   * It only zips v'Word's. Any non-v'Word's in the first argument
-    --     will be passed unaltered to the output; any in the second
-    --     argument will be ignored.
-    --
-    --   * The returned list will have the same number of elements as does
-    --     the first argument. If a v'Word' in the first argument has no
-    --     corresponding v'Word' in the second, the zipping function is
-    --     called using the default @b@ value given as the third argument.
-    --     Such a v'Word' in the second argument will simply be ignored.
-    --
-    -- Note the persistent assymetry in the definition: each 'Component'
-    -- in the first argument will be reflected in the output, but each in
-    -- the second argument may be ignored.
-    zipWithComponents :: [Component a] -> [Component b] -> b -> (a -> b -> c) -> [Component c]
-    zipWithComponents []             _            _  _ = []
-    zipWithComponents as            []            bd f = (fmap.fmap) (`f` bd) as
-    zipWithComponents (Word a:as)   (Word b:bs)   bd f = Word (f a b) : zipWithComponents as bs bd f
-    zipWithComponents as@(Word _:_) (_:bs)        bd f = zipWithComponents as bs bd f
-    zipWithComponents (a:as)        bs@(Word _:_) bd f = unsafeCastComponent a : zipWithComponents as bs bd f
-    zipWithComponents (a:as)        (_:bs)        bd f = unsafeCastComponent a : zipWithComponents as bs bd f
+    -- highlight words in 'Second' but not 'First'
+    polyDiffToHighlight :: PolyDiff (Component a) (Component a) -> Maybe (Component (a, Bool))
+    polyDiffToHighlight (First _) = Nothing
+    polyDiffToHighlight (Second (Word a)) = Just $ Word (a, True)
+    polyDiffToHighlight (Second c) = Just $ unsafeCastComponent c
+    polyDiffToHighlight (Both _ (Word a)) = Just $ Word (a, False)
+    polyDiffToHighlight (Both _ c) = Just $ unsafeCastComponent c
 
     unsafeCastComponent :: Component a -> Component b
     unsafeCastComponent (Word _) = error "unsafeCastComponent: attempted to cast a word!"

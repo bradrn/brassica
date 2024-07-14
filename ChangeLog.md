@@ -19,6 +19,8 @@
 - New `-??` flag to allow for per-occurrence sporadicity
 - `categories` directive can now be specified `noreplace`
     to prevent replacement of unknown graphemes with U+FFFD (�)
+- Improved method for highlighting words ‘different to last run’
+    (now using the Myers diff algorithm)
 
 ### Code
 
