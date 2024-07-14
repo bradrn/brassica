@@ -13,6 +13,11 @@ RulesHighlighter::RulesHighlighter(QTextDocument *parent)
     formats.append(separatorFormat);
     patterns.append(QRegularExpression("/|_|→|->"));
 
+    QTextCharFormat flagFormat;
+    flagFormat.setForeground(QColor(0, 128, 128));
+    formats.append(flagFormat);
+    patterns.append(QRegularExpression(R"(^-(x|1|ltr|rtl|\?\?|\?))"));
+
     QTextCharFormat commentFormat;
     commentFormat.setForeground(QColor(0, 128, 0));
     commentFormat.setFontItalic(true);

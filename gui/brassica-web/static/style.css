@@ -127,6 +127,9 @@ textarea.input-box:not(.lib-config) {
 .ace-tm .ace_separator {
     font-weight: bold;
 }
+.ace-tm .ace_flag {
+    color: rgb(0,128,128);
+}
 .ace-tm .ace_category,
 .regex_category {
     background-color: rgb(245,245,220);

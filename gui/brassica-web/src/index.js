@@ -83,6 +83,10 @@ ace.define('ace/mode/brassica_highlight_rules', function(require, exports, modul
                 { token: "separator",
                   regex: "/|_|→|->"
                 },
+                {
+                  token: "flag",
+                  regex: "^-(x|1|ltr|rtl|\\?\\?|\\?)"
+                },
                 { token: "comment",
                   regex: ";.*$"
                 },
