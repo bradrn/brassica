@@ -22,6 +22,7 @@
 - Improved method for highlighting words ‘different to last run’
     (now using the Myers diff algorithm)
 - Added syntax highlighting for flags
+- Sound change rules can now be specified on the command-line using new `--eval` or `-e` flag
 
 ### Code
 

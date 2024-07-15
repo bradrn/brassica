@@ -19,7 +19,10 @@ main :: IO ()
 main = execParser opts >>= \case
     Server -> serve
     Options{..} -> do
-        changesText <- unpack . decodeUtf8 <$> B.readFile rulesFile
+        changesText <-
+            case rules of
+                FromFile rulesFile -> unpack . decodeUtf8 <$> B.readFile rulesFile
+                FromEval s -> pure s
 
         case parseSoundChanges changesText of
             Left err ->
@@ -44,8 +47,12 @@ main = execParser opts >>= \case
     args = batchArgs <|> serverArgs
     serverArgs = flag' Server (long "server" <> help "Run server (for internal use only)")
     batchArgs = Options
-        <$> strArgument
-            (metavar "RULES" <> help "File containing sound changes")
+        <$> asum
+            [ FromEval <$> strOption
+                (long "eval" <> short 'e' <> help "Literal sound change(s) to evaluate (newline-separated, as in rules file)")
+            , FromFile <$> strArgument
+                (metavar "RULES" <> help "File containing sound changes")
+            ]
         <*> flag Raw MDF
             (long "mdf" <> help "Parse input words in MDF format")
         <*> (asum
@@ -78,8 +85,11 @@ main = execParser opts >>= \case
     withSinkFileIf :: Maybe FilePath -> (ConduitM B.ByteString o IO () -> IO a) -> IO a
     withSinkFileIf = maybe ($ stdoutC) withSinkFile
 
+data Rules = FromFile String | FromEval String
+    deriving (Show)
+
 data Options = Options
-    { rulesFile :: String
+    { rules :: Rules
     , wordsFormat :: InputLexiconFormat
     , outMode :: ApplicationMode
     , inWordsFile :: Maybe String
