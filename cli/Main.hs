@@ -64,6 +64,8 @@ main = execParser opts >>= \case
                     (long "etymons" <> help "With --mdf, output MDF dictionary with etymologies")
                 , flag' (ApplyRules NoHighlight WordsWithProtoOutput)
                     (long "show-input" <> help "Output an input→output wordlist")
+                , flag' (ApplyRules DifferentToInput WordsOnlyOutput)
+                    (long "show-changed" <> help "Add [+] after all words different to input")
                 , flag
                     (ApplyRules NoHighlight WordsOnlyOutput)
                     (ApplyRules NoHighlight WordsOnlyOutput)
@@ -120,9 +122,12 @@ processWords incr rules wordsFormat outMode =
         Right r -> yield r
 
     processApplicationOutput :: ApplicationOutput PWord (Statement Expanded [Grapheme]) -> Either ParseException Text
-    processApplicationOutput (HighlightedWords cs) = Right $ pack $ detokeniseWords $ (fmap.fmap) fst cs
+    processApplicationOutput (HighlightedWords cs) = Right $ pack $ detokeniseWords' highlight cs
     processApplicationOutput (AppliedRulesTable is) = Right $ pack $ unlines $ reportAsText plaintext' <$> is
     processApplicationOutput (ParseError e) = Left $ ParseException $ errorBundlePretty e
+
+    highlight (w, False) = concatWithBoundary w
+    highlight (w, True) = concatWithBoundary w ++ " [+]"
 
 newtype ParseException = ParseException String
     deriving Show
