@@ -27,8 +27,8 @@ main = execParser opts >>= \case
         case parseSoundChanges changesText of
             Left err ->
                 putStrLn $ errorBundlePretty err
-            Right rules ->
-                case expandSoundChanges rules of
+            Right scs ->
+                case expandSoundChanges scs of
                     Left err -> putStrLn $ case err of
                         (NotFound s) -> "Could not find category: " ++ s
                         InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
