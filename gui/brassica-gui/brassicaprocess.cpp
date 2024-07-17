@@ -63,6 +63,7 @@ QString BrassicaProcess::parseTokeniseAndApplyRules(
         prev = new QJsonValue(obj.value("prev"));
         return obj.value("output").toString();
     }
+    return "internal error: BrassicaProcess::parseTokeniseAndApplyRules";
 }
 
 QString BrassicaProcess::parseAndBuildParadigm(QString paradigm, QString roots, bool separateLines)
@@ -80,6 +81,7 @@ QString BrassicaProcess::parseAndBuildParadigm(QString paradigm, QString roots, 
     } else if (method == "Paradigm") {
         return obj.value("output").toString();
     }
+    return "internal error: BrassicaProcess::parseAndBuildParadigm";
 }
 
 QJsonDocument BrassicaProcess::request(QJsonDocument req)
@@ -100,6 +102,7 @@ QString BrassicaProcess::toJson(InputLexiconFormat val)
         case Raw: return "Raw";
         case MDF: return "MDF";
     }
+    return "internal error: BrassicaProcess::toJson(InputLexiconFormat)";
 }
 
 QString BrassicaProcess::toJson(HighlightMode val)
@@ -109,6 +112,7 @@ QString BrassicaProcess::toJson(HighlightMode val)
         case DifferentToLastRun: return "DifferentToLastRun";
         case DifferentToInput:   return "DifferentToInput";
     }
+        return "internal error: BrassicaProcess::toJson(HighlightMode)";
 }
 
 QString BrassicaProcess::toJson(OutputMode val)
@@ -119,4 +123,5 @@ QString BrassicaProcess::toJson(OutputMode val)
         case MDFOutputWithEtymons: return "MDFOutputWithEtymons";
         case WordsWithProtoOutput: return "WordsWithProtoOutput";
     }
+        return "internal error: BrassicaProcess::toJson(OutputMode)";
 }

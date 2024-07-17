@@ -55,8 +55,8 @@ ParadigmWindow::ParadigmWindow(BrassicaProcess *proc, QWidget *parent)
     outputLayout->addWidget(buildBtn);
 
     QMenu *fileMenu = menuBar()->addMenu("&File");
-    fileMenu->addAction("Open paradigm", this, &ParadigmWindow::openParadigm, QKeySequence::Open);
-    fileMenu->addAction("Save paradigm", this, &ParadigmWindow::saveParadigm, QKeySequence::Save);
+    fileMenu->addAction("Open paradigm", QKeySequence::Open, this, &ParadigmWindow::openParadigm);
+    fileMenu->addAction("Save paradigm", QKeySequence::Save, this, &ParadigmWindow::saveParadigm);
     fileMenu->addAction("Open lexicon", this, &ParadigmWindow::openLexicon);
     fileMenu->addAction("Save lexicon", this, &ParadigmWindow::saveLexicon);
 
