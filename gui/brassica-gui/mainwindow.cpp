@@ -36,6 +36,9 @@ MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
     connect(rulesEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
     connect(wordsEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
 
+    connect(rulesEdit, &QPlainTextEdit::textChanged, this, [this] { rulesDirty = true; refreshTitle(); });
+    connect(wordsEdit, &QPlainTextEdit::textChanged, this, [this] { lexiconDirty = true; refreshTitle(); });
+
     connect(rulesEdit, &QPlainTextEdit::textChanged, this, &MainWindow::reparseCategories);
 
     connect(wordsEditVScroll , &QAbstractSlider::valueChanged, this, &MainWindow::updateOutputFromWordsSlider);
@@ -203,6 +206,8 @@ void MainWindow::doSaveRules(QString fileName)
 
     QString rules = rulesEdit->toPlainText();
     file.write(rules.toUtf8());
+    rulesDirty = false;
+    refreshTitle();
 }
 
 void MainWindow::doSaveLexicon(QString fileName)
@@ -213,6 +218,8 @@ void MainWindow::doSaveLexicon(QString fileName)
 
     QString lexicon = wordsEdit->toPlainText();
     file.write(lexicon.toUtf8());
+    lexiconDirty = false;
+    refreshTitle();
 }
 
 void MainWindow::refreshTitle()
@@ -222,12 +229,14 @@ void MainWindow::refreshTitle()
     if (!currentRulesFile.isEmpty()) {
         QFileInfo rulesInfo(currentRulesFile);
         openFiles = rulesInfo.fileName();
+        if (rulesDirty) openFiles += '*';
     }
 
     if (!currentLexiconFile.isEmpty()) {
         QFileInfo lexiconInfo(currentLexiconFile);
         if (!openFiles.isEmpty()) openFiles += ", ";
         openFiles += lexiconInfo.fileName();
+        if (lexiconDirty) openFiles += '*';
     }
 
     QString windowTitle("Brassica");
@@ -294,6 +303,7 @@ void MainWindow::openRules()
 
     rulesEdit->setPlainText(QString::fromUtf8(file.readAll()));
     currentRulesFile = fileName;
+    rulesDirty = false;
     refreshTitle();
 }
 
@@ -326,6 +336,7 @@ void MainWindow::openLexicon()
         rawBtn->setChecked(true);
 
     currentLexiconFile = fileName;
+    lexiconDirty = false;
     refreshTitle();
 }
 

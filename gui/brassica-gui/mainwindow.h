@@ -64,6 +64,9 @@ private:
     QString currentRulesFile;
     QString currentLexiconFile;
 
+    bool rulesDirty = false;
+    bool lexiconDirty = false;
+
     void refreshTitle();
 
     Settings settings;
