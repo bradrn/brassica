@@ -64,6 +64,8 @@ private:
     QString currentRulesFile;
     QString currentLexiconFile;
 
+    void refreshTitle();
+
     Settings settings;
     void applySettings();
 

@@ -215,6 +215,30 @@ void MainWindow::doSaveLexicon(QString fileName)
     file.write(lexicon.toUtf8());
 }
 
+void MainWindow::refreshTitle()
+{
+    QString openFiles;
+
+    if (!currentRulesFile.isEmpty()) {
+        QFileInfo rulesInfo(currentRulesFile);
+        openFiles = rulesInfo.fileName();
+    }
+
+    if (!currentLexiconFile.isEmpty()) {
+        QFileInfo lexiconInfo(currentLexiconFile);
+        if (!openFiles.isEmpty()) openFiles += ", ";
+        openFiles += lexiconInfo.fileName();
+    }
+
+    QString windowTitle("Brassica");
+    if (!openFiles.isEmpty()) {
+        windowTitle += " - ";
+        windowTitle += openFiles;
+    }
+
+    setWindowTitle(windowTitle);
+}
+
 void MainWindow::applySettings()
 {
     rulesEdit->setFont(settings.rulesFont);
@@ -270,6 +294,7 @@ void MainWindow::openRules()
 
     rulesEdit->setPlainText(QString::fromUtf8(file.readAll()));
     currentRulesFile = fileName;
+    refreshTitle();
 }
 
 void MainWindow::saveRules()
@@ -301,6 +326,7 @@ void MainWindow::openLexicon()
         rawBtn->setChecked(true);
 
     currentLexiconFile = fileName;
+    refreshTitle();
 }
 
 void MainWindow::saveLexicon()

@@ -24,6 +24,7 @@
 - Added syntax highlighting for flags
 - Sound change rules can now be specified on the command-line using new `--eval` or `-e` flag
 - Add CLI option to highlight words different to input
+- Currently open files shown in title of desktop window
 
 ### Code
 
