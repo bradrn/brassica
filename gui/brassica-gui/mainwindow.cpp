@@ -36,8 +36,8 @@ MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
     connect(rulesEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
     connect(wordsEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
 
-    connect(rulesEdit, &QPlainTextEdit::textChanged, this, [this] { rulesDirty = true; refreshTitle(); });
-    connect(wordsEdit, &QPlainTextEdit::textChanged, this, [this] { lexiconDirty = true; refreshTitle(); });
+    connect(rulesEdit, &QPlainTextEdit::textChanged, this, &MainWindow::rulesModified);
+    connect(wordsEdit, &QPlainTextEdit::textChanged, this, &MainWindow::lexiconModified);
 
     connect(rulesEdit, &QPlainTextEdit::textChanged, this, &MainWindow::reparseCategories);
 
@@ -224,6 +224,9 @@ void MainWindow::doSaveLexicon(QString fileName)
 
 void MainWindow::refreshTitle()
 {
+    // can't use setWindowModified here because we have
+    // two separate modified states, so can't use Qt's [*] placeholder
+
     QString openFiles;
 
     if (!currentRulesFile.isEmpty()) {
@@ -351,6 +354,18 @@ void MainWindow::saveLexiconAs()
     QString fileName = QFileDialog::getSaveFileName(this, "Open lexicon", QString(), "Lexicon files (*.lex);;MDF files (*.mdf *.txt);;All files (*.*)");
     doSaveLexicon(fileName);
     currentLexiconFile = fileName;
+}
+
+void MainWindow::rulesModified()
+{
+    rulesDirty = rulesEdit->document()->isModified();
+    refreshTitle();
+}
+
+void MainWindow::lexiconModified()
+{
+    lexiconDirty = wordsEdit->document()->isModified();
+    refreshTitle();
 }
 
 void MainWindow::updateOutputFromWordsSlider(int value)

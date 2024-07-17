@@ -82,6 +82,9 @@ private slots:
     void saveLexicon();
     void saveLexiconAs();
 
+    void rulesModified();
+    void lexiconModified();
+
     void updateOutputFromWordsSlider(int value);
     void updateWordsFromOutputSlider(int value);
 
