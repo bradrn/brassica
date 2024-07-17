@@ -72,6 +72,8 @@ private:
     Settings settings;
     void applySettings();
 
+    void closeEvent(QCloseEvent *event) override;
+
 private slots:
     void applySoundChanges(bool live, bool reportRules);
 

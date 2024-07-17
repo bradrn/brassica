@@ -9,6 +9,7 @@
 #include <QLabel>
 #include <QMenu>
 #include <QMenuBar>
+#include <QMessageBox>
 #include <QRadioButton>
 #include <QScrollBar>
 #include <QTextCodec>
@@ -257,6 +258,41 @@ void MainWindow::applySettings()
     wordsEdit->setFont(settings.wordsFont);
     outputEdit->setFont(settings.wordsFont);
     settings.writeSettings();
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    if (rulesDirty) {
+        const QMessageBox::StandardButton ret =
+            QMessageBox::warning(this, "Brassica",
+                "The sound changes have been modified.\nDo you want to save your changes?",
+                QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        switch (ret) {
+            case QMessageBox::Save:
+                saveRules(); break;
+            case QMessageBox::Cancel:
+                event->ignore(); return;
+            default:
+                break;
+        }
+    }
+
+    if (lexiconDirty) {
+        const QMessageBox::StandardButton ret =
+            QMessageBox::warning(this, "Brassica",
+                                 "The lexicon has been modified.\nDo you want to save your changes?",
+                                 QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        switch (ret) {
+        case QMessageBox::Save:
+            saveLexicon(); break;
+        case QMessageBox::Cancel:
+            event->ignore(); return;
+        default:
+            break;
+        }
+    }
+
+    event->accept();
 }
 
 void MainWindow::applySoundChanges(bool live, bool reportRules)
