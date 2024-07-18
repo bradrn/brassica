@@ -81,6 +81,7 @@ main = execParser opts >>= \case
     incrFor Raw = True
     incrFor MDF = False
 
+    -- duplicated in paradigm builder CLI
     withSourceFileIf :: Maybe FilePath -> (ConduitM i B.ByteString IO () -> IO a) -> IO a
     withSourceFileIf = maybe ($ stdinC) withSourceFile
 

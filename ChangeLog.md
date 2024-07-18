@@ -27,6 +27,7 @@
 - Currently open files shown in title of desktop window
 - Desktop application warns when closing with unsaved changes
 - Improve user interface for file management in desktop paradigm builder
+- New CLI for paradigm builder: program name `brassica-pb`
 
 ### Code
 
