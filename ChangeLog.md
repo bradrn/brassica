@@ -57,6 +57,7 @@
 - Rule sporadicity is now represented by a dedicated type, `Brassica.SoundChange.Types.Sporadicity`
 - `Categories` constructor (in `Brassica.SoundChange.Types.Directive`)
     now has an extra field for `noreplace` directive
+- Add useful function `Brassica.Paradigm.Apply.depth`
 
 ## v0.2.0
 

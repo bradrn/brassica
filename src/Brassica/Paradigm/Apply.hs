@@ -6,6 +6,7 @@ module Brassica.Paradigm.Apply
        ( ResultsTree(..)
        , applyParadigm
        , formatNested
+       , depth
        ) where
 
 import Brassica.Paradigm.Types
@@ -21,6 +22,10 @@ data ResultsTree a = Node [ResultsTree a] | Result a
 addLevel :: (a -> [a]) -> ResultsTree a -> ResultsTree a
 addLevel f (Result r) = Node $ Result <$> f r
 addLevel f (Node rs) = Node $ addLevel f <$> rs
+
+depth :: ResultsTree a -> Int
+depth (Node ts) = maximum $ (1+) . depth <$> ts
+depth (Result _) = 0
 
 -- | Formats a 'ResultsTree' in a nested way, where the lowest-level
 -- elements are separated by one space, the second-lowest are
