@@ -19,8 +19,13 @@ private slots:
 
     void openParadigm();
     void saveParadigm();
+    void saveParadigmAs();
     void openLexicon();
     void saveLexicon();
+    void saveLexiconAs();
+
+    void paradigmModified();
+    void lexiconModified();
 
 private:
     QPlainTextEdit *paradigmEdit;
@@ -29,6 +34,17 @@ private:
     QCheckBox *separateLinesBox;
 
     BrassicaProcess *proc;
+
+    QString currentParadigmFile;
+    QString currentLexiconFile;
+
+    bool paradigmDirty = false;
+    bool lexiconDirty = false;
+
+    void doSaveParadigm(QString fileName);
+    void doSaveLexicon(QString fileName);
+
+    void refreshTitle();
 };
 
 #endif // PARADIGMWINDOW_H
