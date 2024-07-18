@@ -26,6 +26,7 @@
 - Add CLI option to highlight words different to input
 - Currently open files shown in title of desktop window
 - Desktop application warns when closing with unsaved changes
+- Improve user interface for file management in desktop paradigm builder
 
 ### Code
 
