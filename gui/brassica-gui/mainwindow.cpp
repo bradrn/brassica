@@ -207,7 +207,9 @@ void MainWindow::doSaveRules(QString fileName)
 
     QString rules = rulesEdit->toPlainText();
     file.write(rules.toUtf8());
+    currentRulesFile = fileName;
     rulesDirty = false;
+    rulesEdit->document()->setModified(false);
     refreshTitle();
 }
 
@@ -219,7 +221,9 @@ void MainWindow::doSaveLexicon(QString fileName)
 
     QString lexicon = wordsEdit->toPlainText();
     file.write(lexicon.toUtf8());
+    currentLexiconFile = fileName;
     lexiconDirty = false;
+    wordsEdit->document()->setModified(false);
     refreshTitle();
 }
 
@@ -356,7 +360,6 @@ void MainWindow::saveRulesAs()
 {
     QString fileName = QFileDialog::getSaveFileName(this, "Save rules", QString(), "Brassica rules (*.bsc);;All files (*.*)");
     doSaveRules(fileName);
-    currentRulesFile = fileName;
 }
 
 void MainWindow::openLexicon()
@@ -389,7 +392,6 @@ void MainWindow::saveLexiconAs()
 {
     QString fileName = QFileDialog::getSaveFileName(this, "Open lexicon", QString(), "Lexicon files (*.lex);;MDF files (*.mdf *.txt);;All files (*.*)");
     doSaveLexicon(fileName);
-    currentLexiconFile = fileName;
 }
 
 void MainWindow::rulesModified()
