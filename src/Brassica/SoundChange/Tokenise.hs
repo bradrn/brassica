@@ -83,8 +83,8 @@ splitMultipleResults _ (Gloss g) = [Gloss g]
 wordParser :: [Char] -> [String] -> ParsecT Void String Identity PWord
 wordParser excludes gs = some $
     (GBoundary <$ single '#')
-    <|> try (choice (fmap GMulti . chunk <$> gs) <* notFollowedBy markChar)
-    <|> ((GMulti .) . (:) <$> satisfy (not . exclude) <*> many markChar)
+    <|> choice (fmap GMulti . chunk <$> gs)
+    <|> (GMulti . pure <$> satisfy (not . exclude))
   where
     exclude = (||) <$> isSpace <*> (`elem` excludes)
 
@@ -111,8 +111,7 @@ sortByDescendingLength = sortBy (compare `on` Down . length)
 
 -- | Tokenise a 'String' input word into a 'PWord' by splitting it up
 -- into t'Grapheme's. A list of available multigraphs is supplied as
--- the first argument. Additionally, combining diacritics are
--- recognised as forming multigraphs with the previous character.
+-- the first argument.
 --
 -- Note that this tokeniser is greedy: if one of the given
 -- multigraphs is a prefix of another, the tokeniser will prefer the

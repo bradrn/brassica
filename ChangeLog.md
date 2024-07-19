@@ -9,7 +9,6 @@
 - Bugfix: Brassica no longer crashes when a rule refers to nonexistent categories
 - Wildcard symbols can now be used in the replacement of a rule
 - Brassica now applies sound changes to words in parallel, giving a significant speedup on multi-core machines (though not in a webpage)
-- Combining diacritics are now grouped with their base characters as multigraphs
 - New `extra` directive allows specifying characters which should never be replaced through all category redefinitions
 - Improved placement of etymologies in MDF output
 - Target and replacement can now be separated by `->`
@@ -39,7 +38,6 @@
 - `Target` and `Environment` `LexemeType`s have been unified as `Matched`
 - `Brassica.SoundChange.Frontend.Internal.parseTokeniseAndApplyRules` now takes another argument specifying how to map over the parse output,
     allowing it to be run both on a single core and in parallel depending on the provided function
-- `Brassica.SoundChange.Tokenise.tokeniseWord` (and related functions) now handle combining diacritics as mentioned above
 - `Brassica.SoundChange.Types.Directive` has a new constructor `ExtraGraphemes` for the `extra` directive, with corresponding changes in parsing and expansion
 - `Brassica.SoundChange.Category.extend` has been renamed to `extendCategories`, and now requires pattern-matching on a `Categories` directive before use
 - `Brassica.SoundChange.Frontend.Internal.parseTokeniseAndApplyRules` no longer implements rule expansion,

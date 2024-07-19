@@ -404,11 +404,6 @@ Such a situation can be dealt with in Brassica using a rule which removes the se
 A sequence such as ⟨n’g⟩ will be tokenised to `n`+`’`+`g`, after which this rule will remove the separator leaving `n`+`g` as desired,
   while a sequence such as ⟨ng⟩ will be straightforwardly tokenised to the multigraph `ng`.
 
-A special case is *combining diacritics*, as seen in letters like ⟨m̧⟩ or ⟨p̄⟩.
-These are represented as two characters: one for the base letter, and one for the diacritic.
-Brassica automatically recognises these as single letters, so you do not need to explicitly define them as multigraphs.
-(However, like all letters, they must be listed in a category definition in order to not be replaced with �.)
-
 ### Miscellaneous useful elements
 
 Several useful elements have not been covered yet.
