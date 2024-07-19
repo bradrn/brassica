@@ -37,12 +37,12 @@ formatNested f = snd . go
     go (Result a) = (0, f a)
     go (Node rts) =
         let (depths, formatted) = unzip $ go <$> rts
-            depth = maximum depths
+            depth' = maximum depths
             separator =
-                if depth == 0
+                if depth' == 0
                 then " "
-                else replicate depth '\n'
-        in (1+depth, intercalate separator formatted)
+                else replicate depth' '\n'
+        in (1+depth', intercalate separator formatted)
 
 -- | Apply the given 'Paradigm' to a root, to produce all possible
 -- derived forms.

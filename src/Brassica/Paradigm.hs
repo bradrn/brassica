@@ -10,6 +10,7 @@ module Brassica.Paradigm
        , Statement(..)
        , Paradigm
        , ResultsTree(..)
+       , depth
        , applyParadigm
        , parseParadigm
        , formatNested
