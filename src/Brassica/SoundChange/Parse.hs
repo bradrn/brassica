@@ -242,7 +242,7 @@ filterParser = fmap (uncurry Filter) $ match $ symbol "filter" *> parseLexemes <
 -- | Parse a 'String' in Brassica sound change syntax into a
 -- 'Rule'. Returns 'Left' if the input string is malformed.
 --
--- For details on the syntax, refer to <https://github.com/bradrn/brassica/blob/v0.2.0/Documentation.md#basic-rule-syntax>.
+-- For details on the syntax, refer to <https://github.com/bradrn/brassica/blob/v0.3.0/Documentation.md#basic-rule-syntax>.
 parseRule :: String -> Either (ParseErrorBundle String Void) (Rule CategorySpec)
 parseRule = runParser (scn *> ruleParser <* eof) ""
 

@@ -34,7 +34,7 @@ main = execParser opts >>= \Options{..} -> do
                 .| encodeUtf8C
                 .| outC
   where
-    opts = info (args <**> helper <**> simpleVersioner "v0.2.0") fullDesc
+    opts = info (args <**> helper <**> simpleVersioner "v0.3.0") fullDesc
 
     args = Options
         <$> asum

@@ -1,6 +1,6 @@
 cabal-version:      2.0
 name:               brassica
-version:            0.2.0
+version:            0.3.0
 synopsis:           Featureful sound change applier
 description:
   The Brassica library for the simulation of sound changes in historical linguistics and language construction.
