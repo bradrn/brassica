@@ -3,6 +3,6 @@ Type=Application
 Name=Brassica PB CLI
 Comment=Paradigm builder accompanying sound change applier
 Exec=brassica-pb
-Icon=brassica-pb
+Icon=brassica
 Terminal=true
 Categories=Science;
