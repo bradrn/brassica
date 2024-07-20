@@ -57,6 +57,7 @@ Section "MainSection" SEC01
   SetOverwrite try
   File ".\deploy\brassica-gui.exe"
   File ".\deploy\brassica.exe"
+  File ".\deploy\brassica-pb.exe"
   File ".\deploy\D3Dcompiler_47.dll"
   SetOutPath "$INSTDIR\examples"
   File ".\deploy\examples\english.bsc"
@@ -224,6 +225,7 @@ Section Uninstall
   Delete "$INSTDIR\examples\english.bsc"
   Delete "$INSTDIR\D3Dcompiler_47.dll"
   Delete "$INSTDIR\brassica.exe"
+  Delete "$INSTDIR\brassica-pb.exe"
   Delete "$INSTDIR\brassica-gui.exe"
 
   Delete "$SMPROGRAMS\$ICONS_GROUP\Uninstall.lnk"

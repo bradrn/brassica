@@ -53,7 +53,7 @@ Similarly the CLI can be deployed to an AppImage with something like:
 linuxdeploy-x86_64.AppImage --executable brassica --appdir AppDirCLI path/to/brassica-gui/brassica.desktop -i path/to/brassica-gui/brassica.png --output appimage
 ```
 
-On Windows, first copy `brassica.exe` and `brassica-gui.exe` into `.\deploy`, and `.\examples` into `.\deploy\examples`.
+On Windows, first copy `brassica.exe`, `brassica-pb.exe` and `brassica-gui.exe` into `.\deploy`, and `.\examples` into `.\deploy\examples`.
 Then use [`windeployqt`](https://doc.qt.io/qt-6/windows-deployment.html) on `brassica-gui.exe` to copy over the relevant files for Qt.
 Finally, use [NSIS](https://nsis.sourceforge.io/Main_Page) with the given `installer.nsi` to generate an installer.
 
