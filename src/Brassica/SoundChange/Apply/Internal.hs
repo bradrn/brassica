@@ -119,7 +119,7 @@ data MatchOutput = MatchOutput
     , matchedOptionals :: [Bool]
       -- | For each wildcard, the graphemes which it matched
     , matchedWildcards :: [[Grapheme]]
-      -- | For each Kleene star, how many repititions it matched
+      -- | For each Kleene star, how many repetitions it matched
     , matchedKleenes   :: [Int]
       -- | The graphemes which were matched
     , matchedGraphemes :: [Grapheme]
