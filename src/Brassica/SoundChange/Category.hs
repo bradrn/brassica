@@ -165,6 +165,7 @@ expandSoundChanges = fmap catMaybes . flip evalStateT (M.empty, []) . traverse g
     go (FilterS f) = do
         cs <- gets fst
         lift $ Just . FilterS <$> expandFilter cs f
+    go ReportS = pure (Just ReportS)
     go (DirectiveS (ExtraGraphemes extra)) = do
         (cs, _) <- get
         put (cs, extra)

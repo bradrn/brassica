@@ -239,6 +239,12 @@ ruleParser = do
 filterParser :: Parser (Filter CategorySpec)
 filterParser = fmap (uncurry Filter) $ match $ symbol "filter" *> parseLexemes <* optional scn
 
+-- Space handline is a little complex here: we want to make sure that
+-- 'report' is always on its own line, but can have as much or as
+-- little space after it as needed
+reportParser :: Parser ()
+reportParser = symbol "report" *> sc *> ((newline *> void (optional scn)) <|> eof)
+
 -- | Parse a 'String' in Brassica sound change syntax into a
 -- 'Rule'. Returns 'Left' if the input string is malformed.
 --
@@ -253,4 +259,5 @@ parseSoundChanges = runParser (scn *> parser <* eof) ""
     parser = many $
         DirectiveS <$> parseDirective
         <|> FilterS <$> filterParser
+        <|> ReportS <$ reportParser
         <|> RuleS <$> ruleParser

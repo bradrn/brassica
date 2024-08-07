@@ -12,6 +12,8 @@
 module Brassica.SoundChange.Frontend.Internal where
 
 import Control.Monad ((<=<))
+import Data.Containers.ListUtils (nubOrd)
+import Data.List (transpose, intersperse)
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Void (Void)
 import GHC.Generics (Generic)
@@ -23,10 +25,14 @@ import Text.Megaparsec (ParseErrorBundle)
 import Brassica.SFM.MDF
 import Brassica.SFM.SFM
 import Brassica.SoundChange.Apply
-import Brassica.SoundChange.Apply.Internal (applyChangesWithLog, toPWordLog)
+import Brassica.SoundChange.Apply.Internal
+       ( toPWordLog
+       , applyChangesWithLog
+       , applyChangesWithReports
+       , applyChangesWithChangesAndReports
+       )
 import Brassica.SoundChange.Tokenise
 import Brassica.SoundChange.Types
-import Data.Bifunctor (first)
 
 -- | Rule application mode of the SCA.
 data ApplicationMode
@@ -97,17 +103,6 @@ instance Enum InputLexiconFormat where
 data ParseOutput a = ParsedRaw [Component a] | ParsedMDF SFM
     deriving (Show, Functor, Foldable, Traversable)
 
-componentise :: OutputMode -> [a] -> [Component a] -> [Component a]
-componentise WordsWithProtoOutput ws cs = intersperseWords ws cs
-componentise _                    _  cs = cs
-
-intersperseWords :: [a] -> [Component a] -> [Component a]
-intersperseWords (w:ws) (Word c:cs) =
-    Word w : Separator " → " : Word c : Separator "\n" : intersperseWords ws cs
-intersperseWords ws (_:cs) = intersperseWords ws cs
-intersperseWords [] cs = cs
-intersperseWords _ [] = []
-
 tokeniseAccordingToInputFormat
     :: InputLexiconFormat
     -> OutputMode
@@ -143,30 +138,23 @@ parseTokeniseAndApplyRules
 parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
     case tokeniseAccordingToInputFormat intype (getOutputMode mode) statements ws of
         Left e -> ParseError e
-        Right toks
-          | ws' <- getWords toks
-          -> case mode of
+        Right toks -> case mode of
             ReportRulesApplied ->
-                AppliedRulesTable $ mapMaybe toPWordLog $ concat $
-                    getWords $ componentise WordsOnlyOutput [] $
-                        parFmap (applyChangesWithLog statements) toks
+                AppliedRulesTable $ concatMap (mapMaybe toPWordLog) $
+                    getWords $ parFmap (applyChangesWithLog statements) toks
             ApplyRules DifferentToLastRun mdfout sep ->
                 let result = concatMap (splitMultipleResults sep) $
-                      componentise mdfout (fmap pure ws') $
-                          parFmap (applyChanges statements) toks
+                        joinComponents $ parFmap (doApply mdfout statements) toks
                 in HighlightedWords $
                     mapMaybe polyDiffToHighlight $ getDiff (fromMaybe [] prev) result
                     -- zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
                     --     (thisWord, thisWord /= prevWord)
             ApplyRules DifferentToInput mdfout sep ->
                 HighlightedWords $ concatMap (splitMultipleResults sep) $
-                    (fmap.fmap) (mapMaybe extractMaybe) $
-                        componentise mdfout (fmap (pure . first Just . (,False)) ws') $
-                            parFmap (applyChangesWithChanges statements) toks
+                        joinComponents $ parFmap (doApplyWithChanges mdfout statements) toks
             ApplyRules NoHighlight mdfout sep ->
                 HighlightedWords $ (fmap.fmap) (,False) $ concatMap (splitMultipleResults sep) $
-                    componentise mdfout (fmap pure ws') $
-                        parFmap (applyChanges statements) toks
+                    joinComponents $ parFmap (doApply mdfout statements) toks
   where
     -- highlight words in 'Second' but not 'First'
     polyDiffToHighlight :: PolyDiff (Component a) (Component a) -> Maybe (Component (a, Bool))
@@ -183,3 +171,17 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
 
     extractMaybe (Just a, b) = Just (a, b)
     extractMaybe (Nothing, _) = Nothing
+
+    doApply :: OutputMode -> SoundChanges Expanded [Grapheme] -> PWord -> [Component [PWord]]
+    doApply WordsWithProtoOutput scs w =
+        let intermediates :: [[PWord]]
+            intermediates = fmap nubOrd $ transpose $ Brassica.SoundChange.Apply.Internal.applyChangesWithReports scs w
+        in intersperse (Separator " → ") (fmap Word intermediates) ++ [Separator "\n"]
+    doApply _ scs w = [Word $ applyChanges scs w]
+
+    doApplyWithChanges :: OutputMode -> SoundChanges Expanded [Grapheme] -> PWord -> [Component [(PWord, Bool)]]
+    doApplyWithChanges WordsWithProtoOutput scs w =
+        let intermediates :: [[(PWord, Bool)]]
+            intermediates = fmap nubOrd $ transpose $ Brassica.SoundChange.Apply.Internal.applyChangesWithChangesAndReports scs w
+        in intersperse (Separator " → ") (fmap Word intermediates) ++ [Separator "\n"]
+    doApplyWithChanges _ scs w = [Word $ mapMaybe extractMaybe $ applyChangesWithChanges scs w]

@@ -55,6 +55,8 @@ module Brassica.SoundChange.Apply.Internal
        , applyChangesWithLog
        , applyChangesWithLogs
        , applyChangesWithChanges
+       , applyChangesWithReports
+       , applyChangesWithChangesAndReports
        ) where
 
 import Control.Applicative ((<|>))
@@ -519,6 +521,7 @@ applyStatement (RuleS r) mz = applyRule r mz
 applyStatement (FilterS f) mz
     | filterMatches f mz = []
     | otherwise = [mz]
+applyStatement ReportS mz = [mz]
 applyStatement (DirectiveS gs) mz = [checkGraphemes gs mz]
 
 -- | Apply a single 'Rule' to a word.
@@ -548,14 +551,25 @@ applyStatementStr st =
     >>> fmap (toList >>> removeBoundaries)
     >>> nubOrd
 
--- | A log item representing a single application of an action. (In
--- practise this will usually be a 'Statement'.) Specifies the action
--- which was applied, as well as the ‘before’ and ‘after’ states.
-data LogItem r = ActionApplied
-    { action :: r
-    , input :: PWord
-    , output :: Maybe PWord
-    } deriving (Show, Functor, Generic, NFData)
+-- | A log item representing a single action. When this action was a
+-- sound change, Specifies the action which was applied, as well as
+-- the ‘before’ and ‘after’ states.
+data LogItem r
+    = ActionApplied r PWord (Maybe PWord)
+    | ReportWord PWord
+    deriving (Show, Functor, Generic, NFData)
+
+-- action :: LogItem r -> Maybe r
+-- action (ActionApplied r _ _) = Just r
+-- action (ReportWord _) = Nothing
+
+logInput :: LogItem r -> PWord
+logInput (ActionApplied _ i _) = i
+logInput (ReportWord i) = i
+
+logOutput :: LogItem r -> Maybe PWord
+logOutput (ActionApplied _ _ o) = o
+logOutput (ReportWord o) = Just o
 
 -- | Logs the evolution of a 'PWord' as various actions are applied to
 -- it. The actions (usually 'Statement's) are of type @r@.
@@ -570,8 +584,10 @@ data PWordLog r = PWordLog
 toPWordLog :: [LogItem r] -> Maybe (PWordLog r)
 toPWordLog [] = Nothing
 toPWordLog ls@(l : _) = Just $ PWordLog
-    { initialWord = input l
-    , derivations = (\ActionApplied{..} -> (output, action)) <$> ls
+    { initialWord = logInput l
+    , derivations = flip mapMaybe ls $ \case
+            ActionApplied action _ output -> Just (output, action)
+            _ -> Nothing
     }
 
 -- | Render a single 'PWordLog' to rows of an HTML table. For
@@ -635,26 +651,32 @@ applyStatementWithLog
     :: Statement Expanded [Grapheme]
     -> PWord
     -> [LogItem (Statement Expanded [Grapheme])]
+applyStatementWithLog ReportS w = [ReportWord w]
 applyStatementWithLog st w = case applyStatementStr st w of
     [] -> [ActionApplied st w Nothing]
     [w'] | w' == w -> []
     r -> ActionApplied st w . Just <$> r
 
 -- | Apply 'SoundChanges' to a word. For each possible result, returns
--- a 'LogItem' for each 'Statement' which altered the input.
+-- a 'LogItem' for each 'Statement' which altered the input, plus a
+-- 'ReportWord' for at least the input and output words.
 applyChangesWithLog
     :: SoundChanges Expanded [Grapheme]
     -> PWord
     -> [[LogItem (Statement Expanded [Grapheme])]]
-applyChangesWithLog [] _ = [[]]
-applyChangesWithLog (st:sts) w =
-    case applyStatementWithLog st w of
-        [] -> applyChangesWithLog sts w
-        outputActions -> outputActions >>= \l@ActionApplied{output} ->
-            case output of
-                Just w' -> (l :) <$> applyChangesWithLog sts w'
-                -- apply no further changes to a deleted word
-                Nothing -> [[l]]
+applyChangesWithLog [] w = [[ReportWord w]]  -- always report the final result
+applyChangesWithLog scs w = (ReportWord w:) <$> go scs w
+  where
+    go [] w' = [[ReportWord w']]  -- alw'ays report the final result
+    go (st:sts) w' =
+        case applyStatementWithLog st w' of
+            [] -> go sts w'
+            outputActions -> outputActions >>= \case
+                l@(ReportWord w'') -> (l :) <$> go sts w''
+                l@(ActionApplied _ _ output) -> case output of
+                    Just w'' -> (l :) <$> go sts w''
+                    -- apply no further changes to a deleted w'ord
+                    Nothing -> [[l]]
 
 -- | Apply 'SoundChanges' to a word, returning an 'PWordLog'
 -- for each possible result.
@@ -671,7 +693,16 @@ applyChanges sts w =
   where
     -- If no changes were applied, output is same as input
     lastOutput [] = Just w
-    lastOutput ls = output $ last ls
+    lastOutput ls = logOutput $ last ls
+
+-- | TODO
+applyChangesWithReports :: SoundChanges Expanded [Grapheme] -> PWord -> [[PWord]]
+applyChangesWithReports sts w = getReports <$> applyChangesWithLog sts w
+  where
+    getReports [] = []
+    getReports [ActionApplied _ _ (Just w')] = [w']
+    getReports (ReportWord w':ls) = w' : getReports ls
+    getReports (_:ls) = getReports ls
 
 -- | Apply 'SoundChanges' to a word returning the final results, as
 -- well as a boolean value indicating whether the word should be
@@ -680,9 +711,27 @@ applyChanges sts w =
 applyChangesWithChanges :: SoundChanges Expanded [Grapheme] -> PWord -> [(Maybe PWord, Bool)]
 applyChangesWithChanges sts w = applyChangesWithLog sts w <&> \case
     [] -> (Just w, False)
-    logs -> (output $ last logs, hasChanged logs)
+    logs -> (logOutput $ last logs, hasChanged logs)
   where
     hasChanged = any $ \case
         ActionApplied (RuleS rule) _ _ -> highlightChanges $ flags rule
         ActionApplied (FilterS _) _ _ -> False  -- cannot highlight nonexistent word
         ActionApplied (DirectiveS _) _ _ -> True
+        ActionApplied ReportS _ _ -> False  -- reporting a word yields no change
+        ReportWord _ -> False
+
+-- | TODO
+applyChangesWithChangesAndReports :: SoundChanges Expanded [Grapheme] -> PWord -> [[(PWord, Bool)]]
+applyChangesWithChangesAndReports sts w = getReports <$> applyChangesWithLog sts w
+  where
+    getReports :: [LogItem (Statement Expanded [Grapheme])] -> [(PWord, Bool)]
+    getReports [] = []
+    getReports l = go False l
+      where
+        go _ [] = []
+        go hasChanged (ActionApplied action _ _:ls) =
+            let hasChanged' = case action of
+                    RuleS rule -> hasChanged || highlightChanges (flags rule)
+                    _ -> hasChanged
+            in go hasChanged' ls
+        go hasChanged (ReportWord w':ls) = (w', hasChanged) : go hasChanged ls

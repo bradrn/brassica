@@ -78,7 +78,7 @@ ace.define('ace/mode/brassica_highlight_rules', function(require, exports, modul
         this.$rules = {
             start: [
                 { token: "keyword",
-                  regex: ">|#|\\(|\\)|{|}|\\\\|\\^|%|~|\\*|categories|end|new|nohighlight|feature|extra|filter|@[0-9]+|@\\?"
+                  regex: ">|#|\\(|\\)|{|}|\\\\|\\^|%|~|\\*|categories|end|new|nohighlight|feature|extra|filter|report|@[0-9]+|@\\?"
                 },
                 { token: "separator",
                   regex: "/|_|→|->"

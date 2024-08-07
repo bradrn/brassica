@@ -11,6 +11,7 @@ module Brassica.SoundChange.Tokenise
          Component(..)
        , getWords
        , splitMultipleResults
+       , joinComponents
        -- * High-level interface
        , tokeniseWord
        , tokeniseWords
@@ -45,6 +46,14 @@ import Brassica.SoundChange.Types
 -- this reason will usually, though not always, be 'PWord'.
 data Component a = Word a | Separator String | Gloss String
     deriving (Eq, Show, Functor, Foldable, Traversable, Generic, NFData)
+
+-- | Flatten a nested list of 'Component's.
+joinComponents :: [Component [Component a]] -> [Component a]
+joinComponents = concatMap go
+  where
+    go (Word cs) = cs
+    go (Separator s) = [Separator s]
+    go (Gloss s) = [Gloss s]
 
 -- | Given a tokenised input string, return only the v'Word's within
 -- it.

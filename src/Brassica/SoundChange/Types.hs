@@ -277,6 +277,7 @@ deriving instance (forall a. NFData (c a)) => NFData (Filter c)
 data Statement c decl
     = RuleS (Rule c)
     | FilterS (Filter c)
+    | ReportS
     | DirectiveS decl
     deriving (Generic)
 
@@ -288,6 +289,7 @@ deriving instance (forall a. NFData (c a), NFData decl) => NFData (Statement c d
 plaintext' :: Statement c decl -> String
 plaintext' (RuleS r) = plaintext r
 plaintext' (FilterS (Filter p _)) = p
+plaintext' ReportS = "intermediate result"
 plaintext' (DirectiveS _) = "<directive>"
 
 -- | A set of 'SoundChanges' is simply a list of 'Statement's.
