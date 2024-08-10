@@ -208,7 +208,7 @@ We might attempt to write this as follows:
 But this will not work as expected:
   the *first* category in the input corresponds to `[ɐ ə ɨ ə ɨ]` in the output,
   leaving the second category to be deleted.
-This can be resolved using the special symbol `~` in the replacement,
+This can be resolved using the special **discard** symbol `~` in the replacement,
   which corresponds to one category in the input, but produces no output:
 ```
 [a e i o u] [a e i o u] / ~ [ɐ ə ɨ ə ɨ]
