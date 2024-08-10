@@ -463,7 +463,69 @@ On the other hand, we can notice that there are two `ʔ`s in a row, so by this r
   proceeding on to the rest of the word gives the result ⟨ʔan⟩.
 In this situation, Brassica will report both ⟨an⟩ and ⟨ʔan⟩, to account for all possibilities.
 
-### Advanced features
+### Backreferences
+
+Many more complex rules can be expressed using **backreferences**.
+These take the form `@n`, where `n` can be any positive number, and are placed before categories to modify their meaning.
+
+A backreference in the replacement indicates that the following category should be associated with a specific category in the target.
+If the categories in the target are numbered from left to right, starting from 1,
+  backreference `@n` corresponds to target category number `n`.
+
+For a simple example, consider the following nasal assimilation rule:
+```
+[m n ŋ] [p t k] / @2 [m n ŋ] @2 [b d g]
+```
+Here, `@2` in the replacement indicates that
+  both replacement categories take their values from the *second* category listed in the target
+  (namely `[p t k]`).
+That is, a nasal followed by `p` will always be replaced by `mb`;
+  similarly a nasal followed by `t` will always yield `nd`, and one followed by `k` will always yield `ŋg`.
+
+A more complex example (similar to a sound change [attested in Hawu](https://www.jstor.org/stable/23321852)) is as follows:
+```
+[i u] C V / ə @2 C @1 [i u]
+```
+Here, two vowels are swapped around a consonant, with the first being reduced to ⟨ə⟩.
+The target consists of three categories in sequence.
+The replacement starts with ⟨ə⟩, then takes the consonant matching the *second* category in the target (i.e. the original intervocalic consonant),
+  followed by the element of `[i u]` corresponding to the *first* category in the target (i.e. the original preconsonantal vowel).
+The backreferences act to swap the two categories, accomplishing the metathesis.
+
+If using backreferences in the target, it is recommended to use them consistently:
+  add a backreference to *every* category mentioned the target.
+This isn’t actually required, but it can help to make your sound changes easier to read and write.
+
+Backreferences can also be used in the target and replacement.
+Here they have a different meaning: they match **repeated category elements**.
+A backreferenced category in the target or replacement is constrained to match the element
+  which corresponds to the element matched by the category it references.
+
+If this seems a bit abstract, the following example may clarify the meaning:
+```
+[m n ŋ] @1 [p t k] / [b d g]
+```
+The target of this rule will only match homorganic consonant clusters.
+The category `[p t k]` backreferences to the *first* category in the target, namely `[m n ŋ]`:
+  thus, the graphemes matched by each category must correspond.
+This target will match ⟨mp⟩, ⟨nt⟩ and ⟨ŋk⟩, but not (say) ⟨mt⟩ or ⟨ŋp⟩.
+
+Another example, showing a backreference in the environment:
+```
+ʔ / / [# C] V _ @2 V
+```
+This rule deletes a glottal stop between identical vowels, at the beginning of a word or after a consonant.
+The identity of the vowels is enforced by a backreference:
+  the second vowel must correspond to the *second* category in the environment, namely the first vowel.
+(Note that this backreference extends across the target!
+This is completely acceptable.)
+
+An important restriction:
+  a backreference in the target or environment must come *after* the category it references.
+In other words, you can’t reference a category which hasn’t been mentioned yet (reading from left to right).
+Of course, a category cannot refer to itself either, since that would make no sense.
+
+### Other features
 
 [TODO after finishing reference guide]
 
