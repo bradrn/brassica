@@ -61,6 +61,9 @@ private:
     void doSaveRules(QString fileName);
     void doSaveLexicon(QString fileName);
 
+    bool checkRulesDirty();
+    bool checkLexiconDirty();
+
     QString currentRulesFile;
     QString currentLexiconFile;
 

@@ -227,6 +227,46 @@ void MainWindow::doSaveLexicon(QString fileName)
     refreshTitle();
 }
 
+bool MainWindow::checkRulesDirty()
+{
+    if (rulesDirty) {
+        const QMessageBox::StandardButton ret =
+            QMessageBox::warning(this, "Brassica",
+                                 "The sound changes have been modified.\nDo you want to save your changes?",
+                                 QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        switch (ret) {
+        case QMessageBox::Save:
+            saveRules(); break;
+        case QMessageBox::Cancel:
+            return true;
+        default:
+            break;
+        }
+    }
+
+    return false;
+}
+
+bool MainWindow::checkLexiconDirty()
+{
+    if (lexiconDirty) {
+        const QMessageBox::StandardButton ret =
+            QMessageBox::warning(this, "Brassica",
+                                 "The lexicon has been modified.\nDo you want to save your changes?",
+                                 QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        switch (ret) {
+        case QMessageBox::Save:
+            saveLexicon(); break;
+        case QMessageBox::Cancel:
+            return true;
+        default:
+            break;
+        }
+    }
+
+    return false;
+}
+
 void MainWindow::refreshTitle()
 {
     // can't use setWindowModified here because we have
@@ -266,36 +306,8 @@ void MainWindow::applySettings()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    if (rulesDirty) {
-        const QMessageBox::StandardButton ret =
-            QMessageBox::warning(this, "Brassica",
-                "The sound changes have been modified.\nDo you want to save your changes?",
-                QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-        switch (ret) {
-            case QMessageBox::Save:
-                saveRules(); break;
-            case QMessageBox::Cancel:
-                event->ignore(); return;
-            default:
-                break;
-        }
-    }
-
-    if (lexiconDirty) {
-        const QMessageBox::StandardButton ret =
-            QMessageBox::warning(this, "Brassica",
-                                 "The lexicon has been modified.\nDo you want to save your changes?",
-                                 QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-        switch (ret) {
-        case QMessageBox::Save:
-            saveLexicon(); break;
-        case QMessageBox::Cancel:
-            event->ignore(); return;
-        default:
-            break;
-        }
-    }
-
+    if (checkRulesDirty()) { event->ignore(); return; }
+    if (checkLexiconDirty()) { event->ignore(); return; }
     event->accept();
 }
 
@@ -339,6 +351,8 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
 
 void MainWindow::openRules()
 {
+    if (checkRulesDirty()) return;
+
     QString fileName = QFileDialog::getOpenFileName(this, "Open rules", QString(), "Brassica rules (*.bsc);;All files (*.*)");
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -364,6 +378,8 @@ void MainWindow::saveRulesAs()
 
 void MainWindow::openLexicon()
 {
+    if (checkLexiconDirty()) return;
+
     QString fileName = QFileDialog::getOpenFileName(this, "Open lexicon", QString(), "Lexicon files (*.lex);;MDF files (*.mdf *.txt);;All files (*.*)");
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
