@@ -38,17 +38,19 @@ if(WIN32)
     execute_process(COMMAND cabal exec -- where brassica OUTPUT_VARIABLE BRASSICA_CLI OUTPUT_STRIP_TRAILING_WHITESPACE)
     cmake_path(NATIVE_PATH CMAKE_CURRENT_BINARY_DIR CMAKE_CURRENT_BINARY_DIR_WIN)
     add_custom_command(
-        TARGET brassica-gui
-        POST_BUILD
+        OUTPUT brassica.exe
+        COMMENT "Copying brassica executable"
         COMMAND copy ${BRASSICA_CLI} "${CMAKE_CURRENT_BINARY_DIR_WIN}\\brassica.exe"
         DEPENDS ${BRASSICA_CLI})
+    target_sources(brassica-gui PRIVATE brassica.exe)
 elseif(UNIX)
     execute_process(COMMAND cabal exec -- which brassica OUTPUT_VARIABLE BRASSICA_CLI OUTPUT_STRIP_TRAILING_WHITESPACE)
     add_custom_command(
-        TARGET brassica-gui
-        POST_BUILD
+        OUTPUT brassica
+        COMMENT "Copying brassica executable"
         COMMAND cp ${BRASSICA_CLI} "${CMAKE_CURRENT_BINARY_DIR}/brassica"
         DEPENDS ${BRASSICA_CLI})
+    target_sources(brassica-gui PRIVATE brassica)
 endif()
 
 install(TARGETS brassica-gui
