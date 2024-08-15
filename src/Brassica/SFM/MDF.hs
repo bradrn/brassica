@@ -215,7 +215,7 @@ duplicateEtymologies f = go Nothing Nothing
             { fieldMarker = "et"
             , fieldWhitespace = " "
             , fieldSourcePos = Nothing
-            , fieldValue = f $ trim lx
+            , fieldValue = ensureNewline $ f $ trim lx
             }
         $ case gl of
               Nothing -> []
@@ -224,10 +224,12 @@ duplicateEtymologies f = go Nothing Nothing
                       { fieldMarker = "eg"
                       , fieldWhitespace = " "
                       , fieldSourcePos = Nothing
-                      , fieldValue = gl'
-                        -- no need to add newline here because 'gl'
-                        -- should already have whitespace
+                      , fieldValue = ensureNewline gl'
                       } []
                   ]
 
     trim = dropWhile isSpace . dropWhileEnd isSpace
+
+    ensureNewline s
+        | last s == '\n' = s
+        | otherwise = s ++ "\n"
