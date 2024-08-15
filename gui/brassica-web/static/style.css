@@ -109,6 +109,10 @@ textarea.input-box:not(.lib-config) {
     border: none;
     resize: none;
 }
+pre {
+    font: inherit;
+    margin: 0;
+}
 #controls {
     padding: 0 5px;
     display: flex;

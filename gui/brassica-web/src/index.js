@@ -186,7 +186,7 @@ function updateForm(reportRules, needsLive) {
     const outputFormat = data.get("outputFormat");
 
     const output = applyChanges(rules, words, sep, reportRules, highlightMode, outputFormat);
-    document.getElementById("results").innerHTML = output;
+    document.getElementById("results").innerHTML = "<pre>" + output + "</pre>";
 }
 
 form.addEventListener("submit", (event) => {

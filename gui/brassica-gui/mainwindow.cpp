@@ -343,7 +343,7 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
         multiResultSep->text());
 
     blockScrollTrackingEvent = true;
-    outputEdit->setHtml(output);
+    outputEdit->setHtml("<pre>" + output + "</pre>");
 
     blockScrollTrackingEvent = false;
     updateOutputFromWordsSlider(wordsEditVScroll->value());
