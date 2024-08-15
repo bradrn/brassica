@@ -527,7 +527,15 @@ Of course, a category cannot refer to itself either, since that would make no se
 
 ### Other features
 
-[TODO after finishing reference guide]
+Other, more advanced features supported by Brassica include:
+
+- Other flags to influence the details of rule application
+- Wildcards `^` and lexeme repetition `*`
+- Filters for dealing with large numbers of multiple results
+- Feature definitions to represent suprasegmentals
+
+For details on these, consult the [reference guide](./Reference.md).
+
 
 ## Using the graphical interface
 
