@@ -121,8 +121,10 @@ tokeniseAccordingToInputFormat MDF o cs = \input -> do
     ws <- withFirstCategoriesDecl tokeniseMDF cs sfm
     pure $ case o of
         MDFOutput -> ws
-        _ ->  -- need to extract words for other output modes
-            Word <$> getWords ws
+        _ ->
+            -- need to extract words for other output modes
+            -- also add separators to keep words apart visually
+            intersperse (Separator "\n") $ Word <$> getWords ws
 
 -- | Top-level dispatcher for an interactive frontend: given a textual
 -- wordlist and a list of sound changes, returns the result of running
