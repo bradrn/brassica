@@ -419,8 +419,8 @@ data RuleStatus
 -- | Given a 'Rule', determine if the rule matches at the current
 -- point; if so, apply the rule, adding appropriate tags.
 applyOnce :: Rule Expanded -> StateT (MultiZipper RuleTag Grapheme) [] RuleStatus
-applyOnce r@Rule{target, replacement, exception} =
-    modify (tag AppStart) >> go (environment r)
+applyOnce Rule{..} =
+    modify (tag AppStart) >> go environment
   where
     go [] = return Failure
     go (env:envs) = do
@@ -440,7 +440,7 @@ applyOnce r@Rule{target, replacement, exception} =
                         modifyMay $ seek TargetStart
                         modifyM $ \w ->
                             let replacedWords = mkReplacement out replacement w
-                            in case sporadic (flags r) of
+                            in case sporadic flags of
                                 -- make sure to re-insert original word
                                 PerApplication -> originalWord : replacedWords
                                 _ -> replacedWords
