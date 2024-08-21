@@ -41,17 +41,37 @@ In the simplest rules, both the target and the replacement are a single letter (
 For instance, a rule to unconditionally change ⟨θ⟩ to ⟨f⟩ (as found in some English dialects) can be specified as follows:
 ```
 θ / f
+
+; θɪn → fɪn
+; mɪθs → mɪfs
+; pɑːθ → pɑːf
+; ðɪs → ðɪs (no change)
 ```
-This rule will change, say, ⟨θɪn⟩ to ⟨fɪn⟩.
 
 > **Note:** the first slash in a rule can be replaced by `→` or `->` if you prefer.
+
+Any text after a semicolon is ignored by Brassica.
+This is called a **comment**.
+This guide uses comments to show examples of words, before and after applying a sample rule (as in the previous example).
+In other situations, they can be useful for labelling or explaining what a complex rule does, as in:
+```
+; th-fronting
+θ / f
+```
+A comment does not need to be on its own line:
+```
+θ / f    ; th-fronting
+```
 
 The target and replacement can contain multiple graphemes.
 However, **they must have spaces between them**.
 (This is important! See the section below on [multigraphs](#multigraphs) for details.)
-For instance, the following rule changes ⟨ki⟩ to ⟨č⟩:
+For instance, the following rule changes ⟨ki⟩ to ⟨čə⟩:
 ```
-k i / č
+k i / č ə
+
+; kita → čəta
+; akiə → ačəə
 ```
 
 Most sound changes, however, are not unconditional.
@@ -71,13 +91,22 @@ This is exactly the same as leaving the environment out altogether:
 For a more interesting example, the following rule:
 ```
 t / s / i _ i
+
+; iti → isi
+; keritim → kerisim
+; kita → kita (no change)
+; koti → koti (no change)
 ```
-…will replace ⟨t⟩ with ⟨s⟩ only when it’s between two ⟨i⟩s.
+…replaces ⟨t⟩ with ⟨s⟩ only when it’s between two ⟨i⟩s.
 
 **Word boundaries** may be specified in the environment as `#`.
 For instance, this rule changes ⟨n⟩ to ⟨ŋ⟩ at the end of a word:
 ```
 n / ŋ / _ #
+
+; pan → paŋ
+; ana → ana (no change)
+; nap → nap (no change)
 ```
 
 Either the target or the replacement may be left blank.
@@ -85,6 +114,10 @@ If the replacement is blank, the target is **deleted** (i.e. replaced with nothi
 For instance, this rule deletes word-final ⟨i⟩:
 ```
 i / / _ #
+
+; doti → dot
+; kai → ka
+; kaip → kaip (no change)
 ```
 This can be used to specify sound changes of **syncope**, **apocope**, **elision** and so on.
 
@@ -92,21 +125,12 @@ On the other hand, if the target is blank, the replacement is inserted in every 
 For instance, this rule inserts ⟨ʔ⟩ between any two adjacent ⟨a⟩s:
 ```
 / ʔ / a _ a
+
+; paa → paʔa
+; aapee → aʔapee
+; anapee → anapee (no change)
 ```
 This can be used to implement rules of **epenthesis**.
-
-Plain-text **comments** can be added by beginning them with a semicolon.
-Brassica will ignore any text after the semicolon.
-This can be useful for explaining what a complex rule does, for instance:
-```
-; replace i with y before a
-i / y / _ a
-```
-In this example the comment is on its own line.
-A comment may also be added after a rule if necessary:
-```
-i / y / _ a    ; replace i with y before a
-```
 
 A rule may take place in any of **multiple environments**.
 Specify this by adding more slashes to the end of the rule:
@@ -116,6 +140,10 @@ target / replacement / before1 _ after1 / before2 _ after2 / …
 For instance, the following rule will delete ⟨ʔ⟩ when it occurs at the beginning or at the end of a word:
 ```
 ʔ / / _ # / # _
+
+; ʔana → ana
+; naʔa → naʔa (no change)
+; naʔ → na
 ```
 
 ### Categories
@@ -129,10 +157,18 @@ For instance, `[a e i o u]` will match any of ⟨a⟩, ⟨e⟩, ⟨i⟩, ⟨o⟩
 This means the following rule will insert ⟨ʔ⟩ between any two vowels (assuming a five-vowel system):
 ```
 / ʔ / [a e i o u] _ [a e i o u]
+
+; aapee → aʔapeʔe
+; kuinofa → kuʔinofa
+; kaoete → kaʔoʔete
 ```
 And this rule will delete any consonant occurring immediately before another consonant:
 ```
 [b c d f g h j k l m n p q r s t v w x y z] / / _ [b c d f g h j k l m n p q r s t v w x y z]
+
+; apte → ate
+; aqbano → abano
+; ktandxe → taxe
 ```
 (We will soon see [how to make these rules easier to write](#defining-categories).)
 
@@ -142,13 +178,21 @@ For instance, we might want to convert voiced stops to nasals when word-final:
 ```
 b / m / _ #
 d / n / _ #
-ɡ / ŋ / _ #
+g / ŋ / _ #
+
+; these rules together will yield:
+; anab → anam
+; teded → teden
+; ekog → ekoŋ
+; irek → irek (no change)
 ```
 Obviously this gets tedious for long sets of graphemes!
 
 Brassica simplifies these cases by allowing categories in the replacement, like so:
 ```
 [b d ɡ] / [m n ŋ] / _ #
+
+; same effect as previous example
 ```
 Here, the category in the replacement takes its value from the category in the target.
 The listed graphemes are matched up one-to-one:
@@ -160,15 +204,30 @@ In the environment, categories can include **word boundaries**.
 For instance, the following rule works to delete ⟨ʔ⟩ before a stop or the end of a word:
 ```
 ʔ / / _ [p t k b d g #]
+
+; naʔpe → nape
+; ɨnoʔ → ɨno
+; ʔaneke → ʔaneke (no change)
+; naʔap → naʔap (no change)
 ```
 
 Sometimes it’s useful to match or replace a **sequence** of zero or more graphemes within a category.
 Do this by surrounding those graphemes with curly braces `{`/`}`, as in:
 ```
 [e o] / [{j ə} {w ə}]
-[{ŋ g} ŋ] → [ŋ {}]
+
+; kena → kjəna
+; onegi → wənegi
 ```
-The first rule here will replace ⟨e⟩ by ⟨jə⟩ and ⟨o⟩ by ⟨wə⟩.
+Or:
+```
+[{ŋ g} ŋ] → [ŋ {}]
+
+; aŋget → aŋet
+; taŋoŋ → tao
+; eŋkep → ekep
+```
+The first rule here replaces ⟨e⟩ by ⟨jə⟩ and ⟨o⟩ by ⟨wə⟩.
 The second rule acts to change ⟨ŋg⟩ to ⟨ŋ⟩, while deleting any single ⟨ŋ⟩.
 
 > **Note:** this second rule would be difficult to write without using braces!
@@ -192,9 +251,13 @@ In this case each category in the replacement is matched with a category in the 
   the second in the replacement with the second in the target,
   and so on.
 For instance, the following (rather contrived) rule will replace stop–nasal sequences with nasal–stop sequences,
-  preserving places of articulation (e.g. ⟨km⟩ → ⟨ŋp⟩):
+  preserving places of articulation:
 ```
 [p t k] [m n ŋ] / [m n ŋ] [p t k]
+
+; akme → aŋpe
+; tne → nte
+; apŋ → amk
 ```
 
 In more complex cases it is convenient to **ignore** a category in the target.
@@ -204,6 +267,8 @@ For instance, consider a rule of monophthongisation
 We might attempt to write this as follows:
 ```
 [a e i o u] [a e i o u] / [ɐ ə ɨ ə ɨ]
+
+; ai → ɐ (unwanted result!)
 ```
 But this will not work as expected:
   the *first* category in the input corresponds to `[ɐ ə ɨ ə ɨ]` in the output,
@@ -212,8 +277,11 @@ This can be resolved using the special **discard** symbol `~` in the replacement
   which corresponds to one category in the input, but produces no output:
 ```
 [a e i o u] [a e i o u] / ~ [ɐ ə ɨ ə ɨ]
+
+; ai → ɨ
+; keope → kəpe
 ```
-One could read this rune in English as:
+One could read this rule in English as:
   ‘delete the first vowel, and centralise the second vowel’ — exactly what we want!
 
 
@@ -310,6 +378,10 @@ Brassica understands that letters with no intervening space should be considered
 For instance, the following rule will convert any ⟨t⟩+⟨h⟩ sequences in the input into a single multigraph ⟨th⟩:
 ```
 t h / th
+
+; placing ⟨·⟩ between each grapheme:
+; t·h·e → th·e
+; b·a·t·h → b·a·th
 ```
 Note that Brassica treats a multigraph like ⟨th⟩ as its own grapheme,
   distinct from a sequence of two graphemes ⟨t⟩+⟨h⟩.
@@ -317,7 +389,12 @@ Thus rules such as `h / / _` will not affect ⟨th⟩,
   while rules such as `th / s` will not affect sequences of ⟨t⟩+⟨h⟩.
 Similarly, rules involving categories will treat multigraphs as single elements:
 ```
-C C / ~ C / _   ; will convert ⟨athke⟩→⟨ake⟩, no change in ⟨athe⟩→⟨athe⟩
+C C / ~ C / _
+
+; assuming ⟨th⟩ is in C:
+; athke → ake
+; ake → ake (no change)
+; athe → athe (no change)
 ```
 
 > **Note:** in fact, the multi-letter category names seen above are considered multigraphs by Brassica.
@@ -329,11 +406,8 @@ Use `ā / a y` instead to avoid this issue.
 
 When no categories are defined, Brassica never groups letters together into multigraphs in input words.
 For instance, ⟨bath⟩ becomes `b`+`a`+`t`+`h`, and ⟨enga⟩ becomes `e`+`n`+`g`+`a`.
-In this situation it is possible to explicitly introduce multigraphs in sound changes, for instance:
-```
-t h / th
-n g / ng
-```
+In this situation it is possible to explicitly introduce multigraphs in sound changes,
+  as with the sound change `t h / th` mentioned above.
 
 However, when categories are defined, Brassica will assume that the **first category block** includes all multigraphs which may be present in the input.
 Thus multigraphs will be recognised in the input *only if* those multigraphs are listed in the first category block.
@@ -352,32 +426,32 @@ By contrast, a sequence such as ⟨ng⟩ will be straightforwardly tokenised to 
 The symbol `>` represents **gemination**.
 When used in the target or environment, it matches exactly the same grapheme as the last one matched:
 ```
-[b d g] > / [p t k]   ; converts ⟨bb⟩→⟨p⟩, ⟨dd⟩→⟨t⟩, ⟨gg⟩→⟨k⟩
-V / / C > _ #         ; converts ⟨amme⟩→⟨amm⟩, ⟨kappa⟩→⟨kapp⟩
-C / / _ >             ; converts ⟨amme⟩→⟨ame⟩,  ⟨kappa⟩→⟨kapa⟩
+[b d g] > / [p t k]   ; bb→p, dd→t, gg→k, bd→bd
+V / / C > _ #         ; amme→amm, kappa→kapp, kapte→kapte
+C / / _ >             ; amme→ame, kappa→kapa, kapte→kapte
 ```
 When used in the replacement, it repeats the previous grapheme:
 ```
-C / C > / _ #         ; converts ⟨ap⟩→⟨app⟩
+C / C > / _ #         ; ap→app
 ```
 
 **Metathesis** can be accomplished by specifying `\` in the replacement.
 This will reverse the graphemes in the target:
 ```
-Aprx Stop / \         ; converts ⟨ayke⟩→⟨akye⟩, ⟨nawbe⟩→⟨nabwe⟩
+Aprx Stop / \         ; ayke→akye, nawbe→nabwe
 ```
 
 One or more elements in the target or environment can be made **optional** by surrounding them with parentheses:
 ```
-a / e / _ (C) i       ; converts ⟨ai⟩→⟨ei⟩, ⟨ami⟩→⟨emi⟩
-Alv (y) i / Pal ə / _ ; converts ⟨ti⟩→⟨čə⟩, ⟨nyi⟩→⟨ñə⟩
+a / e / _ (C) i       ; ai→ei, ami→emi, ammi→ammi
+Alv (y) i / Pal ə / _ ; ti→čə, nyi→ñə, nayi→nayi
 ```
 Optional elements can also be included in the replacement.
 Like categories, these are matched up one-to-one with optional elements in the target.
 An optional element in the replacement will be included in the output
   only if the corresponding element in the target was matched:
 ```
-Alv (y) i / Pal (i) ə / _   ; converts ⟨ti⟩→⟨čə⟩, ⟨nyi⟩→⟨ñjə⟩
+Alv (y) i / Pal (i) ə / _   ; ti→čə, nyi→ñiə
 ```
 Warning: be careful when including optional categories in the environment!
 In a rule like `Alv (Aprx) [i e] / Alv [ɨ ə]`,
@@ -394,6 +468,10 @@ The `exception` has the same form as the other environments,
 For instance, to change ⟨k⟩ to ⟨g⟩ in all situations except at the beginning of a word, one can write:
 ```
 k / g / _ // # _
+
+; kapa → kapa (no change)
+; aka → aga
+; nak → nag
 ```
 Note that there is no space between the double slashes `//` which mark an exception.
 
@@ -419,6 +497,9 @@ These outputs are separated by a slash by default
 For instance, consider the following rule:
 ```
 -? i / / a _ #
+
+; kanai → kanai, kana (2 results)
+; kani → kani (no change)
 ```
 This sporadically deletes ⟨i⟩ after ⟨a⟩ at the end of a word.
 Applied to the word ⟨kanai⟩, this produces the two outputs ⟨kanai⟩ and ⟨kana⟩.
@@ -455,6 +536,10 @@ However, more subtle cases also occur.
 For instance, consider the following rule:
 ```
 ʔ / / [# ʔ] _
+
+; ʔʔan → an, ʔan (2 results)
+; ʔan → an
+; aʔʔan → aʔan
 ```
 There are two different ways to apply this rule to the word ⟨ʔʔan⟩.
 On one hand, we can notice that the very first `ʔ` is at the beginning of the word, so it can be deleted;
@@ -475,6 +560,10 @@ If the categories in the target are numbered from left to right, starting from 1
 For a simple example, consider the following nasal assimilation rule:
 ```
 [m n ŋ] [p t k] / @2 [m n ŋ] @2 [b d g]
+
+; amte → ande
+; anke → aŋge
+; aŋpe → ambe
 ```
 Here, `@2` in the replacement indicates that
   both replacement categories take their values from the *second* category listed in the target
@@ -485,6 +574,11 @@ That is, a nasal followed by `p` will always be replaced by `mb`;
 A more complex example (similar to a sound change [attested in Hawu](https://www.jstor.org/stable/23321852)) is as follows:
 ```
 [i u] C V / ə @2 C @1 [i u]
+
+; ipe → əpi
+; idu → ədi
+; ugete → əgute
+; unosiwe → ənusəwi
 ```
 Here, two vowels are swapped around a consonant, with the first being reduced to ⟨ə⟩.
 The target consists of three categories in sequence.
@@ -504,6 +598,11 @@ A backreferenced category in the target or replacement is constrained to match t
 If this seems a bit abstract, the following example may clarify the meaning:
 ```
 [m n ŋ] @1 [p t k] / [b d g]
+
+; tampe → tabe
+; tante → tade
+; tanpe → tanpe (no change)
+; tamke → tamke (no change)
 ```
 The target of this rule will only match homorganic consonant clusters.
 The category `[p t k]` backreferences to the *first* category in the target, namely `[m n ŋ]`:
@@ -513,6 +612,12 @@ This target will match ⟨mp⟩, ⟨nt⟩ and ⟨ŋk⟩, but not (say) ⟨mt⟩ 
 Another example, showing a backreference in the environment:
 ```
 ʔ / / [# C] V _ @2 V
+
+; aʔape → aape
+; taʔape → taape
+; tkaʔape → tkaʔape (no change)
+; aʔepe → aʔepe (no change)
+; koʔuna → koʔuna (no change)
 ```
 This rule deletes a glottal stop between identical vowels, at the beginning of a word or after a consonant.
 The identity of the vowels is enforced by a backreference:
