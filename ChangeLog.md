@@ -1,5 +1,27 @@
 # Brassica changelog
 
+## Unreleased
+
+### Behaviour
+
+- Bugfix: etymologies are now added in all situations when processing an MDF file
+- Bugfix: desktop version correctly warns about unsaved changes when opening a file
+- New `report` directive allows for reporting intermediate results in input→output mode
+- Whitespace is now preserved when displaying sound change output on desktop and web
+
+### Code
+
+- CMakeLists for desktop GUI now track Haskell binary dependency correctly
+- Changes resulting from addition of `report`:
+  - New constructor `ReportS` added to `Brassica.SoundChange.Types.Statement`
+  - New functions `Brassica.SoundChange.Apply.Internal.applyChangesWithReports`,
+      `Brassica.SoundChange.Apply.Internal.applyChangesWithChangesWithReports`
+  - A constructor `ReportWord` has been added to `Brassica.SoundChange.Apply.Internal.LogItem`,
+      while its former record fields `input` and `output` have been replaced with functions
+      `logInput` and `logOutput`.
+  - `Brassica.SoundChange.Frontend.Internal` has been restructured to allow display of intermediate results
+  - New function `Brassica.SoundChange.Tokenise.joinComponents` added to assist with said restructure
+
 ## 0.3.0
 
 ### Behaviour
