@@ -1,0 +1,2376 @@
+SCA Output: baalaq
+  -> baalaʔ  (-x [e q g] / [ə ʔ ɣ])
+  -> báálaʔ  ([Vl +Unstr] / [Vl +PriS])
+  -> bááláʔ  (Unstr / PriS / _ C [C #])
+  -> bààláʔ  (-x PriS / SndS / _ ^PriS)
+  -> bàláʔ   (Vl / Vs)
+  -> baláʔ   (-x SndS / Unstr)
+  -> banáʔ   ([lh l] / [l n])
+  -> banaʔ   (-x PriS / Unstr)
+
+
+SCA Output: bin
+  -> bín  (Unstr / PriS / _ C [C #])
+  -> bin  (-x PriS / Unstr)
+
+
+SCA Output: bisa
+  -> bísa  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> bésa  ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> bés   (Unstr / / _)
+  -> bes   (-x PriS / Unstr)
+
+
+SCA Output: buthe
+  -> buthə  (-x [e q g] / [ə ʔ ɣ])
+  -> búthə  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> bútsə  ([ph th kh] / [f ts x])
+  -> búts   (Unstr / / _)
+  -> bús    (ts / s / _)
+  -> bus    (-x PriS / Unstr)
+
+
+SCA Output: dafin
+  -> dafín  (Unstr / PriS / _ C [C #])
+  -> dfín   (Unstr / / _)
+  -> dfin   (-x PriS / Unstr)
+
+
+SCA Output: danit
+  -> danít  (Unstr / PriS / _ C [C #])
+  -> danír  ([t d] / r / V _ [V #])
+  -> dnír   (Unstr / / _)
+  -> dnir   (-x PriS / Unstr)
+
+
+SCA Output: daqat
+  -> daʔat  (-x [e q g] / [ə ʔ ɣ])
+  -> daʔát  (Unstr / PriS / _ C [C #])
+  -> daʔár  ([t d] / r / V _ [V #])
+  -> dʔár   (Unstr / / _)
+  -> dáʔr   (ʔ V / \ / C _)
+  -> daʔr   (-x PriS / Unstr)
+
+
+SCA Output: simi
+  -> sími  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> šími  ([s t d] / [š č j] / _ [i y])
+  -> ším   (Unstr / / _)
+  -> sím   (š / s / _)
+  -> sim   (-x PriS / Unstr)
+
+
+SCA Output: dawa
+  -> dáwa  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> dáw   (Unstr / / _)
+  -> daw   (-x PriS / Unstr)
+
+
+SCA Output: ŋuwe
+  -> ŋuwə  (-x [e q g] / [ə ʔ ɣ])
+  -> ŋúwə  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> ŋúw   (Unstr / / _)
+  -> uŋúw  (ŋ PriS / @1 Unstr ŋ @1 PriS / # _)
+  -> uŋú   (w / / u _)
+  -> uŋu   (-x PriS / Unstr)
+
+
+SCA Output: debu
+  -> dəbu   (-x [e q g] / [ə ʔ ɣ])
+  -> də́bu  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> dóbu   ([a ə i u -Unstr] / [o o i u -Unstr] / _ C (C) u~)
+  -> dób    (Unstr / / _)
+  -> dob    (-x PriS / Unstr)
+
+
+SCA Output: din
+  -> dín  (Unstr / PriS / _ C [C #])
+  -> jín  ([s t d] / [š č j] / _ [i y])
+  -> gín  (j / g / _)
+  -> gin  (-x PriS / Unstr)
+
+
+SCA Output: dise
+  -> disə  (-x [e q g] / [ə ʔ ɣ])
+  -> dísə  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> jísə  ([s t d] / [š č j] / _ [i y])
+  -> jísə  (-? [i    -Unstr] / [e       -Unstr] / _ C (C) ə~)
+  -> jís   (Unstr / / _)
+  -> gís   (j / g / _)
+  -> gis   (-x PriS / Unstr)
+
+dise
+  -> disə  (-x [e q g] / [ə ʔ ɣ])
+  -> dísə  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> jísə  ([s t d] / [š č j] / _ [i y])
+  -> jésə  (-? [i    -Unstr] / [e       -Unstr] / _ C (C) ə~)
+  -> jés   (Unstr / / _)
+  -> rés   (j / r / _ // _i)
+  -> res   (-x PriS / Unstr)
+
+
+SCA Output: fas
+  -> fás  (Unstr / PriS / _ C [C #])
+  -> fas  (-x PriS / Unstr)
+
+
+SCA Output: fasi
+  -> fási  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> fáši  ([s t d] / [š č j] / _ [i y])
+  -> fáš   (Unstr / / _)
+  -> fár   (š / r / _ Vcd / Vcd _ / V _ [V Vcd #] // _i)
+  -> far   (-x PriS / Unstr)
+
+
+SCA Output: fawetl
+  -> fawətl   (-x [e q g] / [ə ʔ ɣ])
+  -> fawə́tl  (Unstr / PriS / _ C [C #])
+  -> fwə́tl   (Unstr / / _)
+  -> fwátl    (ə́ / @? [á é])
+  -> fwáts    (tl / ts)
+  -> fwás     (ts / s / _)
+  -> fwas     (-x PriS / Unstr)
+
+fawetl
+  -> fawətl   (-x [e q g] / [ə ʔ ɣ])
+  -> fawə́tl  (Unstr / PriS / _ C [C #])
+  -> fwə́tl   (Unstr / / _)
+  -> fwétl    (ə́ / @? [á é])
+  -> fwéts    (tl / ts)
+  -> fwés     (ts / s / _)
+  -> fwes     (-x PriS / Unstr)
+
+
+SCA Output: fawetli
+  -> fawətli   (-x [e q g] / [ə ʔ ɣ])
+  -> fawə́tli  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> fawétli   ([  ə i   -Unstr] / [  e i   -Unstr] / _ C (C) i~)
+  -> fwétl     (Unstr / / _)
+  -> fwéts     (tl / ts)
+  -> fwés      (ts / s / _)
+  -> fwes      (-x PriS / Unstr)
+
+
+SCA Output: feqe
+  -> fəʔə   (-x [e q g] / [ə ʔ ɣ])
+  -> fə́ʔə  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> féʔə   ([  ə   u -Unstr] / [  e   u -Unstr] / _ C (C) ə~)
+  -> féʔ    (Unstr / / _)
+  -> feʔ    (-x PriS / Unstr)
+
+
+SCA Output: fetlhalh
+  -> fətlhalh  (-x [e q g] / [ə ʔ ɣ])
+  -> fətlhálh  (Unstr / PriS / _ C [C #])
+  -> fəlhálh   ([tsh tlh] / [s lh])
+  -> flhálh    (Unstr / / _)
+  -> flál      ([lh l] / [l n])
+  -> flal      (-x PriS / Unstr)
+
+
+SCA Output: gan
+  -> ɣan  (-x [e q g] / [ə ʔ ɣ])
+  -> ɣán  (Unstr / PriS / _ C [C #])
+  -> án   (ɣ / / _)
+  -> an   (-x PriS / Unstr)
+
+
+SCA Output: gadiq
+  -> ɣadiʔ  (-x [e q g] / [ə ʔ ɣ])
+  -> ɣadíʔ  (Unstr / PriS / _ C [C #])
+  -> ɣajíʔ  ([s t d] / [š č j] / _ [i y])
+  -> ɣjíʔ   (Unstr / / _)
+  -> ijíʔ   (ɣ / i~ / # _ C)
+  -> igíʔ   (j / g / _)
+  -> igiʔ   (-x PriS / Unstr)
+
+
+SCA Output: gadye
+  -> ɣadyə  (-x [e q g] / [ə ʔ ɣ])
+  -> ɣádyə  (Unstr / PriS / _ C [C #])
+  -> ɣájyə  ([s t d] / [š č j] / _ [i y])
+  -> ɣájyə  (-? [a    -Unstr] / [e       -Unstr] / _ C (C) ə~)
+  -> ɣájy   (Unstr / / _)
+  -> ɣáji   ([w y] / [u i +Unstr] / C _ #)
+  -> áji    (ɣ / / _)
+  -> ági    (j / g / _)
+  -> agi    (-x PriS / Unstr)
+
+gadye
+  -> ɣadyə  (-x [e q g] / [ə ʔ ɣ])
+  -> ɣádyə  (Unstr / PriS / _ C [C #])
+  -> ɣájyə  ([s t d] / [š č j] / _ [i y])
+  -> ɣéjyə  (-? [a    -Unstr] / [e       -Unstr] / _ C (C) ə~)
+  -> ɣéjy   (Unstr / / _)
+  -> ɣéji   ([w y] / [u i +Unstr] / C _ #)
+  -> éji    (ɣ / / _)
+  -> égi    (j / g / _)
+  -> egi    (-x PriS / Unstr)
+
+
+SCA Output: galab
+  -> ɣalab  (-x [e q g] / [ə ʔ ɣ])
+  -> ɣaláb  (Unstr / PriS / _ C [C #])
+  -> ɣláb   (Unstr / / _)
+  -> iláb   (ɣ / i~ / # _ C)
+  -> ináb   ([lh l] / [l n])
+  -> inab   (-x PriS / Unstr)
+
+
+SCA Output: ganit
+  -> ɣanit  (-x [e q g] / [ə ʔ ɣ])
+  -> ɣanít  (Unstr / PriS / _ C [C #])
+  -> ɣanír  ([t d] / r / V _ [V #])
+  -> ɣnír   (Unstr / / _)
+  -> inír   (ɣ / i~ / # _ C)
+  -> inir   (-x PriS / Unstr)
+
+
+SCA Output: welus
+  -> wəlus  (-x [e q g] / [ə ʔ ɣ])
+  -> wəlús  (Unstr / PriS / _ C [C #])
+  -> wlús   (Unstr / / _)
+  -> wnús   ([lh l] / [l n])
+  -> wnus   (-x PriS / Unstr)
+
+
+SCA Output: gatlaq
+  -> ɣatlaʔ  (-x [e q g] / [ə ʔ ɣ])
+  -> ɣatláʔ  (Unstr / PriS / _ C [C #])
+  -> ɣtláʔ   (Unstr / / _)
+  -> itláʔ   (ɣ / i~ / # _ C)
+  -> itsáʔ   (tl / ts)
+  -> isáʔ    (ts / s / _)
+  -> isaʔ    (-x PriS / Unstr)
+
+
+SCA Output: nge
+  -> ngə  (-x [e q g] / [ə ʔ ɣ])
+  -> ng   (Unstr / / _)
+  -> g    (Pns / Vds / # C _ / _ #)
+
+
+SCA Output: haŋuhaŋu
+  -> háŋuháŋu  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> hàŋuháŋu  (-x PriS / SndS / _ ^PriS)
+  -> àŋuáŋu    (h / / _)
+  -> òŋuóŋu    ([a ə i u -Unstr] / [o o i u -Unstr] / _ C (C) u~)
+  -> òŋóŋ      (Unstr / / _)
+  -> oŋóŋ      (-x SndS / Unstr)
+  -> oŋoŋ      (-x PriS / Unstr)
+
+
+SCA Output: heŋheŋ
+  -> həŋhəŋ    (-x [e q g] / [ə ʔ ɣ])
+  -> hə́ŋhə́ŋ  (Unstr / PriS / _ C [C #])
+  -> hə̀ŋhə́ŋ  (-x PriS / SndS / _ ^PriS)
+  -> ə̀ŋə́ŋ    (h / / _)
+  -> àŋə́ŋ     (ə̀ / @? [à è])
+  -> àŋáŋ      (ə́ / @? [á é])
+  -> aŋáŋ      (-x SndS / Unstr)
+  -> aŋaŋ      (-x PriS / Unstr)
+
+heŋheŋ
+  -> həŋhəŋ    (-x [e q g] / [ə ʔ ɣ])
+  -> hə́ŋhə́ŋ  (Unstr / PriS / _ C [C #])
+  -> hə̀ŋhə́ŋ  (-x PriS / SndS / _ ^PriS)
+  -> ə̀ŋə́ŋ    (h / / _)
+  -> àŋə́ŋ     (ə̀ / @? [à è])
+  -> àŋéŋ      (ə́ / @? [á é])
+  -> aŋéŋ      (-x SndS / Unstr)
+  -> aŋeŋ      (-x PriS / Unstr)
+
+heŋheŋ
+  -> həŋhəŋ    (-x [e q g] / [ə ʔ ɣ])
+  -> hə́ŋhə́ŋ  (Unstr / PriS / _ C [C #])
+  -> hə̀ŋhə́ŋ  (-x PriS / SndS / _ ^PriS)
+  -> ə̀ŋə́ŋ    (h / / _)
+  -> èŋə́ŋ     (ə̀ / @? [à è])
+  -> èŋáŋ      (ə́ / @? [á é])
+  -> eŋáŋ      (-x SndS / Unstr)
+  -> eŋaŋ      (-x PriS / Unstr)
+
+heŋheŋ
+  -> həŋhəŋ    (-x [e q g] / [ə ʔ ɣ])
+  -> hə́ŋhə́ŋ  (Unstr / PriS / _ C [C #])
+  -> hə̀ŋhə́ŋ  (-x PriS / SndS / _ ^PriS)
+  -> ə̀ŋə́ŋ    (h / / _)
+  -> èŋə́ŋ     (ə̀ / @? [à è])
+  -> èŋéŋ      (ə́ / @? [á é])
+  -> eŋéŋ      (-x SndS / Unstr)
+  -> eŋeŋ      (-x PriS / Unstr)
+
+
+SCA Output: kaq
+  -> kaʔ  (-x [e q g] / [ə ʔ ɣ])
+  -> ɣaʔ  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ɣáʔ  (Unstr / PriS / _ C [C #])
+  -> áʔ   (ɣ / / _)
+  -> aʔ   (-x PriS / Unstr)
+
+
+SCA Output: kasip
+  -> ɣasip  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ɣasíp  (Unstr / PriS / _ C [C #])
+  -> ɣašíp  ([s t d] / [š č j] / _ [i y])
+  -> ɣšíp   (Unstr / / _)
+  -> išíp   (ɣ / i~ / # _ C)
+  -> isíp   (š / s / _)
+  -> isip   (-x PriS / Unstr)
+
+
+SCA Output: khaliŋ
+  -> kaliŋ  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> kalíŋ  (Unstr / PriS / _ C [C #])
+  -> klíŋ   (Unstr / / _)
+  -> kníŋ   ([lh l] / [l n])
+  -> kniŋ   (-x PriS / Unstr)
+
+
+SCA Output: phula
+  -> phúla  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> fúla   ([ph th kh] / [f ts x])
+  -> fóla   ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> fól    (Unstr / / _)
+  -> fón    ([lh l] / [l n])
+  -> fon    (-x PriS / Unstr)
+
+
+SCA Output: khambuy
+  -> kambuy  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> kambúy  (Unstr / PriS / _ C [C #])
+  -> kmbúy   (Unstr / / _)
+  -> kbúy    (Pns / Vds / # C _ / _ #)
+  -> kbuy    (-x PriS / Unstr)
+
+
+SCA Output: laqit
+  -> laʔit  (-x [e q g] / [ə ʔ ɣ])
+  -> laʔít  (Unstr / PriS / _ C [C #])
+  -> laʔír  ([t d] / r / V _ [V #])
+  -> lʔír   (Unstr / / _)
+  -> líʔr   (ʔ V / \ / C _)
+  -> níʔr   ([lh l] / [l n])
+  -> niʔr   (-x PriS / Unstr)
+
+
+SCA Output: yenge
+  -> yəngə   (-x [e q g] / [ə ʔ ɣ])
+  -> yə́ngə  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> yéngə   ([  ə   u -Unstr] / [  e   u -Unstr] / _ C (C) ə~)
+  -> yéng    (Unstr / / _)
+  -> yég     (Pns / Vds / # C _ / _ #)
+  -> yeg     (-x PriS / Unstr)
+
+
+SCA Output: khenan
+  -> khənan  (-x [e q g] / [ə ʔ ɣ])
+  -> kənan   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> kənán   (Unstr / PriS / _ C [C #])
+  -> knán    (Unstr / / _)
+  -> knan    (-x PriS / Unstr)
+
+
+SCA Output: khunu
+  -> kunu  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> kúnu  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> kún   (Unstr / / _)
+  -> kun   (-x PriS / Unstr)
+
+
+SCA Output: kube
+  -> kubə  (-x [e q g] / [ə ʔ ɣ])
+  -> ɣubə  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ɣúbə  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> ɣúb   (Unstr / / _)
+  -> úb    (ɣ / / _)
+  -> ub    (-x PriS / Unstr)
+
+
+SCA Output: kulit
+  -> ɣulit  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ɣulít  (Unstr / PriS / _ C [C #])
+  -> ɣulír  ([t d] / r / V _ [V #])
+  -> ɣlír   (Unstr / / _)
+  -> ilír   (ɣ / i~ / # _ C)
+  -> inír   ([lh l] / [l n])
+  -> inir   (-x PriS / Unstr)
+
+
+SCA Output: saqam
+  -> saʔam  (-x [e q g] / [ə ʔ ɣ])
+  -> saʔám  (Unstr / PriS / _ C [C #])
+  -> sʔám   (Unstr / / _)
+  -> sáʔm   (ʔ V / \ / C _)
+  -> saʔm   (-x PriS / Unstr)
+
+
+SCA Output: kumay
+  -> ɣumay  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ɣumáy  (Unstr / PriS / _ C [C #])
+  -> ɣmáy   (Unstr / / _)
+  -> imáy   (ɣ / i~ / # _ C)
+  -> imay   (-x PriS / Unstr)
+
+
+SCA Output: kuwi
+  -> ɣuwi  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ɣúwi  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> ɣúwi  (-? [u    -Unstr] / [i       -Unstr] / _ C (C) i~)
+  -> ɣúw   (Unstr / / _)
+  -> úw    (ɣ / / _)
+  -> ú     (w / / u _)
+  -> u     (-x PriS / Unstr)
+
+kuwi
+  -> ɣuwi  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ɣúwi  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> ɣíwi  (-? [u    -Unstr] / [i       -Unstr] / _ C (C) i~)
+  -> ɣíw   (Unstr / / _)
+  -> íw    (ɣ / / _)
+  -> iw    (-x PriS / Unstr)
+
+
+SCA Output: lampala
+  -> lámpala  (Unstr / PriS / _ C [C #])
+  -> lámpála  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> làmpála  (-x PriS / SndS / _ ^PriS)
+  -> làmpál   (Unstr / / _)
+  -> lampál   (-x SndS / Unstr)
+  -> nampán   ([lh l] / [l n])
+  -> nampan   (-x PriS / Unstr)
+
+
+SCA Output: laqit
+  -> laʔit  (-x [e q g] / [ə ʔ ɣ])
+  -> laʔít  (Unstr / PriS / _ C [C #])
+  -> laʔír  ([t d] / r / V _ [V #])
+  -> lʔír   (Unstr / / _)
+  -> líʔr   (ʔ V / \ / C _)
+  -> níʔr   ([lh l] / [l n])
+  -> niʔr   (-x PriS / Unstr)
+
+
+SCA Output: khambuy
+  -> kambuy  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> kambúy  (Unstr / PriS / _ C [C #])
+  -> kmbúy   (Unstr / / _)
+  -> kbúy    (Pns / Vds / # C _ / _ #)
+  -> kbuy    (-x PriS / Unstr)
+
+
+SCA Output: mebas
+  -> məbas  (-x [e q g] / [ə ʔ ɣ])
+  -> məbás  (Unstr / PriS / _ C [C #])
+  -> mbás   (Unstr / / _)
+  -> mbas   (-x PriS / Unstr)
+
+
+SCA Output: layat
+  -> layát  (Unstr / PriS / _ C [C #])
+  -> layár  ([t d] / r / V _ [V #])
+  -> lyár   (Unstr / / _)
+  -> nyár   ([lh l] / [l n])
+  -> nyar   (-x PriS / Unstr)
+
+
+SCA Output: lheŋe
+  -> lhəŋə   (-x [e q g] / [ə ʔ ɣ])
+  -> lhə́ŋə  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> lhéŋə   ([  ə   u -Unstr] / [  e   u -Unstr] / _ C (C) ə~)
+  -> lhéŋ    (Unstr / / _)
+  -> léŋ     ([lh l] / [l n])
+  -> leŋ     (-x PriS / Unstr)
+
+
+SCA Output: lhibuq
+  -> lhibuʔ  (-x [e q g] / [ə ʔ ɣ])
+  -> lhibúʔ  (Unstr / PriS / _ C [C #])
+  -> lhbúʔ   (Unstr / / _)
+  -> lbúʔ    ([lh l] / [l n])
+  -> lbuʔ    (-x PriS / Unstr)
+
+
+SCA Output: lhiise
+  -> lhiisə  (-x [e q g] / [ə ʔ ɣ])
+  -> lhíísə  ([Vl +Unstr] / [Vl +PriS])
+  -> lhísə   (Vl / Vs)
+  -> lhísə   (-? [i    -Unstr] / [e       -Unstr] / _ C (C) ə~)
+  -> lhís    (Unstr / / _)
+  -> lís     ([lh l] / [l n])
+  -> lis     (-x PriS / Unstr)
+
+lhiise
+  -> lhiisə  (-x [e q g] / [ə ʔ ɣ])
+  -> lhíísə  ([Vl +Unstr] / [Vl +PriS])
+  -> lhísə   (Vl / Vs)
+  -> lhésə   (-? [i    -Unstr] / [e       -Unstr] / _ C (C) ə~)
+  -> lhés    (Unstr / / _)
+  -> lés     ([lh l] / [l n])
+  -> les     (-x PriS / Unstr)
+
+
+SCA Output: lhiisi
+  -> lhíísi  ([Vl +Unstr] / [Vl +PriS])
+  -> lhííši  ([s t d] / [š č j] / _ [i y])
+  -> lhíši   (Vl / Vs)
+  -> lhíš    (Unstr / / _)
+  -> líš     ([lh l] / [l n])
+  -> lír     (š / r / _ Vcd / Vcd _ / V _ [V Vcd #] // _i)
+  -> lir     (-x PriS / Unstr)
+
+
+SCA Output: lis
+  -> lís  (Unstr / PriS / _ C [C #])
+  -> nís  ([lh l] / [l n])
+  -> nis  (-x PriS / Unstr)
+
+
+SCA Output: mandaŋ
+  -> mandáŋ  (Unstr / PriS / _ C [C #])
+  -> mandó   (a ŋ / o / _ [C #])
+  -> mndó    (Unstr / / _)
+  -> ndó     (Nsl / / _ Pns)
+  -> ndó     (Pns / @1 Nsl @1 Vds)
+  -> ndo     (-x PriS / Unstr)
+
+
+SCA Output: mandaŋ
+  -> mandáŋ  (Unstr / PriS / _ C [C #])
+  -> mandó   (a ŋ / o / _ [C #])
+  -> mndó    (Unstr / / _)
+  -> ndó     (Nsl / / _ Pns)
+  -> ndó     (Pns / @1 Nsl @1 Vds)
+  -> ndo     (-x PriS / Unstr)
+
+
+SCA Output: maqu
+  -> maʔu  (-x [e q g] / [ə ʔ ɣ])
+  -> máʔu  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> móʔu  ([a ə i u -Unstr] / [o o i u -Unstr] / _ C (C) u~)
+  -> móʔ   (Unstr / / _)
+  -> moʔ   (-x PriS / Unstr)
+
+
+SCA Output: matsiŋ
+  -> matsíŋ  (Unstr / PriS / _ C [C #])
+  -> mtsíŋ   (Unstr / / _)
+  -> msíŋ    (ts / s / _)
+  -> msiŋ    (-x PriS / Unstr)
+
+
+SCA Output: may
+  -> máy  (Unstr / PriS / _ C [C #])
+  -> may  (-x PriS / Unstr)
+
+
+SCA Output: mebas
+  -> məbas  (-x [e q g] / [ə ʔ ɣ])
+  -> məbás  (Unstr / PriS / _ C [C #])
+  -> mbás   (Unstr / / _)
+  -> mbas   (-x PriS / Unstr)
+
+
+SCA Output: yenge
+  -> yəngə   (-x [e q g] / [ə ʔ ɣ])
+  -> yə́ngə  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> yéngə   ([  ə   u -Unstr] / [  e   u -Unstr] / _ C (C) ə~)
+  -> yéng    (Unstr / / _)
+  -> yég     (Pns / Vds / # C _ / _ #)
+  -> yeg     (-x PriS / Unstr)
+
+
+SCA Output: laqit
+  -> laʔit  (-x [e q g] / [ə ʔ ɣ])
+  -> laʔít  (Unstr / PriS / _ C [C #])
+  -> laʔír  ([t d] / r / V _ [V #])
+  -> lʔír   (Unstr / / _)
+  -> líʔr   (ʔ V / \ / C _)
+  -> níʔr   ([lh l] / [l n])
+  -> niʔr   (-x PriS / Unstr)
+
+
+SCA Output: meŋul
+  -> məŋul  (-x [e q g] / [ə ʔ ɣ])
+  -> məŋúl  (Unstr / PriS / _ C [C #])
+  -> mŋúl   (Unstr / / _)
+  -> mŋún   ([lh l] / [l n])
+  -> mŋun   (-x PriS / Unstr)
+
+
+SCA Output: naŋa
+  -> náŋa  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> náŋ   (Unstr / / _)
+  -> naŋ   (-x PriS / Unstr)
+
+
+SCA Output: nawun
+  -> nawún  (Unstr / PriS / _ C [C #])
+  -> nwún   (Unstr / / _)
+  -> nwun   (-x PriS / Unstr)
+
+
+SCA Output: ndeqis
+  -> ndəʔis  (-x [e q g] / [ə ʔ ɣ])
+  -> ndəʔís  (Unstr / PriS / _ C [C #])
+  -> ndʔís   (Unstr / / _)
+  -> ndíʔs   (ʔ V / \ / C _)
+  -> ndíʔs   (Pns / @1 Nsl @1 Vds)
+  -> ndiʔs   (-x PriS / Unstr)
+
+
+SCA Output: ndisi
+  -> ndísi  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> ndíši  ([s t d] / [š č j] / _ [i y])
+  -> ndíš   (Unstr / / _)
+  -> ndíš   (Pns / @1 Nsl @1 Vds)
+  -> ndír   (š / r / _ Vcd / Vcd _ / V _ [V Vcd #] // _i)
+  -> ndir   (-x PriS / Unstr)
+
+
+SCA Output: ndiyam
+  -> ndiyám  (Unstr / PriS / _ C [C #])
+  -> ndyám   (Unstr / / _)
+  -> ndyám   (Pns / @1 Nsl @1 Vds)
+  -> ndyam   (-x PriS / Unstr)
+
+
+SCA Output: ngiya
+  -> ngíya  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> ngéya  ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> ngéy   (Unstr / / _)
+  -> ŋgéy   (Pns / @1 Nsl @1 Vds)
+  -> eŋgéy  (ŋ C PriS / @2 Unstr ŋ @1 C @2 PriS / # _)
+  -> eŋgey  (-x PriS / Unstr)
+
+
+SCA Output: ŋalep
+  -> ŋaləp   (-x [e q g] / [ə ʔ ɣ])
+  -> ŋalə́p  (Unstr / PriS / _ C [C #])
+  -> ŋlə́p   (Unstr / / _)
+  -> ŋláp    (ə́ / @? [á é])
+  -> aŋláp   (ŋ C PriS / @2 Unstr ŋ @1 C @2 PriS / # _)
+  -> aŋnáp   ([lh l] / [l n])
+  -> aŋnap   (-x PriS / Unstr)
+
+ŋalep
+  -> ŋaləp   (-x [e q g] / [ə ʔ ɣ])
+  -> ŋalə́p  (Unstr / PriS / _ C [C #])
+  -> ŋlə́p   (Unstr / / _)
+  -> ŋlép    (ə́ / @? [á é])
+  -> eŋlép   (ŋ C PriS / @2 Unstr ŋ @1 C @2 PriS / # _)
+  -> eŋnép   ([lh l] / [l n])
+  -> eŋnep   (-x PriS / Unstr)
+
+
+SCA Output: ŋandu
+  -> ŋándu  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> ŋóndu  ([a ə i u -Unstr] / [o o i u -Unstr] / _ C (C) u~)
+  -> ŋónd   (Unstr / / _)
+  -> ŋód    (Pns / Vds / # C _ / _ #)
+  -> oŋód   (ŋ PriS / @1 Unstr ŋ @1 PriS / # _)
+  -> oŋod   (-x PriS / Unstr)
+
+
+SCA Output: ŋandi
+  -> ŋándi  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> ŋéndi  ([a    -Unstr] / [e       -Unstr] / _ C (C) i~)
+  -> ŋénd   (Unstr / / _)
+  -> ŋéd    (Pns / Vds / # C _ / _ #)
+  -> eŋéd   (ŋ PriS / @1 Unstr ŋ @1 PriS / # _)
+  -> eŋed   (-x PriS / Unstr)
+
+
+SCA Output: ŋuwe
+  -> ŋuwə  (-x [e q g] / [ə ʔ ɣ])
+  -> ŋúwə  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> ŋúw   (Unstr / / _)
+  -> uŋúw  (ŋ PriS / @1 Unstr ŋ @1 PriS / # _)
+  -> uŋú   (w / / u _)
+  -> uŋu   (-x PriS / Unstr)
+
+
+SCA Output: dawa
+  -> dáwa  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> dáw   (Unstr / / _)
+  -> daw   (-x PriS / Unstr)
+
+
+SCA Output: pan
+  -> pán  (Unstr / PriS / _ C [C #])
+  -> pan  (-x PriS / Unstr)
+
+
+SCA Output: paatli
+  -> páátli  ([Vl +Unstr] / [Vl +PriS])
+  -> pátli   (Vl / Vs)
+  -> pétli   ([a    -Unstr] / [e       -Unstr] / _ C (C) i~)
+  -> pétl    (Unstr / / _)
+  -> péts    (tl / ts)
+  -> pés     (ts / s / _)
+  -> pes     (-x PriS / Unstr)
+
+
+SCA Output: paatli
+  -> páátli  ([Vl +Unstr] / [Vl +PriS])
+  -> pátli   (Vl / Vs)
+  -> pétli   ([a    -Unstr] / [e       -Unstr] / _ C (C) i~)
+  -> pétl    (Unstr / / _)
+  -> péts    (tl / ts)
+  -> pés     (ts / s / _)
+  -> pes     (-x PriS / Unstr)
+
+
+SCA Output: phage
+  -> phaɣə  (-x [e q g] / [ə ʔ ɣ])
+  -> pháɣə  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> fáɣə   ([ph th kh] / [f ts x])
+  -> fáɣə   (-? [a    -Unstr] / [e       -Unstr] / _ C (C) ə~)
+  -> fáɣ    (Unstr / / _)
+  -> fá     (ɣ / / _)
+  -> fa     (-x PriS / Unstr)
+
+phage
+  -> phaɣə  (-x [e q g] / [ə ʔ ɣ])
+  -> pháɣə  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> fáɣə   ([ph th kh] / [f ts x])
+  -> féɣə   (-? [a    -Unstr] / [e       -Unstr] / _ C (C) ə~)
+  -> féɣ    (Unstr / / _)
+  -> fé     (ɣ / / _)
+  -> fe     (-x PriS / Unstr)
+
+
+SCA Output: phaŋi
+  -> pháŋi  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> fáŋi   ([ph th kh] / [f ts x])
+  -> féŋi   ([a    -Unstr] / [e       -Unstr] / _ C (C) i~)
+  -> féŋ    (Unstr / / _)
+  -> feŋ    (-x PriS / Unstr)
+
+
+SCA Output: phingis
+  -> phingís  (Unstr / PriS / _ C [C #])
+  -> fingís   ([ph th kh] / [f ts x])
+  -> fngís    (Unstr / / _)
+  -> fgís     (Pns / Vds / # C _ / _ #)
+  -> fgis     (-x PriS / Unstr)
+
+
+SCA Output: qangat
+  -> ʔangat  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔangát  (Unstr / PriS / _ C [C #])
+  -> angát   (ʔ / / # _)
+  -> angár   ([t d] / r / V _ [V #])
+  -> ngár    (Unstr / / _)
+  -> ŋgár    (Pns / @1 Nsl @1 Vds)
+  -> aŋgár   (ŋ C PriS / @2 Unstr ŋ @1 C @2 PriS / # _)
+  -> aŋgar   (-x PriS / Unstr)
+
+
+SCA Output: phula
+  -> phúla  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> fúla   ([ph th kh] / [f ts x])
+  -> fóla   ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> fól    (Unstr / / _)
+  -> fón    ([lh l] / [l n])
+  -> fon    (-x PriS / Unstr)
+
+
+SCA Output: khaliŋ
+  -> kaliŋ  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> kalíŋ  (Unstr / PriS / _ C [C #])
+  -> klíŋ   (Unstr / / _)
+  -> kníŋ   ([lh l] / [l n])
+  -> kniŋ   (-x PriS / Unstr)
+
+
+SCA Output: phuum
+  -> phúúm  ([Vl +Unstr] / [Vl +PriS])
+  -> fúúm   ([ph th kh] / [f ts x])
+  -> fúm    (Vl / Vs)
+  -> fum    (-x PriS / Unstr)
+
+
+SCA Output: qaabew
+  -> ʔaabəw   (-x [e q g] / [ə ʔ ɣ])
+  -> ʔáábəw   ([Vl +Unstr] / [Vl +PriS])
+  -> ʔáábə́w  (Unstr / PriS / _ C [C #])
+  -> ʔààbə́w  (-x PriS / SndS / _ ^PriS)
+  -> ààbə́w   (ʔ / / # _)
+  -> àbə́w    (Vl / Vs)
+  -> àbáw     (ə́ / @? [á é])
+  -> abáw     (-x SndS / Unstr)
+  -> abaw     (-x PriS / Unstr)
+
+qaabew
+  -> ʔaabəw   (-x [e q g] / [ə ʔ ɣ])
+  -> ʔáábəw   ([Vl +Unstr] / [Vl +PriS])
+  -> ʔáábə́w  (Unstr / PriS / _ C [C #])
+  -> ʔààbə́w  (-x PriS / SndS / _ ^PriS)
+  -> ààbə́w   (ʔ / / # _)
+  -> àbə́w    (Vl / Vs)
+  -> àbéw     (ə́ / @? [á é])
+  -> abéw     (-x SndS / Unstr)
+  -> abew     (-x PriS / Unstr)
+
+
+SCA Output: qaaŋ
+  -> ʔaaŋ  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔááŋ  ([Vl +Unstr] / [Vl +PriS])
+  -> ááŋ   (ʔ / / # _)
+  -> áŋ    (Vl / Vs)
+  -> aŋ    (-x PriS / Unstr)
+
+
+SCA Output: qaathan
+  -> ʔaathan  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔááthan  ([Vl +Unstr] / [Vl +PriS])
+  -> ʔááthán  (Unstr / PriS / _ C [C #])
+  -> ʔààthán  (-x PriS / SndS / _ ^PriS)
+  -> ààthán   (ʔ / / # _)
+  -> ààtsán   ([ph th kh] / [f ts x])
+  -> àtsán    (Vl / Vs)
+  -> atsán    (-x SndS / Unstr)
+  -> asán     (ts / s / _)
+  -> asan     (-x PriS / Unstr)
+
+
+SCA Output: qaathan
+  -> ʔaathan  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔááthan  ([Vl +Unstr] / [Vl +PriS])
+  -> ʔááthán  (Unstr / PriS / _ C [C #])
+  -> ʔààthán  (-x PriS / SndS / _ ^PriS)
+  -> ààthán   (ʔ / / # _)
+  -> ààtsán   ([ph th kh] / [f ts x])
+  -> àtsán    (Vl / Vs)
+  -> atsán    (-x SndS / Unstr)
+  -> asán     (ts / s / _)
+  -> asan     (-x PriS / Unstr)
+
+
+SCA Output: qalit
+  -> ʔalit  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔalít  (Unstr / PriS / _ C [C #])
+  -> alít   (ʔ / / # _)
+  -> alír   ([t d] / r / V _ [V #])
+  -> lír    (Unstr / / _)
+  -> nír    ([lh l] / [l n])
+  -> nir    (-x PriS / Unstr)
+
+
+SCA Output: nqam
+  -> nʔam  (-x [e q g] / [ə ʔ ɣ])
+  -> nʔám  (Unstr / PriS / _ C [C #])
+  -> náʔm  (ʔ V / \ / C _)
+  -> naʔm  (-x PriS / Unstr)
+
+
+SCA Output: nam
+  -> nám  (Unstr / PriS / _ C [C #])
+  -> nam  (-x PriS / Unstr)
+
+
+SCA Output: qangat
+  -> ʔangat  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔangát  (Unstr / PriS / _ C [C #])
+  -> angát   (ʔ / / # _)
+  -> angár   ([t d] / r / V _ [V #])
+  -> ngár    (Unstr / / _)
+  -> ŋgár    (Pns / @1 Nsl @1 Vds)
+  -> aŋgár   (ŋ C PriS / @2 Unstr ŋ @1 C @2 PriS / # _)
+  -> aŋgar   (-x PriS / Unstr)
+
+
+SCA Output: qanta
+  -> ʔanta  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔánta  (Unstr / PriS / _ C [C #])
+  -> ánta   (ʔ / / # _)
+  -> ánt    (Unstr / / _)
+  -> ánt    (-? [C -ʔ -y -w] / / _ C #)
+  -> án     (C / / [C -ʔ -y -w] _ #)
+  -> an     (-x PriS / Unstr)
+
+qanta
+  -> ʔanta  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔánta  (Unstr / PriS / _ C [C #])
+  -> ánta   (ʔ / / # _)
+  -> ánt    (Unstr / / _)
+  -> át     (-? [C -ʔ -y -w] / / _ C #)
+  -> at     (-x PriS / Unstr)
+
+
+SCA Output: qanu
+  -> ʔanu  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔánu  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> ánu   (ʔ / / # _)
+  -> ónu   ([a ə i u -Unstr] / [o o i u -Unstr] / _ C (C) u~)
+  -> ón    (Unstr / / _)
+  -> on    (-x PriS / Unstr)
+
+
+SCA Output: qaŋeth
+  -> ʔaŋəth   (-x [e q g] / [ə ʔ ɣ])
+  -> ʔaŋə́th  (Unstr / PriS / _ C [C #])
+  -> aŋə́th   (ʔ / / # _)
+  -> aŋə́ts   ([ph th kh] / [f ts x])
+  -> ŋə́ts    (Unstr / / _)
+  -> ŋáts     (ə́ / @? [á é])
+  -> aŋáts    (ŋ PriS / @1 Unstr ŋ @1 PriS / # _)
+  -> aŋás     (ts / s / _)
+  -> aŋas     (-x PriS / Unstr)
+
+qaŋeth
+  -> ʔaŋəth   (-x [e q g] / [ə ʔ ɣ])
+  -> ʔaŋə́th  (Unstr / PriS / _ C [C #])
+  -> aŋə́th   (ʔ / / # _)
+  -> aŋə́ts   ([ph th kh] / [f ts x])
+  -> ŋə́ts    (Unstr / / _)
+  -> ŋéts     (ə́ / @? [á é])
+  -> eŋéts    (ŋ PriS / @1 Unstr ŋ @1 PriS / # _)
+  -> eŋés     (ts / s / _)
+  -> eŋes     (-x PriS / Unstr)
+
+
+SCA Output: qefaa
+  -> ʔəfaa  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔəfáá  ([Vl +Unstr] / [Vl +PriS])
+  -> əfáá   (ʔ / / # _)
+  -> əfá    (Vl / Vs)
+  -> fá     (Unstr / / _)
+  -> fa     (-x PriS / Unstr)
+
+
+SCA Output: qefay
+  -> ʔəfay  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔəfáy  (Unstr / PriS / _ C [C #])
+  -> əfáy   (ʔ / / # _)
+  -> fáy    (Unstr / / _)
+  -> fay    (-x PriS / Unstr)
+
+
+SCA Output: qetlaag
+  -> ʔətlaaɣ  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔətlááɣ  ([Vl +Unstr] / [Vl +PriS])
+  -> ətlááɣ   (ʔ / / # _)
+  -> ətláɣ    (Vl / Vs)
+  -> tláɣ     (Unstr / / _)
+  -> tlá      (ɣ / / _)
+  -> tsá      (tl / ts)
+  -> tá       (ts / t / #_)
+  -> ta       (-x PriS / Unstr)
+
+
+SCA Output: qisa
+  -> ʔisa  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔísa  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> ísa   (ʔ / / # _)
+  -> ésa   ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> és    (Unstr / / _)
+  -> es    (-x PriS / Unstr)
+
+
+SCA Output: qisni
+  -> ʔisni  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔísni  (Unstr / PriS / _ C [C #])
+  -> ísni   (ʔ / / # _)
+  -> ísn    (Unstr / / _)
+  -> ísn    (-? [C -ʔ -y -w] / / _ C #)
+  -> ís     (C / / [C -ʔ -y -w] _ #)
+  -> is     (-x PriS / Unstr)
+
+qisni
+  -> ʔisni  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔísni  (Unstr / PriS / _ C [C #])
+  -> ísni   (ʔ / / # _)
+  -> ísn    (Unstr / / _)
+  -> ín     (-? [C -ʔ -y -w] / / _ C #)
+  -> in     (-x PriS / Unstr)
+
+
+SCA Output: qitsim
+  -> ʔitsim  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔitsím  (Unstr / PriS / _ C [C #])
+  -> itsím   (ʔ / / # _)
+  -> tsím    (Unstr / / _)
+  -> tím     (ts / t / #_)
+  -> tim     (-x PriS / Unstr)
+
+
+SCA Output: qumukh
+  -> ʔumukh  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔumuk   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ʔumúk   (Unstr / PriS / _ C [C #])
+  -> umúk    (ʔ / / # _)
+  -> múk     (Unstr / / _)
+  -> muk     (-x PriS / Unstr)
+
+
+SCA Output: qumum
+  -> ʔumum  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔumúm  (Unstr / PriS / _ C [C #])
+  -> umúm   (ʔ / / # _)
+  -> múm    (Unstr / / _)
+  -> mum    (-x PriS / Unstr)
+
+
+SCA Output: qume
+  -> ʔumə  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔúmə  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> úmə   (ʔ / / # _)
+  -> úm    (Unstr / / _)
+  -> um    (-x PriS / Unstr)
+
+
+SCA Output: saalhe
+  -> saalhə  (-x [e q g] / [ə ʔ ɣ])
+  -> sáálhə  ([Vl +Unstr] / [Vl +PriS])
+  -> sálhə   (Vl / Vs)
+  -> sálhə   (-? [a    -Unstr] / [e       -Unstr] / _ C (C) ə~)
+  -> sálh    (Unstr / / _)
+  -> sál     ([lh l] / [l n])
+  -> sal     (-x PriS / Unstr)
+
+saalhe
+  -> saalhə  (-x [e q g] / [ə ʔ ɣ])
+  -> sáálhə  ([Vl +Unstr] / [Vl +PriS])
+  -> sálhə   (Vl / Vs)
+  -> sélhə   (-? [a    -Unstr] / [e       -Unstr] / _ C (C) ə~)
+  -> sélh    (Unstr / / _)
+  -> sél     ([lh l] / [l n])
+  -> sel     (-x PriS / Unstr)
+
+
+SCA Output: safilh
+  -> safílh  (Unstr / PriS / _ C [C #])
+  -> sfílh   (Unstr / / _)
+  -> sfíl    ([lh l] / [l n])
+  -> sfil    (-x PriS / Unstr)
+
+
+SCA Output: sakhul
+  -> sakul  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> sakúl  (Unstr / PriS / _ C [C #])
+  -> skúl   (Unstr / / _)
+  -> skún   ([lh l] / [l n])
+  -> skun   (-x PriS / Unstr)
+
+
+SCA Output: sal
+  -> sál  (Unstr / PriS / _ C [C #])
+  -> sán  ([lh l] / [l n])
+  -> san  (-x PriS / Unstr)
+
+
+SCA Output: saqam
+  -> saʔam  (-x [e q g] / [ə ʔ ɣ])
+  -> saʔám  (Unstr / PriS / _ C [C #])
+  -> sʔám   (Unstr / / _)
+  -> sáʔm   (ʔ V / \ / C _)
+  -> saʔm   (-x PriS / Unstr)
+
+
+SCA Output: kulit
+  -> ɣulit  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ɣulít  (Unstr / PriS / _ C [C #])
+  -> ɣulír  ([t d] / r / V _ [V #])
+  -> ɣlír   (Unstr / / _)
+  -> ilír   (ɣ / i~ / # _ C)
+  -> inír   ([lh l] / [l n])
+  -> inir   (-x PriS / Unstr)
+
+
+SCA Output: sasay
+  -> sasáy  (Unstr / PriS / _ C [C #])
+  -> ssáy   (Unstr / / _)
+  -> sáy    (C / / # _ >)
+  -> say    (-x PriS / Unstr)
+
+
+SCA Output: sasuf
+  -> sasúf  (Unstr / PriS / _ C [C #])
+  -> ssúf   (Unstr / / _)
+  -> súf    (C / / # _ >)
+  -> suf    (-x PriS / Unstr)
+
+
+SCA Output: segaag
+  -> səɣaaɣ  (-x [e q g] / [ə ʔ ɣ])
+  -> səɣááɣ  ([Vl +Unstr] / [Vl +PriS])
+  -> səɣáɣ   (Vl / Vs)
+  -> sɣáɣ    (Unstr / / _)
+  -> sá      (ɣ / / _)
+  -> sa      (-x PriS / Unstr)
+
+
+SCA Output: segek
+  -> səɣək   (-x [e q g] / [ə ʔ ɣ])
+  -> səɣəɣ   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> səɣə́ɣ  (Unstr / PriS / _ C [C #])
+  -> sɣə́ɣ   (Unstr / / _)
+  -> sɣáɣ    (ə́ / @? [á é])
+  -> sá      (ɣ / / _)
+  -> sa      (-x PriS / Unstr)
+
+segek
+  -> səɣək   (-x [e q g] / [ə ʔ ɣ])
+  -> səɣəɣ   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> səɣə́ɣ  (Unstr / PriS / _ C [C #])
+  -> sɣə́ɣ   (Unstr / / _)
+  -> sɣéɣ    (ə́ / @? [á é])
+  -> sé      (ɣ / / _)
+  -> se      (-x PriS / Unstr)
+
+
+SCA Output: segeg
+  -> səɣəɣ   (-x [e q g] / [ə ʔ ɣ])
+  -> səɣə́ɣ  (Unstr / PriS / _ C [C #])
+  -> sɣə́ɣ   (Unstr / / _)
+  -> sɣáɣ    (ə́ / @? [á é])
+  -> sá      (ɣ / / _)
+  -> sa      (-x PriS / Unstr)
+
+segeg
+  -> səɣəɣ   (-x [e q g] / [ə ʔ ɣ])
+  -> səɣə́ɣ  (Unstr / PriS / _ C [C #])
+  -> sɣə́ɣ   (Unstr / / _)
+  -> sɣéɣ    (ə́ / @? [á é])
+  -> sé      (ɣ / / _)
+  -> se      (-x PriS / Unstr)
+
+
+SCA Output: siifa
+  -> síífa  ([Vl +Unstr] / [Vl +PriS])
+  -> sífa   (Vl / Vs)
+  -> séfa   ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> séf    (Unstr / / _)
+  -> sef    (-x PriS / Unstr)
+
+
+SCA Output: siki
+  -> siɣi  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> síɣi  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> šíɣi  ([s t d] / [š č j] / _ [i y])
+  -> šíɣ   (Unstr / / _)
+  -> ší    (ɣ / / _)
+  -> sí    (š / s / _)
+  -> si    (-x PriS / Unstr)
+
+
+SCA Output: simi
+  -> sími  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> šími  ([s t d] / [š č j] / _ [i y])
+  -> ším   (Unstr / / _)
+  -> sím   (š / s / _)
+  -> sim   (-x PriS / Unstr)
+
+
+SCA Output: daqat
+  -> daʔat  (-x [e q g] / [ə ʔ ɣ])
+  -> daʔát  (Unstr / PriS / _ C [C #])
+  -> daʔár  ([t d] / r / V _ [V #])
+  -> dʔár   (Unstr / / _)
+  -> dáʔr   (ʔ V / \ / C _)
+  -> daʔr   (-x PriS / Unstr)
+
+
+SCA Output: siwe
+  -> siwə  (-x [e q g] / [ə ʔ ɣ])
+  -> síwə  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> šíwə  ([s t d] / [š č j] / _ [i y])
+  -> šíwə  (-? [i    -Unstr] / [e       -Unstr] / _ C (C) ə~)
+  -> šíw   (Unstr / / _)
+  -> síw   (š / s / _)
+  -> siw   (-x PriS / Unstr)
+
+siwe
+  -> siwə  (-x [e q g] / [ə ʔ ɣ])
+  -> síwə  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> šíwə  ([s t d] / [š č j] / _ [i y])
+  -> šéwə  (-? [i    -Unstr] / [e       -Unstr] / _ C (C) ə~)
+  -> šéw   (Unstr / / _)
+  -> séw   (š / s / _)
+  -> sew   (-x PriS / Unstr)
+
+
+SCA Output: siwi
+  -> síwi  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> šíwi  ([s t d] / [š č j] / _ [i y])
+  -> šíw   (Unstr / / _)
+  -> síw   (š / s / _)
+  -> siw   (-x PriS / Unstr)
+
+
+SCA Output: tasek
+  -> tasək   (-x [e q g] / [ə ʔ ɣ])
+  -> tasəɣ   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> tasə́ɣ  (Unstr / PriS / _ C [C #])
+  -> tsə́ɣ   (Unstr / / _)
+  -> tsáɣ    (ə́ / @? [á é])
+  -> tsá     (ɣ / / _)
+  -> tsa     (-x PriS / Unstr)
+
+tasek
+  -> tasək   (-x [e q g] / [ə ʔ ɣ])
+  -> tasəɣ   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> tasə́ɣ  (Unstr / PriS / _ C [C #])
+  -> tsə́ɣ   (Unstr / / _)
+  -> tséɣ    (ə́ / @? [á é])
+  -> tsé     (ɣ / / _)
+  -> tse     (-x PriS / Unstr)
+
+
+SCA Output: thaba
+  -> thába  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> tsába  ([ph th kh] / [f ts x])
+  -> tsáb   (Unstr / / _)
+  -> táb    (ts / t / #_)
+  -> tab    (-x PriS / Unstr)
+
+
+SCA Output: thabu
+  -> thábu  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> tsábu  ([ph th kh] / [f ts x])
+  -> tsóbu  ([a ə i u -Unstr] / [o o i u -Unstr] / _ C (C) u~)
+  -> tsób   (Unstr / / _)
+  -> tób    (ts / t / #_)
+  -> tob    (-x PriS / Unstr)
+
+
+SCA Output: thalaŋ
+  -> thaláŋ  (Unstr / PriS / _ C [C #])
+  -> tsaláŋ  ([ph th kh] / [f ts x])
+  -> tsaló   (a ŋ / o / _ [C #])
+  -> tsló    (Unstr / / _)
+  -> tsnó    ([lh l] / [l n])
+  -> tnó     (ts / t / #_)
+  -> tno     (-x PriS / Unstr)
+
+
+SCA Output: tham
+  -> thám  (Unstr / PriS / _ C [C #])
+  -> tsám  ([ph th kh] / [f ts x])
+  -> tám   (ts / t / #_)
+  -> tam   (-x PriS / Unstr)
+
+
+SCA Output: thani
+  -> tháni  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> tsáni  ([ph th kh] / [f ts x])
+  -> tséni  ([a    -Unstr] / [e       -Unstr] / _ C (C) i~)
+  -> tsén   (Unstr / / _)
+  -> tén    (ts / t / #_)
+  -> ten    (-x PriS / Unstr)
+
+
+SCA Output: tlaame
+  -> tlaamə  (-x [e q g] / [ə ʔ ɣ])
+  -> tláámə  ([Vl +Unstr] / [Vl +PriS])
+  -> tlámə   (Vl / Vs)
+  -> tlámə   (-? [a    -Unstr] / [e       -Unstr] / _ C (C) ə~)
+  -> tlám    (Unstr / / _)
+  -> tsám    (tl / ts)
+  -> tám     (ts / t / #_)
+  -> tam     (-x PriS / Unstr)
+
+tlaame
+  -> tlaamə  (-x [e q g] / [ə ʔ ɣ])
+  -> tláámə  ([Vl +Unstr] / [Vl +PriS])
+  -> tlámə   (Vl / Vs)
+  -> tlémə   (-? [a    -Unstr] / [e       -Unstr] / _ C (C) ə~)
+  -> tlém    (Unstr / / _)
+  -> tsém    (tl / ts)
+  -> tém     (ts / t / #_)
+  -> tem     (-x PriS / Unstr)
+
+
+SCA Output: tlaquf
+  -> tlaʔuf  (-x [e q g] / [ə ʔ ɣ])
+  -> tlaʔúf  (Unstr / PriS / _ C [C #])
+  -> tlʔúf   (Unstr / / _)
+  -> tlúʔf   (ʔ V / \ / C _)
+  -> tsúʔf   (tl / ts)
+  -> túʔf    (ts / t / #_)
+  -> tuʔf    (-x PriS / Unstr)
+
+
+SCA Output: lalef
+  -> laləf   (-x [e q g] / [ə ʔ ɣ])
+  -> lalə́f  (Unstr / PriS / _ C [C #])
+  -> llə́f   (Unstr / / _)
+  -> lláf    (ə́ / @? [á é])
+  -> láf     (C / / # _ >)
+  -> náf     ([lh l] / [l n])
+  -> naf     (-x PriS / Unstr)
+
+lalef
+  -> laləf   (-x [e q g] / [ə ʔ ɣ])
+  -> lalə́f  (Unstr / PriS / _ C [C #])
+  -> llə́f   (Unstr / / _)
+  -> lléf    (ə́ / @? [á é])
+  -> léf     (C / / # _ >)
+  -> néf     ([lh l] / [l n])
+  -> nef     (-x PriS / Unstr)
+
+
+SCA Output: tluŋse
+  -> tluŋsə  (-x [e q g] / [ə ʔ ɣ])
+  -> tlúŋsə  (Unstr / PriS / _ C [C #])
+  -> tlúŋs   (Unstr / / _)
+  -> tlúŋs   (-? [C -ʔ -y -w] / / _ C #)
+  -> tlúŋ    (C / / [C -ʔ -y -w] _ #)
+  -> tsúŋ    (tl / ts)
+  -> túŋ     (ts / t / #_)
+  -> tuŋ     (-x PriS / Unstr)
+
+tluŋse
+  -> tluŋsə  (-x [e q g] / [ə ʔ ɣ])
+  -> tlúŋsə  (Unstr / PriS / _ C [C #])
+  -> tlúŋs   (Unstr / / _)
+  -> tlús    (-? [C -ʔ -y -w] / / _ C #)
+  -> tsús    (tl / ts)
+  -> tús     (ts / t / #_)
+  -> tus     (-x PriS / Unstr)
+
+
+SCA Output: tsagif
+  -> tsaɣif  (-x [e q g] / [ə ʔ ɣ])
+  -> tsaɣíf  (Unstr / PriS / _ C [C #])
+  -> tsɣíf   (Unstr / / _)
+  -> tsíf    (ɣ / / _)
+  -> tíf     (ts / t / #_)
+  -> tif     (-x PriS / Unstr)
+
+
+SCA Output: tsakaq
+  -> tsakaʔ  (-x [e q g] / [ə ʔ ɣ])
+  -> tsaɣaʔ  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> tsaɣáʔ  (Unstr / PriS / _ C [C #])
+  -> tsɣáʔ   (Unstr / / _)
+  -> tsáʔ    (ɣ / / _)
+  -> táʔ     (ts / t / #_)
+  -> taʔ     (-x PriS / Unstr)
+
+
+SCA Output: tsektsek
+  -> tsəktsək    (-x [e q g] / [ə ʔ ɣ])
+  -> tsəɣtsəɣ    ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> tsə́ɣtsə́ɣ  (Unstr / PriS / _ C [C #])
+  -> tsə̀ɣtsə́ɣ  (-x PriS / SndS / _ ^PriS)
+  -> tsàɣtsə́ɣ   (ə̀ / @? [à è])
+  -> tsàɣtsáɣ    (ə́ / @? [á é])
+  -> tsaɣtsáɣ    (-x SndS / Unstr)
+  -> tsatsá      (ɣ / / _)
+  -> tatsá       (ts / t / #_)
+  -> tasá        (ts / s / _)
+  -> tasa        (-x PriS / Unstr)
+
+tsektsek
+  -> tsəktsək    (-x [e q g] / [ə ʔ ɣ])
+  -> tsəɣtsəɣ    ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> tsə́ɣtsə́ɣ  (Unstr / PriS / _ C [C #])
+  -> tsə̀ɣtsə́ɣ  (-x PriS / SndS / _ ^PriS)
+  -> tsàɣtsə́ɣ   (ə̀ / @? [à è])
+  -> tsàɣtséɣ    (ə́ / @? [á é])
+  -> tsaɣtséɣ    (-x SndS / Unstr)
+  -> tsatsé      (ɣ / / _)
+  -> tatsé       (ts / t / #_)
+  -> tasé        (ts / s / _)
+  -> tase        (-x PriS / Unstr)
+
+tsektsek
+  -> tsəktsək    (-x [e q g] / [ə ʔ ɣ])
+  -> tsəɣtsəɣ    ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> tsə́ɣtsə́ɣ  (Unstr / PriS / _ C [C #])
+  -> tsə̀ɣtsə́ɣ  (-x PriS / SndS / _ ^PriS)
+  -> tsèɣtsə́ɣ   (ə̀ / @? [à è])
+  -> tsèɣtsáɣ    (ə́ / @? [á é])
+  -> tseɣtsáɣ    (-x SndS / Unstr)
+  -> tsetsá      (ɣ / / _)
+  -> tetsá       (ts / t / #_)
+  -> tesá        (ts / s / _)
+  -> tesa        (-x PriS / Unstr)
+
+tsektsek
+  -> tsəktsək    (-x [e q g] / [ə ʔ ɣ])
+  -> tsəɣtsəɣ    ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> tsə́ɣtsə́ɣ  (Unstr / PriS / _ C [C #])
+  -> tsə̀ɣtsə́ɣ  (-x PriS / SndS / _ ^PriS)
+  -> tsèɣtsə́ɣ   (ə̀ / @? [à è])
+  -> tsèɣtséɣ    (ə́ / @? [á é])
+  -> tseɣtséɣ    (-x SndS / Unstr)
+  -> tsetsé      (ɣ / / _)
+  -> tetsé       (ts / t / #_)
+  -> tesé        (ts / s / _)
+  -> tese        (-x PriS / Unstr)
+
+
+SCA Output: tsisa
+  -> tsísa  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> tsésa  ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> tsés   (Unstr / / _)
+  -> tés    (ts / t / #_)
+  -> tes    (-x PriS / Unstr)
+
+
+SCA Output: walha
+  -> wálha  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> wálh   (Unstr / / _)
+  -> wál    ([lh l] / [l n])
+  -> wal    (-x PriS / Unstr)
+
+
+SCA Output: waalhi
+  -> wáálhi  ([Vl +Unstr] / [Vl +PriS])
+  -> wálhi   (Vl / Vs)
+  -> wélhi   ([a    -Unstr] / [e       -Unstr] / _ C (C) i~)
+  -> wélh    (Unstr / / _)
+  -> wél     ([lh l] / [l n])
+  -> wel     (-x PriS / Unstr)
+
+
+SCA Output: wanaŋ
+  -> wanáŋ  (Unstr / PriS / _ C [C #])
+  -> wanó   (a ŋ / o / _ [C #])
+  -> wnó    (Unstr / / _)
+  -> wno    (-x PriS / Unstr)
+
+
+SCA Output: waq
+  -> waʔ  (-x [e q g] / [ə ʔ ɣ])
+  -> wáʔ  (Unstr / PriS / _ C [C #])
+  -> waʔ  (-x PriS / Unstr)
+
+
+SCA Output: mah
+  -> máh  (Unstr / PriS / _ C [C #])
+  -> má   (h / / _)
+  -> ma   (-x PriS / Unstr)
+
+
+SCA Output: wayug
+  -> wayuɣ  (-x [e q g] / [ə ʔ ɣ])
+  -> wayúɣ  (Unstr / PriS / _ C [C #])
+  -> wyúɣ   (Unstr / / _)
+  -> wyú    (ɣ / / _)
+  -> wyu    (-x PriS / Unstr)
+
+
+SCA Output: wedeŋ
+  -> wədəŋ   (-x [e q g] / [ə ʔ ɣ])
+  -> wədə́ŋ  (Unstr / PriS / _ C [C #])
+  -> wərə́ŋ  ([t d] / r / V _ [V #])
+  -> wrə́ŋ   (Unstr / / _)
+  -> wráŋ    (ə́ / @? [á é])
+  -> wraŋ    (-x PriS / Unstr)
+
+wedeŋ
+  -> wədəŋ   (-x [e q g] / [ə ʔ ɣ])
+  -> wədə́ŋ  (Unstr / PriS / _ C [C #])
+  -> wərə́ŋ  ([t d] / r / V _ [V #])
+  -> wrə́ŋ   (Unstr / / _)
+  -> wréŋ    (ə́ / @? [á é])
+  -> wreŋ    (-x PriS / Unstr)
+
+
+SCA Output: wediy
+  -> wədiy  (-x [e q g] / [ə ʔ ɣ])
+  -> wədíy  (Unstr / PriS / _ C [C #])
+  -> wəjíy  ([s t d] / [š č j] / _ [i y])
+  -> wjíy   (Unstr / / _)
+  -> wjí    (y / / i _)
+  -> wgí    (j / g / _)
+  -> wgi    (-x PriS / Unstr)
+
+
+SCA Output: welus
+  -> wəlus  (-x [e q g] / [ə ʔ ɣ])
+  -> wəlús  (Unstr / PriS / _ C [C #])
+  -> wlús   (Unstr / / _)
+  -> wnús   ([lh l] / [l n])
+  -> wnus   (-x PriS / Unstr)
+
+
+SCA Output: ganit
+  -> ɣanit  (-x [e q g] / [ə ʔ ɣ])
+  -> ɣanít  (Unstr / PriS / _ C [C #])
+  -> ɣanír  ([t d] / r / V _ [V #])
+  -> ɣnír   (Unstr / / _)
+  -> inír   (ɣ / i~ / # _ C)
+  -> inir   (-x PriS / Unstr)
+
+
+SCA Output: wiilets
+  -> wiiləts   (-x [e q g] / [ə ʔ ɣ])
+  -> wííləts   ([Vl +Unstr] / [Vl +PriS])
+  -> wíílə́ts  (Unstr / PriS / _ C [C #])
+  -> wììlə́ts  (-x PriS / SndS / _ ^PriS)
+  -> wìlə́ts   (Vl / Vs)
+  -> wìláts    (ə́ / @? [á é])
+  -> wiláts    (-x SndS / Unstr)
+  -> wináts    ([lh l] / [l n])
+  -> winás     (ts / s / _)
+  -> winas     (-x PriS / Unstr)
+
+wiilets
+  -> wiiləts   (-x [e q g] / [ə ʔ ɣ])
+  -> wííləts   ([Vl +Unstr] / [Vl +PriS])
+  -> wíílə́ts  (Unstr / PriS / _ C [C #])
+  -> wììlə́ts  (-x PriS / SndS / _ ^PriS)
+  -> wìlə́ts   (Vl / Vs)
+  -> wìléts    (ə́ / @? [á é])
+  -> wiléts    (-x SndS / Unstr)
+  -> winéts    ([lh l] / [l n])
+  -> winés     (ts / s / _)
+  -> wines     (-x PriS / Unstr)
+
+
+SCA Output: witsi
+  -> wítsi  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> wíts   (Unstr / / _)
+  -> wís    (ts / s / _)
+  -> wis    (-x PriS / Unstr)
+
+
+SCA Output: yaaq
+  -> yaaʔ  (-x [e q g] / [ə ʔ ɣ])
+  -> yááʔ  ([Vl +Unstr] / [Vl +PriS])
+  -> yáʔ   (Vl / Vs)
+  -> yaʔ   (-x PriS / Unstr)
+
+
+SCA Output: yagi
+  -> yaɣi  (-x [e q g] / [ə ʔ ɣ])
+  -> yáɣi  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> yéɣi  ([a    -Unstr] / [e       -Unstr] / _ C (C) i~)
+  -> yéɣ   (Unstr / / _)
+  -> yé    (ɣ / / _)
+  -> ye    (-x PriS / Unstr)
+
+
+SCA Output: yagi
+  -> yaɣi  (-x [e q g] / [ə ʔ ɣ])
+  -> yáɣi  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> yéɣi  ([a    -Unstr] / [e       -Unstr] / _ C (C) i~)
+  -> yéɣ   (Unstr / / _)
+  -> yé    (ɣ / / _)
+  -> ye    (-x PriS / Unstr)
+
+
+SCA Output: yangat
+  -> yangát  (Unstr / PriS / _ C [C #])
+  -> yangár  ([t d] / r / V _ [V #])
+  -> yngár   (Unstr / / _)
+  -> ygár    (Pns / Vds / # C _ / _ #)
+  -> ygar    (-x PriS / Unstr)
+
+
+SCA Output: yaqa
+  -> yaʔa  (-x [e q g] / [ə ʔ ɣ])
+  -> yáʔa  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> yáʔ   (Unstr / / _)
+  -> yaʔ   (-x PriS / Unstr)
+
+
+SCA Output: nye
+  -> nyə  (-x [e q g] / [ə ʔ ɣ])
+  -> ny   (Unstr / / _)
+  -> ni   ([w y] / [u i +Unstr] / C _ #)
+
+
+SCA Output: yenge
+  -> yəngə   (-x [e q g] / [ə ʔ ɣ])
+  -> yə́ngə  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> yéngə   ([  ə   u -Unstr] / [  e   u -Unstr] / _ C (C) ə~)
+  -> yéng    (Unstr / / _)
+  -> yég     (Pns / Vds / # C _ / _ #)
+  -> yeg     (-x PriS / Unstr)
+
+
+SCA Output: mebas
+  -> məbas  (-x [e q g] / [ə ʔ ɣ])
+  -> məbás  (Unstr / PriS / _ C [C #])
+  -> mbás   (Unstr / / _)
+  -> mbas   (-x PriS / Unstr)
+
+
+SCA Output: yusaa
+  -> yusáá  ([Vl +Unstr] / [Vl +PriS])
+  -> yusá   (Vl / Vs)
+  -> ysá    (Unstr / / _)
+  -> ysa    (-x PriS / Unstr)
+
+
+SCA Output: yusaye
+  -> yusayə  (-x [e q g] / [ə ʔ ɣ])
+  -> yusáyə  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> yusáyə  (-? [a    -Unstr] / [e       -Unstr] / _ C (C) ə~)
+  -> ysáy    (Unstr / / _)
+  -> ysay    (-x PriS / Unstr)
+
+yusaye
+  -> yusayə  (-x [e q g] / [ə ʔ ɣ])
+  -> yusáyə  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> yuséyə  (-? [a    -Unstr] / [e       -Unstr] / _ C (C) ə~)
+  -> yséy    (Unstr / / _)
+  -> ysey    (-x PriS / Unstr)
+
+
+SCA Output: 
+SCA Output: 
+SCA Output: wakatuukatuu
+  -> waɣatuuɣatuu  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> waɣatúúɣatúú  ([Vl +Unstr] / [Vl +PriS])
+  -> wáɣatúúɣatúú  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> wàɣatùùɣatúú  (-x PriS / SndS / _ ^PriS)
+  -> wàɣarùùɣarúú  ([t d] / r / V _ [V #])
+  -> wàɣarùɣarú    (Vl / Vs)
+  -> wàɣaròɣarú    ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> wàɣròɣrú      (Unstr / / _)
+  -> waɣroɣrú      (-x SndS / Unstr)
+  -> warorú        (ɣ / / _)
+  -> waroru        (-x PriS / Unstr)
+
+watsikatuukatuu
+  -> watsiɣatuuɣatuu  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> watsiɣatúúɣatúú  ([Vl +Unstr] / [Vl +PriS])
+  -> watsíɣatúúɣatúú  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> watsìɣatùùɣatúú  (-x PriS / SndS / _ ^PriS)
+  -> watsìɣarùùɣarúú  ([t d] / r / V _ [V #])
+  -> watsìɣarùɣarú    (Vl / Vs)
+  -> watsèɣaròɣarú    ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> wtsèɣròɣrú       (Unstr / / _)
+  -> wtseɣroɣrú       (-x SndS / Unstr)
+  -> wtserorú         (ɣ / / _)
+  -> wserorú          (ts / s / _)
+  -> wseroru          (-x PriS / Unstr)
+
+wakekatuukatuu
+  -> wakəkatuukatuu   (-x [e q g] / [ə ʔ ɣ])
+  -> waɣəɣatuuɣatuu   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> waɣəɣatúúɣatúú   ([Vl +Unstr] / [Vl +PriS])
+  -> waɣə́ɣatúúɣatúú  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> waɣə̀ɣatùùɣatúú  (-x PriS / SndS / _ ^PriS)
+  -> waɣə̀ɣarùùɣarúú  ([t d] / r / V _ [V #])
+  -> waɣə̀ɣarùɣarú    (Vl / Vs)
+  -> waɣàɣaròɣarú     ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> wɣàɣròɣrú        (Unstr / / _)
+  -> wɣaɣroɣrú        (-x SndS / Unstr)
+  -> warorú           (ɣ / / _)
+  -> waroru           (-x PriS / Unstr)
+
+waŋukatuukatuu
+  -> waŋuɣatuuɣatuu  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> waŋuɣatúúɣatúú  ([Vl +Unstr] / [Vl +PriS])
+  -> waŋúɣatúúɣatúú  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> waŋùɣatùùɣatúú  (-x PriS / SndS / _ ^PriS)
+  -> waŋùɣarùùɣarúú  ([t d] / r / V _ [V #])
+  -> waŋùɣarùɣarú    (Vl / Vs)
+  -> waŋòɣaròɣarú    ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> wŋòɣròɣrú       (Unstr / / _)
+  -> wŋoɣroɣrú       (-x SndS / Unstr)
+  -> wŋororú         (ɣ / / _)
+  -> wŋororu         (-x PriS / Unstr)
+
+walikatuukatuu
+  -> waliɣatuuɣatuu  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> waliɣatúúɣatúú  ([Vl +Unstr] / [Vl +PriS])
+  -> walíɣatúúɣatúú  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> walìɣatùùɣatúú  (-x PriS / SndS / _ ^PriS)
+  -> walìɣarùùɣarúú  ([t d] / r / V _ [V #])
+  -> walìɣarùɣarú    (Vl / Vs)
+  -> walèɣaròɣarú    ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> wlèɣròɣrú       (Unstr / / _)
+  -> wleɣroɣrú       (-x SndS / Unstr)
+  -> wlerorú         (ɣ / / _)
+  -> wnerorú         ([lh l] / [l n])
+  -> wneroru         (-x PriS / Unstr)
+
+
+SCA Output: mahkatuukatuu
+  -> mahɣatuuɣatuu  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> mahɣatúúɣatúú  ([Vl +Unstr] / [Vl +PriS])
+  -> máhɣatúúɣatúú  (Unstr / PriS / _ C [C #])
+  -> màhɣatùùɣatúú  (-x PriS / SndS / _ ^PriS)
+  -> màɣatùùɣatúú   (h / / _)
+  -> màɣarùùɣarúú   ([t d] / r / V _ [V #])
+  -> màɣarùɣarú     (Vl / Vs)
+  -> màɣaròɣarú     ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> màɣròɣrú       (Unstr / / _)
+  -> maɣroɣrú       (-x SndS / Unstr)
+  -> marorú         (ɣ / / _)
+  -> maroru         (-x PriS / Unstr)
+
+mahtsikatuukatuu
+  -> mahtsiɣatuuɣatuu  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> mahtsiɣatúúɣatúú  ([Vl +Unstr] / [Vl +PriS])
+  -> máhtsiɣatúúɣatúú  (Unstr / PriS / _ C [C #])
+  -> máhtsíɣatúúɣatúú  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> màhtsìɣatùùɣatúú  (-x PriS / SndS / _ ^PriS)
+  -> màtsìɣatùùɣatúú   (h / / _)
+  -> màtsìɣarùùɣarúú   ([t d] / r / V _ [V #])
+  -> màtsìɣarùɣarú     (Vl / Vs)
+  -> màtsèɣaròɣarú     ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> màtsèɣròɣrú       (Unstr / / _)
+  -> matseɣroɣrú       (-x SndS / Unstr)
+  -> matserorú         (ɣ / / _)
+  -> maserorú          (ts / s / _)
+  -> maseroru          (-x PriS / Unstr)
+
+mahkekatuukatuu
+  -> mahkəkatuukatuu   (-x [e q g] / [ə ʔ ɣ])
+  -> mahɣəɣatuuɣatuu   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> mahɣəɣatúúɣatúú   ([Vl +Unstr] / [Vl +PriS])
+  -> máhɣəɣatúúɣatúú   (Unstr / PriS / _ C [C #])
+  -> máhɣə́ɣatúúɣatúú  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> màhɣə̀ɣatùùɣatúú  (-x PriS / SndS / _ ^PriS)
+  -> màɣə̀ɣatùùɣatúú   (h / / _)
+  -> màɣə̀ɣarùùɣarúú   ([t d] / r / V _ [V #])
+  -> màɣə̀ɣarùɣarú     (Vl / Vs)
+  -> màɣàɣaròɣarú      ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> màɣàɣròɣrú        (Unstr / / _)
+  -> maɣaɣroɣrú        (-x SndS / Unstr)
+  -> maarorú           (ɣ / / _)
+  -> maaroru           (-x PriS / Unstr)
+
+mahŋukatuukatuu
+  -> mahŋuɣatuuɣatuu  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> mahŋuɣatúúɣatúú  ([Vl +Unstr] / [Vl +PriS])
+  -> máhŋuɣatúúɣatúú  (Unstr / PriS / _ C [C #])
+  -> máhŋúɣatúúɣatúú  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> màhŋùɣatùùɣatúú  (-x PriS / SndS / _ ^PriS)
+  -> màŋùɣatùùɣatúú   (h / / _)
+  -> màŋùɣarùùɣarúú   ([t d] / r / V _ [V #])
+  -> màŋùɣarùɣarú     (Vl / Vs)
+  -> màŋòɣaròɣarú     ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> màŋòɣròɣrú       (Unstr / / _)
+  -> maŋoɣroɣrú       (-x SndS / Unstr)
+  -> maŋororú         (ɣ / / _)
+  -> maŋororu         (-x PriS / Unstr)
+
+mahmukatuukatuu
+  -> mahmuɣatuuɣatuu  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> mahmuɣatúúɣatúú  ([Vl +Unstr] / [Vl +PriS])
+  -> máhmuɣatúúɣatúú  (Unstr / PriS / _ C [C #])
+  -> máhmúɣatúúɣatúú  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> màhmùɣatùùɣatúú  (-x PriS / SndS / _ ^PriS)
+  -> màmùɣatùùɣatúú   (h / / _)
+  -> màmùɣarùùɣarúú   ([t d] / r / V _ [V #])
+  -> màmùɣarùɣarú     (Vl / Vs)
+  -> màmòɣaròɣarú     ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> màmòɣròɣrú       (Unstr / / _)
+  -> mamoɣroɣrú       (-x SndS / Unstr)
+  -> mamororú         (ɣ / / _)
+  -> mamororu         (-x PriS / Unstr)
+
+
+SCA Output: 
+SCA Output: 
+SCA Output: siw=dafin
+  -> siw#=#dafin  (-x = / # = #)
+  -> síw#=#dafín  (Unstr / PriS / _ C [C #])
+  -> šíw#=#dafín  ([s t d] / [š č j] / _ [i y])
+  -> šíw#=#dfín   (Unstr / / _)
+  -> šíwdfín      (-x # = # / / _)
+  -> šiwdfín      (-x PriS / Unstr / _ ^PriS)
+  -> siwdfín      (š / s / _)
+  -> siwdfin      (-x PriS / Unstr)
+
+si=dafin
+  -> si#=#dafin  (-x = / # = #)
+  -> si#=#dafín  (Unstr / PriS / _ C [C #])
+  -> ši#=#dafín  ([s t d] / [š č j] / _ [i y])
+  -> š#=#dfín    (Unstr / / _)
+  -> šdfín       (-x # = # / / _)
+  -> rdfín       (š / r / _ Vcd / Vcd _ / V _ [V Vcd #] // _i)
+  -> rdfin       (-x PriS / Unstr)
+
+siwedafin
+  -> siwədafin   (-x [e q g] / [ə ʔ ɣ])
+  -> siwədafín   (Unstr / PriS / _ C [C #])
+  -> siwə́dafín  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> siwə̀dafín  (-x PriS / SndS / _ ^PriS)
+  -> šiwə̀dafín  ([s t d] / [š č j] / _ [i y])
+  -> šiwə̀rafín  ([t d] / r / V _ [V #])
+  -> šiwàrafín   ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> šwàrfín     (Unstr / / _)
+  -> šwarfín     (-x SndS / Unstr)
+  -> rwarfín     (š / r / _ Vcd / Vcd _ / V _ [V Vcd #] // _i)
+  -> rwarfin     (-x PriS / Unstr)
+
+siwdafin
+  -> síwdafín  (Unstr / PriS / _ C [C #])
+  -> sìwdafín  (-x PriS / SndS / _ ^PriS)
+  -> šìwdafín  ([s t d] / [š č j] / _ [i y])
+  -> šèwdafín  ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> šèwdfín   (Unstr / / _)
+  -> šewdfín   (-x SndS / Unstr)
+  -> sewdfín   (š / s / _)
+  -> sewdfin   (-x PriS / Unstr)
+
+sidafin
+  -> sidafín  (Unstr / PriS / _ C [C #])
+  -> sídafín  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> sìdafín  (-x PriS / SndS / _ ^PriS)
+  -> šìdafín  ([s t d] / [š č j] / _ [i y])
+  -> šìrafín  ([t d] / r / V _ [V #])
+  -> šèrafín  ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> šèrfín   (Unstr / / _)
+  -> šerfín   (-x SndS / Unstr)
+  -> serfín   (š / s / _)
+  -> serfin   (-x PriS / Unstr)
+
+
+SCA Output: tse=dafin
+  -> tsə=dafin    (-x [e q g] / [ə ʔ ɣ])
+  -> tsə#=#dafin  (-x = / # = #)
+  -> tsə#=#dafín  (Unstr / PriS / _ C [C #])
+  -> ts#=#dfín    (Unstr / / _)
+  -> tsdfín       (-x # = # / / _)
+  -> tdfín        (ts / t / #_)
+  -> tdfin        (-x PriS / Unstr)
+
+tsedafin
+  -> tsədafin   (-x [e q g] / [ə ʔ ɣ])
+  -> tsədafín   (Unstr / PriS / _ C [C #])
+  -> tsə́dafín  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> tsə̀dafín  (-x PriS / SndS / _ ^PriS)
+  -> tsə̀rafín  ([t d] / r / V _ [V #])
+  -> tsàrafín   ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> tsàrfín    (Unstr / / _)
+  -> tsarfín    (-x SndS / Unstr)
+  -> tarfín     (ts / t / #_)
+  -> tarfin     (-x PriS / Unstr)
+
+ŋa=dafin
+  -> ŋa#=#dafin  (-x = / # = #)
+  -> ŋa#=#dafín  (Unstr / PriS / _ C [C #])
+  -> ŋ#=#dfín    (Unstr / / _)
+  -> ŋdfín       (-x # = # / / _)
+  -> ŋdfin       (-x PriS / Unstr)
+
+ŋadafin
+  -> ŋadafín  (Unstr / PriS / _ C [C #])
+  -> ŋádafín  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> ŋàdafín  (-x PriS / SndS / _ ^PriS)
+  -> ŋàrafín  ([t d] / r / V _ [V #])
+  -> ŋàrfín   (Unstr / / _)
+  -> ŋarfín   (-x SndS / Unstr)
+  -> aŋarfín  (ŋ Unstr / @1 Unstr ŋ @1 Unstr / # _)
+  -> aŋarfin  (-x PriS / Unstr)
+
+
+SCA Output: 
+SCA Output: siw=fawetli
+  -> siw=fawətli     (-x [e q g] / [ə ʔ ɣ])
+  -> siw#=#fawətli   (-x = / # = #)
+  -> síw#=#fawətli   (Unstr / PriS / _ C [C #])
+  -> síw#=#fawə́tli  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> šíw#=#fawə́tli  ([s t d] / [š č j] / _ [i y])
+  -> šíw#=#fawétli   ([  ə i   -Unstr] / [  e i   -Unstr] / _ C (C) i~)
+  -> šíw#=#fwétl     (Unstr / / _)
+  -> šíwfwétl        (-x # = # / / _)
+  -> šiwfwétl        (-x PriS / Unstr / _ ^PriS)
+  -> šiwfwéts        (tl / ts)
+  -> šiwfwés         (ts / s / _)
+  -> siwfwés         (š / s / _)
+  -> siwfwes         (-x PriS / Unstr)
+
+si=fawetli
+  -> si=fawətli     (-x [e q g] / [ə ʔ ɣ])
+  -> si#=#fawətli   (-x = / # = #)
+  -> si#=#fawə́tli  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> ši#=#fawə́tli  ([s t d] / [š č j] / _ [i y])
+  -> ši#=#fawétli   ([  ə i   -Unstr] / [  e i   -Unstr] / _ C (C) i~)
+  -> š#=#fwétl      (Unstr / / _)
+  -> šfwétl         (-x # = # / / _)
+  -> šfwéts         (tl / ts)
+  -> šfwés          (ts / s / _)
+  -> sfwés          (š / s / _)
+  -> sfwes          (-x PriS / Unstr)
+
+siwefawetli
+  -> siwəfawətli    (-x [e q g] / [ə ʔ ɣ])
+  -> siwə́fawə́tli  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> siwə̀fawə́tli  (-x PriS / SndS / _ ^PriS)
+  -> šiwə̀fawə́tli  ([s t d] / [š č j] / _ [i y])
+  -> šiwàfawə́tli   ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> šiwàfawétli    ([  ə i   -Unstr] / [  e i   -Unstr] / _ C (C) i~)
+  -> šwàfwétl       (Unstr / / _)
+  -> šwafwétl       (-x SndS / Unstr)
+  -> šwafwéts       (tl / ts)
+  -> šwafwés        (ts / s / _)
+  -> rwafwés        (š / r / _ Vcd / Vcd _ / V _ [V Vcd #] // _i)
+  -> rwafwes        (-x PriS / Unstr)
+
+siwfawetli
+  -> siwfawətli   (-x [e q g] / [ə ʔ ɣ])
+  -> síwfawətli   (Unstr / PriS / _ C [C #])
+  -> síwfawə́tli  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> sìwfawə́tli  (-x PriS / SndS / _ ^PriS)
+  -> šìwfawə́tli  ([s t d] / [š č j] / _ [i y])
+  -> šèwfawə́tli  ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> šèwfawétli   ([  ə i   -Unstr] / [  e i   -Unstr] / _ C (C) i~)
+  -> šèwfwétl     (Unstr / / _)
+  -> šewfwétl     (-x SndS / Unstr)
+  -> šewfwéts     (tl / ts)
+  -> šewfwés      (ts / s / _)
+  -> sewfwés      (š / s / _)
+  -> sewfwes      (-x PriS / Unstr)
+
+sifawetli
+  -> sifawətli   (-x [e q g] / [ə ʔ ɣ])
+  -> sífawə́tli  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> sìfawə́tli  (-x PriS / SndS / _ ^PriS)
+  -> šìfawə́tli  ([s t d] / [š č j] / _ [i y])
+  -> šèfawə́tli  ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> šèfawétli   ([  ə i   -Unstr] / [  e i   -Unstr] / _ C (C) i~)
+  -> šèfwétl     (Unstr / / _)
+  -> šefwétl     (-x SndS / Unstr)
+  -> šefwéts     (tl / ts)
+  -> šefwés      (ts / s / _)
+  -> sefwés      (š / s / _)
+  -> sefwes      (-x PriS / Unstr)
+
+
+SCA Output: tse=fawetli
+  -> tsə=fawətli     (-x [e q g] / [ə ʔ ɣ])
+  -> tsə#=#fawətli   (-x = / # = #)
+  -> tsə#=#fawə́tli  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> tsə#=#fawétli   ([  ə i   -Unstr] / [  e i   -Unstr] / _ C (C) i~)
+  -> ts#=#fwétl      (Unstr / / _)
+  -> tsfwétl         (-x # = # / / _)
+  -> tsfwéts         (tl / ts)
+  -> tfwéts          (ts / t / #_)
+  -> tfwés           (ts / s / _)
+  -> tfwes           (-x PriS / Unstr)
+
+tsefawetli
+  -> tsəfawətli    (-x [e q g] / [ə ʔ ɣ])
+  -> tsə́fawə́tli  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> tsə̀fawə́tli  (-x PriS / SndS / _ ^PriS)
+  -> tsàfawə́tli   ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> tsàfawétli    ([  ə i   -Unstr] / [  e i   -Unstr] / _ C (C) i~)
+  -> tsàfwétl      (Unstr / / _)
+  -> tsafwétl      (-x SndS / Unstr)
+  -> tsafwéts      (tl / ts)
+  -> tafwéts       (ts / t / #_)
+  -> tafwés        (ts / s / _)
+  -> tafwes        (-x PriS / Unstr)
+
+ŋa=fawetli
+  -> ŋa=fawətli     (-x [e q g] / [ə ʔ ɣ])
+  -> ŋa#=#fawətli   (-x = / # = #)
+  -> ŋa#=#fawə́tli  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> ŋa#=#fawétli   ([  ə i   -Unstr] / [  e i   -Unstr] / _ C (C) i~)
+  -> ŋ#=#fwétl      (Unstr / / _)
+  -> ŋfwétl         (-x # = # / / _)
+  -> ŋfwéts         (tl / ts)
+  -> ŋfwés          (ts / s / _)
+  -> ŋfwes          (-x PriS / Unstr)
+
+ŋafawetli
+  -> ŋafawətli   (-x [e q g] / [ə ʔ ɣ])
+  -> ŋáfawə́tli  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> ŋàfawə́tli  (-x PriS / SndS / _ ^PriS)
+  -> ŋàfawétli   ([  ə i   -Unstr] / [  e i   -Unstr] / _ C (C) i~)
+  -> ŋàfwétl     (Unstr / / _)
+  -> ŋafwétl     (-x SndS / Unstr)
+  -> aŋafwétl    (ŋ Unstr / @1 Unstr ŋ @1 Unstr / # _)
+  -> aŋafwéts    (tl / ts)
+  -> aŋafwés     (ts / s / _)
+  -> aŋafwes     (-x PriS / Unstr)
+
+
+SCA Output: 
+SCA Output: siw=khaliŋ
+  -> siw#=#khaliŋ  (-x = / # = #)
+  -> siw#=#kaliŋ   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> síw#=#kalíŋ   (Unstr / PriS / _ C [C #])
+  -> šíw#=#kalíŋ   ([s t d] / [š č j] / _ [i y])
+  -> šíw#=#klíŋ    (Unstr / / _)
+  -> šíwklíŋ       (-x # = # / / _)
+  -> šiwklíŋ       (-x PriS / Unstr / _ ^PriS)
+  -> šiwkníŋ       ([lh l] / [l n])
+  -> siwkníŋ       (š / s / _)
+  -> siwkniŋ       (-x PriS / Unstr)
+
+si=khaliŋ
+  -> si#=#khaliŋ  (-x = / # = #)
+  -> si#=#kaliŋ   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> si#=#kalíŋ   (Unstr / PriS / _ C [C #])
+  -> ši#=#kalíŋ   ([s t d] / [š č j] / _ [i y])
+  -> š#=#klíŋ     (Unstr / / _)
+  -> šklíŋ        (-x # = # / / _)
+  -> škníŋ        ([lh l] / [l n])
+  -> skníŋ        (š / s / _)
+  -> skniŋ        (-x PriS / Unstr)
+
+siwekhaliŋ
+  -> siwəkhaliŋ  (-x [e q g] / [ə ʔ ɣ])
+  -> siwəkaliŋ   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> siwəkalíŋ   (Unstr / PriS / _ C [C #])
+  -> siwə́kalíŋ  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> siwə̀kalíŋ  (-x PriS / SndS / _ ^PriS)
+  -> šiwə̀kalíŋ  ([s t d] / [š č j] / _ [i y])
+  -> šiwàkalíŋ   ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> šwàklíŋ     (Unstr / / _)
+  -> šwaklíŋ     (-x SndS / Unstr)
+  -> šwakníŋ     ([lh l] / [l n])
+  -> rwakníŋ     (š / r / _ Vcd / Vcd _ / V _ [V Vcd #] // _i)
+  -> rwakniŋ     (-x PriS / Unstr)
+
+siwkhaliŋ
+  -> siwkaliŋ  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> síwkalíŋ  (Unstr / PriS / _ C [C #])
+  -> sìwkalíŋ  (-x PriS / SndS / _ ^PriS)
+  -> šìwkalíŋ  ([s t d] / [š č j] / _ [i y])
+  -> šèwkalíŋ  ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> šèwklíŋ   (Unstr / / _)
+  -> šewklíŋ   (-x SndS / Unstr)
+  -> šewkníŋ   ([lh l] / [l n])
+  -> sewkníŋ   (š / s / _)
+  -> sewkniŋ   (-x PriS / Unstr)
+
+sikhaliŋ
+  -> sikaliŋ  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> sikalíŋ  (Unstr / PriS / _ C [C #])
+  -> síkalíŋ  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> sìkalíŋ  (-x PriS / SndS / _ ^PriS)
+  -> šìkalíŋ  ([s t d] / [š č j] / _ [i y])
+  -> šèkalíŋ  ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> šèklíŋ   (Unstr / / _)
+  -> šeklíŋ   (-x SndS / Unstr)
+  -> šekníŋ   ([lh l] / [l n])
+  -> sekníŋ   (š / s / _)
+  -> sekniŋ   (-x PriS / Unstr)
+
+
+SCA Output: tse=khaliŋ
+  -> tsə=khaliŋ    (-x [e q g] / [ə ʔ ɣ])
+  -> tsə#=#khaliŋ  (-x = / # = #)
+  -> tsə#=#kaliŋ   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> tsə#=#kalíŋ   (Unstr / PriS / _ C [C #])
+  -> ts#=#klíŋ     (Unstr / / _)
+  -> tsklíŋ        (-x # = # / / _)
+  -> tskníŋ        ([lh l] / [l n])
+  -> tkníŋ         (ts / t / #_)
+  -> tkniŋ         (-x PriS / Unstr)
+
+tsekhaliŋ
+  -> tsəkhaliŋ  (-x [e q g] / [ə ʔ ɣ])
+  -> tsəkaliŋ   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> tsəkalíŋ   (Unstr / PriS / _ C [C #])
+  -> tsə́kalíŋ  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> tsə̀kalíŋ  (-x PriS / SndS / _ ^PriS)
+  -> tsàkalíŋ   ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> tsàklíŋ    (Unstr / / _)
+  -> tsaklíŋ    (-x SndS / Unstr)
+  -> tsakníŋ    ([lh l] / [l n])
+  -> takníŋ     (ts / t / #_)
+  -> takniŋ     (-x PriS / Unstr)
+
+ŋa=khaliŋ
+  -> ŋa#=#khaliŋ  (-x = / # = #)
+  -> ŋa#=#kaliŋ   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ŋa#=#kalíŋ   (Unstr / PriS / _ C [C #])
+  -> ŋ#=#klíŋ     (Unstr / / _)
+  -> ŋklíŋ        (-x # = # / / _)
+  -> ŋkníŋ        ([lh l] / [l n])
+  -> ŋkniŋ        (-x PriS / Unstr)
+
+ŋakhaliŋ
+  -> ŋakaliŋ  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ŋakalíŋ  (Unstr / PriS / _ C [C #])
+  -> ŋákalíŋ  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> ŋàkalíŋ  (-x PriS / SndS / _ ^PriS)
+  -> ŋàklíŋ   (Unstr / / _)
+  -> ŋaklíŋ   (-x SndS / Unstr)
+  -> aŋaklíŋ  (ŋ Unstr / @1 Unstr ŋ @1 Unstr / # _)
+  -> aŋakníŋ  ([lh l] / [l n])
+  -> aŋakniŋ  (-x PriS / Unstr)
+
+
+SCA Output: 
+SCA Output: siw=saqam
+  -> siw=saʔam    (-x [e q g] / [ə ʔ ɣ])
+  -> siw#=#saʔam  (-x = / # = #)
+  -> síw#=#saʔám  (Unstr / PriS / _ C [C #])
+  -> šíw#=#saʔám  ([s t d] / [š č j] / _ [i y])
+  -> šíw#=#sʔám   (Unstr / / _)
+  -> šíwsʔám      (-x # = # / / _)
+  -> šiwsʔám      (-x PriS / Unstr / _ ^PriS)
+  -> šiwsáʔm      (ʔ V / \ / C _)
+  -> siwsáʔm      (š / s / _)
+  -> siwsaʔm      (-x PriS / Unstr)
+
+si=saqam
+  -> si=saʔam    (-x [e q g] / [ə ʔ ɣ])
+  -> si#=#saʔam  (-x = / # = #)
+  -> si#=#saʔám  (Unstr / PriS / _ C [C #])
+  -> ši#=#saʔám  ([s t d] / [š č j] / _ [i y])
+  -> š#=#sʔám    (Unstr / / _)
+  -> šsʔám       (-x # = # / / _)
+  -> šsáʔm       (ʔ V / \ / C _)
+  -> ssáʔm       (š / s / _)
+  -> ssaʔm       (-x PriS / Unstr)
+
+siwesaqam
+  -> siwəsaʔam   (-x [e q g] / [ə ʔ ɣ])
+  -> siwəsaʔám   (Unstr / PriS / _ C [C #])
+  -> siwə́saʔám  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> siwə̀saʔám  (-x PriS / SndS / _ ^PriS)
+  -> šiwə̀saʔám  ([s t d] / [š č j] / _ [i y])
+  -> šiwàsaʔám   ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> šwàsʔám     (Unstr / / _)
+  -> šwasʔám     (-x SndS / Unstr)
+  -> šwasáʔm     (ʔ V / \ / C _)
+  -> rwasáʔm     (š / r / _ Vcd / Vcd _ / V _ [V Vcd #] // _i)
+  -> rwasaʔm     (-x PriS / Unstr)
+
+siwsaqam
+  -> siwsaʔam  (-x [e q g] / [ə ʔ ɣ])
+  -> síwsaʔám  (Unstr / PriS / _ C [C #])
+  -> sìwsaʔám  (-x PriS / SndS / _ ^PriS)
+  -> šìwsaʔám  ([s t d] / [š č j] / _ [i y])
+  -> šèwsaʔám  ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> šèwsʔám   (Unstr / / _)
+  -> šewsʔám   (-x SndS / Unstr)
+  -> šewsáʔm   (ʔ V / \ / C _)
+  -> sewsáʔm   (š / s / _)
+  -> sewsaʔm   (-x PriS / Unstr)
+
+sisaqam
+  -> sisaʔam  (-x [e q g] / [ə ʔ ɣ])
+  -> sisaʔám  (Unstr / PriS / _ C [C #])
+  -> sísaʔám  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> sìsaʔám  (-x PriS / SndS / _ ^PriS)
+  -> šìsaʔám  ([s t d] / [š č j] / _ [i y])
+  -> šèsaʔám  ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> šèsʔám   (Unstr / / _)
+  -> šesʔám   (-x SndS / Unstr)
+  -> šesáʔm   (ʔ V / \ / C _)
+  -> sesáʔm   (š / s / _)
+  -> sesaʔm   (-x PriS / Unstr)
+
+
+SCA Output: tse=saqam
+  -> tsə=saʔam    (-x [e q g] / [ə ʔ ɣ])
+  -> tsə#=#saʔam  (-x = / # = #)
+  -> tsə#=#saʔám  (Unstr / PriS / _ C [C #])
+  -> ts#=#sʔám    (Unstr / / _)
+  -> tssʔám       (-x # = # / / _)
+  -> tssáʔm       (ʔ V / \ / C _)
+  -> tsáʔm        (ts / t / #_)
+  -> tsaʔm        (-x PriS / Unstr)
+
+tsesaqam
+  -> tsəsaʔam   (-x [e q g] / [ə ʔ ɣ])
+  -> tsəsaʔám   (Unstr / PriS / _ C [C #])
+  -> tsə́saʔám  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> tsə̀saʔám  (-x PriS / SndS / _ ^PriS)
+  -> tsàsaʔám   ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> tsàsʔám    (Unstr / / _)
+  -> tsasʔám    (-x SndS / Unstr)
+  -> tsasáʔm    (ʔ V / \ / C _)
+  -> tasáʔm     (ts / t / #_)
+  -> tasaʔm     (-x PriS / Unstr)
+
+ŋa=saqam
+  -> ŋa=saʔam    (-x [e q g] / [ə ʔ ɣ])
+  -> ŋa#=#saʔam  (-x = / # = #)
+  -> ŋa#=#saʔám  (Unstr / PriS / _ C [C #])
+  -> ŋ#=#sʔám    (Unstr / / _)
+  -> ŋsʔám       (-x # = # / / _)
+  -> ŋsáʔm       (ʔ V / \ / C _)
+  -> aŋsáʔm      (ŋ C PriS / @2 Unstr ŋ @1 C @2 PriS / # _)
+  -> aŋsaʔm      (-x PriS / Unstr)
+
+ŋasaqam
+  -> ŋasaʔam  (-x [e q g] / [ə ʔ ɣ])
+  -> ŋasaʔám  (Unstr / PriS / _ C [C #])
+  -> ŋásaʔám  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> ŋàsaʔám  (-x PriS / SndS / _ ^PriS)
+  -> ŋàsʔám   (Unstr / / _)
+  -> ŋasʔám   (-x SndS / Unstr)
+  -> ŋasáʔm   (ʔ V / \ / C _)
+  -> aŋasáʔm  (ŋ Unstr / @1 Unstr ŋ @1 Unstr / # _)
+  -> aŋasaʔm  (-x PriS / Unstr)
+
+
+SCA Output: 
+SCA Output: siw=thalaŋ=baalaq
+  -> siw=thalaŋ=baalaʔ      (-x [e q g] / [ə ʔ ɣ])
+  -> siw#=#thalaŋ#=#baalaʔ  (-x = / # = #)
+  -> siw#=#thalaŋ#=#báálaʔ  ([Vl +Unstr] / [Vl +PriS])
+  -> síw#=#thaláŋ#=#bááláʔ  (Unstr / PriS / _ C [C #])
+  -> síw#=#thaláŋ#=#bààláʔ  (-x PriS / SndS / _ ^PriS)
+  -> síw#=#tsaláŋ#=#bààláʔ  ([ph th kh] / [f ts x])
+  -> šíw#=#tsaláŋ#=#bààláʔ  ([s t d] / [š č j] / _ [i y])
+  -> šíw#=#tsaló#=#bààláʔ   (a ŋ / o / _ [C #])
+  -> šíw#=#tsaló#=#bàláʔ    (Vl / Vs)
+  -> šíw#=#tsló#=#bàláʔ     (Unstr / / _)
+  -> šíw#=#tsló#=#baláʔ     (-x SndS / Unstr)
+  -> šíwtslóbaláʔ           (-x # = # / / _)
+  -> šiwtslobaláʔ           (-x PriS / Unstr / _ ^PriS)
+  -> šiwtsnobanáʔ           ([lh l] / [l n])
+  -> šiwsnobanáʔ            (ts / s / _)
+  -> siwsnobanáʔ            (š / s / _)
+  -> siwsnobanaʔ            (-x PriS / Unstr)
+
+si=thalaŋ=baalaq
+  -> si=thalaŋ=baalaʔ      (-x [e q g] / [ə ʔ ɣ])
+  -> si#=#thalaŋ#=#baalaʔ  (-x = / # = #)
+  -> si#=#thalaŋ#=#báálaʔ  ([Vl +Unstr] / [Vl +PriS])
+  -> si#=#thaláŋ#=#bááláʔ  (Unstr / PriS / _ C [C #])
+  -> si#=#thaláŋ#=#bààláʔ  (-x PriS / SndS / _ ^PriS)
+  -> si#=#tsaláŋ#=#bààláʔ  ([ph th kh] / [f ts x])
+  -> ši#=#tsaláŋ#=#bààláʔ  ([s t d] / [š č j] / _ [i y])
+  -> ši#=#tsaló#=#bààláʔ   (a ŋ / o / _ [C #])
+  -> ši#=#tsaló#=#bàláʔ    (Vl / Vs)
+  -> š#=#tsló#=#bàláʔ      (Unstr / / _)
+  -> š#=#tsló#=#baláʔ      (-x SndS / Unstr)
+  -> štslóbaláʔ            (-x # = # / / _)
+  -> štslobaláʔ            (-x PriS / Unstr / _ ^PriS)
+  -> štsnobanáʔ            ([lh l] / [l n])
+  -> šsnobanáʔ             (ts / s / _)
+  -> ssnobanáʔ             (š / s / _)
+  -> ssnobanaʔ             (-x PriS / Unstr)
+
+siwethalaŋ=baalaq
+  -> siwəthalaŋ=baalaʔ     (-x [e q g] / [ə ʔ ɣ])
+  -> siwəthalaŋ#=#baalaʔ   (-x = / # = #)
+  -> siwəthalaŋ#=#báálaʔ   ([Vl +Unstr] / [Vl +PriS])
+  -> siwəthaláŋ#=#bááláʔ   (Unstr / PriS / _ C [C #])
+  -> siwə́thaláŋ#=#bááláʔ  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> siwə̀thaláŋ#=#bààláʔ  (-x PriS / SndS / _ ^PriS)
+  -> siwə̀tsaláŋ#=#bààláʔ  ([ph th kh] / [f ts x])
+  -> šiwə̀tsaláŋ#=#bààláʔ  ([s t d] / [š č j] / _ [i y])
+  -> šiwə̀tsaló#=#bààláʔ   (a ŋ / o / _ [C #])
+  -> šiwə̀tsaló#=#bàláʔ    (Vl / Vs)
+  -> šiwàtsaló#=#bàláʔ     ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> šwàtsló#=#bàláʔ       (Unstr / / _)
+  -> šwatsló#=#baláʔ       (-x SndS / Unstr)
+  -> šwatslóbaláʔ          (-x # = # / / _)
+  -> šwatslobaláʔ          (-x PriS / Unstr / _ ^PriS)
+  -> šwatsnobanáʔ          ([lh l] / [l n])
+  -> šwasnobanáʔ           (ts / s / _)
+  -> rwasnobanáʔ           (š / r / _ Vcd / Vcd _ / V _ [V Vcd #] // _i)
+  -> rwasnobanaʔ           (-x PriS / Unstr)
+
+siwthalaŋ=baalaq
+  -> siwthalaŋ=baalaʔ    (-x [e q g] / [ə ʔ ɣ])
+  -> siwthalaŋ#=#baalaʔ  (-x = / # = #)
+  -> siwthalaŋ#=#báálaʔ  ([Vl +Unstr] / [Vl +PriS])
+  -> síwthaláŋ#=#bááláʔ  (Unstr / PriS / _ C [C #])
+  -> sìwthaláŋ#=#bààláʔ  (-x PriS / SndS / _ ^PriS)
+  -> sìwtsaláŋ#=#bààláʔ  ([ph th kh] / [f ts x])
+  -> šìwtsaláŋ#=#bààláʔ  ([s t d] / [š č j] / _ [i y])
+  -> šìwtsaló#=#bààláʔ   (a ŋ / o / _ [C #])
+  -> šìwtsaló#=#bàláʔ    (Vl / Vs)
+  -> šèwtsaló#=#bàláʔ    ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> šèwtsló#=#bàláʔ     (Unstr / / _)
+  -> šewtsló#=#baláʔ     (-x SndS / Unstr)
+  -> šewtslóbaláʔ        (-x # = # / / _)
+  -> šewtslobaláʔ        (-x PriS / Unstr / _ ^PriS)
+  -> šewtsnobanáʔ        ([lh l] / [l n])
+  -> šewsnobanáʔ         (ts / s / _)
+  -> sewsnobanáʔ         (š / s / _)
+  -> sewsnobanaʔ         (-x PriS / Unstr)
+
+sithalaŋ=baalaq
+  -> sithalaŋ=baalaʔ    (-x [e q g] / [ə ʔ ɣ])
+  -> sithalaŋ#=#baalaʔ  (-x = / # = #)
+  -> sithalaŋ#=#báálaʔ  ([Vl +Unstr] / [Vl +PriS])
+  -> sithaláŋ#=#bááláʔ  (Unstr / PriS / _ C [C #])
+  -> síthaláŋ#=#bááláʔ  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> sìthaláŋ#=#bààláʔ  (-x PriS / SndS / _ ^PriS)
+  -> sìtsaláŋ#=#bààláʔ  ([ph th kh] / [f ts x])
+  -> šìtsaláŋ#=#bààláʔ  ([s t d] / [š č j] / _ [i y])
+  -> šìtsaló#=#bààláʔ   (a ŋ / o / _ [C #])
+  -> šìtsaló#=#bàláʔ    (Vl / Vs)
+  -> šètsaló#=#bàláʔ    ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> šètsló#=#bàláʔ     (Unstr / / _)
+  -> šetsló#=#baláʔ     (-x SndS / Unstr)
+  -> šetslóbaláʔ        (-x # = # / / _)
+  -> šetslobaláʔ        (-x PriS / Unstr / _ ^PriS)
+  -> šetsnobanáʔ        ([lh l] / [l n])
+  -> šesnobanáʔ         (ts / s / _)
+  -> sesnobanáʔ         (š / s / _)
+  -> sesnobanaʔ         (-x PriS / Unstr)
+
+
+SCA Output: tse=thalaŋ=baalaq
+  -> tsə=thalaŋ=baalaʔ      (-x [e q g] / [ə ʔ ɣ])
+  -> tsə#=#thalaŋ#=#baalaʔ  (-x = / # = #)
+  -> tsə#=#thalaŋ#=#báálaʔ  ([Vl +Unstr] / [Vl +PriS])
+  -> tsə#=#thaláŋ#=#bááláʔ  (Unstr / PriS / _ C [C #])
+  -> tsə#=#thaláŋ#=#bààláʔ  (-x PriS / SndS / _ ^PriS)
+  -> tsə#=#tsaláŋ#=#bààláʔ  ([ph th kh] / [f ts x])
+  -> tsə#=#tsaló#=#bààláʔ   (a ŋ / o / _ [C #])
+  -> tsə#=#tsaló#=#bàláʔ    (Vl / Vs)
+  -> ts#=#tsló#=#bàláʔ      (Unstr / / _)
+  -> ts#=#tsló#=#baláʔ      (-x SndS / Unstr)
+  -> tstslóbaláʔ            (-x # = # / / _)
+  -> tstslobaláʔ            (-x PriS / Unstr / _ ^PriS)
+  -> tslobaláʔ              (C / / # _ >)
+  -> tsnobanáʔ              ([lh l] / [l n])
+  -> tnobanáʔ               (ts / t / #_)
+  -> tnobanaʔ               (-x PriS / Unstr)
+
+tsethalaŋ=baalaq
+  -> tsəthalaŋ=baalaʔ     (-x [e q g] / [ə ʔ ɣ])
+  -> tsəthalaŋ#=#baalaʔ   (-x = / # = #)
+  -> tsəthalaŋ#=#báálaʔ   ([Vl +Unstr] / [Vl +PriS])
+  -> tsəthaláŋ#=#bááláʔ   (Unstr / PriS / _ C [C #])
+  -> tsə́thaláŋ#=#bááláʔ  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> tsə̀thaláŋ#=#bààláʔ  (-x PriS / SndS / _ ^PriS)
+  -> tsə̀tsaláŋ#=#bààláʔ  ([ph th kh] / [f ts x])
+  -> tsə̀tsaló#=#bààláʔ   (a ŋ / o / _ [C #])
+  -> tsə̀tsaló#=#bàláʔ    (Vl / Vs)
+  -> tsàtsaló#=#bàláʔ     ([a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~)
+  -> tsàtsló#=#bàláʔ      (Unstr / / _)
+  -> tsatsló#=#baláʔ      (-x SndS / Unstr)
+  -> tsatslóbaláʔ         (-x # = # / / _)
+  -> tsatslobaláʔ         (-x PriS / Unstr / _ ^PriS)
+  -> tsatsnobanáʔ         ([lh l] / [l n])
+  -> tatsnobanáʔ          (ts / t / #_)
+  -> tasnobanáʔ           (ts / s / _)
+  -> tasnobanaʔ           (-x PriS / Unstr)
+
+ŋa=thalaŋ=baalaq
+  -> ŋa=thalaŋ=baalaʔ      (-x [e q g] / [ə ʔ ɣ])
+  -> ŋa#=#thalaŋ#=#baalaʔ  (-x = / # = #)
+  -> ŋa#=#thalaŋ#=#báálaʔ  ([Vl +Unstr] / [Vl +PriS])
+  -> ŋa#=#thaláŋ#=#bááláʔ  (Unstr / PriS / _ C [C #])
+  -> ŋa#=#thaláŋ#=#bààláʔ  (-x PriS / SndS / _ ^PriS)
+  -> ŋa#=#tsaláŋ#=#bààláʔ  ([ph th kh] / [f ts x])
+  -> ŋa#=#tsaló#=#bààláʔ   (a ŋ / o / _ [C #])
+  -> ŋa#=#tsaló#=#bàláʔ    (Vl / Vs)
+  -> ŋ#=#tsló#=#bàláʔ      (Unstr / / _)
+  -> ŋ#=#tsló#=#baláʔ      (-x SndS / Unstr)
+  -> ŋtslóbaláʔ            (-x # = # / / _)
+  -> ŋtslobaláʔ            (-x PriS / Unstr / _ ^PriS)
+  -> ŋtsnobanáʔ            ([lh l] / [l n])
+  -> ŋsnobanáʔ             (ts / s / _)
+  -> ŋsnobanaʔ             (-x PriS / Unstr)
+
+ŋathalaŋ=baalaq
+  -> ŋathalaŋ=baalaʔ    (-x [e q g] / [ə ʔ ɣ])
+  -> ŋathalaŋ#=#baalaʔ  (-x = / # = #)
+  -> ŋathalaŋ#=#báálaʔ  ([Vl +Unstr] / [Vl +PriS])
+  -> ŋathaláŋ#=#bááláʔ  (Unstr / PriS / _ C [C #])
+  -> ŋáthaláŋ#=#bááláʔ  (-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*)
+  -> ŋàthaláŋ#=#bààláʔ  (-x PriS / SndS / _ ^PriS)
+  -> ŋàtsaláŋ#=#bààláʔ  ([ph th kh] / [f ts x])
+  -> ŋàtsaló#=#bààláʔ   (a ŋ / o / _ [C #])
+  -> ŋàtsaló#=#bàláʔ    (Vl / Vs)
+  -> ŋàtsló#=#bàláʔ     (Unstr / / _)
+  -> ŋatsló#=#baláʔ     (-x SndS / Unstr)
+  -> ŋatslóbaláʔ        (-x # = # / / _)
+  -> ŋatslobaláʔ        (-x PriS / Unstr / _ ^PriS)
+  -> aŋatslobaláʔ       (ŋ Unstr / @1 Unstr ŋ @1 Unstr / # _)
+  -> aŋatsnobanáʔ       ([lh l] / [l n])
+  -> aŋasnobanáʔ        (ts / s / _)
+  -> aŋasnobanaʔ        (-x PriS / Unstr)
+
+

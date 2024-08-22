@@ -1,0 +1,140 @@
+-x [e q g] / [ə ʔ ɣ]
+-x - / n
+-x . / / _
+-x B / b
+
+categories
+Nsl = m n ŋ
+Pns = mb nd ng
+Uns = p t k ʔ
+Ass = ph th kh
+Vds = b d g
+S = Pns Uns Ass Vds
+Una = ts tl č j
+Asa = tsh tlh
+A = Una Asa
+Fr = f s x lh ɣ h
+Ap = l y w r
+C = Nsl S A Fr Ap
+
+feature Unstr = a e i o u ə ɨ aa ii uu / SndS = à è ì ò ù ə̀ ɨ̀ àà ìì ùù / PriS = á é í ó ú ə́ ɨ́ áá íí úú
+Vs = a i u e o ə ɨ
+Vl = aa ii uu
+V = Vs Vl
+
+Other = =
+end
+
+-x = / # = #
+
+[kh k] / [k ɣ] / _ / # _ // ŋ_
+
+; footing
+[Vl +Unstr] / [Vl +PriS]
+Unstr / PriS / _ C [C #]
+-rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*
+
+-x PriS / SndS / _ ^PriS
+
+h / / _
+ʔ / / # _
+[ph th kh] / [f ts x]
+[tsh tlh] / [s lh]
+
+[s t d] / [š č j] / _ [i y]
+
+a ŋ / o / _ [C #]
+
+[t d] / r / V _ [V #]
+
+Vl / Vs
+
+; syncope + ablaut
+[a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~
+[  ə   u -Unstr] / [  e   u -Unstr] / _ C (C) ə~
+-? [a    -Unstr] / [e       -Unstr] / _ C (C) ə~
+-? [i    -Unstr] / [e       -Unstr] / _ C (C) ə~
+[  ə i   -Unstr] / [  e i   -Unstr] / _ C (C) i~
+   [a    -Unstr] / [e       -Unstr] / _ C (C) i~
+-? [u    -Unstr] / [i       -Unstr] / _ C (C) i~
+[a ə i u -Unstr] / [o o i u -Unstr] / _ C (C) u~
+[a ə i u -Unstr] / [o o i u -Unstr] / _ C (C) o~
+
+Unstr / / _
+
+ə~ / @? [a e +Unstr]
+ə̀ / @? [à è]
+ə́ / @? [á é]
+
+-x SndS / Unstr
+
+-x # = # / / _
+-x = # / / _
+-x # = / / _
+-x PriS / Unstr / _ ^PriS
+
+C / / # _ >
+ʔ V / \ / C _
+
+Nsl / / _ Pns
+Pns / Vds / # C _ / _ #
+Pns / @1 Nsl @1 Vds
+
+new categories
+Nsl = m n ŋ
+Vls = p t k ʔ
+Vds = b d g
+Aff = ts tl č j
+Fr = f s š x lh ɣ
+Ap = l r y w
+C = Nsl Vls Vds Aff Fr Ap
+
+feature Unstr = a e i o u / PriS = á é í ó ú
+V = Unstr PriS
+end
+
+[w y] / [u i +Unstr] / C _ #
+
+-? [C -ʔ -y -w] / / _ C #
+C / / [C -ʔ -y -w] _ #
+
+ŋ PriS / @1 Unstr ŋ @1 PriS / # _
+ŋ Unstr / @1 Unstr ŋ @1 Unstr / # _
+ŋ C PriS / @2 Unstr ŋ @1 C @2 PriS / # _
+ŋ C Unstr / @2 Unstr ŋ @1 C @2 Unstr / # _
+
+ɣ / i~ / # _ C
+ɣ / / _
+
+[lh l] / [l n]
+tl / ts
+
+ts / t / #_
+ts / s / _
+
+new categories
+Nsl = m n ŋ
+Vls = p t k ʔ
+Vds = b d g
+Aff = č j
+Fr = f s š x
+Ap = l r y w
+C = Nsl Vls Vds Aff Fr Ap
+
+Vcd = Nsl Vds j Ap
+Vcl = Vls č Fr
+
+feature Unstr = a e i o u / PriS = á é í ó ú
+V = Unstr PriS
+end
+
+y / / i _
+w / / u _
+
+j / r / _ // _i
+š / r / _ Vcd / Vcd _ / V _ [V Vcd #] // _i
+j / g / _
+š / s / _
+
+-x PriS / Unstr
+-x č / c
