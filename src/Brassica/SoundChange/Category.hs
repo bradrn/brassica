@@ -64,6 +64,8 @@ expand cs (CategorySpec spec) = FromElements <$> foldM go [] spec
     go es (modifier, e) = do
         new <- case e of
             Left (GMulti g)
+                | Just (g', '~') <- unsnoc g
+                -> pure [Left (GMulti g')]
                 | Just (FromElements c) <- lookup g cs
                 -> pure c
                 | otherwise -> pure [Left (GMulti g)]
@@ -85,12 +87,6 @@ expandLexeme cs (Grapheme (GMulti g))
         case lookup g cs of
             Just c -> Category c
             Nothing -> Grapheme (GMulti g)
-  where
-    -- taken from base-4.19
-    unsnoc :: [a] -> Maybe ([a], a)
-    unsnoc = foldr (\x -> Just . maybe ([], x) (\(~(a, b)) -> (x : a, b))) Nothing
-    {-# INLINABLE unsnoc #-}
-
 expandLexeme _  (Grapheme GBoundary) = Right $ Grapheme GBoundary
 expandLexeme cs (Category c) = Category <$> expand cs c
 expandLexeme cs (Optional ls) = Optional <$> traverse (expandLexeme cs) ls
@@ -101,6 +97,11 @@ expandLexeme cs (Kleene l) = Kleene <$> expandLexeme cs l
 expandLexeme _  Discard = Right Discard
 expandLexeme cs (Backreference i c) = Backreference i <$> expand cs c
 expandLexeme cs (Multiple c) = Multiple <$> expand cs c
+
+-- taken from base-4.19
+unsnoc :: [a] -> Maybe ([a], a)
+unsnoc = foldr (\x -> Just . maybe ([], x) (\(~(a, b)) -> (x : a, b))) Nothing
+{-# INLINABLE unsnoc #-}
 
 expandRule :: Categories -> Rule CategorySpec -> Either ExpandError (Rule Expanded)
 expandRule cs r = Rule

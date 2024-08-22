@@ -191,7 +191,7 @@ SCA Output: gadye
   -> ɣájyə  ([s t d] / [š č j] / _ [i y])
   -> ɣájyə  (-? [a    -Unstr] / [e       -Unstr] / _ C (C) ə~)
   -> ɣájy   (Unstr / / _)
-  -> ɣáji   ([w y] / [u i +Unstr] / C _ #)
+  -> ɣáji   ([w y] / [u~ i~] / C _ #)
   -> áji    (ɣ / / _)
   -> ági    (j / g / _)
   -> agi    (-x PriS / Unstr)
@@ -202,7 +202,7 @@ gadye
   -> ɣájyə  ([s t d] / [š č j] / _ [i y])
   -> ɣéjyə  (-? [a    -Unstr] / [e       -Unstr] / _ C (C) ə~)
   -> ɣéjy   (Unstr / / _)
-  -> ɣéji   ([w y] / [u i +Unstr] / C _ #)
+  -> ɣéji   ([w y] / [u~ i~] / C _ #)
   -> éji    (ɣ / / _)
   -> égi    (j / g / _)
   -> egi    (-x PriS / Unstr)
@@ -1574,7 +1574,7 @@ SCA Output: yaqa
 SCA Output: nye
   -> nyə  (-x [e q g] / [ə ʔ ɣ])
   -> ny   (Unstr / / _)
-  -> ni   ([w y] / [u i +Unstr] / C _ #)
+  -> ni   ([w y] / [u~ i~] / C _ #)
 
 
 SCA Output: yenge

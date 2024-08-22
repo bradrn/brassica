@@ -8,6 +8,7 @@
 - Bugfix: desktop version correctly warns about unsaved changes when opening a file
 - New `report` directive allows for reporting intermediate results in input→output mode
 - Whitespace is now preserved when displaying sound change output on desktop and web
+- `~` after grapheme to suppress features is now supported in categories also
 
 ### Code
 

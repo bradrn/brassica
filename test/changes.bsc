@@ -93,7 +93,7 @@ feature Unstr = a e i o u / PriS = á é í ó ú
 V = Unstr PriS
 end
 
-[w y] / [u i +Unstr] / C _ #
+[w y] / [u~ i~] / C _ #
 
 -? [C -ʔ -y -w] / / _ C #
 C / / [C -ʔ -y -w] _ #
