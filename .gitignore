@@ -14,3 +14,4 @@ CMakeLists.txt.user
 stack.yaml.lock
 gui/brassica-web/dist/*.js
 gui/brassica-web/dist/examples/
+test/*.out
