@@ -73,7 +73,8 @@ expand cs (CategorySpec spec) = FromElements <$> foldM go [] spec
             Right ls -> pure . Right <$> traverse (expandLexeme cs) ls
         pure $ case modifier of
             Union -> es ++ new
-            Intersect -> es `intersect` new
+            -- important: intersection preserves order of the /last/ category mentioned!
+            Intersect -> new `intersect` es
             Subtract -> es `subtractAll` new
 
     -- NB. normal (\\) only removes the first matching element
