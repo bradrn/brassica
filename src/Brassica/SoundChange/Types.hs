@@ -127,8 +127,8 @@ data Lexeme category (a :: LexemeType) where
     Backreference :: Int -> category a -> Lexeme category a
     -- | In Brassica sound-change syntax, specified as \@? before a category
     Multiple :: category 'Replacement -> Lexeme category 'Replacement
-    -- | In Brassica sound-change syntax, specified as @$name(-value/+value …)@ after another 'Lexeme'
-    Feature :: String -> [(String, String)] -> Lexeme category a -> Lexeme category a
+    -- | In Brassica sound-change syntax, specified as @$name#id(-value/+value …)@ after another 'Lexeme'
+    Feature :: String -> Maybe String -> [(String, String)] -> Lexeme category a -> Lexeme category a
 
 mapCategory :: (forall x. c x -> c' x) -> Lexeme c a -> Lexeme c' a
 mapCategory _ (Grapheme g) = Grapheme g
@@ -141,7 +141,7 @@ mapCategory f (Kleene l) = Kleene (mapCategory f l)
 mapCategory _ Discard = Discard
 mapCategory f (Backreference i c) = Backreference i (f c)
 mapCategory f (Multiple c) = Multiple (f c)
-mapCategory f (Feature n kvs l) = Feature n kvs $ mapCategory f l
+mapCategory f (Feature n i kvs l) = Feature n i kvs $ mapCategory f l
 
 mapCategoryA
     :: Applicative t
@@ -158,7 +158,7 @@ mapCategoryA f (Kleene l) = Kleene <$> mapCategoryA f l
 mapCategoryA _ Discard = pure Discard
 mapCategoryA f (Backreference i c) = Backreference i <$> f c
 mapCategoryA f (Multiple c) = Multiple <$> f c
-mapCategoryA f (Feature n kvs l) = Feature n kvs <$> mapCategoryA f l
+mapCategoryA f (Feature n i kvs l) = Feature n i kvs <$> mapCategoryA f l
 
 -- | The type of a category after expansion.
 newtype Expanded a = FromElements { elements :: [Either Grapheme [Lexeme Expanded a]] }
@@ -178,7 +178,7 @@ generalise _ Geminate = Geminate
 generalise f (Backreference i es) = Backreference i $ f es
 generalise f (Wildcard l) = Wildcard $ generalise f l
 generalise f (Kleene l) = Kleene $ generalise f l
-generalise f (Feature n kvs l) = Feature n kvs $ generalise f l
+generalise f (Feature n i kvs l) = Feature n i kvs $ generalise f l
 
 generaliseExpanded :: Expanded 'AnyPart -> Expanded a
 generaliseExpanded = FromElements . (fmap.fmap.fmap) (generalise generaliseExpanded) . elements
@@ -202,7 +202,7 @@ instance (forall x. NFData (c x)) => NFData (Lexeme c a) where
     rnf Discard = ()
     rnf (Backreference i l) = seq i $ rnf l
     rnf (Multiple l) = rnf l
-    rnf (Feature n kvs l) = seq (rnf l) $ seq (rnf n) $ rnf kvs
+    rnf (Feature n i kvs l) = seq (rnf l) $ seq (rnf n) $ seq (rnf i) $ rnf kvs
 
 -- | An 'Environment' is a tuple of @(before, after)@ components,
 -- corresponding to a ‘/ before _ after’ component of a sound change.

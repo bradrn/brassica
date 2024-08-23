@@ -160,6 +160,7 @@ parsePost l =
     parseFeatureApp =
         Feature <$ char '$'
         <*> parseGrapheme' False
+        <*> optional (char '#' *> parseGrapheme' False)
         <*> fmap (fromMaybe [])
             ( optional $ between (symbol "(") (symbol ")") $
               many $ lexeme $ (,) <$> parseGrapheme' False <* char '~' <*> parseGrapheme' False

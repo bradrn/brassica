@@ -135,6 +135,8 @@ data MatchOutput = MatchOutput
     , matchedGraphemes :: [Grapheme]
       -- | The features which were matched
     , matchedFeatures :: Map.Map String [FeatureState]
+      -- | Features which were matched by ID
+    , matchedFeatureIds :: Map.Map String FeatureState
     } deriving (Show)
 
 modifyMatchedGraphemes :: ([Grapheme] -> [Grapheme]) -> MatchOutput -> MatchOutput
@@ -144,12 +146,14 @@ appendGrapheme :: MatchOutput -> Grapheme -> MatchOutput
 appendGrapheme out g = modifyMatchedGraphemes (++[g]) out
 
 instance Semigroup MatchOutput where
-    (MatchOutput a1 b1 c1 d1 e1 f1) <> (MatchOutput a2 b2 c2 d2 e2 f2) =
-        MatchOutput (a1++a2) (b1++b2) (c1++c2) (d1++d2) (e1++e2) $
-            Map.merge
-                Map.preserveMissing Map.preserveMissing
+    (MatchOutput a1 b1 c1 d1 e1 f1 g1) <> (MatchOutput a2 b2 c2 d2 e2 f2 g2) =
+        MatchOutput (a1++a2) (b1++b2) (c1++c2) (d1++d2) (e1++e2)
+            (Map.merge Map.preserveMissing Map.preserveMissing
                 (Map.zipWithMatched $ const (++))
-                f1 f2
+                f1 f2)
+            (Map.merge Map.preserveMissing Map.preserveMissing
+                (Map.zipWithMatched $ \_ _ g -> g)
+                g1 g2)
 
 zipWith' :: [a] -> [b] -> (a -> b -> c) -> [c]
 zipWith' xs ys f = zipWith f xs ys
@@ -182,11 +186,11 @@ match :: MatchOutput          -- ^ The previous 'MatchOutput'
       -> [(MatchOutput, MultiZipper t Grapheme)]
       -- ^ The output: a tuple @(g, mz)@ as described below.
 match out prev (Optional l) mz =
-    (out <> MatchOutput [] [False] [] [] [] Map.empty, mz) :
-    matchMany (out <> MatchOutput [] [True] [] [] [] Map.empty) prev l mz
+    (out <> MatchOutput [] [False] [] [] [] Map.empty Map.empty, mz) :
+    matchMany (out <> MatchOutput [] [True] [] [] [] Map.empty Map.empty) prev l mz
 match out prev (Wildcard l) mz = matchWildcard out prev l mz
 match out prev (Kleene l) mz = matchKleene out prev l mz
-match out _ (Grapheme g) mz = (out <> MatchOutput [] [] [] [] [g] Map.empty,) <$> maybeToList (matchGrapheme g mz)
+match out _ (Grapheme g) mz = (out <> MatchOutput [] [] [] [] [g] Map.empty Map.empty,) <$> maybeToList (matchGrapheme g mz)
 match out prev (Category (FromElements gs)) mz =
     concat $ zipWith' gs [0..] $ \e i ->
         -- make sure to insert new index BEFORE any new ones which
@@ -197,21 +201,25 @@ match out prev (Category (FromElements gs)) mz =
                 Right ls -> matchMany out prev ls mz
 match out prev Geminate mz = case prev of
     Nothing -> []
-    Just prev' -> (out <> MatchOutput [] [] [] [] [prev'] Map.empty,) <$> maybeToList (matchGrapheme prev' mz)
+    Just prev' -> (out <> MatchOutput [] [] [] [] [prev'] Map.empty Map.empty,) <$> maybeToList (matchGrapheme prev' mz)
 match out prev (Backreference i (FromElements gs)) mz = do
     e <- maybeToList $
         (gs !?) =<< matchedCatIxs out !? (i-1)
     case e of
         Left  g  -> match out prev (Grapheme g :: Lexeme Expanded a) mz
         Right ls -> matchMany out prev ls mz
-match out prev (Feature n kvs l) mz = do
+match out prev (Feature n ident kvs l) mz = do
     let i = maybe 0 length $ Map.lookup n (matchedFeatures out)
     (out', mz') <- match out prev l mz
-    case matchedGraphemes out' of
-        gs | GMulti g <- last gs ->
-            let fs = checkFeature kvs g
-            in pure (appendFeatureAt i n fs out', mz')
-        _ -> pure (appendFeatureAt i n Indeterminate out', mz')
+    let fs = case matchedGraphemes out' of
+            gs | GMulti g <- last gs -> checkFeature kvs g
+            _ -> Indeterminate
+    pure $ case ident of
+        Nothing -> (appendFeatureAt i n fs out', mz')
+        Just ident' ->
+            ( out' { matchedFeatureIds = Map.insert ident' fs $ matchedFeatureIds out' }
+            , mz'
+            )
 
 checkFeature :: Eq a => [(a, a)] -> a -> FeatureState
 checkFeature [] _ = Indeterminate
@@ -279,7 +287,7 @@ matchMany' :: Maybe Grapheme
           -> [Lexeme Expanded 'Matched]
           -> MultiZipper t Grapheme
           -> [(MatchOutput, MultiZipper t Grapheme)]
-matchMany' = matchMany (MatchOutput [] [] [] [] [] Map.empty)
+matchMany' = matchMany (MatchOutput [] [] [] [] [] Map.empty Map.empty)
 
 -- Small utility function, not exported
 lastMay :: [a] -> Maybe a
@@ -412,13 +420,17 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
         in case matchedKleenes out !? i of
             Just n -> go ixs' (replicate n l) (mz, prev)
             Nothing -> [(ixs', (mz, prev))]
-    replaceLex ixs (Feature n kvs l) mz prev =
-        let (fs, ixs') = case advanceFeature n ixs of
-                Just (i, ixs_)
-                    | Just fss <- Map.lookup n (matchedFeatures out)
-                    , Just fs_ <- fss !? i
-                    -> (fs_, ixs_)
-                _ -> (Indeterminate, ixs)
+    replaceLex ixs (Feature n ident kvs l) mz prev =
+        let (fs, ixs') = case ident of
+                Nothing -> case advanceFeature n ixs of
+                    Just (i, ixs_)
+                        | Just fss <- Map.lookup n (matchedFeatures out)
+                        , Just fs_ <- fss !? i
+                        -> (fs_, ixs_)
+                    _ -> (Indeterminate, ixs)
+                Just ident' -> case Map.lookup ident' (matchedFeatureIds out) of
+                    Just fs_ -> (fs_, ixs)
+                    Nothing -> (Indeterminate, ixs)
         in do
             (ixs'', (mz', prev')) <- replaceLex ixs' l mz prev
             case prev' of
@@ -472,8 +484,11 @@ matchRuleAtPoint target (env1,env2) mz = flip runRuleAp mz $ do
             modify $ tag TargetStart
             matchResult <- RuleAp $ matchMany' Nothing target
             modify $ tag TargetEnd
-            _ <- RuleAp $ matchMany env1Out (listToMaybe $ matchedGraphemes matchResult) env2
-            return matchResult
+            env2Out <- RuleAp $ matchMany env1Out (listToMaybe $ matchedGraphemes matchResult) env2
+            -- environment can affect replacement via feature IDs
+            -- only, so collect those
+            let featureIds = matchedFeatureIds $ env1Out <> matchResult <> env2Out
+            return matchResult { matchedFeatureIds = featureIds }
 
 data RuleStatus
     = SuccessNormal      -- ^ Rule was successful, no need for special handling

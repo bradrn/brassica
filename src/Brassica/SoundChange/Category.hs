@@ -103,7 +103,7 @@ expandLexeme cs (Kleene l) = Kleene <$> expandLexeme cs l
 expandLexeme _  Discard = Right Discard
 expandLexeme cs (Backreference i c) = Backreference i <$> expand cs c
 expandLexeme cs (Multiple c) = Multiple <$> expand cs c
-expandLexeme cs (Feature n [] l) =
+expandLexeme cs (Feature n i [] l) =
     case M.lookup ('+':n) cs of
         Nothing -> Left $ NotFound ('+':n)
         Just (FromElements positive) ->
@@ -113,9 +113,9 @@ expandLexeme cs (Feature n [] l) =
                     | length positive /= length negative -> Left MismatchedLengths
                     | Just positive' <- traverse getBaseValue positive
                     , Just negative' <- traverse getBaseValue negative
-                    -> Feature n (zip negative' positive') <$> expandLexeme cs l
+                    -> Feature n i (zip negative' positive') <$> expandLexeme cs l
                     | otherwise -> Left InvalidBaseValue
-expandLexeme cs (Feature n kvs l) = Feature n kvs <$> expandLexeme cs l
+expandLexeme cs (Feature n i kvs l) = Feature n i kvs <$> expandLexeme cs l
 
 getBaseValue :: Either Grapheme [Lexeme Expanded 'AnyPart] -> Maybe String
 getBaseValue (Left (GMulti g)) = Just g

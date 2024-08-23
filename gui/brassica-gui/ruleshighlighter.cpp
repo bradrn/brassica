@@ -16,7 +16,7 @@ RulesHighlighter::RulesHighlighter(QTextDocument *parent)
     QTextCharFormat featureFormat;
     featureFormat.setForeground(QColor(34, 139, 34));
     formats.append(featureFormat);
-    patterns.append(QRegularExpression(R"(\$[^\s#[\](){}>\\→/_^%~*@$]+)"));
+    patterns.append(QRegularExpression(R"(\$[^\s#[\](){}>\\→/_^%~*@$]+(#[^\s#[\](){}>\\→/_^%~*@$]+)?)"));
 
     QTextCharFormat flagFormat;
     flagFormat.setForeground(QColor(0, 128, 128));

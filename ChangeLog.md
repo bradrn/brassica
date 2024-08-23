@@ -14,7 +14,7 @@
 - Category intersection now produces a category with graphemes in the same order as the last category mentioned,
   rather than the first
 - New support for phonetic features:
-  - Features can be written as `$name(values)` after another lexeme
+  - Features can be written as maximal `$name#ident(values)` after another lexeme
   - Categories named `+Feature` and `-Feature` get special interpretation with intersections and subtractions
 
 ### Code

@@ -84,7 +84,7 @@ ace.define('ace/mode/brassica_highlight_rules', function(require, exports, modul
                   regex: "/|_|→|->"
                 },
                 { token: "feature",
-                  regex: "\\$[^\\s#[\\](){}>\\\\→/_^%~*@$]+"
+                  regex: "\\$[^\\s#[\\](){}>\\\\→/_^%~*@$]+(#[^\\s#[\\](){}>\\\\→/_^%~*@$]+)?"
                 },
                 {
                   token: "flag",
