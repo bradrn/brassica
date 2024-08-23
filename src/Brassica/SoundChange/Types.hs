@@ -202,7 +202,7 @@ instance (forall x. NFData (c x)) => NFData (Lexeme c a) where
     rnf Discard = ()
     rnf (Backreference i l) = seq i $ rnf l
     rnf (Multiple l) = rnf l
-    rnf (Feature l n kvs) = seq (rnf l) $ seq (rnf n) $ rnf kvs
+    rnf (Feature n kvs l) = seq (rnf l) $ seq (rnf n) $ rnf kvs
 
 -- | An 'Environment' is a tuple of @(before, after)@ components,
 -- corresponding to a ‘/ before _ after’ component of a sound change.
