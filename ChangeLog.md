@@ -15,6 +15,7 @@
   rather than the first
 - New support for phonetic features:
   - Features can be written as `$name(values)` after another lexeme
+  - Categories named `+Feature` and `-Feature` get special interpretation with intersections and subtractions
 
 ### Code
 

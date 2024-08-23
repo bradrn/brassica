@@ -14,7 +14,7 @@ module Brassica.SoundChange.Parse
 
 import Data.Char (isSpace)
 import Data.Foldable (asum)
-import Data.Maybe (isNothing, isJust, fromJust)
+import Data.Maybe (isNothing, isJust, fromJust, fromMaybe)
 import Data.Void (Void)
 
 import Control.Applicative.Permutations
@@ -160,8 +160,9 @@ parsePost l =
     parseFeatureApp =
         Feature <$ char '$'
         <*> parseGrapheme' False
-        <*> between (symbol "(") (symbol ")")
-            ( many $ lexeme $ (,) <$> parseGrapheme' False <* char '~' <*> parseGrapheme' False
+        <*> fmap (fromMaybe [])
+            ( optional $ between (symbol "(") (symbol ")") $
+              many $ lexeme $ (,) <$> parseGrapheme' False <* char '~' <*> parseGrapheme' False
             )
         <*> pure l
 

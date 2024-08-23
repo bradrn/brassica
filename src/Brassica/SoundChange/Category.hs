@@ -3,7 +3,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TupleSections #-}
 
 module Brassica.SoundChange.Category
@@ -62,16 +61,22 @@ expand cs (MustInline g) = maybe (Left $ NotFound g) Right $ lookup g cs
 expand cs (CategorySpec spec) = FromElements <$> foldM go [] spec
   where
     go es (modifier, e) = do
-        new <- case e of
+        (new, modifier') <- case e of
             Left (GMulti g)
                 | Just (g', '~') <- unsnoc g
-                -> pure [Left (GMulti g')]
+                    -> pure ([Left (GMulti g')], modifier)
+                | modifier == Intersect
+                , Just (FromElements c) <- lookup ('+':g) cs
+                    -> pure (c, Intersect)
+                | modifier == Subtract
+                , Just (FromElements c) <- lookup ('-':g) cs
+                    -> pure (c, Intersect)  -- do intersection with negative instead!
                 | Just (FromElements c) <- lookup g cs
-                -> pure c
-                | otherwise -> pure [Left (GMulti g)]
-            Left GBoundary -> pure [Left GBoundary]
-            Right ls -> pure . Right <$> traverse (expandLexeme cs) ls
-        pure $ case modifier of
+                    -> pure (c, modifier)
+                | otherwise -> pure ([Left (GMulti g)], modifier)
+            Left GBoundary -> pure ([Left GBoundary], modifier)
+            Right ls -> (,modifier) . pure . Right <$> traverse (expandLexeme cs) ls
+        pure $ case modifier' of
             Union -> es ++ new
             -- important: intersection preserves order of the /last/ category mentioned!
             Intersect -> new `intersect` es
@@ -98,7 +103,23 @@ expandLexeme cs (Kleene l) = Kleene <$> expandLexeme cs l
 expandLexeme _  Discard = Right Discard
 expandLexeme cs (Backreference i c) = Backreference i <$> expand cs c
 expandLexeme cs (Multiple c) = Multiple <$> expand cs c
+expandLexeme cs (Feature n [] l) =
+    case M.lookup ('+':n) cs of
+        Nothing -> Left $ NotFound ('+':n)
+        Just (FromElements positive) ->
+            case M.lookup ('-':n) cs of
+                Nothing -> Left $ NotFound ('-':n)
+                Just (FromElements negative)
+                    | length positive /= length negative -> Left MismatchedLengths
+                    | Just positive' <- traverse getBaseValue positive
+                    , Just negative' <- traverse getBaseValue negative
+                    -> Feature n (zip negative' positive') <$> expandLexeme cs l
+                    | otherwise -> Left InvalidBaseValue
 expandLexeme cs (Feature n kvs l) = Feature n kvs <$> expandLexeme cs l
+
+getBaseValue :: Either Grapheme [Lexeme Expanded 'AnyPart] -> Maybe String
+getBaseValue (Left (GMulti g)) = Just g
+getBaseValue _ = Nothing
 
 -- taken from base-4.19
 unsnoc :: [a] -> Maybe ([a], a)
@@ -134,9 +155,8 @@ extendCategories cs' (overwrite, defs) =
         baseValues <- expand cs $ featureBaseValues spec
         derivedCats <- traverse (traverse $ expand cs) $ featureDerived spec
 
-        baseValues' <- for (elements baseValues) $ \case
-            Left (GMulti g) -> Right g
-            _ -> Left InvalidBaseValue
+        baseValues' <- for (elements baseValues) $
+            maybe (Left InvalidBaseValue) Right . getBaseValue
         let baseLen = length baseValues'
             derivedValues = elements . snd <$> derivedCats
         unless (all ((==baseLen) . length) derivedValues) $
