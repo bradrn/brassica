@@ -98,6 +98,7 @@ expandLexeme cs (Kleene l) = Kleene <$> expandLexeme cs l
 expandLexeme _  Discard = Right Discard
 expandLexeme cs (Backreference i c) = Backreference i <$> expand cs c
 expandLexeme cs (Multiple c) = Multiple <$> expand cs c
+expandLexeme cs (Feature n kvs l) = Feature n kvs <$> expandLexeme cs l
 
 -- taken from base-4.19
 unsnoc :: [a] -> Maybe ([a], a)

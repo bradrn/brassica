@@ -31,6 +31,7 @@ module Brassica.SoundChange.Apply.Internal
          RuleTag(..)
        , RuleStatus(..)
        , MatchOutput(..)
+       , FeatureState(..)
        , match
        , matchMany
        , matchMany'
@@ -65,10 +66,14 @@ import Control.Monad ((>=>), join)  -- needed for mtl>=2.3
 import Data.Containers.ListUtils (nubOrd)
 import Data.Functor ((<&>))
 import Data.Maybe (maybeToList, fromMaybe, listToMaybe, mapMaybe)
+import Data.Tuple (swap)
 import GHC.Generics (Generic)
 
 import Control.DeepSeq (NFData)
 import Control.Monad.State
+
+import qualified Data.Map.Strict as Map
+import qualified Data.Map.Merge.Strict as Map
 
 import Brassica.SoundChange.Apply.Internal.MultiZipper
 import Brassica.SoundChange.Types
@@ -112,6 +117,9 @@ try p = StateT $ \s ->
         [] -> [(Nothing, s)]
         r -> first Just <$> r
 
+data FeatureState = Positive | Negative | Indeterminate
+    deriving (Show)
+
 -- | Describes the output of a 'match' operation.
 data MatchOutput = MatchOutput
     { -- | For each category matched, the index of the matched
@@ -125,6 +133,8 @@ data MatchOutput = MatchOutput
     , matchedKleenes   :: [Int]
       -- | The graphemes which were matched
     , matchedGraphemes :: [Grapheme]
+      -- | The features which were matched
+    , matchedFeatures :: Map.Map String [FeatureState]
     } deriving (Show)
 
 modifyMatchedGraphemes :: ([Grapheme] -> [Grapheme]) -> MatchOutput -> MatchOutput
@@ -134,8 +144,12 @@ appendGrapheme :: MatchOutput -> Grapheme -> MatchOutput
 appendGrapheme out g = modifyMatchedGraphemes (++[g]) out
 
 instance Semigroup MatchOutput where
-    (MatchOutput a1 b1 c1 d1 e1) <> (MatchOutput a2 b2 c2 d2 e2) =
-        MatchOutput (a1++a2) (b1++b2) (c1++c2) (d1++d2) (e1++e2)
+    (MatchOutput a1 b1 c1 d1 e1 f1) <> (MatchOutput a2 b2 c2 d2 e2 f2) =
+        MatchOutput (a1++a2) (b1++b2) (c1++c2) (d1++d2) (e1++e2) $
+            Map.merge
+                Map.preserveMissing Map.preserveMissing
+                (Map.zipWithMatched $ const (++))
+                f1 f2
 
 zipWith' :: [a] -> [b] -> (a -> b -> c) -> [c]
 zipWith' xs ys f = zipWith f xs ys
@@ -152,6 +166,12 @@ insertAtCat n i mz = mz { matchedCatIxs = insertAt n i $ matchedCatIxs mz }
 insertAtKleene :: Int -> Int -> MatchOutput -> MatchOutput
 insertAtKleene n i mz = mz { matchedKleenes = insertAt n i $ matchedKleenes mz }
 
+appendFeatureAt :: Int -> String -> FeatureState -> MatchOutput -> MatchOutput
+appendFeatureAt n name fs out = out { matchedFeatures = Map.alter go name $ matchedFeatures out }
+  where
+    go Nothing = Just [fs]
+    go (Just fss) = Just $ insertAt n fs fss
+
 -- | Match a single 'Lexeme' against a 'MultiZipper', and advance the
 -- 'MultiZipper' past the match. For each match found, returns the
 -- 'MatchOutput' tupled with the updated 'MultiZipper'.
@@ -162,11 +182,11 @@ match :: MatchOutput          -- ^ The previous 'MatchOutput'
       -> [(MatchOutput, MultiZipper t Grapheme)]
       -- ^ The output: a tuple @(g, mz)@ as described below.
 match out prev (Optional l) mz =
-    (out <> MatchOutput [] [False] [] [] [], mz) :
-    matchMany (out <> MatchOutput [] [True] [] [] []) prev l mz
+    (out <> MatchOutput [] [False] [] [] [] Map.empty, mz) :
+    matchMany (out <> MatchOutput [] [True] [] [] [] Map.empty) prev l mz
 match out prev (Wildcard l) mz = matchWildcard out prev l mz
 match out prev (Kleene l) mz = matchKleene out prev l mz
-match out _ (Grapheme g) mz = (out <> MatchOutput [] [] [] [] [g],) <$> maybeToList (matchGrapheme g mz)
+match out _ (Grapheme g) mz = (out <> MatchOutput [] [] [] [] [g] Map.empty,) <$> maybeToList (matchGrapheme g mz)
 match out prev (Category (FromElements gs)) mz =
     concat $ zipWith' gs [0..] $ \e i ->
         -- make sure to insert new index BEFORE any new ones which
@@ -177,13 +197,28 @@ match out prev (Category (FromElements gs)) mz =
                 Right ls -> matchMany out prev ls mz
 match out prev Geminate mz = case prev of
     Nothing -> []
-    Just prev' -> (out <> MatchOutput [] [] [] [] [prev'],) <$> maybeToList (matchGrapheme prev' mz)
+    Just prev' -> (out <> MatchOutput [] [] [] [] [prev'] Map.empty,) <$> maybeToList (matchGrapheme prev' mz)
 match out prev (Backreference i (FromElements gs)) mz = do
     e <- maybeToList $
         (gs !?) =<< matchedCatIxs out !? (i-1)
     case e of
         Left  g  -> match out prev (Grapheme g :: Lexeme Expanded a) mz
         Right ls -> matchMany out prev ls mz
+match out prev (Feature n kvs l) mz = do
+    let i = maybe 0 length $ Map.lookup n (matchedFeatures out)
+    (out', mz') <- match out prev l mz
+    case matchedGraphemes out' of
+        gs | GMulti g <- last gs ->
+            let fs = checkFeature kvs g
+            in pure (appendFeatureAt i n fs out', mz')
+        _ -> pure (appendFeatureAt i n Indeterminate out', mz')
+
+checkFeature :: Eq a => [(a, a)] -> a -> FeatureState
+checkFeature [] _ = Indeterminate
+checkFeature ((k,v):kvs) x
+    | x == k = Negative
+    | x == v = Positive
+    | otherwise = checkFeature kvs x
 
 matchKleene
     :: MatchOutput
@@ -244,7 +279,7 @@ matchMany' :: Maybe Grapheme
           -> [Lexeme Expanded 'Matched]
           -> MultiZipper t Grapheme
           -> [(MatchOutput, MultiZipper t Grapheme)]
-matchMany' = matchMany (MatchOutput [] [] [] [] [])
+matchMany' = matchMany (MatchOutput [] [] [] [] [] Map.empty)
 
 -- Small utility function, not exported
 lastMay :: [a] -> Maybe a
@@ -255,6 +290,7 @@ data ReplacementIndices = ReplacementIndices
     , ixInOptionals :: Int
     , ixInWildcards :: Int
     , ixInKleenes :: Int
+    , ixInFeatures :: Map.Map String Int
     , forcedCategory :: Maybe CategoryNumber
     } deriving (Show)
 
@@ -286,6 +322,12 @@ advanceKleene ix =
     let i = ixInKleenes ix
     in (i, ix { ixInKleenes = i+1 })
 
+advanceFeature :: String -> ReplacementIndices -> Maybe (Int, ReplacementIndices)
+advanceFeature n ix =
+    case Map.lookup n (ixInFeatures ix) of
+        Nothing -> Just (0, ix { ixInFeatures = Map.insert n 1    $ ixInFeatures ix })
+        Just i  -> Just (i, ix { ixInFeatures = Map.adjust (+1) n $ ixInFeatures ix })
+
 forceCategory :: CategoryNumber -> ReplacementIndices -> ReplacementIndices
 forceCategory i ixs = ixs { forcedCategory = Just i }
 
@@ -304,7 +346,7 @@ mkReplacement
     -> [MultiZipper t Grapheme]
 mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
   where
-    startIxs = ReplacementIndices 0 0 0 0 Nothing
+    startIxs = ReplacementIndices 0 0 0 0 Map.empty Nothing
 
     go
         :: ReplacementIndices
@@ -370,6 +412,29 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
         in case matchedKleenes out !? i of
             Just n -> go ixs' (replicate n l) (mz, prev)
             Nothing -> [(ixs', (mz, prev))]
+    replaceLex ixs (Feature n kvs l) mz prev =
+        let (fs, ixs') = case advanceFeature n ixs of
+                Just (i, ixs_)
+                    | Just fss <- Map.lookup n (matchedFeatures out)
+                    , Just fs_ <- fss !? i
+                    -> (fs_, ixs_)
+                _ -> (Indeterminate, ixs)
+        in do
+            (ixs'', (mz', prev')) <- replaceLex ixs' l mz prev
+            case prev' of
+                Just (GMulti g) -> do
+                    g' <- GMulti <$> case fs of
+                        Negative -> pure $ applyFeature (swap <$> kvs) g
+                        Positive -> pure $ applyFeature kvs g
+                        Indeterminate -> [applyFeature (swap <$> kvs) g, applyFeature kvs g]
+                    -- now overwrite previous grapheme
+                    let mz'' = zap (Just . const g') mz'
+                    pure (ixs'', (mz'', Just g'))
+                -- cannot modify nonexistent or boundary grapheme
+                _ -> pure (ixs'', (mz', prev'))
+
+applyFeature :: Eq a => [(a, a)] -> a -> a
+applyFeature kvs a = fromMaybe a $ lookup a kvs
 
 -- | Given a 'Rule' and a 'MultiZipper', determines whether the
 -- 'exception' of that rule (if any) applies starting at the current

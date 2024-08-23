@@ -128,6 +128,9 @@ pre {
     padding-top: 2rem;
 }
 
+.ace-tm .ace_feature {
+    color: rgb(34,139,34);
+}
 .ace-tm .ace_separator {
     font-weight: bold;
 }

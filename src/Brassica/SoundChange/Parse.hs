@@ -50,7 +50,7 @@ symbol :: String -> Parser String
 symbol = L.symbol sc
 
 keyChars :: [Char]
-keyChars = "#[](){}>\\→/_^%~*@"
+keyChars = "#[](){}>\\→/_^%~*@$"
 
 nonzero :: Parser Int
 nonzero = label "nonzero postive number" $ try $ do
@@ -61,13 +61,16 @@ nonzero = label "nonzero postive number" $ try $ do
 parseGrapheme :: Parser Grapheme
 parseGrapheme = lexeme $
     GBoundary <$ char '#'
-    <|> GMulti <$> parseGrapheme'
+    <|> GMulti <$> parseGrapheme' True
 
-parseGrapheme' :: Parser String
-parseGrapheme' = lexeme $ do
+parseGrapheme' :: Bool -> Parser String
+parseGrapheme' wantTilde = lexeme $ do
     star <- optional (char '*')
     rest <- takeWhile1P Nothing (not . ((||) <$> isSpace <*> (`elem` keyChars)))
-    nocat <- optional (char '~')
+    nocat <-
+        if wantTilde
+        then optional (char '~')
+        else pure Nothing
     pure .
         maybe id (const ('*':)) star .
         maybe id (const (++"~")) nocat
@@ -85,12 +88,12 @@ parseExplicitCategory' =
 -- parseCategory = Category <$> parseCategory'
 
 parseCategory' :: ParseLexeme a => Parser (CategorySpec a)
-parseCategory' = parseExplicitCategory' <|> MustInline <$> parseGrapheme'
+parseCategory' = parseExplicitCategory' <|> MustInline <$> parseGrapheme' True
 
 parseCategoryStandalone
     :: Parser (String, CategorySpec 'AnyPart)
 parseCategoryStandalone = do
-    g <- parseGrapheme'
+    g <- parseGrapheme' True
     _ <- symbol "="
     mods <- some parseCategoryModification
     return (g, CategorySpec mods)
@@ -98,7 +101,7 @@ parseCategoryStandalone = do
 parseFeature :: Parser FeatureSpec
 parseFeature = do
     _ <- symbol "feature"
-    featureBaseName <- optional $ try $ parseGrapheme' <* symbol "="
+    featureBaseName <- optional $ try $ parseGrapheme' False <* symbol "="
     featureBaseValues <- CategorySpec <$> some parseCategoryModification
     featureDerived <- some (symbol "/" *> parseCategoryStandalone) <* scn
     pure FeatureSpec { featureBaseName, featureBaseValues, featureDerived }
@@ -120,7 +123,7 @@ parseDirective :: Parser Directive
 parseDirective = parseCategoriesDirective <|> parseExtraDirective
   where
     parseExtraDirective = fmap ExtraGraphemes $
-        symbol "extra" *> many parseGrapheme' <* scn
+        symbol "extra" *> many (parseGrapheme' False) <* scn
 
     parseCategoriesDirective = do
         overwrite <- isJust <$> optional (symbol "new")
@@ -148,10 +151,19 @@ parseWildcard = Wildcard <$> (symbol "^" *> parseLexeme)
 parseDiscard :: Parser (Lexeme CategorySpec 'Replacement)
 parseDiscard = Discard <$ symbol "~"
 
-parseKleene :: Lexeme CategorySpec a -> Parser (Lexeme CategorySpec a)
-parseKleene l =
-    try (lexeme $ Kleene l <$ char '*' <* notFollowedBy parseGrapheme')
+parsePost :: Lexeme CategorySpec a -> Parser (Lexeme CategorySpec a)
+parsePost l =
+    try parseFeatureApp
+    <|> try (lexeme $ Kleene l <$ char '*' <* notFollowedBy (parseGrapheme' True))
     <|> pure l
+  where
+    parseFeatureApp =
+        Feature <$ char '$'
+        <*> parseGrapheme' False
+        <*> between (symbol "(") (symbol ")")
+            ( many $ lexeme $ (,) <$> parseGrapheme' False <* char '~' <*> parseGrapheme' False
+            )
+        <*> pure l
 
 parseMultiple :: Parser (Lexeme CategorySpec 'Replacement)
 parseMultiple = Multiple <$> (symbol "@?" *> parseCategory')
@@ -167,7 +179,7 @@ instance ParseLexeme 'Matched where
         , parseWildcard
         , parseBackreference
         , Grapheme <$> parseGrapheme
-        ] >>= parseKleene
+        ] >>= parsePost
 
 instance ParseLexeme 'Replacement where
     parseLexeme = asum
@@ -180,7 +192,7 @@ instance ParseLexeme 'Replacement where
         , parseWildcard
         , parseBackreference
         , Grapheme <$> parseGrapheme
-        ] >>= parseKleene
+        ] >>= parsePost
 
 instance ParseLexeme 'AnyPart where
     parseLexeme = asum
@@ -188,7 +200,7 @@ instance ParseLexeme 'AnyPart where
         , parseOptional
         , parseWildcard
         , Grapheme <$> parseGrapheme
-        ] >>= parseKleene
+        ] >>= parsePost
 
 parseLexemes :: ParseLexeme a => Parser [Lexeme CategorySpec a]
 parseLexemes = many parseLexeme

@@ -13,6 +13,11 @@ RulesHighlighter::RulesHighlighter(QTextDocument *parent)
     formats.append(separatorFormat);
     patterns.append(QRegularExpression("/|_|→|->"));
 
+    QTextCharFormat featureFormat;
+    featureFormat.setForeground(QColor(34, 139, 34));
+    formats.append(featureFormat);
+    patterns.append(QRegularExpression(R"(\$[^\s#[\](){}>\\→/_^%~*@$]+)"));
+
     QTextCharFormat flagFormat;
     flagFormat.setForeground(QColor(0, 128, 128));
     formats.append(flagFormat);

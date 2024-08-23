@@ -8,9 +8,13 @@
 - Bugfix: desktop version correctly warns about unsaved changes when opening a file
 - New `report` directive allows for reporting intermediate results in input→output mode
 - Whitespace is now preserved when displaying sound change output on desktop and web
-- `~` after grapheme to suppress features is now supported in categories also
+- Improved handling of `~` after grapheme:
+  - It is now allowed inside a category block
+  - It is now disallowed in category names and in `extra` declarations (where it would be meaningless)
 - Category intersection now produces a category with graphemes in the same order as the last category mentioned,
   rather than the first
+- New support for phonetic features:
+  - Features can be written as `$name(values)` after another lexeme
 
 ### Code
 
@@ -24,6 +28,9 @@
       `logInput` and `logOutput`.
   - `Brassica.SoundChange.Frontend.Internal` has been restructured to allow display of intermediate results
   - New function `Brassica.SoundChange.Tokenise.joinComponents` added to assist with said restructure
+- Changes resulting from addition of features:
+  - New constructor `Feature` added to `Brassica.SoundChange.Types.Lexeme`
+  - New type `Brassica.SoundChange.Apply.Internal`
 
 ## 0.3.0
 
