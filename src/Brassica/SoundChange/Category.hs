@@ -7,6 +7,7 @@
 
 module Brassica.SoundChange.Category
        ( Categories
+       , AutosegmentDef(..)
        , Brassica.SoundChange.Category.lookup
        , values
        , ExpandError(..)
@@ -18,30 +19,43 @@ module Brassica.SoundChange.Category
 
 import Prelude hiding (lookup)
 import Control.DeepSeq (NFData)
-import Control.Monad (foldM, unless)
+import Control.Monad (foldM, unless, zipWithM)
 import Control.Monad.State.Strict (StateT, evalStateT, lift, get, put, gets)
+import Data.Bifunctor (first, second)
 import Data.Containers.ListUtils (nubOrd)
 import Data.List (intersect, transpose, foldl')
 import Data.Maybe (mapMaybe, catMaybes)
+import Data.Traversable (for)
 import GHC.Generics (Generic)
 
 import qualified Data.Map.Strict as M
+import qualified Data.Map.Merge.Strict as M
 
 import Brassica.SoundChange.Types
-import Data.Traversable (for)
 
--- | A map from names to the (expanded) categories they
--- reference. Used to resolve cross-references between categories.
-type Categories = M.Map String (Expanded 'AnyPart)
+-- | Expanding an autosegment from a grapheme requires knowing its
+-- feature name, and a set of graphemes cross-cutting that feature.
+data AutosegmentDef = AutosegmentDef
+    { autoFeature :: String
+    , autoGraphemes :: [String]
+    }
+    deriving (Eq, Show)
+
+-- | A map from names to the (expanded) categories or autosegments
+-- they reference. Used to resolve cross-references between
+-- categories.
+type Categories = M.Map String (Either (Expanded 'AnyPart) AutosegmentDef)
 
 -- | Lookup a category name in 'Categories'.
-lookup :: String -> Categories -> Maybe (Expanded a)
-lookup = (fmap generaliseExpanded .) . M.lookup
+lookup :: String -> Categories -> Maybe (Either (Expanded a) AutosegmentDef)
+lookup = (fmap (first generaliseExpanded) .) . M.lookup
 
 -- | Returns a list of every value mentioned in a set of
 -- 'Categories'
 values :: Categories -> [Either Grapheme [Lexeme Expanded 'AnyPart]]
-values = nubOrd . concatMap elements . M.elems
+values = nubOrd . concatMap (either elements autoElements) . M.elems
+  where
+    autoElements = fmap (Left . GMulti) . autoGraphemes
 
 -- Errors which can be emitted while inlining or expanding category
 -- definitions.
@@ -50,6 +64,10 @@ data ExpandError
       -- ^ A category with that name was not found
     | InvalidBaseValue
       -- ^ A 'Lexeme' was used as a base value in a feature
+    | InvalidDerivedValue
+      -- ^ A 'Lexeme' was used as a derived value in an autosegment
+    | InvalidAuto String
+      -- ^ A bad category was used in an autosegment declaration
     | MismatchedLengths
       -- ^ A 'FeatureSpec' contained a mismatched number of values
     deriving (Show, Generic, NFData)
@@ -57,7 +75,9 @@ data ExpandError
 -- | Given a category, return the list of values which it
 -- matches.
 expand :: Categories -> CategorySpec a -> Either ExpandError (Expanded a)
-expand cs (MustInline g) = maybe (Left $ NotFound g) Right $ lookup g cs
+expand cs (MustInline g) = case lookup g cs of
+    Just (Left expanded) -> Right expanded
+    _ -> Left $ NotFound g
 expand cs (CategorySpec spec) = FromElements <$> foldM go [] spec
   where
     go es (modifier, e) = do
@@ -66,13 +86,22 @@ expand cs (CategorySpec spec) = FromElements <$> foldM go [] spec
                 | Just (g', '~') <- unsnoc g
                     -> pure ([Left (GMulti g')], modifier)
                 | modifier == Intersect
-                , Just (FromElements c) <- lookup ('+':g) cs
+                , Just (Left (FromElements c)) <- lookup ('+':g) cs
                     -> pure (c, Intersect)
                 | modifier == Subtract
-                , Just (FromElements c) <- lookup ('-':g) cs
+                , Just (Left (FromElements c)) <- lookup ('-':g) cs
                     -> pure (c, Intersect)  -- do intersection with negative instead!
-                | Just (FromElements c) <- lookup g cs
+                | Just (Left (FromElements c)) <- lookup g cs
                     -> pure (c, modifier)
+                | Just (Right _) <- lookup g cs
+                    -- re-expand to produce appropriate 'Auto'
+                    -> (,modifier) . pure . Right . pure <$> expandLexeme cs (Grapheme (GMulti g))
+
+                    -- Note: there are other options for design here
+                    -- see https://verduria.org/viewtopic.php?p=85766#p85766
+                    -- | Just (Right (AutosegmentDef _ gs)) <- lookup g cs
+                    -- 1. -> pure ([Left (GMulti g)], modifier)
+                    -- 2. -> pure (Left . GMulti <$> g:gs, modifier)
                 | otherwise -> pure ([Left (GMulti g)], modifier)
             Left GBoundary -> pure ([Left GBoundary], modifier)
             Right ls -> (,modifier) . pure . Right <$> traverse (expandLexeme cs) ls
@@ -89,10 +118,13 @@ expandLexeme :: Categories -> Lexeme CategorySpec a -> Either ExpandError (Lexem
 expandLexeme cs (Grapheme (GMulti g))
     | Just (g', '~') <- unsnoc g
         = Right $ Grapheme $ GMulti g'
-    | otherwise = Right $
+    | otherwise =
         case lookup g cs of
-            Just c -> Category c
-            Nothing -> Grapheme (GMulti g)
+            Just (Left c) -> Right $ Category c
+            Just (Right a) ->
+                expandFeature cs (autoFeature a) Nothing $
+                    Autosegment g (autoGraphemes a)
+            Nothing -> Right $ Grapheme (GMulti g)
 expandLexeme _  (Grapheme GBoundary) = Right $ Grapheme GBoundary
 expandLexeme cs (Category c) = Category <$> expand cs c
 expandLexeme cs (Optional ls) = Optional <$> traverse (expandLexeme cs) ls
@@ -103,19 +135,30 @@ expandLexeme cs (Kleene l) = Kleene <$> expandLexeme cs l
 expandLexeme _  Discard = Right Discard
 expandLexeme cs (Backreference i c) = Backreference i <$> expand cs c
 expandLexeme cs (Multiple c) = Multiple <$> expand cs c
-expandLexeme cs (Feature n i [] l) =
+expandLexeme cs (Feature n i [] l) = expandFeature cs n i =<< expandLexeme cs l
+expandLexeme cs (Feature n i kvs l) = Feature n i kvs <$> expandLexeme cs l
+expandLexeme _  (Autosegment g gs) =
+    -- in reality this case should never occur from parsed sound changes
+    pure $ Autosegment g gs
+
+expandFeature
+    :: Categories
+    -> String
+    -> Maybe String
+    -> Lexeme Expanded a
+    -> Either ExpandError (Lexeme Expanded a)
+expandFeature cs n i l =
     case M.lookup ('+':n) cs of
-        Nothing -> Left $ NotFound ('+':n)
-        Just (FromElements positive) ->
+        Just (Left (FromElements positive)) ->
             case M.lookup ('-':n) cs of
-                Nothing -> Left $ NotFound ('-':n)
-                Just (FromElements negative)
+                Just (Left (FromElements negative))
                     | length positive /= length negative -> Left MismatchedLengths
                     | Just positive' <- traverse getBaseValue positive
                     , Just negative' <- traverse getBaseValue negative
-                    -> Feature n i (zip negative' positive') <$> expandLexeme cs l
+                    -> Right $ Feature n i (zip negative' positive') l
                     | otherwise -> Left InvalidBaseValue
-expandLexeme cs (Feature n i kvs l) = Feature n i kvs <$> expandLexeme cs l
+                _ -> Left $ NotFound ('-':n)
+        _ -> Left $ NotFound ('+':n)
 
 getBaseValue :: Either Grapheme [Lexeme Expanded 'AnyPart] -> Maybe String
 getBaseValue (Left (GMulti g)) = Just g
@@ -150,7 +193,7 @@ extendCategories cs' (overwrite, defs) =
     foldM go (if overwrite then M.empty else cs') defs
   where
     go :: Categories -> CategoryDefinition -> Either ExpandError Categories
-    go cs (DefineCategory name val) = flip (M.insert name) cs <$> expand cs val
+    go cs (DefineCategory name val) = flip (M.insert name) cs . Left <$> expand cs val
     go cs (DefineFeature spec) = do
         baseValues <- expand cs $ featureBaseValues spec
         derivedCats <- traverse (traverse $ expand cs) $ featureDerived spec
@@ -166,11 +209,37 @@ extendCategories cs' (overwrite, defs) =
                (\base ds -> (base, FromElements $ Left (GMulti base) : ds))
                baseValues'
                (transpose derivedValues)
-            newCats =
+            newCats = fmap (second Left) $
                 maybe [] (pure . (,baseValues)) (featureBaseName spec)
                 ++ derivedCats
                 ++ features
         Right $ foldl' (flip $ uncurry M.insert) cs newCats
+    go cs (DefineAuto name) = do
+        (stated, other, feature) <- case name of
+            '+':rest | Just (Left (FromElements p)) <- M.lookup name cs
+                -> case M.lookup ('-':rest) cs of
+                       Just (Left (FromElements n)) -> Right (p, n, rest)
+                       _ -> Left $ NotFound ('-':rest)
+            '-':rest | Just (Left (FromElements n)) <- M.lookup name cs
+                -> case M.lookup ('+':rest) cs of
+                       Just (Left (FromElements p)) -> Right (n, p, rest)
+                       _ -> Left $ NotFound ('+':rest)
+            _ -> Left $ InvalidAuto name
+        autoCs <- M.fromList <$> zipWithM (mkAuto feature) stated other
+        pure $ M.merge
+            M.preserveMissing M.preserveMissing
+            (M.zipWithMatched $ \_ c _ -> c)  -- prefer categories to autosegments
+            cs autoCs
+
+    mkAuto
+        :: String
+        -> Either Grapheme [Lexeme Expanded 'AnyPart]
+        -> Either Grapheme [Lexeme Expanded 'AnyPart]
+        -> Either ExpandError (String, Either (Expanded 'AnyPart) AutosegmentDef)
+    mkAuto f (Left (GMulti g)) e
+        | Left (GMulti g') <- e = Right (g, Right $ AutosegmentDef f [g'])
+        | otherwise = Left InvalidDerivedValue
+    mkAuto _ _ _ = Left InvalidBaseValue
 
 expandSoundChanges
     :: SoundChanges CategorySpec Directive

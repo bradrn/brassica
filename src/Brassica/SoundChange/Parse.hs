@@ -106,6 +106,9 @@ parseFeature = do
     featureDerived <- some (symbol "/" *> parseCategoryStandalone) <* scn
     pure FeatureSpec { featureBaseName, featureBaseValues, featureDerived }
 
+parseAuto :: Parser String
+parseAuto = symbol "auto" *> parseGrapheme' False <* scn
+
 parseCategoryModification
     :: ParseLexeme a
     => Parser (CategoryModification, Either Grapheme [Lexeme CategorySpec a])
@@ -133,6 +136,7 @@ parseDirective = parseCategoriesDirective <|> parseExtraDirective
         scn
         cs <- some $
             DefineFeature <$> parseFeature <|>
+            DefineAuto <$> parseAuto <|>
             uncurry DefineCategory <$> (try parseCategoryStandalone <* scn)
         _ <- symbol "end" <* scn
         pure $ Categories overwrite noreplace cs

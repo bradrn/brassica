@@ -220,6 +220,9 @@ match out prev (Feature n ident kvs l) mz = do
             ( out' { matchedFeatureIds = Map.insert ident' fs $ matchedFeatureIds out' }
             , mz'
             )
+match out prev (Autosegment g gs) mz =
+    -- act as 'Category' without capture
+    (g:gs) >>= \a -> match out prev (Grapheme (GMulti a)) mz
 
 checkFeature :: Eq a => [(a, a)] -> a -> FeatureState
 checkFeature [] _ = Indeterminate
@@ -444,6 +447,9 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
                     pure (ixs'', (mz'', Just g'))
                 -- cannot modify nonexistent or boundary grapheme
                 _ -> pure (ixs'', (mz', prev'))
+    replaceLex ixs (Autosegment g _) mz prev =
+        -- ignore other segments, just produce a single one
+        replaceLex ixs (Grapheme (GMulti g)) mz prev
 
 applyFeature :: Eq a => [(a, a)] -> a -> a
 applyFeature kvs a = fromMaybe a $ lookup a kvs

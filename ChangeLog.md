@@ -18,6 +18,9 @@
   - Categories named `+Feature` and `-Feature` get special interpretation with intersections and subtractions
   - New category syntax: `&` before category name forces union interpretation
       even for category names beginning with `+`/`-`
+  - Declaration `auto +Feature` or `auto -Feature` in category definition block
+      can be used to treat said feature autosegmentally
+      whenever a grapheme in the selected category is mentioned
 
 ### Code
 
@@ -32,8 +35,14 @@
   - `Brassica.SoundChange.Frontend.Internal` has been restructured to allow display of intermediate results
   - New function `Brassica.SoundChange.Tokenise.joinComponents` added to assist with said restructure
 - Changes resulting from addition of features:
-  - New constructor `Feature` added to `Brassica.SoundChange.Types.Lexeme`
+  - New constructors `Feature` and `Autosegment` added to `Brassica.SoundChange.Types.Lexeme`
+    (the latter primarily for internal use)
   - New type `Brassica.SoundChange.Apply.Internal`
+  - New constructor `DefineAuto` added to `Brassica.SoundChange.Types.CategoryDefinition`
+  - Changes in category expansion:
+      new type `Brassica.SoundChange.Category.AutosegmentDef`,
+      and new constructors `InvalidDerivedValue` and `InvalidAuto`
+        added to `Brassica.SoundChange.Category.ExpandError`
 
 ## 0.3.0
 

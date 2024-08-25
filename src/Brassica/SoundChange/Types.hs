@@ -129,6 +129,9 @@ data Lexeme category (a :: LexemeType) where
     Multiple :: category 'Replacement -> Lexeme category 'Replacement
     -- | In Brassica sound-change syntax, specified as @$name#id(-value/+value …)@ after another 'Lexeme'
     Feature :: String -> Maybe String -> [(String, String)] -> Lexeme category a -> Lexeme category a
+    -- | Special lexeme for internal use: acts as a non-capturing
+    -- category in target/environment, and as 'Grapheme' in replacement
+    Autosegment :: String -> [String] -> Lexeme category a
 
 mapCategory :: (forall x. c x -> c' x) -> Lexeme c a -> Lexeme c' a
 mapCategory _ (Grapheme g) = Grapheme g
@@ -142,6 +145,7 @@ mapCategory _ Discard = Discard
 mapCategory f (Backreference i c) = Backreference i (f c)
 mapCategory f (Multiple c) = Multiple (f c)
 mapCategory f (Feature n i kvs l) = Feature n i kvs $ mapCategory f l
+mapCategory _ (Autosegment g gs) = Autosegment g gs
 
 mapCategoryA
     :: Applicative t
@@ -159,6 +163,7 @@ mapCategoryA _ Discard = pure Discard
 mapCategoryA f (Backreference i c) = Backreference i <$> f c
 mapCategoryA f (Multiple c) = Multiple <$> f c
 mapCategoryA f (Feature n i kvs l) = Feature n i kvs <$> mapCategoryA f l
+mapCategoryA _ (Autosegment g gs) = pure $ Autosegment g gs
 
 -- | The type of a category after expansion.
 newtype Expanded a = FromElements { elements :: [Either Grapheme [Lexeme Expanded a]] }
@@ -179,6 +184,7 @@ generalise f (Backreference i es) = Backreference i $ f es
 generalise f (Wildcard l) = Wildcard $ generalise f l
 generalise f (Kleene l) = Kleene $ generalise f l
 generalise f (Feature n i kvs l) = Feature n i kvs $ generalise f l
+generalise _ (Autosegment g gs) = Autosegment g gs
 
 generaliseExpanded :: Expanded 'AnyPart -> Expanded a
 generaliseExpanded = FromElements . (fmap.fmap.fmap) (generalise generaliseExpanded) . elements
@@ -203,6 +209,7 @@ instance (forall x. NFData (c x)) => NFData (Lexeme c a) where
     rnf (Backreference i l) = seq i $ rnf l
     rnf (Multiple l) = rnf l
     rnf (Feature n i kvs l) = seq (rnf l) $ seq (rnf n) $ seq (rnf i) $ rnf kvs
+    rnf (Autosegment g gs) = seq (rnf g) $ rnf gs
 
 -- | An 'Environment' is a tuple of @(before, after)@ components,
 -- corresponding to a ‘/ before _ after’ component of a sound change.
@@ -325,6 +332,7 @@ data FeatureSpec = FeatureSpec
 data CategoryDefinition
     = DefineCategory String (CategorySpec 'AnyPart)
     | DefineFeature FeatureSpec
+    | DefineAuto String
     deriving (Show, Eq, Ord, Generic, NFData)
 
 -- | A directive used in Brassica sound-change syntax: anything which

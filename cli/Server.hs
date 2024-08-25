@@ -107,6 +107,8 @@ parseTokeniseAndApplyRulesWrapper ReqRules{..} =
                 Left err -> RespError $ ("<pre>"++) $ (++"</pre>") $ case err of
                     (NotFound s) -> "Could not find category: " ++ s
                     InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
+                    InvalidDerivedValue -> "Invalid value used as derived grapheme in autosegment"
+                    InvalidAuto s -> "Invalid category name used for autosegment: " ++ s
                     MismatchedLengths -> "Mismatched lengths in feature definition"
                 Right statements' ->
                     let result' = parseTokeniseAndApplyRules parFmap statements' input inFmt mode prev
