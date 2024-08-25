@@ -16,6 +16,8 @@
 - New support for phonetic features:
   - Features can be written as maximal `$name#ident(values)` after another lexeme
   - Categories named `+Feature` and `-Feature` get special interpretation with intersections and subtractions
+  - New category syntax: `&` before category name forces union interpretation
+      even for category names beginning with `+`/`-`
 
 ### Code
 

@@ -117,6 +117,7 @@ parseCategoryModification = (,)
     parsePrefix =
         (Intersect <$ char '+')
         <|> (Subtract <$ char '-')
+        <|> (Union <$ char '&')  -- necessary for featural categories
         <|> pure Union
 
 parseDirective :: Parser Directive
