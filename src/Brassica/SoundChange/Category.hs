@@ -121,9 +121,9 @@ expandLexeme cs (Grapheme (GMulti g))
     | otherwise =
         case lookup g cs of
             Just (Left c) -> Right $ Category c
-            Just (Right a) ->
-                expandFeature cs (autoFeature a) Nothing $
-                    Autosegment g (autoGraphemes a)
+            Just (Right a) -> do
+                kvs <- expandFeature cs (autoFeature a)
+                pure $ Autosegment (autoFeature a) kvs (g : autoGraphemes a)
             Nothing -> Right $ Grapheme (GMulti g)
 expandLexeme _  (Grapheme GBoundary) = Right $ Grapheme GBoundary
 expandLexeme cs (Category c) = Category <$> expand cs c
@@ -135,19 +135,20 @@ expandLexeme cs (Kleene l) = Kleene <$> expandLexeme cs l
 expandLexeme _  Discard = Right Discard
 expandLexeme cs (Backreference i c) = Backreference i <$> expand cs c
 expandLexeme cs (Multiple c) = Multiple <$> expand cs c
-expandLexeme cs (Feature n i [] l) = expandFeature cs n i =<< expandLexeme cs l
+expandLexeme cs (Feature n i [] l) = do
+    kvs <- expandFeature cs n
+    l' <- expandLexeme cs l
+    pure $ Feature n i kvs l'
 expandLexeme cs (Feature n i kvs l) = Feature n i kvs <$> expandLexeme cs l
-expandLexeme _  (Autosegment g gs) =
+expandLexeme _  (Autosegment n kvs gs) =
     -- in reality this case should never occur from parsed sound changes
-    pure $ Autosegment g gs
+    pure $ Autosegment n kvs gs
 
 expandFeature
     :: Categories
     -> String
-    -> Maybe String
-    -> Lexeme Expanded a
-    -> Either ExpandError (Lexeme Expanded a)
-expandFeature cs n i l =
+    -> Either ExpandError [(String, String)]
+expandFeature cs n =
     case M.lookup ('+':n) cs of
         Just (Left (FromElements positive)) ->
             case M.lookup ('-':n) cs of
@@ -155,7 +156,7 @@ expandFeature cs n i l =
                     | length positive /= length negative -> Left MismatchedLengths
                     | Just positive' <- traverse getBaseValue positive
                     , Just negative' <- traverse getBaseValue negative
-                    -> Right $ Feature n i (zip negative' positive') l
+                    -> Right $ zip negative' positive'
                     | otherwise -> Left InvalidBaseValue
                 _ -> Left $ NotFound ('-':n)
         _ -> Left $ NotFound ('+':n)
