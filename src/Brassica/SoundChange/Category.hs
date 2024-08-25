@@ -23,7 +23,7 @@ import Control.Monad (foldM, unless, zipWithM)
 import Control.Monad.State.Strict (StateT, evalStateT, lift, get, put, gets)
 import Data.Bifunctor (first, second)
 import Data.Containers.ListUtils (nubOrd)
-import Data.List (intersect, transpose, foldl')
+import Data.List (transpose, foldl')
 import Data.Maybe (mapMaybe, catMaybes)
 import Data.Traversable (for)
 import GHC.Generics (Generic)
@@ -108,11 +108,33 @@ expand cs (CategorySpec spec) = FromElements <$> foldM go [] spec
         pure $ case modifier' of
             Union -> es ++ new
             -- important: intersection preserves order of the /last/ category mentioned!
-            Intersect -> new `intersect` es
-            Subtract -> es `subtractAll` new
+            Intersect -> es `intersectC` new
+            Subtract -> es `subtractC` new
 
-    -- NB. normal (\\) only removes the first matching element
-    subtractAll xs ys = filter (`notElem` ys) xs
+    -- Set operations, also looking into 'Autosegment's
+    subtractC, intersectC
+        :: [Either Grapheme [Lexeme Expanded a]]
+        -> [Either Grapheme [Lexeme Expanded a]]
+        -> [Either Grapheme [Lexeme Expanded a]]
+
+    subtractC es new = mapMaybe go' es
+      where
+        go' g | g `elemAuto` new = Nothing
+        go' (Right [Autosegment n kvs gs]) =
+            Just (Right [Autosegment n kvs $ filter ((`notElem` new) . Left . GMulti) gs])
+        go' g = Just g
+
+    intersectC es new = mapMaybe go' new
+      where
+        go' g | g `elemAuto` es = Just g
+        go' (Right [Autosegment n kvs gs]) =
+            Just (Right [Autosegment n kvs $ filter ((`elem` new) . Left . GMulti) gs])
+        go' _ = Nothing
+
+    elemAuto :: Either Grapheme [Lexeme Expanded a] -> [Either Grapheme [Lexeme Expanded a]] -> Bool
+    elemAuto _ [] = False
+    elemAuto g'@(Left (GMulti gm)) (Right [Autosegment _ _ gs]:ls) = (gm `elem` gs) || elemAuto g' ls
+    elemAuto g' (g:ls) = (g' == g) || elemAuto g' ls
 
 expandLexeme :: Categories -> Lexeme CategorySpec a -> Either ExpandError (Lexeme Expanded a)
 expandLexeme cs (Grapheme (GMulti g))
