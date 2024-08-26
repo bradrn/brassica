@@ -17,7 +17,12 @@ Fr = f s x lh ɣ h
 Ap = l y w r
 C = Nsl S A Fr Ap
 
-feature Unstr = a e i o u ə ɨ aa ii uu / SndS = à è ì ò ù ə̀ ɨ̀ àà ìì ùù / PriS = á é í ó ú ə́ ɨ́ áá íí úú
++Stress+No  = a e i o u ə ɨ aa ii uu
++Stress+Snd = à è ì ò ù ə̀ ɨ̀ àà ìì ùù
++Stress+Pri = á é í ó ú ə́ ɨ́ áá íí úú
+
+auto +Stress+No
+
 Vs = a i u e o ə ɨ
 Vl = aa ii uu
 V = Vs Vl
@@ -30,11 +35,11 @@ end
 [kh k] / [k ɣ] / _ / # _ // ŋ_
 
 ; footing
-[Vl +Unstr] / [Vl +PriS]
-Unstr / PriS / _ C [C #]
--rtl C* Unstr C* Unstr C* / C* PriS C* Unstr C*
+[Vl +Stress+No] / [Vl +Stress+Pri]
++Stress+No / +Stress+Pri / _ C [C #]
+-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*
 
--x PriS / SndS / _ ^PriS
+-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri
 
 h / / _
 ʔ / / # _
@@ -50,28 +55,26 @@ a ŋ / o / _ [C #]
 Vl / Vs
 
 ; syncope + ablaut
-[a ə i u -Unstr] / [a a e o -Unstr] / _ C (C) a~
-[  ə   u -Unstr] / [  e   u -Unstr] / _ C (C) ə~
--? [a    -Unstr] / [e       -Unstr] / _ C (C) ə~
--? [i    -Unstr] / [e       -Unstr] / _ C (C) ə~
-[  ə i   -Unstr] / [  e i   -Unstr] / _ C (C) i~
-   [a    -Unstr] / [e       -Unstr] / _ C (C) i~
--? [u    -Unstr] / [i       -Unstr] / _ C (C) i~
-[a ə i u -Unstr] / [o o i u -Unstr] / _ C (C) u~
-[a ə i u -Unstr] / [o o i u -Unstr] / _ C (C) o~
+[a ə i u -+Stress+No] / [a a e o] / _ C (C) a~
+[  ə   u -+Stress+No] / [  e   u] / _ C (C) ə~
+-? [a    -+Stress+No] / [e      ] / _ C (C) ə~
+-? [i    -+Stress+No] / [e      ] / _ C (C) ə~
+[  ə i   -+Stress+No] / [  e i  ] / _ C (C) i~
+   [a    -+Stress+No] / [e      ] / _ C (C) i~
+-? [u    -+Stress+No] / [i      ] / _ C (C) i~
+[a ə i u -+Stress+No] / [o o i u] / _ C (C) u~
+[a ə i u -+Stress+No] / [o o i u] / _ C (C) o~
 
-Unstr / / _
++Stress+No / / _
 
-ə~ / @? [a e +Unstr]
-ə̀ / @? [à è]
-ə́ / @? [á é]
+ə / @? [a e]
 
--x SndS / Unstr
+-x +Stress+Snd / +Stress+No
 
 -x # = # / / _
 -x = # / / _
 -x # = / / _
--x PriS / Unstr / _ ^PriS
+-x +Stress+Pri / +Stress+No / _ ^+Stress+Pri
 
 C / / # _ >
 ʔ V / \ / C _
@@ -89,8 +92,12 @@ Fr = f s š x lh ɣ
 Ap = l r y w
 C = Nsl Vls Vds Aff Fr Ap
 
-feature Unstr = a e i o u / PriS = á é í ó ú
-V = Unstr PriS
+-Stress = a e i o u
++Stress = á é í ó ú
+
+auto -Stress
+
+V = &-Stress &+Stress
 end
 
 [w y] / [u~ i~] / C _ #
@@ -98,10 +105,10 @@ end
 -? [C -ʔ -y -w] / / _ C #
 C / / [C -ʔ -y -w] _ #
 
-ŋ PriS / @1 Unstr ŋ @1 PriS / # _
-ŋ Unstr / @1 Unstr ŋ @1 Unstr / # _
-ŋ C PriS / @2 Unstr ŋ @1 C @2 PriS / # _
-ŋ C Unstr / @2 Unstr ŋ @1 C @2 Unstr / # _
+ŋ +Stress / @1 -Stress ŋ @1 +Stress / # _
+ŋ -Stress / @1 -Stress ŋ @1 -Stress / # _
+ŋ C +Stress / @2 -Stress ŋ @1 C @2 +Stress / # _
+ŋ C -Stress / @2 -Stress ŋ @1 C @2 -Stress / # _
 
 ɣ / i~ / # _ C
 ɣ / / _
@@ -124,8 +131,12 @@ C = Nsl Vls Vds Aff Fr Ap
 Vcd = Nsl Vds j Ap
 Vcl = Vls č Fr
 
-feature Unstr = a e i o u / PriS = á é í ó ú
-V = Unstr PriS
+-Stress = a e i o u
++Stress = á é í ó ú
+
+auto -Stress
+
+V = &-Stress &+Stress
 end
 
 y / / i _
@@ -136,5 +147,5 @@ j / r / _ // _i
 j / g / _
 š / s / _
 
--x PriS / Unstr
+-x +Stress / -Stress
 -x č / c
