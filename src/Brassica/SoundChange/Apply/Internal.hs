@@ -65,8 +65,8 @@ import Control.Category ((>>>))
 import Control.Monad ((>=>), join)  -- needed for mtl>=2.3
 import Data.Containers.ListUtils (nubOrd)
 import Data.Functor ((<&>))
+import Data.List (elemIndex)
 import Data.Maybe (maybeToList, fromMaybe, listToMaybe, mapMaybe)
-import Data.Tuple (swap)
 import GHC.Generics (Generic)
 
 import Control.DeepSeq (NFData)
@@ -117,7 +117,7 @@ try p = StateT $ \s ->
         [] -> [(Nothing, s)]
         r -> first Just <$> r
 
-data FeatureState = Positive | Negative | Indeterminate
+data FeatureState = Index Int | Indeterminate
     deriving (Show)
 
 -- | Describes the output of a 'match' operation.
@@ -224,12 +224,11 @@ match out prev (Autosegment n kvs gs) mz =
     -- act as 'Category' + 'Feature', without capture
     gs >>= \a -> match out prev (Feature n Nothing kvs $ Grapheme $ GMulti a) mz
 
-checkFeature :: Eq a => [(a, a)] -> a -> FeatureState
+checkFeature :: Eq a => [[a]] -> a -> FeatureState
 checkFeature [] _ = Indeterminate
-checkFeature ((k,v):kvs) x
-    | x == k = Negative
-    | x == v = Positive
-    | otherwise = checkFeature kvs x
+checkFeature (gs:gss) x
+    | Just i <- x `elemIndex` gs = Index i
+    | otherwise = checkFeature gss x
 
 matchKleene
     :: MatchOutput
@@ -439,9 +438,11 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
             case prev' of
                 Just (GMulti g) -> do
                     g' <- GMulti <$> case fs of
-                        Negative -> pure $ applyFeature (swap <$> kvs) g
-                        Positive -> pure $ applyFeature kvs g
-                        Indeterminate -> [applyFeature (swap <$> kvs) g, applyFeature kvs g]
+                        Index i -> pure $ applyFeature kvs g i
+                        Indeterminate
+                            | gs:_ <- kvs ->
+                                applyFeature kvs g <$> [0 .. length gs - 1]
+                            | otherwise -> pure g
                     -- now overwrite previous grapheme
                     let mz'' = zap (Just . const g') mz'
                     pure (ixs'', (mz'', Just g'))
@@ -453,8 +454,11 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
         -- as modulated by a 'Feature'
         replaceLex ixs (Feature n Nothing kvs $ Grapheme (GMulti g)) mz prev
 
-applyFeature :: Eq a => [(a, a)] -> a -> a
-applyFeature kvs a = fromMaybe a $ lookup a kvs
+applyFeature :: [[String]] -> String -> Int -> String
+applyFeature [] g _ = g
+applyFeature (gs:gss) g i
+    | g `elem` gs = fromMaybe "\xfffd" $ gs !? i
+    | otherwise = applyFeature gss g i
 
 -- | Given a 'Rule' and a 'MultiZipper', determines whether the
 -- 'exception' of that rule (if any) applies starting at the current

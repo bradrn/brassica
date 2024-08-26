@@ -15,10 +15,11 @@
   rather than the first
 - New support for phonetic features:
   - Features can be written as maximal `$name#ident(values)` after another lexeme
-  - Categories named `+Feature` and `-Feature` get special interpretation with intersections and subtractions
+  - Categories named `+Feature`, `-Feature` and `+Feature+Value`
+      get special interpretation with intersections and subtractions
   - New category syntax: `&` before category name forces union interpretation
       even for category names beginning with `+`/`-`
-  - Declaration `auto +Feature` or `auto -Feature` in category definition block
+  - Declaration `auto <FeaturalCategory>` in category definition block
       can be used to treat said feature autosegmentally
       whenever a grapheme in the selected category is mentioned
 

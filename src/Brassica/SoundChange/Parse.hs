@@ -168,7 +168,7 @@ parsePost l =
         <*> optional (char '#' *> parseGrapheme' False)
         <*> fmap (fromMaybe [])
             ( optional $ between (symbol "(") (symbol ")") $
-              many $ lexeme $ (,) <$> parseGrapheme' False <* char '~' <*> parseGrapheme' False
+              many $ lexeme $ parseGrapheme' False `sepBy1` char '~'
             )
         <*> pure l
 

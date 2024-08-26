@@ -19,11 +19,11 @@ module Brassica.SoundChange.Category
 
 import Prelude hiding (lookup)
 import Control.DeepSeq (NFData)
-import Control.Monad (foldM, unless, zipWithM)
+import Control.Monad (foldM, unless)
 import Control.Monad.State.Strict (StateT, evalStateT, lift, get, put, gets)
 import Data.Bifunctor (first, second)
 import Data.Containers.ListUtils (nubOrd)
-import Data.List (transpose, foldl')
+import Data.List (transpose, foldl', stripPrefix)
 import Data.Maybe (mapMaybe, catMaybes)
 import Data.Traversable (for)
 import GHC.Generics (Generic)
@@ -35,6 +35,8 @@ import Brassica.SoundChange.Types
 
 -- | Expanding an autosegment from a grapheme requires knowing its
 -- feature name, and a set of graphemes cross-cutting that feature.
+-- (Note that 'autoGraphemes' includes the originally-written
+-- grapheme.)
 data AutosegmentDef = AutosegmentDef
     { autoFeature :: String
     , autoGraphemes :: [String]
@@ -145,7 +147,7 @@ expandLexeme cs (Grapheme (GMulti g))
             Just (Left c) -> Right $ Category c
             Just (Right a) -> do
                 kvs <- expandFeature cs (autoFeature a)
-                pure $ Autosegment (autoFeature a) kvs (g : autoGraphemes a)
+                pure $ Autosegment (autoFeature a) kvs (autoGraphemes a)
             Nothing -> Right $ Grapheme (GMulti g)
 expandLexeme _  (Grapheme GBoundary) = Right $ Grapheme GBoundary
 expandLexeme cs (Category c) = Category <$> expand cs c
@@ -166,22 +168,43 @@ expandLexeme _  (Autosegment n kvs gs) =
     -- in reality this case should never occur from parsed sound changes
     pure $ Autosegment n kvs gs
 
-expandFeature
+expandFeature :: Categories -> String -> Either ExpandError [[String]]
+expandFeature cs n = transpose . fmap snd <$> lookupFeature cs n
+
+lookupFeature
     :: Categories
-    -> String
-    -> Either ExpandError [(String, String)]
-expandFeature cs n =
-    case M.lookup ('+':n) cs of
-        Just (Left (FromElements positive)) ->
+    -> String  -- ^ Feature name (no +/- prefix or +value suffix)
+    -> Either ExpandError [(String, [String])]
+lookupFeature cs n =
+    let pluss :: M.Map String (String, Either (Expanded 'AnyPart) AutosegmentDef)
+        pluss = M.mapMaybeWithKey plusPrefix cs
+    -- NB. consistency is guaranteed as 'elems' always returns items in ascending order
+    in case M.elems pluss of
+        [] -> Left $ NotFound ('+':n)
+        [("", Left (FromElements positive))] ->
             case M.lookup ('-':n) cs of
                 Just (Left (FromElements negative))
                     | length positive /= length negative -> Left MismatchedLengths
                     | Just positive' <- traverse getBaseValue positive
                     , Just negative' <- traverse getBaseValue negative
-                    -> Right $ zip negative' positive'
+                    -> Right [("-", negative'), ("+", positive')]
                     | otherwise -> Left InvalidBaseValue
                 _ -> Left $ NotFound ('-':n)
-        _ -> Left $ NotFound ('+':n)
+        kvs -> case traverse getCategory kvs of
+            Just vs@(v:vs')
+                | any ((length v /=) . length) vs' -> Left MismatchedLengths
+                | Just vs'' <- traverse (traverse getBaseValue) vs
+                -> Right $ zip (fst <$> kvs) vs''
+            _ -> Left InvalidBaseValue
+  where
+    plusPrefix ('+':k) v = case stripPrefix n k of
+        Just ('+':k') -> Just (k', v)
+        Just "" -> Just ("", v)
+        _ -> Nothing
+    plusPrefix _ _ = Nothing
+
+    getCategory (_, Left (FromElements c)) = Just c
+    getCategory _ = Nothing
 
 getBaseValue :: Either Grapheme [Lexeme Expanded 'AnyPart] -> Maybe String
 getBaseValue (Left (GMulti g)) = Just g
@@ -237,32 +260,28 @@ extendCategories cs' (overwrite, defs) =
                 ++ derivedCats
                 ++ features
         Right $ foldl' (flip $ uncurry M.insert) cs newCats
-    go cs (DefineAuto name) = do
-        (stated, other, feature) <- case name of
-            '+':rest | Just (Left (FromElements p)) <- M.lookup name cs
-                -> case M.lookup ('-':rest) cs of
-                       Just (Left (FromElements n)) -> Right (p, n, rest)
-                       _ -> Left $ NotFound ('-':rest)
-            '-':rest | Just (Left (FromElements n)) <- M.lookup name cs
-                -> case M.lookup ('+':rest) cs of
-                       Just (Left (FromElements p)) -> Right (n, p, rest)
-                       _ -> Left $ NotFound ('+':rest)
-            _ -> Left $ InvalidAuto name
-        autoCs <- M.fromList <$> zipWithM (mkAuto feature) stated other
-        pure $ M.merge
-            M.preserveMissing M.preserveMissing
-            (M.zipWithMatched $ \_ c _ -> c)  -- prefer categories to autosegments
-            cs autoCs
+    go cs (DefineAuto catName) = do
+        let (featureName, featureValue) = case catName of
+                '-':n -> (n, "-")
+                '+':n -> case break (=='+') n of
+                    (prefix, '+':suffix) -> (prefix, suffix)
+                    (_, []) -> (n, "+")
+                    _ -> error "extendCategories: unexpected output from 'break'"
+                n -> (n, "")  -- let it error out below
+        features <- M.fromList <$> lookupFeature cs featureName
+        case M.lookup featureValue features of
+            Nothing -> Left $ NotFound catName
+            Just gs ->
+                -- NB. consistency is guaranteed as 'elems' always returns items in ascending order
+                let autoCs = M.fromList $
+                        zipWith (mkAuto featureName) gs (transpose $ M.elems features)
+                in pure $ M.merge
+                    M.preserveMissing M.preserveMissing
+                    (M.zipWithMatched $ \_ c _ -> c)  -- prefer categories to autosegments
+                    cs autoCs
 
-    mkAuto
-        :: String
-        -> Either Grapheme [Lexeme Expanded 'AnyPart]
-        -> Either Grapheme [Lexeme Expanded 'AnyPart]
-        -> Either ExpandError (String, Either (Expanded 'AnyPart) AutosegmentDef)
-    mkAuto f (Left (GMulti g)) e
-        | Left (GMulti g') <- e = Right (g, Right $ AutosegmentDef f [g'])
-        | otherwise = Left InvalidDerivedValue
-    mkAuto _ _ _ = Left InvalidBaseValue
+    mkAuto :: String -> String -> [String] -> (String, Either (Expanded 'AnyPart) AutosegmentDef)
+    mkAuto f g gs = (g, Right $ AutosegmentDef f gs)
 
 expandSoundChanges
     :: SoundChanges CategorySpec Directive

@@ -127,12 +127,13 @@ data Lexeme category (a :: LexemeType) where
     Backreference :: Int -> category a -> Lexeme category a
     -- | In Brassica sound-change syntax, specified as \@? before a category
     Multiple :: category 'Replacement -> Lexeme category 'Replacement
-    -- | In Brassica sound-change syntax, specified as @$name#id(-value/+value …)@ after another 'Lexeme'
-    Feature :: String -> Maybe String -> [(String, String)] -> Lexeme category a -> Lexeme category a
+    -- | In Brassica sound-change syntax, specified as
+    -- @$name#id(a~a′~a″ b~b′~b″ …)@ after another 'Lexeme'
+    Feature :: String -> Maybe String -> [[String]] -> Lexeme category a -> Lexeme category a
     -- | Special lexeme for internal use: acts as a non-capturing
     -- category in target/environment, and as 'Grapheme' in
     -- replacement, in each case surrounded by a 'Feature'
-    Autosegment :: String -> [(String, String)] -> [String] -> Lexeme category a
+    Autosegment :: String -> [[String]] -> [String] -> Lexeme category a
 
 mapCategory :: (forall x. c x -> c' x) -> Lexeme c a -> Lexeme c' a
 mapCategory _ (Grapheme g) = Grapheme g
