@@ -240,6 +240,7 @@ data Flags = Flags
   , applyDirection   :: Direction
   , applyOnceOnly    :: Bool
   , sporadic         :: Sporadicity
+  , nonOverlappingTarget :: Bool
   } deriving (Show, Generic, NFData)
 
 -- | A default selection of flags which are appropriate for most
@@ -262,6 +263,7 @@ defFlags = Flags
     , applyDirection = LTR
     , applyOnceOnly = False
     , sporadic = ApplyAlways
+    , nonOverlappingTarget = False
     }
 
 -- | A single sound change rule: in Brassica sound-change syntax with all elements specified,

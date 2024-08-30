@@ -84,6 +84,7 @@ data RuleTag
     = AppStart     -- ^ The start of a rule application
     | TargetStart  -- ^ The start of the target
     | TargetEnd    -- ^ The end of the target
+    | PrevEnd      -- ^ The end of the replacement from the last rule application
     deriving (Eq, Ord, Show)
 
 -- | A monad in which to process a 'MultiZipper' over
@@ -523,11 +524,18 @@ applyOnce Rule{..} =
                     Nothing -> pure []
                     Just ex -> gets $ join . toList .
                         extend' (exceptionAppliesAtPoint target ex)
-                gets (locationOf TargetStart) >>= \p ->
-                    if maybe True (`elem` exs) p
-                    then return Failure
-                    else do
-                        originalWord <- get
+                originalWord <- get
+                let pMay = locationOf TargetStart originalWord
+                    pMay' = locationOf PrevEnd originalWord
+                case pMay of
+                    Nothing -> error "applyOnce: start of target was not tagged"
+                    Just p
+                        | p `elem` exs -> return Failure
+                        -- do not apply rule if it would be
+                        -- applied twice to the same substring
+                        | applyDirection flags == LTR
+                        , Just p' <- pMay', p < p' -> return Failure
+                        | otherwise -> do
                         modifyMay $ delete (TargetStart, TargetEnd)
                         modifyMay $ seek TargetStart
                         modifyM $ \w ->
@@ -536,6 +544,9 @@ applyOnce Rule{..} =
                                 -- make sure to re-insert original word
                                 PerApplication -> originalWord : replacedWords
                                 _ -> replacedWords
+                        -- we want TargetEnd to move forward as the replacement is added,
+                        -- but not TargetStart, so restore its old position
+                        modifyMay $ tagAt TargetStart p
                         return $
                             -- An epenthesis rule will cause an infinite loop
                             -- if it matched no graphemes before the replacement
@@ -551,15 +562,26 @@ setupForNextApplication
     -> Rule Expanded
     -> MultiZipper RuleTag Grapheme
     -> Maybe (MultiZipper RuleTag Grapheme)
-setupForNextApplication status Rule{flags=Flags{applyDirection}} =
-    fmap untag . case applyDirection of
+setupForNextApplication status Rule{flags=Flags{applyDirection, nonOverlappingTarget}} =
+    resetTags <=< case applyDirection of
         RTL -> seek AppStart >=> bwd
         LTR -> case status of
-            SuccessNormal -> seek TargetEnd
+            SuccessNormal ->
+                seek (if nonOverlappingTarget then TargetEnd else TargetStart)
             SuccessEpenthesis ->
                 -- need to move forward if applying an epenthesis rule to avoid an infinite loop
                 seek TargetEnd >=> fwd
             Failure -> seek AppStart >=> fwd
+  where
+    resetTags mz =
+        -- update PrevEnd to farthest replaced position on success,
+        -- or keep it the same on failure
+        let p = locationOf TargetEnd mz
+            p' = locationOf PrevEnd mz
+            newPrevEnd = case status of
+                Failure -> p'
+                _ -> max p p'
+        in maybe Just (tagAt PrevEnd) newPrevEnd $ untag mz
 
 -- | Apply a 'Rule' to a 'MultiZipper'. The application will start at
 -- the beginning of the 'MultiZipper', and will be repeated as many

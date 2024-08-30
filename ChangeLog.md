@@ -22,6 +22,10 @@
   - Declaration `auto <FeaturalCategory>` in category definition block
       can be used to treat said feature autosegmentally
       whenever a grapheme in the selected category is mentioned
+- Changes to rule application algorithm:
+  - Sound change applications can now overlap,
+      such that the replacement from one application can be used as the environment for the next
+  - New flag `-no` allows for reverting to the previous behaviour (non-overlapping applications)
 
 ### Code
 
@@ -44,6 +48,9 @@
       new type `Brassica.SoundChange.Category.AutosegmentDef`,
       and new constructors `InvalidDerivedValue` and `InvalidAuto`
         added to `Brassica.SoundChange.Category.ExpandError`
+- Changes resulting from new rule application algorithm:
+  - New constructore `PrevEnd` added to `Brassica.SoundChange.Apply.Internal.RuleTag`
+  - New field `nonOverlappingTarget` added to `Brassica.SoundChange.Types.Flags`
 
 ## 0.3.0
 
