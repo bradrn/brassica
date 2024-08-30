@@ -19,6 +19,8 @@
       get special interpretation with intersections and subtractions
   - New category syntax: `&` before category name forces union interpretation
       even for category names beginning with `+`/`-`
+  - Syntax `&Feature` after set operation (`&`/`+`/`-`) to include both `-Feature` and `+Feature`
+      (i.e. all graphemes with a setting for that feature)
   - Declaration `auto <FeaturalCategory>` in category definition block
       can be used to treat said feature autosegmentally
       whenever a grapheme in the selected category is mentioned

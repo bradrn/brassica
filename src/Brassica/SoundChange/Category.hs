@@ -93,6 +93,10 @@ expand cs (CategorySpec spec) = FromElements <$> foldM go [] spec
                 | modifier == Subtract
                 , Just (Left (FromElements c)) <- lookup ('-':g) cs
                     -> pure (c, Intersect)  -- do intersection with negative instead!
+                | '&':g' <- g
+                , Just (Left (FromElements p)) <- lookup ('+':g') cs
+                , Just (Left (FromElements n)) <- lookup ('-':g') cs
+                    -> pure (n++p, modifier)
                 | Just (Left (FromElements c)) <- lookup g cs
                     -> pure (c, modifier)
                 | Just (Right _) <- lookup g cs

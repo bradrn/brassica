@@ -97,7 +97,7 @@ C = Nsl Vls Vds Aff Fr Ap
 
 auto -Stress
 
-V = &-Stress &+Stress
+V = &&Stress
 end
 
 [w y] / [u~ i~] / C _ #
@@ -136,7 +136,7 @@ Vcl = Vls č Fr
 
 auto -Stress
 
-V = &-Stress &+Stress
+V = &&Stress
 end
 
 y / / i _
