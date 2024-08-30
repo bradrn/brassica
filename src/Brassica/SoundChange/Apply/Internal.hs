@@ -165,6 +165,9 @@ zipWith' xs ys f = zipWith f xs ys
 insertAt :: Int -> a -> [a] -> [a]
 insertAt n a as = let (xs,ys) = splitAt n as in xs ++ (a:ys)
 
+insertAtOptional :: Int -> Bool -> MatchOutput -> MatchOutput
+insertAtOptional n o mz = mz { matchedOptionals = insertAt n o $ matchedOptionals mz }
+
 insertAtCat :: Int -> Int -> MatchOutput -> MatchOutput
 insertAtCat n i mz = mz { matchedCatIxs = insertAt n i $ matchedCatIxs mz }
 
@@ -187,11 +190,13 @@ match :: MatchOutput          -- ^ The previous 'MatchOutput'
       -> [(MatchOutput, MultiZipper t Grapheme)]
       -- ^ The output: a tuple @(g, mz)@ as described below.
 match out prev (Optional l) mz =
-    (out <> MatchOutput [] [False] [] [] [] Map.empty Map.empty, mz) :
-    matchMany (out <> MatchOutput [] [True] [] [] [] Map.empty Map.empty) prev l mz
+    let i = length (matchedOptionals out)
+    in
+        (insertAtOptional i False out, mz) :
+        matchMany (insertAtOptional i True out) prev l mz
 match out prev (Wildcard l) mz = matchWildcard out prev l mz
 match out prev (Kleene l) mz = matchKleene out prev l mz
-match out _ (Grapheme g) mz = (out <> MatchOutput [] [] [] [] [g] Map.empty Map.empty,) <$> maybeToList (matchGrapheme g mz)
+match out _ (Grapheme g) mz = (appendGrapheme out g,) <$> maybeToList (matchGrapheme g mz)
 match out prev (Category (FromElements gs)) mz =
     concat $ zipWith' gs [0..] $ \e i ->
         -- make sure to insert new index BEFORE any new ones which
@@ -202,7 +207,7 @@ match out prev (Category (FromElements gs)) mz =
                 Right ls -> matchMany out prev ls mz
 match out prev Geminate mz = case prev of
     Nothing -> []
-    Just prev' -> (out <> MatchOutput [] [] [] [] [prev'] Map.empty Map.empty,) <$> maybeToList (matchGrapheme prev' mz)
+    Just prev' -> (appendGrapheme out prev',) <$> maybeToList (matchGrapheme prev' mz)
 match out prev (Backreference i (FromElements gs)) mz = do
     e <- maybeToList $
         (gs !?) =<< matchedCatIxs out !? (i-1)
