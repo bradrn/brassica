@@ -562,16 +562,14 @@ setupForNextApplication
     -> Rule Expanded
     -> MultiZipper RuleTag Grapheme
     -> Maybe (MultiZipper RuleTag Grapheme)
-setupForNextApplication status Rule{flags=Flags{applyDirection, nonOverlappingTarget}} =
-    resetTags <=< case applyDirection of
-        RTL -> seek AppStart >=> bwd
-        LTR -> case status of
-            SuccessNormal ->
-                seek (if nonOverlappingTarget then TargetEnd else TargetStart)
-            SuccessEpenthesis ->
-                -- need to move forward if applying an epenthesis rule to avoid an infinite loop
-                seek TargetEnd >=> fwd
-            Failure -> seek AppStart >=> fwd
+setupForNextApplication status Rule{flags=Flags{nonOverlappingTarget}} =
+    resetTags <=< case status of
+        SuccessNormal ->
+            seek (if nonOverlappingTarget then TargetEnd else TargetStart)
+        SuccessEpenthesis ->
+            -- need to move forward if applying an epenthesis rule to avoid an infinite loop
+            seek TargetEnd >=> fwd
+        Failure -> seek AppStart >=> fwd
   where
     resetTags mz =
         -- update PrevEnd to farthest replaced position on success,
@@ -588,24 +586,33 @@ setupForNextApplication status Rule{flags=Flags{applyDirection, nonOverlappingTa
 -- times as possible. Returns all valid results.
 applyRule :: Rule Expanded -> MultiZipper RuleTag Grapheme -> [MultiZipper RuleTag Grapheme]
 applyRule r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
-    let startingPos = case applyDirection $ flags r of
-            LTR -> toBeginning mz
-            RTL -> toEnd mz
-        result = repeatRule (applyOnce r) startingPos
+    let result = case applyDirection (flags r) of
+            LTR -> repeatRule $ toBeginning mz
+            RTL -> fmap reverseMZ $ repeatRule $ toBeginning $ reverseMZ mz
     in case sporadic (flags r) of
         PerWord -> mz : result
         _ -> result  -- PerApplication handled in 'applyOnce'
   where
+    r' = case applyDirection (flags r) of
+        LTR -> r
+        RTL -> Rule
+            { target = reverse $ target r
+            , replacement = reverse $ replacement r
+            , environment = reverseEnv <$> environment r
+            , exception = reverseEnv <$> exception r
+            , flags = flags r
+            , plaintext = plaintext r
+            }
+
+    reverseEnv (e1, e2) = (reverse e2, reverse e1)
+
     repeatRule
-        :: StateT (MultiZipper RuleTag Grapheme) [] RuleStatus
-        -> MultiZipper RuleTag Grapheme
+        :: MultiZipper RuleTag Grapheme
         -> [MultiZipper RuleTag Grapheme]
-    repeatRule m mz = runStateT m mz >>= \(status, mz') ->
-        if (status /= Failure) && applyOnceOnly (flags r)
+    repeatRule mz = runStateT (applyOnce r') mz >>= \(status, mz') ->
+        if (status /= Failure) && applyOnceOnly (flags r')
         then [mz']
-        else case setupForNextApplication status r mz' of
-            Just mz'' -> repeatRule m mz''
-            Nothing -> [mz']
+        else maybe [mz'] repeatRule (setupForNextApplication status r' mz')
 
 -- | Check if a 'MultiZipper' matches a 'Filter'.
 filterMatches :: Filter Expanded -> MultiZipper RuleTag Grapheme -> Bool

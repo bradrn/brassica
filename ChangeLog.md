@@ -26,6 +26,12 @@
   - Sound change applications can now overlap,
       such that the replacement from one application can be used as the environment for the next
   - New flag `-no` allows for reverting to the previous behaviour (non-overlapping applications)
+  - Make RTL and LTR application symmetric,
+      by reimplementing the former as LTR application with words and rules reversed
+      (also meaning that category correspondences, backreferences, etc. are reversed too)
+  - Bugfix arising from last point:
+      rules such as `[p f] / [f h] / (a) _ #` will no longer apply twice to the same grapheme
+      (here taking ⟨ap⟩ to incorrect ⟨ah⟩ rather than expected ⟨af⟩)
 
 ### Code
 
