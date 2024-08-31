@@ -90,8 +90,8 @@ parseTokeniseAndApplyRules_hs
                             newStableCStringLen $ escape $ detokeniseWords' highlightWord result
                         AppliedRulesTable items -> do
                             writeIORef prevRef Nothing
-                            newStableCStringLen $ surroundTable $
-                                concatMap (reportAsHtmlRows plaintext') items
+                            newStableCStringLen $
+                                concatMap (surroundTable . reportAsHtmlRows plaintext') items
   where
     highlightWord (s, False) = concatWithBoundary s
     highlightWord (s, True) = "<b>" ++ concatWithBoundary s ++ "</b>"

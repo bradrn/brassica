@@ -119,7 +119,7 @@ parseTokeniseAndApplyRulesWrapper ReqRules{..} =
                             (Just $ (fmap.fmap) fst result)
                             (escape $ detokeniseWords' highlightWord result)
                         AppliedRulesTable items -> RespRules Nothing $
-                            surroundTable $ concatMap (reportAsHtmlRows plaintext') items
+                            concatMap (surroundTable . reportAsHtmlRows plaintext') items
   where
     highlightWord (s, False) = concatWithBoundary s
     highlightWord (s, True) = "<b>" ++ concatWithBoundary s ++ "</b>"

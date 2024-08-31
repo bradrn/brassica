@@ -36,7 +36,10 @@
       (here taking ⟨ap⟩ to incorrect ⟨ah⟩ rather than expected ⟨af⟩)
 - New keyboard shortcuts in desktop GUI:
     Ctrl+Enter to apply rules, Ctrl+Tab to toggle between rules and words textboxes
-- Output from ‘Report rules apply’ no longer includes comments next to rules
+- Improvements to output from ‘Report rules apply’:
+  - Comments are no longer included next to rules
+  - Outputs are no longer aligned across input words,
+      making the interface much more responsive on desktop
 
 ### Code
 
