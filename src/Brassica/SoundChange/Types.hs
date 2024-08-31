@@ -54,7 +54,7 @@ module Brassica.SoundChange.Types
        , Directive(..)
        ) where
 
-import Control.DeepSeq (NFData(..))
+import Control.DeepSeq (NFData(..), deepseq)
 import Data.String (IsString(..))
 import GHC.Generics (Generic)
 import GHC.OldList (dropWhileEnd)
@@ -208,10 +208,10 @@ instance (forall x. NFData (c x)) => NFData (Lexeme c a) where
     rnf (Wildcard l) = rnf l
     rnf (Kleene l) = rnf l
     rnf Discard = ()
-    rnf (Backreference i l) = seq i $ rnf l
+    rnf (Backreference i l) = i `seq` rnf l
     rnf (Multiple l) = rnf l
-    rnf (Feature n i kvs l) = seq (rnf l) $ seq (rnf n) $ seq (rnf i) $ rnf kvs
-    rnf (Autosegment n kvs gs) = seq (rnf n) $ seq (rnf kvs) $ rnf gs
+    rnf (Feature n i kvs l) = l `deepseq` n `deepseq` i `deepseq` rnf kvs
+    rnf (Autosegment n kvs gs) = n `deepseq` kvs `deepseq` rnf gs
 
 -- | An 'Environment' is a tuple of @(before, after)@ components,
 -- corresponding to a ‘/ before _ after’ component of a sound change.
