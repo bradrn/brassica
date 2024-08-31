@@ -34,6 +34,8 @@
   - Bugfix arising from last point:
       rules such as `[p f] / [f h] / (a) _ #` will no longer apply twice to the same grapheme
       (here taking ⟨ap⟩ to incorrect ⟨ah⟩ rather than expected ⟨af⟩)
+- New keyboard shortcuts in desktop GUI:
+    Ctrl+Enter to apply rules, Ctrl+Tab to toggle between rules and words textboxes
 
 ### Code
 

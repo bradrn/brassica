@@ -12,9 +12,11 @@
 #include <QMessageBox>
 #include <QRadioButton>
 #include <QScrollBar>
+#include <QShortcut>
 #include <QTextCodec>
 #include <QTextStream>
 #include <Qt>
+#include <qnamespace.h>
 
 MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
     : QMainWindow(parent)
@@ -36,6 +38,14 @@ MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
     connect(reportRulesBtn, &QPushButton::clicked  , this, [this] { applySoundChanges(false, true); } );
     connect(rulesEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
     connect(wordsEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
+
+    QShortcut *applyShortcut1 = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Return), this);
+    QShortcut *applyShortcut2 = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Enter ), this);
+    connect(applyShortcut1, &QShortcut::activated, this, [this] { applySoundChanges(false, false); });
+    connect(applyShortcut2, &QShortcut::activated, this, [this] { applySoundChanges(false, false); });
+
+    QShortcut *toggleShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Tab), this);
+    connect(toggleShortcut, &QShortcut::activated, this, &MainWindow::toggleCursor);
 
     connect(rulesEdit, &QPlainTextEdit::textChanged, this, &MainWindow::rulesModified);
     connect(wordsEdit, &QPlainTextEdit::textChanged, this, &MainWindow::lexiconModified);
@@ -408,6 +418,13 @@ void MainWindow::saveLexiconAs()
 {
     QString fileName = QFileDialog::getSaveFileName(this, "Open lexicon", QString(), "Lexicon files (*.lex);;MDF files (*.mdf *.txt);;All files (*.*)");
     doSaveLexicon(fileName);
+}
+
+
+void MainWindow::toggleCursor()
+{
+    if (rulesEdit->hasFocus()) { wordsEdit->setFocus(Qt::TabFocusReason); return; }
+    if (wordsEdit->hasFocus()) { rulesEdit->setFocus(Qt::TabFocusReason); return; }
 }
 
 void MainWindow::rulesModified()

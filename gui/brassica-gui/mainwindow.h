@@ -87,6 +87,8 @@ private slots:
     void saveLexicon();
     void saveLexiconAs();
 
+    void toggleCursor();
+
     void rulesModified();
     void lexiconModified();
 
