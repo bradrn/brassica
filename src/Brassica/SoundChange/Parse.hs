@@ -145,6 +145,9 @@ parseDirective = parseCategoriesDirective <|> parseExtraDirective
 parseOptional :: ParseLexeme a => Parser (Lexeme CategorySpec a)
 parseOptional = Optional <$> between (symbol "(") (symbol ")") (some parseLexeme)
 
+parseGreedyOptional :: Parser (Lexeme CategorySpec 'Matched)
+parseGreedyOptional = GreedyOptional <$> between (symbol "%(") (symbol ")") (some parseLexeme)
+
 parseGeminate :: Parser (Lexeme CategorySpec a)
 parseGeminate = Geminate <$ symbol ">"
 
@@ -183,6 +186,7 @@ instance ParseLexeme 'Matched where
     parseLexeme = asum
         [ parseExplicitCategory
         , parseOptional
+        , parseGreedyOptional
         , parseGeminate
         , parseWildcard
         , parseBackreference

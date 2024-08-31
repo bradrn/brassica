@@ -113,6 +113,8 @@ data Lexeme category (a :: LexemeType) where
     Category :: category a -> Lexeme category a
     -- | In Brassica sound-change syntax, delimited by parentheses
     Optional :: [Lexeme category a] -> Lexeme category a
+    -- | In Brassica sound-change syntax, delimited by parentheses after @%@
+    GreedyOptional :: [Lexeme category 'Matched] -> Lexeme category 'Matched
     -- | In Brassica sound-change syntax, specified as @\@
     Metathesis :: Lexeme category 'Replacement
     -- | In Brassica sound-change syntax, specified as @>@
@@ -139,6 +141,7 @@ mapCategory :: (forall x. c x -> c' x) -> Lexeme c a -> Lexeme c' a
 mapCategory _ (Grapheme g) = Grapheme g
 mapCategory f (Category c) = Category (f c)
 mapCategory f (Optional ls) = Optional (mapCategory f <$> ls)
+mapCategory f (GreedyOptional ls) = GreedyOptional (mapCategory f <$> ls)
 mapCategory _ Metathesis = Metathesis
 mapCategory _ Geminate = Geminate
 mapCategory f (Wildcard l) = Wildcard (mapCategory f l)
@@ -157,6 +160,7 @@ mapCategoryA
 mapCategoryA _ (Grapheme g) = pure $ Grapheme g
 mapCategoryA f (Category c) = Category <$> f c
 mapCategoryA f (Optional ls) = Optional <$> traverse (mapCategoryA f) ls
+mapCategoryA f (GreedyOptional ls) = GreedyOptional <$> traverse (mapCategoryA f) ls
 mapCategoryA _ Metathesis = pure Metathesis
 mapCategoryA _ Geminate = pure Geminate
 mapCategoryA f (Wildcard l) = Wildcard <$> mapCategoryA f l
@@ -203,6 +207,7 @@ instance (forall x. NFData (c x)) => NFData (Lexeme c a) where
     rnf (Grapheme g) = rnf g
     rnf (Category cs) = rnf cs
     rnf (Optional ls) = rnf ls
+    rnf (GreedyOptional ls) = rnf ls
     rnf Metathesis = ()
     rnf Geminate = ()
     rnf (Wildcard l) = rnf l

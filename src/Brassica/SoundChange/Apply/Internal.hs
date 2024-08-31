@@ -194,6 +194,13 @@ match out prev (Optional l) mz =
     in
         (insertAtOptional i False out, mz) :
         matchMany (insertAtOptional i True out) prev l mz
+match out prev (GreedyOptional l) mz =
+    let i = length (matchedOptionals out)
+        m = matchMany (insertAtOptional i True out) prev l mz
+    in case m of
+        -- skip, but only if no matches
+        [] -> [(insertAtOptional i False out, mz)]
+        _ -> m
 match out prev (Wildcard l) mz = matchWildcard out prev l mz
 match out prev (Kleene l) mz = matchKleene out prev l mz
 match out _ (Grapheme g) mz = (appendGrapheme out g,) <$> maybeToList (matchGrapheme g mz)

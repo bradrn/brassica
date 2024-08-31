@@ -40,6 +40,7 @@
   - Comments are no longer included next to rules
   - Outputs are no longer aligned across input words,
       making the interface much more responsive on desktop
+- Optional elements can now be prefixed by `%` to make them match greedily
 
 ### Code
 
@@ -65,6 +66,7 @@
 - Changes resulting from new rule application algorithm:
   - New constructore `PrevEnd` added to `Brassica.SoundChange.Apply.Internal.RuleTag`
   - New field `nonOverlappingTarget` added to `Brassica.SoundChange.Types.Flags`
+- New constructor `GreedyOptional` for `Brassica.SoundChange.Types.Lexeme`
 
 ## 0.3.0
 
