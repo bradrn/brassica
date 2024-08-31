@@ -14,6 +14,7 @@ module Brassica.SoundChange.Parse
 
 import Data.Char (isSpace)
 import Data.Foldable (asum)
+import Data.List (dropWhileEnd)
 import Data.Maybe (isNothing, isJust, fromJust, fromMaybe)
 import Data.Void (Void)
 
@@ -31,15 +32,15 @@ type Parser = Parsec Void String
 class ParseLexeme (a :: LexemeType) where
     parseLexeme :: Parser (Lexeme CategorySpec a)
 
--- space consumer which does not match newlines
+-- space consumer which does not match newlines or comments
 sc :: Parser ()
-sc = L.space space1' (L.skipLineComment ";") empty
+sc = L.space space1' empty empty
   where
     -- adapted from megaparsec source: like 'space1', but does not
     -- consume newlines (which are important for rule separation)
     space1' = void $ takeWhile1P (Just "white space") ((&&) <$> isSpace <*> (/='\n'))
 
--- space consumer which matches newlines
+-- space consumer which matches newlines and comments
 scn :: Parser ()
 scn = L.space space1 (L.skipLineComment ";") empty
 
@@ -50,7 +51,7 @@ symbol :: String -> Parser String
 symbol = L.symbol sc
 
 keyChars :: [Char]
-keyChars = "#[](){}>\\→/_^%~*@$"
+keyChars = "#[](){}>\\→/_^%~*@$;"
 
 nonzero :: Parser Int
 nonzero = label "nonzero postive number" $ try $ do
@@ -248,13 +249,13 @@ ruleParser = do
 
     exception <- optional $ (,) <$> (symbol "//" *> parseLexemes) <* symbol "_" <*> parseLexemes
 
+    o' <- getOffset
+
     _ <- optional scn   -- consume newline after rule if present
 
-    o' <- getOffset
-    let plaintext = takeWhile notNewline $ (fst . fromJust) (takeN_ (o' - o) s)
+    let plaintext = dropWhile isSpace $ dropWhileEnd isSpace $
+            (fst . fromJust) (takeN_ (o' - o) s)
     return Rule{environment=envs, ..}
-  where
-    notNewline c = (c /= '\n') && (c /= '\r')
 
 filterParser :: Parser (Filter CategorySpec)
 filterParser = fmap (uncurry Filter) $ match $ symbol "filter" *> parseLexemes <* optional scn
