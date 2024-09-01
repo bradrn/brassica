@@ -62,7 +62,7 @@ module Brassica.SoundChange.Apply.Internal
 
 import Control.Applicative ((<|>))
 import Control.Category ((>>>))
-import Control.Monad ((>=>), join)  -- needed for mtl>=2.3
+import Control.Monad ((>=>), (<=<), join)  -- needed for mtl>=2.3
 import Data.Containers.ListUtils (nubOrd)
 import Data.Functor ((<&>))
 import Data.List (elemIndex)
