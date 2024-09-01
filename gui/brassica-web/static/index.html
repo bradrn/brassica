@@ -76,6 +76,21 @@
           </div>
         </fieldset>
         <fieldset>
+          <legend>Input lexicon format</legend>
+          <div>
+            <input type="radio" id="in-wordlist" name="inputFormat" value="wordlist" checked />
+            <label for="in-wordlist">Wordlist + glosses</label>
+          </div>
+          <div>
+            <input type="radio" id="in-mdfstandard" name="inputFormat" value="mdfStandard" />
+            <label for="in-mdfstandard">MDF file (standard hierarchy)</label>
+          </div>
+          <div>
+            <input type="radio" id="in-mdfalternate" name="inputFormat" value="mdfAlternate" />
+            <label for="in-mdfalternate">MDF file (alternate hierarchy)</label>
+          </div>
+        </fieldset>
+        <fieldset>
           <legend>Output format</legend>
           <div>
             <input type="radio" id="fmt-wordlist" name="outputFormat" value="rawout" checked />
@@ -84,6 +99,14 @@
           <div>
             <input type="radio" id="fmt-inout" name="outputFormat" value="inout" />
             <label for="fmt-inout">Input&rarr;output</label>
+          </div>
+          <div>
+            <input type="radio" id="fmt-mdf" name="outputFormat" value="mdf" disabled />
+            <label for="fmt-mdf">MDF output</label>
+          </div>
+          <div>
+            <input type="radio" id="fmt-mdfetym" name="outputFormat" value="mdfetym" disabled />
+            <label for="fmt-mdfetym">MDF output with etymologies</label>
           </div>
         </fieldset>
         <div>

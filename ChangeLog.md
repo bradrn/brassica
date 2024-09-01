@@ -42,6 +42,7 @@
       making the interface much more responsive on desktop
 - Optional elements can now be prefixed by `%` to make them match greedily
 - User can now choose which MDF hierarchy to use for dictionaries
+- MDF support added to web version
 
 ### Code
 

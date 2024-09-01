@@ -10,12 +10,18 @@ import {hs, withBytesPtr, decodeStableCStringLen, encoder, decoder} from "./inte
 
 const results = hs.initResults();  // NB: not const on Haskell side!
 
-function applyChanges(changes, words, sep, reportRules, highlightMode, outputMode) {
+function applyChanges(changes, words, sep, reportRules, inputMode, highlightMode, outputMode) {
     const inputChanges = encoder.encode(changes);
     const inputWords = encoder.encode(words);
     const sepEncoded = encoder.encode(sep);
 
     const reportRulesC = reportRules ? 1 : 0;
+
+    var inModeC = 0;
+    switch (inputMode) {
+    case 'mdfStandard':  inModeC = 1; break;
+    case 'mdfAlternate': inModeC = 1; break;
+    }
 
     var hlModeC = 0;
     switch (highlightMode) {
@@ -24,8 +30,10 @@ function applyChanges(changes, words, sep, reportRules, highlightMode, outputMod
     }
 
     var outModeC = 0;
-    if (outputMode === 'inout') {
-        outModeC = 3;
+    switch (outputMode) {
+    case 'mdf':     outModeC = 1; break;
+    case 'mdfetym': outModeC = 2; break;
+    case 'inout':   outModeC = 3; break;
     }
 
     var output = "";
@@ -37,7 +45,7 @@ function applyChanges(changes, words, sep, reportRules, highlightMode, outputMod
                         inputChangesPtr, inputChangesLen,
                         inputWordsPtr, inputWordsLen,
                         sepPtr, sepLen,
-                        reportRules, 0, hlModeC, outModeC, results);
+                        reportRules, inModeC, hlModeC, outModeC, results);
                     output = decodeStableCStringLen(outputStableCStringLen);
                 } catch (err) {
                     output = err;
@@ -186,9 +194,10 @@ function updateForm(reportRules, needsLive) {
     const words = data.get("words");
     const sep = data.get("sep");
     const highlightMode = data.get("highlightMode");
+    const inputFormat = data.get("inputFormat");
     const outputFormat = data.get("outputFormat");
 
-    const output = applyChanges(rules, words, sep, reportRules, highlightMode, outputFormat);
+    const output = applyChanges(rules, words, sep, reportRules, inputFormat, highlightMode, outputFormat);
     document.getElementById("results").innerHTML = "<pre>" + output + "</pre>";
 }
 
@@ -283,3 +292,27 @@ inputFileWords.addEventListener("change", (event) => {
 document
     .getElementById("open-words")
     .addEventListener("click", (event) => inputFileWords.click());
+
+const inWordlistRadio = document.getElementById("in-wordlist");
+const inMdfStandardRadio = document.getElementById("in-mdfstandard");
+const inMdfAlternateRadio = document.getElementById("in-mdfalternate");
+const fmtWordlistRadio = document.getElementById("fmt-wordlist");
+const fmtMdfRadio = document.getElementById("fmt-mdf");
+const fmtMdfEtymRadio = document.getElementById("fmt-mdfetym");
+
+function reselectRadios(event) {
+    if (inMdfStandardRadio.checked || inMdfAlternateRadio.checked) {
+        fmtMdfRadio.disabled = false;
+        fmtMdfEtymRadio.disabled = false;
+    } else {
+        if (fmtMdfRadio.checked || fmtMdfEtymRadio.checked) {
+            fmtWordlistRadio.checked = true;
+        }
+        fmtMdfRadio.disabled = true;
+        fmtMdfEtymRadio.disabled = true;
+    }
+}
+
+inWordlistRadio    .addEventListener("input", reselectRadios)
+inMdfStandardRadio .addEventListener("input", reselectRadios)
+inMdfAlternateRadio.addEventListener("input", reselectRadios)
