@@ -58,17 +58,8 @@ MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
         if (checked) updateOutputFromWordsSlider(wordsEditVScroll->value());
     });
 
-    connect(mdfBtn, &QRadioButton::toggled, this, [this](bool checked) {
-        if (checked) {
-            mdfoutBtn->setEnabled(true);
-            mdfetymoutBtn->setEnabled(true);
-        } else {
-            if (mdfoutBtn->isChecked() || mdfetymoutBtn->isChecked())
-                rawoutBtn->setChecked(true);
-            mdfoutBtn->setEnabled(false);
-            mdfetymoutBtn->setEnabled(false);
-        }
-    });
+    connect(mdfBtn   , &QRadioButton::toggled, this, &MainWindow::reselectCheckboxes);
+    connect(mdfAltBtn, &QRadioButton::toggled, this, &MainWindow::reselectCheckboxes);
 }
 
 MainWindow::~MainWindow()
@@ -132,8 +123,11 @@ void MainWindow::setupWidgets(QWidget *central)
     rawBtn->setChecked(true);
     inputFormatLayout->addWidget(rawBtn);
 
-    mdfBtn = new QRadioButton("MDF file");
+    mdfBtn = new QRadioButton("MDF file (standard hierarchy)");
     inputFormatLayout->addWidget(mdfBtn);
+
+    mdfAltBtn = new QRadioButton("MDF file (alternate hierarchy)");
+    inputFormatLayout->addWidget(mdfAltBtn);
 
     outputFormatBox = new QGroupBox("Output format");
     QVBoxLayout *outputFormatLayout = new QVBoxLayout(outputFormatBox);
@@ -331,7 +325,8 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
     //QString output = proc->applyRules(categories, rules, words);
 
     BrassicaProcess::InputLexiconFormat infmt = BrassicaProcess::Raw;
-    if (mdfBtn->isChecked()) infmt = BrassicaProcess::MDF;
+    if (mdfBtn->isChecked()) infmt = BrassicaProcess::MDFStandard;
+    else if (mdfAltBtn->isChecked()) infmt = BrassicaProcess::MDFAlternate;
 
     BrassicaProcess::HighlightMode checkedHl = BrassicaProcess::NoHighlight;
     if (diffhighlightBtn->isChecked()) checkedHl = BrassicaProcess::DifferentToLastRun;
@@ -474,6 +469,19 @@ void MainWindow::updateWordsFromOutputSlider(int value)
         blockScrollTrackingEvent = true;
         wordsEditVScroll->setValue(
             (ratio * (wordsMax - wordsMin)) + wordsMin);
+    }
+}
+
+void MainWindow::reselectCheckboxes()
+{
+    if (mdfBtn->isChecked() || mdfAltBtn->isChecked()) {
+        mdfoutBtn->setEnabled(true);
+        mdfetymoutBtn->setEnabled(true);
+    } else {
+        if (mdfoutBtn->isChecked() || mdfetymoutBtn->isChecked())
+            rawoutBtn->setChecked(true);
+        mdfoutBtn->setEnabled(false);
+        mdfetymoutBtn->setEnabled(false);
     }
 }
 

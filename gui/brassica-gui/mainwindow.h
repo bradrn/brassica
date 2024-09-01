@@ -34,6 +34,7 @@ private:
     QRadioButton *inputhighlightBtn;
     QRadioButton *rawBtn;
     QRadioButton *mdfBtn;
+    QRadioButton *mdfAltBtn;
     QGroupBox *outputFormatBox;
     QRadioButton *mdfoutBtn;
     QRadioButton *mdfetymoutBtn;
@@ -94,6 +95,8 @@ private slots:
 
     void updateOutputFromWordsSlider(int value);
     void updateWordsFromOutputSlider(int value);
+
+    void reselectCheckboxes();
 
     void showParadigmBuilder();
 

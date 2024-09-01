@@ -41,6 +41,7 @@
   - Outputs are no longer aligned across input words,
       making the interface much more responsive on desktop
 - Optional elements can now be prefixed by `%` to make them match greedily
+- User can now choose which MDF hierarchy to use for dictionaries
 
 ### Code
 
@@ -67,6 +68,8 @@
   - New constructore `PrevEnd` added to `Brassica.SoundChange.Apply.Internal.RuleTag`
   - New field `nonOverlappingTarget` added to `Brassica.SoundChange.Types.Flags`
 - New constructor `GreedyOptional` for `Brassica.SoundChange.Types.Lexeme`
+- `Brassica.SoundChange.Frontend.Internal.InputLexiconFormat`
+    now depends on new type `Brassica.SoundChange.Frontend.Internal.MDFHierarchy`
 
 ## 0.3.0
 

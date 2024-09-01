@@ -14,12 +14,14 @@ import Conduit (runConduit, (.|), stdinC, stdoutC, mapMC)
 import Control.DeepSeq (force, NFData)
 import Control.Exception (evaluate)
 import Control.Parallel.Strategies (withStrategy, parTraversable, rseq)
-import Data.Aeson (Result(..), encode, fromJSON)
+import Data.Aeson (Result(..), encode, FromJSON(..), ToJSON(..), Value (..), fromJSON)
 import Data.Aeson.Parser (json')
 import Data.Aeson.TH (deriveJSON, defaultOptions, defaultTaggedObject, constructorTagModifier, sumEncoding, tagFieldName)
+import Data.Aeson.Types (prependFailure, typeMismatch)
 import Data.ByteString (toStrict)
 import Data.Conduit.Attoparsec (conduitParser)
 import Data.Foldable (toList)
+import Data.Text (unpack)
 import GHC.Generics (Generic)
 import System.IO (hSetBuffering, stdin, stdout, BufferMode(NoBuffering))
 import System.Timeout
@@ -57,9 +59,21 @@ data Response
     | RespError String
     deriving (Show, Generic, NFData)
 
+instance ToJSON InputLexiconFormat where
+    toJSON Raw = "Raw"
+    toJSON (MDF Standard) = "MDFStandard"
+    toJSON (MDF Alternate) = "MDFAlternate"
+
+instance FromJSON InputLexiconFormat where
+    parseJSON (String "Raw") = pure Raw
+    parseJSON (String "MDFStandard") = pure $ MDF Standard
+    parseJSON (String "MDFAlternate") = pure $ MDF Alternate
+    parseJSON (String s) = fail $ "Unknown InputLexiconFormat: " ++ unpack s
+    parseJSON invalid = prependFailure "parsing InputLexiconFormat failed: " $
+        typeMismatch "String" invalid
+
 $(deriveJSON defaultOptions ''Component)
 $(deriveJSON defaultOptions ''Grapheme)
-$(deriveJSON defaultOptions ''InputLexiconFormat)
 $(deriveJSON defaultOptions ''HighlightMode)
 $(deriveJSON defaultOptions ''OutputMode)
 

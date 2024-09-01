@@ -88,16 +88,21 @@ data ApplicationOutput a r
     | ParseError (ParseErrorBundle String Void)
     deriving (Show, Generic, NFData)
 
+data MDFHierarchy = Standard | Alternate
+    deriving (Show, Eq)
+
 -- | Kind of input: either a raw wordlist, or an MDF file.
-data InputLexiconFormat = Raw | MDF
+data InputLexiconFormat = Raw | MDF MDFHierarchy
     deriving (Show, Eq)
 instance Enum InputLexiconFormat where
     -- used for conversion to and from C, so want control over values
     fromEnum Raw = 0
-    fromEnum MDF = 1
+    fromEnum (MDF Standard) = 1
+    fromEnum (MDF Alternate) = 2
 
     toEnum 0 = Raw
-    toEnum 1 = MDF
+    toEnum 1 = MDF Standard
+    toEnum 2 = MDF Alternate
     toEnum _ = undefined
 
 data ParseOutput a = ParsedRaw [Component a] | ParsedMDF SFM
@@ -111,12 +116,15 @@ tokeniseAccordingToInputFormat
     -> Either (ParseErrorBundle String Void) [Component PWord]
 tokeniseAccordingToInputFormat Raw _ cs =
     withFirstCategoriesDecl tokeniseWords cs
-tokeniseAccordingToInputFormat MDF MDFOutputWithEtymons cs =
-    withFirstCategoriesDecl tokeniseMDF cs <=<
-    -- TODO don't hard-code hierarchy and filename
-    fmap (fromTree . duplicateEtymologies ('*':) . toTree mdfHierarchy)
-    . parseSFM ""
-tokeniseAccordingToInputFormat MDF o cs = \input -> do
+tokeniseAccordingToInputFormat (MDF h) MDFOutputWithEtymons cs =
+    let h' = case h of
+            Standard -> mdfHierarchy
+            Alternate -> mdfAlternateHierarchy
+    in
+        withFirstCategoriesDecl tokeniseMDF cs <=<
+        fmap (fromTree . duplicateEtymologies ('*':) . toTree h')
+        . parseSFM ""
+tokeniseAccordingToInputFormat (MDF _) o cs = \input -> do
     sfm <- parseSFM "" input
     ws <- withFirstCategoriesDecl tokeniseMDF cs sfm
     pure $ case o of
