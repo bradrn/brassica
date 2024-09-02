@@ -113,6 +113,12 @@ ace.define('ace/mode/brassica_highlight_rules', function(require, exports, modul
     exports.BrassicaHighlightRules = BrassicaHighlightRules;
 });
 
+// see https://stackoverflow.com/a/3561711
+const escapeRegexpConst = /[/\-\\^$*+?.()|[\]{}]/g;
+function escapeRegexp(string) {
+    return string.replace(escapeRegexpConst, '\\$&');
+}
+
 var categoryMarkers = [];
 function rehighlightCategories(editor) {
     // preliminary: remove all markers
@@ -134,12 +140,12 @@ function rehighlightCategories(editor) {
             let lineParts = line.split(featureRegex);
             // every second part from the end is a category name,
             for (let i = lineParts.length-2; i>=0; i-=2) {
-                categories.push(lineParts[i].trim());
+                categories.push(escapeRegexp(lineParts[i].trim()));
             }
         } else if (inCategories) {
             let lineParts = line.split("=");
             if (lineParts.length > 1) {
-                categories.push(lineParts[0].trim());
+                categories.push(escapeRegexp(lineParts[0].trim()));
             }
         }
     });
