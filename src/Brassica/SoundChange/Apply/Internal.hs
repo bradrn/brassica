@@ -212,6 +212,11 @@ match out prev (Category (FromElements gs)) mz =
             case e of
                 Left  g  -> match out prev (Grapheme g :: Lexeme Expanded a) mz
                 Right ls -> matchMany out prev ls mz
+match out prev (GreedyCategory c) mz =
+    -- Take first match only
+    case match out prev (Category c) mz of
+        [] -> []
+        (m:_) -> [m]
 match out prev Geminate mz = case prev of
     Nothing -> []
     Just prev' -> (appendGrapheme out prev',) <$> maybeToList (matchGrapheme prev' mz)

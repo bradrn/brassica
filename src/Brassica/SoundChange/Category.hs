@@ -155,6 +155,7 @@ expandLexeme cs (Grapheme (GMulti g))
             Nothing -> Right $ Grapheme (GMulti g)
 expandLexeme _  (Grapheme GBoundary) = Right $ Grapheme GBoundary
 expandLexeme cs (Category c) = Category <$> expand cs c
+expandLexeme cs (GreedyCategory c) = GreedyCategory <$> expand cs c
 expandLexeme cs (Optional ls) = Optional <$> traverse (expandLexeme cs) ls
 expandLexeme cs (GreedyOptional ls) = GreedyOptional <$> traverse (expandLexeme cs) ls
 expandLexeme _  Metathesis = Right Metathesis

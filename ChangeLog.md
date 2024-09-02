@@ -40,7 +40,7 @@
   - Comments are no longer included next to rules
   - Outputs are no longer aligned across input words,
       making the interface much more responsive on desktop
-- Optional elements can now be prefixed by `%` to make them match greedily
+- Optional elements or categories can now be prefixed by `%` to make them match greedily
 - User can now choose which MDF hierarchy to use for dictionaries
 - MDF support added to web version
 
@@ -68,7 +68,7 @@
 - Changes resulting from new rule application algorithm:
   - New constructore `PrevEnd` added to `Brassica.SoundChange.Apply.Internal.RuleTag`
   - New field `nonOverlappingTarget` added to `Brassica.SoundChange.Types.Flags`
-- New constructor `GreedyOptional` for `Brassica.SoundChange.Types.Lexeme`
+- New constructors `GreedyOptional` and `GreedyCategory` for `Brassica.SoundChange.Types.Lexeme`
 - `Brassica.SoundChange.Frontend.Internal.InputLexiconFormat`
     now depends on new type `Brassica.SoundChange.Frontend.Internal.MDFHierarchy`
 

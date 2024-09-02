@@ -80,6 +80,9 @@ parseGrapheme' wantTilde = lexeme $ do
 parseExplicitCategory :: ParseLexeme a => Parser (Lexeme CategorySpec a)
 parseExplicitCategory = Category <$> parseExplicitCategory'
 
+parseGreedyCategory :: Parser (Lexeme CategorySpec 'Matched)
+parseGreedyCategory = GreedyCategory <$> (char '%' *> parseExplicitCategory')
+
 parseExplicitCategory' :: ParseLexeme a => Parser (CategorySpec a)
 parseExplicitCategory' =
     CategorySpec <$> (symbol "[" *> someTill parseCategoryModification (symbol "]"))
@@ -187,6 +190,7 @@ instance ParseLexeme 'Matched where
         [ parseExplicitCategory
         , parseOptional
         , parseGreedyOptional
+        , parseGreedyCategory
         , parseGeminate
         , parseWildcard
         , parseBackreference
