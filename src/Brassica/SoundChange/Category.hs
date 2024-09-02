@@ -281,7 +281,7 @@ extendCategories cs' (overwrite, defs) =
                         zipWith (mkAuto featureName) gs (transpose $ M.elems features)
                 in pure $ M.merge
                     M.preserveMissing M.preserveMissing
-                    (M.zipWithMatched $ \_ c _ -> c)  -- prefer categories to autosegments
+                    (M.zipWithMatched $ \_ _ c -> c)
                     cs autoCs
 
     mkAuto :: String -> String -> [String] -> (String, Either (Expanded 'AnyPart) AutosegmentDef)
