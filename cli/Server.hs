@@ -73,7 +73,6 @@ instance FromJSON InputLexiconFormat where
         typeMismatch "String" invalid
 
 $(deriveJSON defaultOptions ''Component)
-$(deriveJSON defaultOptions ''Grapheme)
 $(deriveJSON defaultOptions ''HighlightMode)
 $(deriveJSON defaultOptions ''OutputMode)
 

@@ -57,7 +57,7 @@ lookup = (fmap (first generaliseExpanded) .) . M.lookup
 values :: Categories -> [Either Grapheme [Lexeme Expanded 'AnyPart]]
 values = nubOrd . concatMap (either elements autoElements) . M.elems
   where
-    autoElements = fmap (Left . GMulti) . autoGraphemes
+    autoElements = fmap Left . autoGraphemes
 
 -- Errors which can be emitted while inlining or expanding category
 -- definitions.
@@ -84,9 +84,9 @@ expand cs (CategorySpec spec) = FromElements <$> foldM go [] spec
   where
     go es (modifier, e) = do
         (new, modifier') <- case e of
-            Left (GMulti g)
+            Left g
                 | Just (g', '~') <- unsnoc g
-                    -> pure ([Left (GMulti g')], modifier)
+                    -> pure ([Left g'], modifier)
                 | modifier == Intersect
                 , Just (Left (FromElements c)) <- lookup ('+':g) cs
                     -> pure (c, Intersect)
@@ -101,15 +101,14 @@ expand cs (CategorySpec spec) = FromElements <$> foldM go [] spec
                     -> pure (c, modifier)
                 | Just (Right _) <- lookup g cs
                     -- re-expand to produce appropriate 'Auto'
-                    -> (,modifier) . pure . Right . pure <$> expandLexeme cs (Grapheme (GMulti g))
+                    -> (,modifier) . pure . Right . pure <$> expandLexeme cs (Grapheme g)
 
                     -- Note: there are other options for design here
                     -- see https://verduria.org/viewtopic.php?p=85766#p85766
                     -- | Just (Right (AutosegmentDef _ gs)) <- lookup g cs
                     -- 1. -> pure ([Left (GMulti g)], modifier)
                     -- 2. -> pure (Left . GMulti <$> g:gs, modifier)
-                | otherwise -> pure ([Left (GMulti g)], modifier)
-            Left GBoundary -> pure ([Left GBoundary], modifier)
+                | otherwise -> pure ([Left g], modifier)
             Right ls -> (,modifier) . pure . Right <$> traverse (expandLexeme cs) ls
         pure $ case modifier' of
             Union -> es ++ new
@@ -127,33 +126,32 @@ expand cs (CategorySpec spec) = FromElements <$> foldM go [] spec
       where
         go' g | g `elemAuto` new = Nothing
         go' (Right [Autosegment n kvs gs]) =
-            Just (Right [Autosegment n kvs $ filter ((`notElem` new) . Left . GMulti) gs])
+            Just (Right [Autosegment n kvs $ filter ((`notElem` new) . Left) gs])
         go' g = Just g
 
     intersectC es new = mapMaybe go' new
       where
         go' g | g `elemAuto` es = Just g
         go' (Right [Autosegment n kvs gs]) =
-            Just (Right [Autosegment n kvs $ filter ((`elem` new) . Left . GMulti) gs])
+            Just (Right [Autosegment n kvs $ filter ((`elem` new) . Left) gs])
         go' _ = Nothing
 
     elemAuto :: Either Grapheme [Lexeme Expanded a] -> [Either Grapheme [Lexeme Expanded a]] -> Bool
     elemAuto _ [] = False
-    elemAuto g'@(Left (GMulti gm)) (Right [Autosegment _ _ gs]:ls) = (gm `elem` gs) || elemAuto g' ls
+    elemAuto g'@(Left gm) (Right [Autosegment _ _ gs]:ls) = (gm `elem` gs) || elemAuto g' ls
     elemAuto g' (g:ls) = (g' == g) || elemAuto g' ls
 
 expandLexeme :: Categories -> Lexeme CategorySpec a -> Either ExpandError (Lexeme Expanded a)
-expandLexeme cs (Grapheme (GMulti g))
+expandLexeme cs (Grapheme g)
     | Just (g', '~') <- unsnoc g
-        = Right $ Grapheme $ GMulti g'
+        = Right $ Grapheme g'
     | otherwise =
         case lookup g cs of
             Just (Left c) -> Right $ Category c
             Just (Right a) -> do
                 kvs <- expandFeature cs (autoFeature a)
                 pure $ Autosegment (autoFeature a) kvs (autoGraphemes a)
-            Nothing -> Right $ Grapheme (GMulti g)
-expandLexeme _  (Grapheme GBoundary) = Right $ Grapheme GBoundary
+            Nothing -> Right $ Grapheme g
 expandLexeme cs (Category c) = Category <$> expand cs c
 expandLexeme cs (GreedyCategory c) = GreedyCategory <$> expand cs c
 expandLexeme cs (Optional ls) = Optional <$> traverse (expandLexeme cs) ls
@@ -213,7 +211,7 @@ lookupFeature cs n =
     getCategory _ = Nothing
 
 getBaseValue :: Either Grapheme [Lexeme Expanded 'AnyPart] -> Maybe String
-getBaseValue (Left (GMulti g)) = Just g
+getBaseValue (Left g) = Just g
 getBaseValue _ = Nothing
 
 -- taken from base-4.19
@@ -258,7 +256,7 @@ extendCategories cs' (overwrite, defs) =
             Left MismatchedLengths
 
         let features = zipWith
-               (\base ds -> (base, FromElements $ Left (GMulti base) : ds))
+               (\base ds -> (base, FromElements $ Left base : ds))
                baseValues'
                (transpose derivedValues)
             newCats = fmap (second Left) $
@@ -316,7 +314,7 @@ expandSoundChanges = fmap catMaybes . flip evalStateT (M.empty, []) . traverse g
         put (cs', extra)
         pure $ if noreplace
             then Nothing
-            else Just $ DirectiveS $ fmap GMulti extra ++ mapMaybe left (values cs')
+            else Just $ DirectiveS $ extra ++ mapMaybe left (values cs')
 
     left (Left l) = Just l
     left (Right _) = Nothing

@@ -91,9 +91,9 @@ splitMultipleResults _ (Gloss g) = [Gloss g]
 -- otherwise multigraphs will not be parsed correctly.
 wordParser :: [Char] -> [String] -> ParsecT Void String Identity PWord
 wordParser excludes gs = some $
-    (GBoundary <$ single '#')
-    <|> choice (fmap GMulti . chunk <$> gs)
-    <|> (GMulti . pure <$> satisfy (not . exclude))
+    ("#" <$ single '#')
+    <|> choice (chunk <$> gs)
+    <|> (pure <$> satisfy (not . exclude))
   where
     exclude = (||) <$> isSpace <*> (`elem` excludes)
 
@@ -164,10 +164,7 @@ detokeniseWords = detokeniseWords' concatWithBoundary
 -- | Given a list of sound changes, extract the list of multigraphs
 -- defined in the first categories declaration of the 'SoundChange's.
 findFirstCategoriesDecl :: SoundChanges c [Grapheme] -> [String]
-findFirstCategoriesDecl (DirectiveS gs:_) =
-    mapMaybe
-        (\case GBoundary -> Nothing; GMulti m -> Just m)
-        gs
+findFirstCategoriesDecl (DirectiveS gs:_) = gs
 findFirstCategoriesDecl (_:ss) = findFirstCategoriesDecl ss
 findFirstCategoriesDecl [] = []
 

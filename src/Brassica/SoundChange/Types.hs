@@ -19,7 +19,7 @@
 module Brassica.SoundChange.Types
        (
        -- * Words and graphemes
-         Grapheme(..)
+         Grapheme
        , PWord
        , addBoundaries
        , removeBoundaries
@@ -55,18 +55,13 @@ module Brassica.SoundChange.Types
        ) where
 
 import Control.DeepSeq (NFData(..), deepseq)
-import Data.String (IsString(..))
 import GHC.Generics (Generic)
 import GHC.OldList (dropWhileEnd)
 
--- | The type of graphemes within a word.
-data Grapheme
-    = GMulti [Char]  -- ^ A multigraph: for instance @GMulti "a", GMulti "ch", GMulti "c̓" :: t'Grapheme'@.
-    | GBoundary      -- ^ A non-letter element representing a word boundary which sound changes can manipulate
-    deriving (Eq, Ord, Show, Generic, NFData)
-
-instance IsString Grapheme where
-    fromString = GMulti
+-- | The type of graphemes within a word. @"#"@ is taken to denote a
+-- word boundary (whch is universally treated as a normal grapheme in
+-- sound changes.)
+type Grapheme = [Char]
 
 -- | A word (or a subsequence of one) can be viewed as a list of
 -- @Grapheme@s: e.g. Portuguese "filha" becomes
@@ -77,23 +72,18 @@ instance IsString Grapheme where
 -- with @Prelude.'Prelude.Word'@.)
 type PWord = [Grapheme]
 
--- Add a 'GBoundary' at the beginning and end of the 'PWord'.
+-- Add word boundaries at the beginning and end of the 'PWord'.
 addBoundaries :: PWord -> PWord
-addBoundaries w = GBoundary : w ++ [GBoundary]
+addBoundaries w = "#" : w ++ ["#"]
 
 -- Remove 'GBoundary's from the beginning and end of the 'PWord'.
 removeBoundaries :: PWord -> PWord
-removeBoundaries = dropWhile (==GBoundary) . dropWhileEnd (==GBoundary)
+removeBoundaries = dropWhile (=="#") . dropWhileEnd (=="#")
 
 -- | Render a 'PWord' as a 'String'. Very much like 'concat', but
--- treating 'GBoundary's specially. Word-external boundaries are
--- deleted, while word-internal boundaries are converted to @"#"@.
+-- deleting word-external boundaries.
 concatWithBoundary :: PWord -> String
-concatWithBoundary = go . removeBoundaries
-  where
-    go = concatMap $ \case
-        GMulti g -> g
-        GBoundary -> "#"
+concatWithBoundary = concat . removeBoundaries
 
 -- | The part of a 'Rule' in which a 'Lexeme' may occur: in a matched
 -- part (target or environment), in replacement, or in either of
@@ -201,7 +191,7 @@ generaliseExpanded = FromElements . (fmap.fmap.fmap) (generalise generaliseExpan
 
 -- | A 'Lexeme' matching a single word boundary, specified as @#@ in Brassica syntax.
 pattern Boundary :: Lexeme c a
-pattern Boundary = Grapheme GBoundary
+pattern Boundary = Grapheme "#"
 
 deriving instance (forall x. Show (c x)) => Show (Lexeme c a)
 deriving instance (forall x. Eq (c x)) => Eq (Lexeme c a)

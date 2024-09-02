@@ -71,6 +71,8 @@
 - New constructors `GreedyOptional` and `GreedyCategory` for `Brassica.SoundChange.Types.Lexeme`
 - `Brassica.SoundChange.Frontend.Internal.InputLexiconFormat`
     now depends on new type `Brassica.SoundChange.Frontend.Internal.MDFHierarchy`
+- Word boundaries are now simply ordinary graphemes `"#"`:
+    `Brassica.SoundChange.Types.Grapheme` is now a type synonym for `[Char]`
 
 ## 0.3.0
 

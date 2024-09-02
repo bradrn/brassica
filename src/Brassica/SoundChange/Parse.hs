@@ -61,8 +61,8 @@ nonzero = label "nonzero postive number" $ try $ do
 
 parseGrapheme :: Parser Grapheme
 parseGrapheme = lexeme $
-    GBoundary <$ char '#'
-    <|> GMulti <$> parseGrapheme' True
+    pure <$> char '#'
+    <|> parseGrapheme' True
 
 parseGrapheme' :: Bool -> Parser String
 parseGrapheme' wantTilde = lexeme $ do

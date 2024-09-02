@@ -230,7 +230,7 @@ match out prev (Feature n ident kvs l) mz = do
     let i = maybe 0 length $ Map.lookup n (matchedFeatures out)
     (out', mz') <- match out prev l mz
     let fs = case matchedGraphemes out' of
-            gs | GMulti g <- last gs -> checkFeature kvs g
+            gs | Just g <- lastMay gs -> checkFeature kvs g
             _ -> Indeterminate
     pure $ case ident of
         Nothing -> (appendFeatureAt i n fs out', mz')
@@ -240,7 +240,7 @@ match out prev (Feature n ident kvs l) mz = do
             )
 match out prev (Autosegment n kvs gs) mz =
     -- act as 'Category' + 'Feature', without capture
-    gs >>= \a -> match out prev (Feature n Nothing kvs $ Grapheme $ GMulti a) mz
+    gs >>= \a -> match out prev (Feature n Nothing kvs $ Grapheme a) mz
 
 checkFeature :: Eq a => [[a]] -> a -> FeatureState
 checkFeature [] _ = Indeterminate
@@ -273,7 +273,7 @@ matchWildcard = go []
   where
     go matched out prev l mz = case match out prev l mz of
         [] -> maybeToList (consume mz) >>= \case
-            (GBoundary, _) -> []   -- don't continue past word boundary
+            ("#", _) -> []   -- don't continue past word boundary
             (g, mz') -> go (g:matched) (appendGrapheme out g) prev l mz'
         r -> r <&> \(out', mz') ->
             ( out'
@@ -403,7 +403,7 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
                         case g' of
                             Left g -> [(ixs', (insert g mz, Just g))]
                             Right ls -> go ixs' ls (mz, prev)
-                    _ -> [(ixs', (insert (GMulti "\xfffd") mz, Nothing))]  -- Unicode replacement character
+                    _ -> [(ixs', (insert "\xfffd" mz, Nothing))]  -- Unicode replacement character
             (Nondeterministic, ixs') -> gs >>= \case
                 Left g -> [(ixs', (insert g mz, Just g))]
                 Right ls -> go ixs' ls (mz, prev)
@@ -454,8 +454,8 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
         in do
             (ixs'', (mz', prev')) <- replaceLex ixs' l mz prev
             case prev' of
-                Just (GMulti g) -> do
-                    g' <- GMulti <$> case fs of
+                Just g | g /= "#" -> do
+                    g' <- case fs of
                         Index i -> pure $ applyFeature kvs g i
                         Indeterminate
                             | gs:_ <- kvs ->
@@ -470,7 +470,7 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
     replaceLex ixs (Autosegment n kvs (g:_)) mz prev =
         -- ignore other segments, just produce a single one
         -- as modulated by a 'Feature'
-        replaceLex ixs (Feature n Nothing kvs $ Grapheme (GMulti g)) mz prev
+        replaceLex ixs (Feature n Nothing kvs $ Grapheme g) mz prev
 
 applyFeature :: [[String]] -> String -> Int -> String
 applyFeature [] g _ = g
@@ -642,12 +642,12 @@ filterMatches (Filter _ ls) = go . toBeginning
             _ -> True  -- filter has matched
 
 -- | Check that the 'MultiZipper' contains only graphemes listed in
--- the given 'CategoriesDecl', replacing all unlisted graphemes with
--- U+FFFD.
+-- the given 'CategoriesDecl', replacing all unlisted graphemes other
+-- than @"#"@ with U+FFFD.
 checkGraphemes :: [Grapheme] -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme
 checkGraphemes gs = fmap $ \case
-    GBoundary -> GBoundary
-    g -> if g `elem` gs then g else GMulti "\xfffd"
+    "#" -> "#"
+    g -> if g `elem` gs then g else "\xfffd"
 
 -- | Apply a 'Statement' to a 'MultiZipper', returning zero, one or
 -- more results.
