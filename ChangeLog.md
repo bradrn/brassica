@@ -43,6 +43,7 @@
 - Optional elements or categories can now be prefixed by `%` to make them match greedily
 - User can now choose which MDF hierarchy to use for dictionaries
 - MDF support added to web version
+- Add option to ‘synchronise scroll positions’ in web GUI
 
 ### Code
 

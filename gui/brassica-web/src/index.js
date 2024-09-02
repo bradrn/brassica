@@ -191,6 +191,7 @@ Split(["#rules-div", "#words-div", "#results-div"]);
 const form = document.getElementById("brassica-form");
 const viewLive = document.getElementById("view-live");
 const wordsArea = document.getElementById("words");
+const resultsDiv = document.getElementById("results");
 
 function updateForm(reportRules, needsLive) {
     if (needsLive && !viewLive.checked) return;
@@ -204,7 +205,7 @@ function updateForm(reportRules, needsLive) {
     const outputFormat = data.get("outputFormat");
 
     const output = applyChanges(rules, words, sep, reportRules, inputFormat, highlightMode, outputFormat);
-    document.getElementById("results").innerHTML = "<pre>" + output + "</pre>";
+    resultsDiv.innerHTML = "<pre>" + output + "</pre>";
 }
 
 form.addEventListener("submit", (event) => {
@@ -232,7 +233,7 @@ exampleSelect.addEventListener("change", async (event) => {
 
     rulesEditor.setValue(bsc);
     rulesEditor.clearSelection();
-    document.getElementById("words").value = lex;
+    wordsArea.value = lex;
 });
 
 const blurb = document.getElementById("blurb");
@@ -322,3 +323,30 @@ function reselectRadios(event) {
 inWordlistRadio    .addEventListener("input", reselectRadios)
 inMdfStandardRadio .addEventListener("input", reselectRadios)
 inMdfAlternateRadio.addEventListener("input", reselectRadios)
+
+const synchroniseScroll = document.getElementById("synchronise-scroll");
+var blockScrollTrackingEvent = false;
+
+wordsArea.addEventListener("scroll", function (event) {
+    if (!synchroniseScroll.checked) return;
+
+    if (blockScrollTrackingEvent) {
+        blockScrollTrackingEvent = false;
+    } else {
+        const ratio = wordsArea.scrollTop / wordsArea.scrollHeight;
+        blockScrollTrackingEvent = true;
+        resultsDiv.scrollTop = ratio * resultsDiv.scrollHeight;
+    }
+});
+
+resultsDiv.addEventListener("scroll", function (event) {
+    if (!synchroniseScroll.checked) return;
+
+    if (blockScrollTrackingEvent) {
+        blockScrollTrackingEvent = false;
+    } else {
+        const ratio = resultsDiv.scrollTop / resultsDiv.scrollHeight;
+        blockScrollTrackingEvent = true;
+        wordsArea.scrollTop = ratio * wordsArea.scrollHeight;
+    }
+});
