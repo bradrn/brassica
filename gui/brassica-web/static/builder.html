@@ -27,12 +27,24 @@
       <div id="paradigm-div" class="box-container">
         <div class="header">
           <label for="paradigm">Paradigm</label>
+          <span class="file-buttons">
+            <input type="button" id="open-paradigm" value="Open" />
+            <input type="button" id="download-paradigm" value="Download" />
+            <input type="button" id="select-all-paradigm" value="Select all" />
+            <input type="file" id="input-file-paradigm" class="hidden-file-input" />
+          </span>
         </div>
         <textarea id="paradigm" name="paradigm" class="input-box"></textarea>
       </div>
       <div id="roots-div" class="box-container">
         <div class="header">
           <label for="roots">Roots</label>
+          <span class="file-buttons">
+            <input type="button" id="open-roots" value="Open" />
+            <input type="button" id="download-roots" value="Download" />
+            <input type="button" id="select-all-roots" value="Select all" />
+            <input type="file" id="input-file-roots" class="hidden-file-input" />
+          </span>
         </div>
         <textarea id="roots" name="roots" class="input-box"></textarea>
       </div>
@@ -46,6 +58,9 @@
       <div id="output-div" class="box-container">
         <div class="header">
           <label for="output">Output</label>
+          <span class="file-buttons">
+            <input type="button" id="select-all-output" value="Select all" />
+          </span>
         </div>
         <div id="output" name="output" class="input-box"></textarea>
       </div>
