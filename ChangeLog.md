@@ -44,6 +44,8 @@
 - User can now choose which MDF hierarchy to use for dictionaries
 - MDF support added to web version
 - Add option to ‘synchronise scroll positions’ in web GUI
+- When ‘view results live’ is selected, update live on changes to all controls,
+    not just changes to words or sound changes
 
 ### Code
 

@@ -193,6 +193,19 @@ const viewLive = document.getElementById("view-live");
 const wordsArea = document.getElementById("words");
 const resultsDiv = document.getElementById("results");
 
+const hlNoneRadio = document.getElementById("hl-none");
+const hlLastRadio = document.getElementById("hl-last");
+const hlInputRadio = document.getElementById("hl-input");
+
+const inWordlistRadio = document.getElementById("in-wordlist");
+const inMdfStandardRadio = document.getElementById("in-mdfstandard");
+const inMdfAlternateRadio = document.getElementById("in-mdfalternate");
+
+const fmtWordlistRadio = document.getElementById("fmt-wordlist");
+const fmtInoutRadio = document.getElementById("fmt-inout");
+const fmtMdfRadio = document.getElementById("fmt-mdf");
+const fmtMdfEtymRadio = document.getElementById("fmt-mdfetym");
+
 function updateForm(reportRules, needsLive) {
     if (needsLive && !viewLive.checked) return;
 
@@ -214,8 +227,18 @@ form.addEventListener("submit", (event) => {
     updateForm(reportRules, false);
 });
 
-wordsArea.addEventListener("input", (event) =>
-    updateForm(false, true));
+// live highlight
+wordsArea          .addEventListener("input", (event) => updateForm(false, true));
+hlNoneRadio        .addEventListener("input", (event) => updateForm(false, true));
+hlLastRadio        .addEventListener("input", (event) => updateForm(false, true));
+hlInputRadio       .addEventListener("input", (event) => updateForm(false, true));
+inWordlistRadio    .addEventListener("input", (event) => updateForm(false, true));
+inMdfStandardRadio .addEventListener("input", (event) => updateForm(false, true));
+inMdfAlternateRadio.addEventListener("input", (event) => updateForm(false, true));
+fmtWordlistRadio   .addEventListener("input", (event) => updateForm(false, true));
+fmtInoutRadio      .addEventListener("input", (event) => updateForm(false, true));
+fmtMdfRadio        .addEventListener("input", (event) => updateForm(false, true));
+fmtMdfEtymRadio    .addEventListener("input", (event) => updateForm(false, true));
 
 const exampleSelect = document.getElementById("examples");
 const exampleMsg = "This will overwrite your current rules and lexicon. Are you sure you want to proceed?";
@@ -299,13 +322,6 @@ inputFileWords.addEventListener("change", (event) => {
 document
     .getElementById("open-words")
     .addEventListener("click", (event) => inputFileWords.click());
-
-const inWordlistRadio = document.getElementById("in-wordlist");
-const inMdfStandardRadio = document.getElementById("in-mdfstandard");
-const inMdfAlternateRadio = document.getElementById("in-mdfalternate");
-const fmtWordlistRadio = document.getElementById("fmt-wordlist");
-const fmtMdfRadio = document.getElementById("fmt-mdf");
-const fmtMdfEtymRadio = document.getElementById("fmt-mdfetym");
 
 function reselectRadios(event) {
     if (inMdfStandardRadio.checked || inMdfAlternateRadio.checked) {

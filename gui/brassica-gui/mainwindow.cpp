@@ -17,6 +17,7 @@
 #include <QTextStream>
 #include <Qt>
 #include <qnamespace.h>
+#include <qradiobutton.h>
 
 MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
     : QMainWindow(parent)
@@ -36,8 +37,6 @@ MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
 
     connect(applyBtn      , &QPushButton::clicked  , this, [this] { applySoundChanges(false, false); });
     connect(reportRulesBtn, &QPushButton::clicked  , this, [this] { applySoundChanges(false, true); } );
-    connect(rulesEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
-    connect(wordsEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
 
     QShortcut *applyShortcut1 = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Return), this);
     QShortcut *applyShortcut2 = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Enter ), this);
@@ -60,6 +59,22 @@ MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
 
     connect(mdfBtn   , &QRadioButton::toggled, this, &MainWindow::reselectCheckboxes);
     connect(mdfAltBtn, &QRadioButton::toggled, this, &MainWindow::reselectCheckboxes);
+
+    // live highlighting
+    connect(rulesEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
+    connect(wordsEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
+    connect(nohighlightBtn   , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(diffhighlightBtn , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(inputhighlightBtn, &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(rawBtn           , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(mdfBtn           , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(mdfAltBtn        , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(mdfoutBtn        , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(mdfetymoutBtn    , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(rawoutBtn        , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(inoutBtn         , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+
+    connect(viewLive, &QRadioButton::toggled, this, [this](bool checked) { if (checked) applySoundChanges(false, false); });
 }
 
 MainWindow::~MainWindow()
