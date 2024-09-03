@@ -296,6 +296,20 @@ document.getElementById("download-words").addEventListener("click", (event) => {
     save("words.lex", wordsArea.value);
 });
 
+document.getElementById("select-all-rules").addEventListener("click", (event) => {
+    rulesEditor.selection.selectAll();
+});
+document.getElementById("select-all-words").addEventListener("click", (event) => {
+    wordsArea.select();
+});
+document.getElementById("select-all-results").addEventListener("click", (event) => {
+    // see https://stackoverflow.com/a/1173319
+    var range = document.createRange();
+    range.selectNode(resultsDiv);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+});
+
 const inputFileRules = document.getElementById("input-file-rules");
 inputFileRules.addEventListener("change", (event) => {
     const file = inputFileRules.files[0];
