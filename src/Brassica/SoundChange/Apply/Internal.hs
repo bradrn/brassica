@@ -119,7 +119,7 @@ try p = StateT $ \s ->
         r -> first Just <$> r
 
 data FeatureState = Index Int | Indeterminate
-    deriving (Show)
+    deriving (Show, Eq)
 
 -- | Describes the output of a 'match' operation.
 data MatchOutput = MatchOutput
@@ -241,6 +241,21 @@ match out prev (Backreference i (FromElements gs)) mz = do
     case e of
         Left  g  -> match out prev (Grapheme g :: Lexeme Expanded a) mz
         Right ls -> matchMany out prev ls mz
+match out prev (Feature _n (Just ident) kvs l) mz
+    | Just fs <- Map.lookup ident (matchedFeatureIds out) = do
+        -- similar to next case, but just check that features are the same
+        -- (NB. feature name is irrelevant for this)
+        (out', mz') <- match out prev l mz
+        let fs' = case matchedGraphemes out' of
+                gs | Just g <- lastMay gs -> checkFeature kvs g
+                _ -> Indeterminate
+            satisfied = case (fs, fs') of
+                (Indeterminate, _) -> True
+                (_, Indeterminate) -> True
+                _ -> fs == fs'
+        if satisfied
+            then pure (out', mz')
+            else []
 match out prev (Feature n ident kvs l) mz = do
     let i = maybe 0 length $ Map.lookup n (matchedFeatures out)
     (out', mz') <- match out prev l mz
