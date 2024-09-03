@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "finddialog.h"
 #include "paradigmwindow.h"
 #include "settingsdialog.h"
 
@@ -16,6 +17,7 @@
 #include <QTextCodec>
 #include <QTextStream>
 #include <Qt>
+#include <qkeysequence.h>
 #include <qnamespace.h>
 #include <qradiobutton.h>
 
@@ -194,6 +196,11 @@ void MainWindow::setupWidgets(QWidget *central)
     outputEditVScroll = outputEdit->verticalScrollBar();
 }
 
+#define DOTOFOCUS(FN) [this] { \
+    QPlainTextEdit *f = dynamic_cast<QPlainTextEdit*>(focusWidget()); \
+    if (f != nullptr) f->FN(); \
+}
+
 void MainWindow::setupMenuBar()
 {
     QMenu *fileMenu = menuBar()->addMenu("&File");
@@ -203,6 +210,16 @@ void MainWindow::setupMenuBar()
     fileMenu->addAction("Open lexicon", QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_O), this, &MainWindow::openLexicon);
     fileMenu->addAction("Save lexicon", QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_S), this, &MainWindow::saveLexicon);
     fileMenu->addAction("Save lexicon as", this, &MainWindow::saveLexiconAs);
+
+    QMenu *editMenu = menuBar()->addMenu("&Edit");
+    editMenu->addAction("Undo", QKeySequence::Undo, this, DOTOFOCUS(undo));
+    editMenu->addAction("Redo", QKeySequence::Redo, this, DOTOFOCUS(redo));
+    editMenu->addSeparator();
+    editMenu->addAction("Cut", QKeySequence::Cut, this, DOTOFOCUS(cut));
+    editMenu->addAction("Copy", QKeySequence::Copy, this, DOTOFOCUS(copy));
+    editMenu->addAction("Paste", QKeySequence::Paste, this, DOTOFOCUS(paste));
+    editMenu->addSeparator();
+    editMenu->addAction("Find", QKeySequence::Find, this, &MainWindow::showFindWindow);
 
     QMenu *toolsMenu = menuBar()->addMenu("&Tools");
     toolsMenu->addAction("Paradigm builder", this, &MainWindow::showParadigmBuilder);
@@ -499,6 +516,44 @@ void MainWindow::reselectCheckboxes()
         mdfetymoutBtn->setEnabled(false);
     }
 }
+
+void MainWindow::showFindWindow() {
+    if (!findDialog) {
+        FindDialog::FindArea area;
+        if (rulesEdit->hasFocus()) area = FindDialog::Changes;
+        else if (wordsEdit->hasFocus()) area = FindDialog::Input;
+        else area = FindDialog::Output;
+
+        findDialog = new FindDialog(area, this);
+        connect(findDialog, &FindDialog::findNext, this, &MainWindow::findNext);
+    }
+
+    findDialog->show();
+    findDialog->raise();
+    findDialog->activateWindow();
+}
+
+void MainWindow::findNext(QString substring,
+                          FindDialog::FindArea area,
+                          QTextDocument::FindFlags flags) {
+    QTextCursor cursor;
+    switch (area) {
+    case FindDialog::Changes: cursor = rulesEdit->textCursor(); break;
+    case FindDialog::Input:   cursor = wordsEdit->textCursor(); break;
+    case FindDialog::Output:  cursor = outputEdit->textCursor(); break;
+    }
+
+    QTextDocument *doc = cursor.document();
+    QTextCursor found = doc->find(substring, cursor, flags);
+    if (!found.isNull()) {
+        switch (area) {
+        case FindDialog::Changes: rulesEdit->setTextCursor(found); break;
+        case FindDialog::Input:   wordsEdit->setTextCursor(found); break;
+        case FindDialog::Output:  outputEdit->setTextCursor(found); break;
+        }
+    }
+}
+
 
 void MainWindow::showParadigmBuilder()
 {

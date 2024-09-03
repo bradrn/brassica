@@ -29,6 +29,8 @@ add_executable(brassica-gui WIN32
   resources.rc
   brassicaprocess.h
   brassicaprocess.cpp
+  finddialog.h
+  finddialog.cpp
 )
 
 target_link_libraries(brassica-gui

@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include "brassicaprocess.h"
+#include "finddialog.h"
 #include "ruleshighlighter.h"
 #include "settings.h"
 
@@ -73,6 +74,8 @@ private:
 
     void refreshTitle();
 
+    FindDialog *findDialog = nullptr;
+
     Settings settings;
     void applySettings();
 
@@ -97,6 +100,9 @@ private slots:
     void updateWordsFromOutputSlider(int value);
 
     void reselectCheckboxes();
+
+    void showFindWindow();
+    void findNext(QString substring, FindDialog::FindArea area, QTextDocument::FindFlags flags);
 
     void showParadigmBuilder();
 

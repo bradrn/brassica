@@ -46,6 +46,7 @@
 - Add option to ‘synchronise scroll positions’ in web GUI
 - When ‘view results live’ is selected, update live on changes to all controls,
     not just changes to words or sound changes
+- Add ‘Edit’ menu to desktop GUI
 
 ### Code
 
