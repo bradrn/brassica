@@ -47,6 +47,8 @@
 - When ‘view results live’ is selected, update live on changes to all controls,
     not just changes to words or sound changes
 - Add ‘Edit’ menu to desktop GUI
+- Allow initialising fields of web GUI using query parameters
+  (`r` for rules, `w` for words)
 
 ### Code
 

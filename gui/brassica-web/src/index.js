@@ -193,6 +193,10 @@ const viewLive = document.getElementById("view-live");
 const wordsArea = document.getElementById("words");
 const resultsDiv = document.getElementById("results");
 
+const urlParams = new URLSearchParams(window.location.search);
+rulesEditor.setValue(urlParams.get("r"));
+wordsArea.value = urlParams.get("w");
+
 const hlNoneRadio = document.getElementById("hl-none");
 const hlLastRadio = document.getElementById("hl-last");
 const hlInputRadio = document.getElementById("hl-input");
