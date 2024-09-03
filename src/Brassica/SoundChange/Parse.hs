@@ -183,7 +183,11 @@ parseMultiple :: Parser (Lexeme CategorySpec 'Replacement)
 parseMultiple = Multiple <$> (symbol "@?" *> parseCategory')
 
 parseBackreference :: forall a. ParseLexeme a => Parser (Lexeme CategorySpec a)
-parseBackreference = Backreference <$> (symbol "@" *> nonzero) <*> parseCategory'
+parseBackreference = Backreference <$> (symbol "@" *> ref) <*> parseCategory'
+  where
+    ref =
+        Left <$> (char '#' *> parseGrapheme' False)
+        <|> Right <$> nonzero
 
 instance ParseLexeme 'Matched where
     parseLexeme = asum

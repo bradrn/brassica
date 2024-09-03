@@ -136,6 +136,8 @@ data MatchOutput = MatchOutput
     , matchedGraphemes :: [Grapheme]
       -- | The features which were matched
     , matchedFeatures :: Map.Map String [FeatureState]
+      -- | Backreferences which were matched by ID
+    , matchedBackrefIds :: Map.Map String Int
       -- | Features which were matched by ID
     , matchedFeatureIds :: Map.Map String FeatureState
     } deriving (Show)
@@ -147,7 +149,7 @@ appendGrapheme :: MatchOutput -> Grapheme -> MatchOutput
 appendGrapheme out g = modifyMatchedGraphemes (++[g]) out
 
 instance Semigroup MatchOutput where
-    (MatchOutput a1 b1 c1 d1 e1 f1 g1) <> (MatchOutput a2 b2 c2 d2 e2 f2 g2) =
+    (MatchOutput a1 b1 c1 d1 e1 f1 g1 h1) <> (MatchOutput a2 b2 c2 d2 e2 f2 g2 h2) =
         MatchOutput (a1++a2) (b1++b2) (c1++c2) (d1++d2) (e1++e2)
             (Map.merge Map.preserveMissing Map.preserveMissing
                 (Map.zipWithMatched $ const (++))
@@ -155,6 +157,9 @@ instance Semigroup MatchOutput where
             (Map.merge Map.preserveMissing Map.preserveMissing
                 (Map.zipWithMatched $ \_ _ g -> g)
                 g1 g2)
+            (Map.merge Map.preserveMissing Map.preserveMissing
+                (Map.zipWithMatched $ \_ _ g -> g)
+                h1 h2)
 
 zipWith' :: [a] -> [b] -> (a -> b -> c) -> [c]
 zipWith' xs ys f = zipWith f xs ys
@@ -220,9 +225,19 @@ match out prev (GreedyCategory c) mz =
 match out prev Geminate mz = case prev of
     Nothing -> []
     Just prev' -> (appendGrapheme out prev',) <$> maybeToList (matchGrapheme prev' mz)
+match out prev (Backreference (Left ident) (FromElements gs)) mz
+    | Nothing <- Map.lookup ident (matchedBackrefIds out) =
+        -- first occurrence, set backref
+        -- similar to Category case above
+        concat $ zipWith' gs [0..] $ \e i ->
+            first (\o -> o { matchedBackrefIds = Map.insert ident i $ matchedBackrefIds o })
+                <$> case e of
+                    Left  g  -> match out prev (Grapheme g :: Lexeme Expanded a) mz
+                    Right ls -> matchMany out prev ls mz
 match out prev (Backreference i (FromElements gs)) mz = do
-    e <- maybeToList $
-        (gs !?) =<< matchedCatIxs out !? (i-1)
+    e <- maybeToList $ case i of
+        Left i' -> (gs !?) =<< Map.lookup i' (matchedBackrefIds out)
+        Right i' -> (gs !?) =<< matchedCatIxs out !? (i'-1)
     case e of
         Left  g  -> match out prev (Grapheme g :: Lexeme Expanded a) mz
         Right ls -> matchMany out prev ls mz
@@ -307,7 +322,7 @@ matchMany' :: Maybe Grapheme
           -> [Lexeme Expanded 'Matched]
           -> MultiZipper t Grapheme
           -> [(MatchOutput, MultiZipper t Grapheme)]
-matchMany' = matchMany (MatchOutput [] [] [] [] [] Map.empty Map.empty)
+matchMany' = matchMany (MatchOutput [] [] [] [] [] Map.empty Map.empty Map.empty)
 
 -- Small utility function, not exported
 lastMay :: [a] -> Maybe a
@@ -322,7 +337,7 @@ data ReplacementIndices = ReplacementIndices
     , forcedCategory :: Maybe CategoryNumber
     } deriving (Show)
 
-data CategoryNumber = CategoryNumber Int | Nondeterministic
+data CategoryNumber = CategoryNumber Int | CategoryId String | Nondeterministic
     deriving (Show)
 
 advanceCategory :: ReplacementIndices -> Int -> (CategoryNumber, ReplacementIndices)
@@ -404,6 +419,13 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
                             Left g -> [(ixs', (insert g mz, Just g))]
                             Right ls -> go ixs' ls (mz, prev)
                     _ -> [(ixs', (insert "\xfffd" mz, Nothing))]  -- Unicode replacement character
+            (CategoryId ci, ixs') ->  -- as above
+                case Map.lookup ci (matchedBackrefIds out) of
+                    Just i | Just g' <- gs !? i ->
+                        case g' of
+                            Left g -> [(ixs', (insert g mz, Just g))]
+                            Right ls -> go ixs' ls (mz, prev)
+                    _ -> [(ixs', (insert "\xfffd" mz, Nothing))]  -- Unicode replacement character
             (Nondeterministic, ixs') -> gs >>= \case
                 Left g -> [(ixs', (insert g mz, Just g))]
                 Right ls -> go ixs' ls (mz, prev)
@@ -423,7 +445,10 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
     replaceLex ixs Discard mz prev =
         let (_, ixs') = advanceCategory ixs numCatsMatched
         in [(ixs', (mz, prev))]
-    replaceLex ixs (Backreference i c) mz prev =
+    replaceLex ixs (Backreference (Left i) c) mz prev =
+        let ixs' = forceCategory (CategoryId i) ixs
+        in replaceLex ixs' (Category c) mz prev
+    replaceLex ixs (Backreference (Right i) c) mz prev =
         let ixs' = forceCategory (CategoryNumber $ i-1) ixs -- 1-based indexing!
         in replaceLex ixs' (Category c) mz prev
     replaceLex ixs (Multiple c) mz prev =

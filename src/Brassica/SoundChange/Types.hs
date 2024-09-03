@@ -116,8 +116,8 @@ data Lexeme category (a :: LexemeType) where
     Kleene   :: Lexeme category a -> Lexeme category a
     -- | In Brassica sound-change syntax, specified as @~@
     Discard  :: Lexeme category 'Replacement
-    -- | In Brassica sound-change syntax, specified as \@i before a category
-    Backreference :: Int -> category a -> Lexeme category a
+    -- | In Brassica sound-change syntax, specified as \@i or \@#id before a category
+    Backreference :: Either String Int -> category a -> Lexeme category a
     -- | In Brassica sound-change syntax, specified as \@? before a category
     Multiple :: category 'Replacement -> Lexeme category 'Replacement
     -- | In Brassica sound-change syntax, specified as
@@ -207,7 +207,7 @@ instance (forall x. NFData (c x)) => NFData (Lexeme c a) where
     rnf (Wildcard l) = rnf l
     rnf (Kleene l) = rnf l
     rnf Discard = ()
-    rnf (Backreference i l) = i `seq` rnf l
+    rnf (Backreference i l) = i `deepseq` rnf l
     rnf (Multiple l) = rnf l
     rnf (Feature n i kvs l) = l `deepseq` n `deepseq` i `deepseq` rnf kvs
     rnf (Autosegment n kvs gs) = n `deepseq` kvs `deepseq` rnf gs

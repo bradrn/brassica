@@ -50,6 +50,7 @@
 - Allow initialising fields of web GUI using query parameters
   (`r` for rules, `w` for words)
 - Add ‘select all’ buttons to web GUI
+- New backreference syntax `@#` to allow identifying categories by ID rather than number
 
 ### Code
 
