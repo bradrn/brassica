@@ -51,6 +51,7 @@
   (`r` for rules, `w` for words)
 - Add ‘select all’ buttons to web GUI
 - New backreference syntax `@#` to allow identifying categories by ID rather than number
+- Improve display of web application controls on small screens
 
 ### Code
 

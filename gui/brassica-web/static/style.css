@@ -119,6 +119,7 @@ pre {
     flex-flow: column nowrap;
     gap: 5px;
     min-width: 13em;
+    overflow: auto;
 }
 #controls input[type="submit"] {
     font: inherit;
