@@ -636,7 +636,7 @@ SCA Output: ngiya
   -> ngéya  ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
   -> ngéy   (+Stress+No / / _)
   -> ŋgéy   (Pns / @1 Nsl @1 Vds)
-  -> eŋgéy  (ŋ C +Stress / @2 -Stress ŋ @1 C @2 +Stress / # _)
+  -> eŋgéy  (ŋ @#C C @#V +Stress / @#V -Stress ŋ @#C C @#V +Stress / # _)
   -> eŋgey  (-x +Stress / -Stress)
 
 
@@ -645,7 +645,7 @@ SCA Output: ŋalep
   -> ŋalə́p  (+Stress+No / +Stress+Pri / _ C [C #])
   -> ŋlə́p   (+Stress+No / / _)
   -> ŋláp    (ə / @? [a e])
-  -> aŋláp   (ŋ C +Stress / @2 -Stress ŋ @1 C @2 +Stress / # _)
+  -> aŋláp   (ŋ @#C C @#V +Stress / @#V -Stress ŋ @#C C @#V +Stress / # _)
   -> aŋnáp   ([lh l] / [l n])
   -> aŋnap   (-x +Stress / -Stress)
 
@@ -654,7 +654,7 @@ SCA Output: ŋalep
   -> ŋalə́p  (+Stress+No / +Stress+Pri / _ C [C #])
   -> ŋlə́p   (+Stress+No / / _)
   -> ŋlép    (ə / @? [a e])
-  -> eŋlép   (ŋ C +Stress / @2 -Stress ŋ @1 C @2 +Stress / # _)
+  -> eŋlép   (ŋ @#C C @#V +Stress / @#V -Stress ŋ @#C C @#V +Stress / # _)
   -> eŋnép   ([lh l] / [l n])
   -> eŋnep   (-x +Stress / -Stress)
 
@@ -759,7 +759,7 @@ SCA Output: qangat
   -> angár   ([t d] / r / V _ [V #])
   -> ngár    (+Stress+No / / _)
   -> ŋgár    (Pns / @1 Nsl @1 Vds)
-  -> aŋgár   (ŋ C +Stress / @2 -Stress ŋ @1 C @2 +Stress / # _)
+  -> aŋgár   (ŋ @#C C @#V +Stress / @#V -Stress ŋ @#C C @#V +Stress / # _)
   -> aŋgar   (-x +Stress / -Stress)
 
 
@@ -873,7 +873,7 @@ SCA Output: qangat
   -> angár   ([t d] / r / V _ [V #])
   -> ngár    (+Stress+No / / _)
   -> ŋgár    (Pns / @1 Nsl @1 Vds)
-  -> aŋgár   (ŋ C +Stress / @2 -Stress ŋ @1 C @2 +Stress / # _)
+  -> aŋgár   (ŋ @#C C @#V +Stress / @#V -Stress ŋ @#C C @#V +Stress / # _)
   -> aŋgar   (-x +Stress / -Stress)
 
 
@@ -2174,7 +2174,7 @@ tsesaqam
   -> ŋ#=#sʔám    (+Stress+No / / _)
   -> ŋsʔám       (-x # = # / / _)
   -> ŋsáʔm       (ʔ V / \ / C _)
-  -> aŋsáʔm      (ŋ C +Stress / @2 -Stress ŋ @1 C @2 +Stress / # _)
+  -> aŋsáʔm      (ŋ @#C C @#V +Stress / @#V -Stress ŋ @#C C @#V +Stress / # _)
   -> aŋsaʔm      (-x +Stress / -Stress)
 
 ŋasaqam

@@ -107,8 +107,8 @@ C / / [C -ʔ -y -w] _ #
 
 ŋ +Stress / @1 -Stress ŋ @1 +Stress / # _
 ŋ -Stress / @1 -Stress ŋ @1 -Stress / # _
-ŋ C +Stress / @2 -Stress ŋ @1 C @2 +Stress / # _
-ŋ C -Stress / @2 -Stress ŋ @1 C @2 -Stress / # _
+ŋ @#C C @#V +Stress / @#V -Stress ŋ @#C C @#V +Stress / # _
+ŋ @#C C @#V -Stress / @#V -Stress ŋ @#C C @#V -Stress / # _
 
 ɣ / i~ / # _ C
 ɣ / / _
