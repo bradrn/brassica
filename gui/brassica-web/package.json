@@ -8,7 +8,14 @@
   "license": "BSD-3-Clause",
   "dependencies": {
     "@bjorn3/browser_wasi_shim": "^0.2.14",
-    "ace-builds": "^1.23.2",
+    "@codemirror/autocomplete": "^6.18.0",
+    "@codemirror/commands": "^6.6.1",
+    "@codemirror/language": "^6.10.2",
+    "@codemirror/search": "^6.5.6",
+    "@codemirror/state": "^6.4.1",
+    "@codemirror/view": "^6.33.0",
+    "@lezer/highlight": "^1.2.1",
+    "codemirror": "^6.0.1",
     "split.js": "^1.6.5"
   },
   "devDependencies": {

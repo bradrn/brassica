@@ -52,6 +52,7 @@
 - Add ‘select all’ buttons to web GUI
 - New backreference syntax `@#` to allow identifying categories by ID rather than number
 - Improve display of web application controls on small screens
+- Rewrite sound changes editor on web version to work around bug with combining diacritics
 
 ### Code
 

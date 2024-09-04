@@ -1,5 +1,14 @@
-import ace from "ace-builds";
 import Split from "split.js";
+
+import {EditorState, EditorSelection} from "@codemirror/state"
+import {EditorView, keymap, highlightSpecialChars, drawSelection, dropCursor,
+        rectangularSelection, crosshairCursor, lineNumbers} from "@codemirror/view"
+import {StreamLanguage, LanguageSupport, HighlightStyle, syntaxHighlighting,
+        bracketMatching} from "@codemirror/language"
+import {tags} from "@lezer/highlight"
+import {defaultKeymap, history, historyKeymap} from "@codemirror/commands"
+import {searchKeymap, highlightSelectionMatches} from "@codemirror/search"
+import {closeBrackets, closeBracketsKeymap} from "@codemirror/autocomplete"
 
 import {hs, withBytesPtr, decodeStableCStringLen, encoder, decoder} from "./interop.js";
 
@@ -61,130 +70,83 @@ function applyChanges(changes, words, sep, reportRules, inputMode, highlightMode
  * Syntax highlighting *
  ***********************/
 
-ace.define('ace/mode/brassica', function(require, exports, module) {
-    var oop = require("ace/lib/oop");
-    var TextMode = require("ace/mode/text").Mode;
-    var BrassicaHighlightRules = require("ace/mode/brassica_highlight_rules").BrassicaHighlightRules;
+const brassicaMainRules = [
+    { token: "keyword",
+      regex: />|#|\(|\)|{|}|\\|\^|%|~|\*|nohighlight|extra|filter|report|@[0-9]+|@\?/
+    },
+    { token: "separator",
+      regex: /\/|_|→|->/
+    },
+    { token: "controlOperator",  // actually features - but why not?
+      regex: /\$[^\s#[\](){}>\\→/_^%~*@$]+(#[^\s#[\](){}>\\→/_^%~*@$]+)?/
+    },
+    { token: "meta",
+      regex: /^-(x|1|ltr|rtl|\?\?|\?)/
+    },
+    { token: "variableName",  // categories - there's no closer tag type
+      regex: /\[.*?\]/
+    }
+];
 
-    var Mode = function() {
-        this.HighlightRules = BrassicaHighlightRules;
-    };
-    oop.inherits(Mode, TextMode);
-
-    (function() {
-        // Extra logic goes here. (see below)
-    }).call(Mode.prototype);
-
-    exports.Mode = Mode;
-});
-
-ace.define('ace/mode/brassica_highlight_rules', function(require, exports, module) {
-    var oop = require("ace/lib/oop");
-    var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
-
-    var BrassicaHighlightRules = function() {
-        this.$rules = {
-            start: [
-                { token: "keyword",
-                  regex: ">|#|\\(|\\)|{|}|\\\\|\\^|%|~|\\*|categories|end|new|nohighlight|feature|auto|extra|filter|report|@[0-9]+|@\\?"
-                },
-                { token: "separator",
-                  regex: "/|_|→|->"
-                },
-                { token: "feature",
-                  regex: "\\$[^\\s#[\\](){}>\\\\→/_^%~*@$]+(#[^\\s#[\\](){}>\\\\→/_^%~*@$]+)?"
-                },
-                {
-                  token: "flag",
-                  regex: "^-(x|1|ltr|rtl|\\?\\?|\\?)"
-                },
-                { token: "comment",
-                  regex: ";.*$"
-                },
-                { token: "category",
-                  regex: "\\[.*?\\]"
-                },
-            ]
-        };
-        this.normalizeRules();
-    };
-
-    oop.inherits(BrassicaHighlightRules, TextHighlightRules);
-    exports.BrassicaHighlightRules = BrassicaHighlightRules;
-});
-
-// see https://stackoverflow.com/a/3561711
-const escapeRegexpConst = /[/\-\\^$*+?.()|[\]{}]/g;
-function escapeRegexp(string) {
-    return string.replace(escapeRegexpConst, '\\$&');
-}
-
-var categoryMarkers = [];
-function rehighlightCategories(editor) {
-    // preliminary: remove all markers
-    categoryMarkers.forEach((id) => editor.session.removeMarker(id));
-
-    const rules = editor.getValue();
-    const rulesLines = rules.split("\n");
-
-    // first pass: accumulate categories
-    let categories = [];
-    const featureRegex = /=|\/|feature/g;
-    let inCategories = false;
-    rulesLines.forEach((line) => {
-        if (line.includes("categories")) {
-            inCategories = true;
-        } else if (line === "end") {
-            inCategories = false;
-        } else if (line.includes("feature")) {
-            let lineParts = line.split(featureRegex);
-            // every second part from the end is a category name,
-            for (let i = lineParts.length-2; i>=0; i-=2) {
-                categories.push(escapeRegexp(lineParts[i].trim()));
+const brassicaLang = StreamLanguage.define({
+    name: "Brassica",
+    startState: (i) => { return { categories: [], cblock: false }},
+    token: function (stream, state) {
+        if (stream.match(/;.*$/)) {
+            return "comment";
+        }
+        if (state.cblock) {
+            if (stream.match(/^end$/)) {
+                state.cblock = false;
+                return "keyword";
             }
-        } else if (inCategories) {
-            let lineParts = line.split("=");
-            if (lineParts.length > 1) {
-                categories.push(escapeRegexp(lineParts[0].trim()));
+            if (stream.match(/feature|auto/)) {
+                return "keyword";
+            }
+            const catMatch = stream.match(/^(\S+)(?=\s+=)/);
+            if (catMatch) {
+                state.categories.push(catMatch[1]);
+                return "variableName";
+            }
+        } else {
+            if (stream.match(/^new categories( nohighlight)?$/)) {
+                state.categories = []
+                state.cblock = true;
+                return "keyword";
+            }
+            if (stream.match(/^categories$/)) {
+                state.cblock = true;
+                return "keyword";
+            }
+            for (let rule of brassicaMainRules) {
+                if (stream.match(rule.regex)) {
+                    return rule.token;
+                }
+            }
+            for (let category of state.categories) {
+                if (stream.match(category)) {
+                    return "variableName";
+                }
             }
         }
-    });
-
-    let catsRegex = new RegExp(categories.join("|"), "gd");
-
-    // second pass: find row/column coords of matches
-    // and add them as markers
-    const Range = ace.require("ace/range").Range;
-    let ranges = [];
-    for (let row=0; row<rulesLines.length; ++row) {
-        let matches = rulesLines[row].matchAll(catsRegex);
-        for (const match of matches) {
-            let r = new Range(
-                row, match.index,
-                row, match.index + match[0].length);
-            let id = editor.session.addMarker(r, "regex_category", "text");
-            categoryMarkers.push(id);
-        };
+        stream.next();
+        return null;
     }
-}
+});
+
+const brassicaHighlightStyle = HighlightStyle.define([
+    {tag: tags.keyword, color: "#00f"},
+    {tag: tags.separator, fontWeight: "bold"},
+    {tag: tags.controlOperator,  color: "rgb(34,139,34)"},
+    {tag: tags.meta, color: "rgb(0,128,128)"},
+    {tag: tags.variableName, backgroundColor: "rgb(245,245,220)"},
+    {tag: tags.comment, "color": "rgb(0,128,0)"}
+]);
 
 
 /***********************
  * Set up content      *
  ***********************/
-
-var rulesEditor = ace.edit("rules");
-rulesEditor.session.setMode("ace/mode/brassica");
-rulesEditor.renderer.setShowGutter(false);
-rulesEditor.setHighlightActiveLine(false);
-rulesEditor.renderer.setOptions({
-    fontFamily: "monospace",
-    fontSize: "inherit",
-});
-rulesEditor.addEventListener("input", (event) => {
-    rehighlightCategories(rulesEditor);
-    updateForm(false, true);
-});
 
 Split(["#rules-div", "#words-div", "#results-div"]);
 
@@ -194,8 +156,32 @@ const wordsArea = document.getElementById("words");
 const resultsDiv = document.getElementById("results");
 
 const urlParams = new URLSearchParams(window.location.search);
-rulesEditor.setValue(urlParams.get("r"));
 wordsArea.value = urlParams.get("w");
+
+let rulesEditor = new EditorView({
+    doc: urlParams.get("r"),
+    extensions: [
+        highlightSpecialChars(),
+        history(),
+        drawSelection(),
+        dropCursor(),
+        EditorState.allowMultipleSelections.of(true),
+        syntaxHighlighting(brassicaHighlightStyle),
+        bracketMatching(),
+        closeBrackets(),
+        rectangularSelection(),
+        crosshairCursor(),
+        highlightSelectionMatches(),
+        new LanguageSupport(brassicaLang),
+        keymap.of([
+            ...closeBracketsKeymap,
+            ...defaultKeymap,
+            ...searchKeymap,
+            ...historyKeymap
+        ])
+    ],
+    parent: document.getElementById("rules"),
+})
 
 const hlNoneRadio = document.getElementById("hl-none");
 const hlLastRadio = document.getElementById("hl-last");
@@ -214,7 +200,7 @@ function updateForm(reportRules, needsLive) {
     if (needsLive && !viewLive.checked) return;
 
     const data = new FormData(form);
-    const rules = rulesEditor.getValue();
+    const rules = rulesEditor.state.doc.toString();
     const words = data.get("words");
     const sep = data.get("sep");
     const highlightMode = data.get("highlightMode");
@@ -258,8 +244,8 @@ exampleSelect.addEventListener("change", async (event) => {
     const bsc = await fetch(bscFile).then((response) => response.text());
     const lex = await fetch(lexFile).then((response) => response.text());
 
-    rulesEditor.setValue(bsc);
-    rulesEditor.clearSelection();
+    let spec = {from: 0, to: rulesEditor.state.doc.length, insert: bsc};
+    rulesEditor.dispatch(rulesEditor.state.update({changes: spec}))
     wordsArea.value = lex;
 });
 
@@ -289,7 +275,7 @@ function save(filename, data) {
 
 document.getElementById("download-rules").addEventListener("click", (event) => {
     event.preventDefault();
-    save("rules.bsc", rulesEditor.getValue());
+    save("rules.bsc", rulesEditor.state.doc.toString());
 });
 document.getElementById("download-words").addEventListener("click", (event) => {
     event.preventDefault();
@@ -297,7 +283,8 @@ document.getElementById("download-words").addEventListener("click", (event) => {
 });
 
 document.getElementById("select-all-rules").addEventListener("click", (event) => {
-    rulesEditor.selection.selectAll();
+    let sel = EditorSelection.range(0, rulesEditor.state.doc.length);
+    rulesEditor.dispatch(rulesEditor.state.update({selection: sel}));
 });
 document.getElementById("select-all-words").addEventListener("click", (event) => {
     wordsArea.select();
@@ -316,8 +303,8 @@ inputFileRules.addEventListener("change", (event) => {
     if (file) {
         const reader = new FileReader();
         reader.onload = (e) => {
-            rulesEditor.setValue(e.target.result);
-            rulesEditor.clearSelection();
+            let spec = {from: 0, to: rulesEditor.state.doc.length, insert: e.target.result};
+            rulesEditor.dispatch(rulesEditor.state.update({changes: spec}))
         };
         reader.readAsText(file);
     }

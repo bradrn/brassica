@@ -129,22 +129,24 @@ pre {
     padding-top: 2rem;
 }
 
-.ace-tm .ace_feature {
-    color: rgb(34,139,34);
+#rules-div {
+    /* Necessary to remove min-width so that split resizing works as
+       expected: split.js will prevent it from getting too small anyway
+     */
+    min-width: 0;
 }
-.ace-tm .ace_separator {
-    font-weight: bold;
+
+#rules {
+    overflow: auto;
 }
-.ace-tm .ace_flag {
-    color: rgb(0,128,128);
+
+.cm-editor {
+    height: 100%;
+    background-color: #FFF;
 }
-.ace-tm .ace_category,
-.regex_category {
-    background-color: rgb(245,245,220);
-}
-.regex_category {
-    position: absolute;
-    z-index: 20;
+
+.cm-scroller {
+    overflow: auto;
 }
 
 .split {
