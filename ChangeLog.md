@@ -4,15 +4,13 @@
 
 ### Behaviour
 
-- Bugfix: etymologies are now added in all situations when processing an MDF file
-- Bugfix: desktop version correctly warns about unsaved changes when opening a file
-- New `report` directive allows for reporting intermediate results in input→output mode
-- Whitespace is now preserved when displaying sound change output on desktop and web
-- Improved handling of `~` after grapheme:
-  - It is now allowed inside a category block
-  - It is now disallowed in category names and in `extra` declarations (where it would be meaningless)
-- Category intersection now produces a category with graphemes in the same order as the last category mentioned,
-  rather than the first
+(Note: breaking changes are boldfaced.)
+
+- Bugfixes:
+  - Etymologies are now added in all situations when processing an MDF file
+  - Desktop version correctly warns about unsaved changes when opening a file
+  - Rules such as `[p f] / [f h] / (a) _ #` are no longer applied twice to the same grapheme
+      (as a consequence of changes to rule application, see below)
 - New support for phonetic features:
   - Features can be written as maximal `$name#ident(values)` after another lexeme
   - Categories named `+Feature`, `-Feature` and `+Feature+Value`
@@ -24,35 +22,39 @@
   - Declaration `auto <FeaturalCategory>` in category definition block
       can be used to treat said feature autosegmentally
       whenever a grapheme in the selected category is mentioned
+- Other changes to sound change syntax:
+  - `report` directive allows for reporting intermediate results in input→output mode
+  - Graphemes followed by `~` are now allowed inside a category block,
+      but **disallowed in category names and in `extra` declarations** (where they would be meaningless)
+  - **Category intersection now produces a category with graphemes
+      in the same order as the last category mentioned, rather than the first**
+  - Optional elements or categories can now be prefixed by `%` to make them match greedily
+  - New backreference syntax `@#id` allows categories to be matched by ID rather than number
 - Changes to rule application algorithm:
-  - Sound change applications can now overlap,
-      such that the replacement from one application can be used as the environment for the next
+  - **Sound change applications can now overlap,
+      such that the replacement from one application can be used as the environment for the next**
   - New flag `-no` allows for reverting to the previous behaviour (non-overlapping applications)
-  - Make RTL and LTR application symmetric,
-      by reimplementing the former as LTR application with words and rules reversed
-      (also meaning that category correspondences, backreferences, etc. are reversed too)
-  - Bugfix arising from last point:
-      rules such as `[p f] / [f h] / (a) _ #` will no longer apply twice to the same grapheme
-      (here taking ⟨ap⟩ to incorrect ⟨ah⟩ rather than expected ⟨af⟩)
-- New keyboard shortcuts in desktop GUI:
-    Ctrl+Enter to apply rules, Ctrl+Tab to toggle between rules and words textboxes
-- Improvements to output from ‘Report rules apply’:
-  - Comments are no longer included next to rules
-  - Outputs are no longer aligned across input words,
-      making the interface much more responsive on desktop
-- Optional elements or categories can now be prefixed by `%` to make them match greedily
-- User can now choose which MDF hierarchy to use for dictionaries
-- MDF support added to web version
-- Add option to ‘synchronise scroll positions’ in web GUI
-- When ‘view results live’ is selected, update live on changes to all controls,
-    not just changes to words or sound changes
-- Add ‘Edit’ menu to desktop GUI
-- Allow initialising fields of web GUI using query parameters
-  (`r` for rules, `w` for words)
-- Add ‘select all’ buttons to web GUI
-- New backreference syntax `@#` to allow identifying categories by ID rather than number
-- Improve display of web application controls on small screens
-- Rewrite sound changes editor on web version to work around bug with combining diacritics
+  - **Make RTL and LTR application symmetric,
+      by reimplementing the former as LTR application with words and rules reversed:
+      consequently category correspondences, backreferences etc. are also reversed**
+- Improvements to graphical interface:
+  - Whitespace is now preserved when displaying sound change output on desktop and web
+  - New keyboard shortcuts in desktop GUI:
+      Ctrl+Enter to apply rules, Ctrl+Tab to toggle between rules and words textboxes
+  - Improvements to output from ‘Report rules apply’:
+    comments are no longer included next to rules, and
+    outputs are no longer aligned across input words (greatly increasing responsiveness on desktop)
+  - User can now choose which MDF hierarchy to use for dictionaries
+  - Web version brought closer to parity with desktop version
+      by adding MDF support and an option to ‘synchronise scroll positions’
+  - When ‘view results live’ is selected, results are updated on changes to all controls,
+      not just changes to words or sound changes
+  - Add ‘Edit’ menu to desktop GUI, including ‘Find’ dialog box
+  - Fields of web GUI can now be initialised using URL query parameters
+    (`r` for rules, `w` for words)
+  - Add ‘select all’ buttons to web GUI
+  - Improve display of web application controls on small screens
+  - Sound changes editor on web version has been rewritten to work around bug with combining diacritics
 
 ### Code
 
