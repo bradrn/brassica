@@ -6,7 +6,6 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PolyKinds             #-}
 {-# LANGUAGE PatternSynonyms       #-}
@@ -19,7 +18,7 @@
 module Brassica.SoundChange.Types
        (
        -- * Words and graphemes
-         Grapheme(..)
+         Grapheme
        , PWord
        , addBoundaries
        , removeBoundaries
@@ -54,19 +53,14 @@ module Brassica.SoundChange.Types
        , Directive(..)
        ) where
 
-import Control.DeepSeq (NFData(..))
-import Data.String (IsString(..))
+import Control.DeepSeq (NFData(..), deepseq)
 import GHC.Generics (Generic)
 import GHC.OldList (dropWhileEnd)
 
--- | The type of graphemes within a word.
-data Grapheme
-    = GMulti [Char]  -- ^ A multigraph: for instance @GMulti "a", GMulti "ch", GMulti "c̓" :: t'Grapheme'@.
-    | GBoundary      -- ^ A non-letter element representing a word boundary which sound changes can manipulate
-    deriving (Eq, Ord, Show, Generic, NFData)
-
-instance IsString Grapheme where
-    fromString = GMulti
+-- | The type of graphemes within a word. @"#"@ is taken to denote a
+-- word boundary (whch is universally treated as a normal grapheme in
+-- sound changes.)
+type Grapheme = [Char]
 
 -- | A word (or a subsequence of one) can be viewed as a list of
 -- @Grapheme@s: e.g. Portuguese "filha" becomes
@@ -77,23 +71,18 @@ instance IsString Grapheme where
 -- with @Prelude.'Prelude.Word'@.)
 type PWord = [Grapheme]
 
--- Add a 'GBoundary' at the beginning and end of the 'PWord'.
+-- Add word boundaries at the beginning and end of the 'PWord'.
 addBoundaries :: PWord -> PWord
-addBoundaries w = GBoundary : w ++ [GBoundary]
+addBoundaries w = "#" : w ++ ["#"]
 
 -- Remove 'GBoundary's from the beginning and end of the 'PWord'.
 removeBoundaries :: PWord -> PWord
-removeBoundaries = dropWhile (==GBoundary) . dropWhileEnd (==GBoundary)
+removeBoundaries = dropWhile (=="#") . dropWhileEnd (=="#")
 
 -- | Render a 'PWord' as a 'String'. Very much like 'concat', but
--- treating 'GBoundary's specially. Word-external boundaries are
--- deleted, while word-internal boundaries are converted to @"#"@.
+-- deleting word-external boundaries.
 concatWithBoundary :: PWord -> String
-concatWithBoundary = go . removeBoundaries
-  where
-    go = concatMap $ \case
-        GMulti g -> g
-        GBoundary -> "#"
+concatWithBoundary = concat . removeBoundaries
 
 -- | The part of a 'Rule' in which a 'Lexeme' may occur: in a matched
 -- part (target or environment), in replacement, or in either of
@@ -111,8 +100,12 @@ data Lexeme category (a :: LexemeType) where
     Grapheme :: Grapheme -> Lexeme category a
     -- | In Brassica sound-change syntax, delimited by square brackets
     Category :: category a -> Lexeme category a
+    -- | In Brassica sound-change syntax, delimited by square brackets after @%@
+    GreedyCategory :: category 'Matched -> Lexeme category 'Matched
     -- | In Brassica sound-change syntax, delimited by parentheses
     Optional :: [Lexeme category a] -> Lexeme category a
+    -- | In Brassica sound-change syntax, delimited by parentheses after @%@
+    GreedyOptional :: [Lexeme category 'Matched] -> Lexeme category 'Matched
     -- | In Brassica sound-change syntax, specified as @\@
     Metathesis :: Lexeme category 'Replacement
     -- | In Brassica sound-change syntax, specified as @>@
@@ -123,15 +116,24 @@ data Lexeme category (a :: LexemeType) where
     Kleene   :: Lexeme category a -> Lexeme category a
     -- | In Brassica sound-change syntax, specified as @~@
     Discard  :: Lexeme category 'Replacement
-    -- | In Brassica sound-change syntax, specified as \@i before a category
-    Backreference :: Int -> category a -> Lexeme category a
+    -- | In Brassica sound-change syntax, specified as \@i or \@#id before a category
+    Backreference :: Either String Int -> category a -> Lexeme category a
     -- | In Brassica sound-change syntax, specified as \@? before a category
     Multiple :: category 'Replacement -> Lexeme category 'Replacement
+    -- | In Brassica sound-change syntax, specified as
+    -- @$name#id(a~a′~a″ b~b′~b″ …)@ after another 'Lexeme'
+    Feature :: String -> Maybe String -> [[String]] -> Lexeme category a -> Lexeme category a
+    -- | Special lexeme for internal use: acts as a non-capturing
+    -- category in target/environment, and as 'Grapheme' in
+    -- replacement, in each case surrounded by a 'Feature'
+    Autosegment :: String -> [[String]] -> [String] -> Lexeme category a
 
 mapCategory :: (forall x. c x -> c' x) -> Lexeme c a -> Lexeme c' a
 mapCategory _ (Grapheme g) = Grapheme g
 mapCategory f (Category c) = Category (f c)
+mapCategory f (GreedyCategory c) = GreedyCategory (f c)
 mapCategory f (Optional ls) = Optional (mapCategory f <$> ls)
+mapCategory f (GreedyOptional ls) = GreedyOptional (mapCategory f <$> ls)
 mapCategory _ Metathesis = Metathesis
 mapCategory _ Geminate = Geminate
 mapCategory f (Wildcard l) = Wildcard (mapCategory f l)
@@ -139,6 +141,8 @@ mapCategory f (Kleene l) = Kleene (mapCategory f l)
 mapCategory _ Discard = Discard
 mapCategory f (Backreference i c) = Backreference i (f c)
 mapCategory f (Multiple c) = Multiple (f c)
+mapCategory f (Feature n i kvs l) = Feature n i kvs $ mapCategory f l
+mapCategory _ (Autosegment n kvs gs) = Autosegment n kvs gs
 
 mapCategoryA
     :: Applicative t
@@ -147,7 +151,9 @@ mapCategoryA
     -> t (Lexeme c' a)
 mapCategoryA _ (Grapheme g) = pure $ Grapheme g
 mapCategoryA f (Category c) = Category <$> f c
+mapCategoryA f (GreedyCategory c) = GreedyCategory <$> f c
 mapCategoryA f (Optional ls) = Optional <$> traverse (mapCategoryA f) ls
+mapCategoryA f (GreedyOptional ls) = GreedyOptional <$> traverse (mapCategoryA f) ls
 mapCategoryA _ Metathesis = pure Metathesis
 mapCategoryA _ Geminate = pure Geminate
 mapCategoryA f (Wildcard l) = Wildcard <$> mapCategoryA f l
@@ -155,6 +161,8 @@ mapCategoryA f (Kleene l) = Kleene <$> mapCategoryA f l
 mapCategoryA _ Discard = pure Discard
 mapCategoryA f (Backreference i c) = Backreference i <$> f c
 mapCategoryA f (Multiple c) = Multiple <$> f c
+mapCategoryA f (Feature n i kvs l) = Feature n i kvs <$> mapCategoryA f l
+mapCategoryA _ (Autosegment n kvs gs) = pure $ Autosegment n kvs gs
 
 -- | The type of a category after expansion.
 newtype Expanded a = FromElements { elements :: [Either Grapheme [Lexeme Expanded a]] }
@@ -174,13 +182,15 @@ generalise _ Geminate = Geminate
 generalise f (Backreference i es) = Backreference i $ f es
 generalise f (Wildcard l) = Wildcard $ generalise f l
 generalise f (Kleene l) = Kleene $ generalise f l
+generalise f (Feature n i kvs l) = Feature n i kvs $ generalise f l
+generalise _ (Autosegment n kvs gs) = Autosegment n kvs gs
 
 generaliseExpanded :: Expanded 'AnyPart -> Expanded a
 generaliseExpanded = FromElements . (fmap.fmap.fmap) (generalise generaliseExpanded) . elements
 
 -- | A 'Lexeme' matching a single word boundary, specified as @#@ in Brassica syntax.
 pattern Boundary :: Lexeme c a
-pattern Boundary = Grapheme GBoundary
+pattern Boundary = Grapheme "#"
 
 deriving instance (forall x. Show (c x)) => Show (Lexeme c a)
 deriving instance (forall x. Eq (c x)) => Eq (Lexeme c a)
@@ -189,14 +199,18 @@ deriving instance (forall x. Ord (c x)) => Ord (Lexeme c a)
 instance (forall x. NFData (c x)) => NFData (Lexeme c a) where
     rnf (Grapheme g) = rnf g
     rnf (Category cs) = rnf cs
+    rnf (GreedyCategory cs) = rnf cs
     rnf (Optional ls) = rnf ls
+    rnf (GreedyOptional ls) = rnf ls
     rnf Metathesis = ()
     rnf Geminate = ()
     rnf (Wildcard l) = rnf l
     rnf (Kleene l) = rnf l
     rnf Discard = ()
-    rnf (Backreference i l) = seq i $ rnf l
+    rnf (Backreference i l) = i `deepseq` rnf l
     rnf (Multiple l) = rnf l
+    rnf (Feature n i kvs l) = l `deepseq` n `deepseq` i `deepseq` rnf kvs
+    rnf (Autosegment n kvs gs) = n `deepseq` kvs `deepseq` rnf gs
 
 -- | An 'Environment' is a tuple of @(before, after)@ components,
 -- corresponding to a ‘/ before _ after’ component of a sound change.
@@ -225,6 +239,7 @@ data Flags = Flags
   , applyDirection   :: Direction
   , applyOnceOnly    :: Bool
   , sporadic         :: Sporadicity
+  , nonOverlappingTarget :: Bool
   } deriving (Show, Generic, NFData)
 
 -- | A default selection of flags which are appropriate for most
@@ -247,6 +262,7 @@ defFlags = Flags
     , applyDirection = LTR
     , applyOnceOnly = False
     , sporadic = ApplyAlways
+    , nonOverlappingTarget = False
     }
 
 -- | A single sound change rule: in Brassica sound-change syntax with all elements specified,
@@ -277,6 +293,7 @@ deriving instance (forall a. NFData (c a)) => NFData (Filter c)
 data Statement c decl
     = RuleS (Rule c)
     | FilterS (Filter c)
+    | ReportS
     | DirectiveS decl
     deriving (Generic)
 
@@ -288,6 +305,7 @@ deriving instance (forall a. NFData (c a), NFData decl) => NFData (Statement c d
 plaintext' :: Statement c decl -> String
 plaintext' (RuleS r) = plaintext r
 plaintext' (FilterS (Filter p _)) = p
+plaintext' ReportS = "intermediate result"
 plaintext' (DirectiveS _) = "<directive>"
 
 -- | A set of 'SoundChanges' is simply a list of 'Statement's.
@@ -317,6 +335,7 @@ data FeatureSpec = FeatureSpec
 data CategoryDefinition
     = DefineCategory String (CategorySpec 'AnyPart)
     | DefineFeature FeatureSpec
+    | DefineAuto String
     deriving (Show, Eq, Ord, Generic, NFData)
 
 -- | A directive used in Brassica sound-change syntax: anything which

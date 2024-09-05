@@ -69,7 +69,7 @@ main = defaultMain
             , Optional [Geminate]
             ]
         , environment = pure
-            ( [Category $ FromElements $ Left <$> [GBoundary, "a", "e", "i"]]
+            ( [Category $ FromElements $ Left <$> ["#", "a", "e", "i"]]
             , [Category $ FromElements $ Left <$> ["a", "e", "i", "o", "u"]]
             )
         , exception = Nothing

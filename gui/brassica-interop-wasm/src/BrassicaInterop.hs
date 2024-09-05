@@ -82,6 +82,8 @@ parseTokeniseAndApplyRules_hs
                         (NotFound s) -> "Could not find category: " ++ s
                         InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
                         MismatchedLengths -> "Mismatched lengths in feature definition"
+                        InvalidDerivedValue -> "Invalid value used as derived grapheme in autosegment"
+                        InvalidAuto s -> "Invalid category name used for autosegment: " ++ s
                 Right statements' ->
                     case parseTokeniseAndApplyRules (fmap.fmap) statements' wsText infmt mode prev of
                         ParseError e -> newStableCStringLen $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
@@ -90,8 +92,8 @@ parseTokeniseAndApplyRules_hs
                             newStableCStringLen $ escape $ detokeniseWords' highlightWord result
                         AppliedRulesTable items -> do
                             writeIORef prevRef Nothing
-                            newStableCStringLen $ surroundTable $
-                                concatMap (reportAsHtmlRows plaintext') items
+                            newStableCStringLen $
+                                concatMap (surroundTable . reportAsHtmlRows plaintext') items
   where
     highlightWord (s, False) = concatWithBoundary s
     highlightWord (s, True) = "<b>" ++ concatWithBoundary s ++ "</b>"

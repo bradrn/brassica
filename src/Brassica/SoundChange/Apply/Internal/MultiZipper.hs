@@ -32,6 +32,7 @@ module Brassica.SoundChange.Apply.Internal.MultiZipper
        -- * Modification
        , insert
        , insertMany
+       , reverseMZ
        , zap
        , tag
        , tagAt
@@ -87,6 +88,14 @@ fromListPos as pos =
 -- | Get the list stored in a 'MultiZipper'.
 toList :: MultiZipper t a -> [a]
 toList (MultiZipper as _ _) = V.toList as
+
+reverseMZ :: MultiZipper t a -> MultiZipper t a
+reverseMZ (MultiZipper as pos ts) =
+    let l = length as
+    in MultiZipper
+        (V.reverse as)
+        (l - pos)
+        (M.map (l-) ts)
 
 -- | The current position of the 'MultiZipper'.
 curPos :: MultiZipper t a -> Int

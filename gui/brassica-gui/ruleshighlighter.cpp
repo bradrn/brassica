@@ -6,12 +6,17 @@ RulesHighlighter::RulesHighlighter(QTextDocument *parent)
     QTextCharFormat specialCharsFormat;
     specialCharsFormat.setForeground(QColor(0, 0, 255));
     formats.append(specialCharsFormat);
-    patterns.append(QRegularExpression(R"(>|#|\(|\)|{|}|\\|\^|%|~|\*|categories|end|new|noreplace|feature|extra|filter|@[0-9]+|@\?)"));
+    patterns.append(QRegularExpression(R"(>|#|\(|\)|{|}|\\|\^|%|~|\*|categories|end|new|noreplace|feature|auto|extra|filter|report|@[0-9]+|@\?)"));
 
     QTextCharFormat separatorFormat;
     separatorFormat.setFontWeight(QFont::Bold);
     formats.append(separatorFormat);
     patterns.append(QRegularExpression("/|_|→|->"));
+
+    QTextCharFormat featureFormat;
+    featureFormat.setForeground(QColor(34, 139, 34));
+    formats.append(featureFormat);
+    patterns.append(QRegularExpression(R"(\$[^\s#[\](){}>\\→/_^%~*@$]+(#[^\s#[\](){}>\\→/_^%~*@$]+)?)"));
 
     QTextCharFormat flagFormat;
     flagFormat.setForeground(QColor(0, 128, 128));

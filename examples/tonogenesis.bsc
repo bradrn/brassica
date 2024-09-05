@@ -17,7 +17,6 @@ end
 
 ; metathesis
 Aprx [C -Aprx] / \ // #_
-[Nasl Aprx] Fric / \ // $_
 ʔ C V / C V ʔ / #_
 h C V / C V h / #_
 C ʔ V / C V ʔ / #_
@@ -32,7 +31,11 @@ l / j / C_V
 [a ə i u] / [a o ɨ u] / _ ([ʔ h]) [m p f w ŋ k j]
 
 categories
-feature Unassigned = ae e i ə ɨ a o u / High = aé é í ə́ ɨ́ á ó ú / Low = aè è ì ə̀ ɨ̀ à ò ù
++Tone+None = ae e i ə ɨ a o u
++Tone+High = aé é í ə́ ɨ́ á ó ú
++Tone+Low = aè è ì ə̀ ɨ̀ à ò ù
+
+auto +Tone+None
 
 V = ae e i ə ɨ a o u
 
@@ -41,8 +44,8 @@ Vcd = m n ŋ w l j h
 end
 
 ; tonogenesis
-[V +Unassigned] / [V +High] / _ [C -Vcd]
-[V +Unassigned] / [V +Low]
++Tone+None / +Tone+High / _ [C -Vcd]
++Tone+None / +Tone+Low
 
 ; syllable structure simplification
 Stop / / V_ // _V

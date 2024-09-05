@@ -1,0 +1,151 @@
+-x [e q g] / [ə ʔ ɣ]
+-x - / n
+-x . / / _
+-x B / b
+
+categories
+Nsl = m n ŋ
+Pns = mb nd ng
+Uns = p t k ʔ
+Ass = ph th kh
+Vds = b d g
+S = Pns Uns Ass Vds
+Una = ts tl č j
+Asa = tsh tlh
+A = Una Asa
+Fr = f s x lh ɣ h
+Ap = l y w r
+C = Nsl S A Fr Ap
+
++Stress+No  = a e i o u ə ɨ aa ii uu
++Stress+Snd = à è ì ò ù ə̀ ɨ̀ àà ìì ùù
++Stress+Pri = á é í ó ú ə́ ɨ́ áá íí úú
+
+auto +Stress+No
+
+Vs = a i u e o ə ɨ
+Vl = aa ii uu
+V = Vs Vl
+
+Other = =
+end
+
+-x = / # = #
+
+[kh k] / [k ɣ] / _ / # _ // ŋ_
+
+; footing
+[Vl +Stress+No] / [Vl +Stress+Pri]
++Stress+No / +Stress+Pri / _ C [C #]
+-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*
+
+-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri
+
+h / / _
+ʔ / / # _
+[ph th kh] / [f ts x]
+[tsh tlh] / [s lh]
+
+[s t d] / [š č j] / _ [i y]
+
+a ŋ / o / _ [C #]
+
+[t d] / r / V _ [V #]
+
+Vl / Vs
+
+; syncope + ablaut
+[a ə i u -+Stress+No] / [a a e o] / _ C (C) a~
+[  ə   u -+Stress+No] / [  e   u] / _ C (C) ə~
+-? [a    -+Stress+No] / [e      ] / _ C (C) ə~
+-? [i    -+Stress+No] / [e      ] / _ C (C) ə~
+[  ə i   -+Stress+No] / [  e i  ] / _ C (C) i~
+   [a    -+Stress+No] / [e      ] / _ C (C) i~
+-? [u    -+Stress+No] / [i      ] / _ C (C) i~
+[a ə i u -+Stress+No] / [o o i u] / _ C (C) u~
+[a ə i u -+Stress+No] / [o o i u] / _ C (C) o~
+
++Stress+No / / _
+
+ə / @? [a e]  ; either is possible
+
+-x +Stress+Snd / +Stress+No
+
+-x # = # / / _
+-x = # / / _
+-x # = / / _
+-x +Stress+Pri / +Stress+No / _ ^+Stress+Pri
+
+C / / # _ >
+ʔ V / \ / C _
+
+Nsl / / _ Pns
+Pns / Vds / # C _ / _ #
+Pns / @1 Nsl @1 Vds
+
+new categories
+Nsl = m n ŋ
+Vls = p t k ʔ
+Vds = b d g
+Aff = ts tl č j
+Fr = f s š x lh ɣ
+Ap = l r y w
+C = Nsl Vls Vds Aff Fr Ap
+
+-Stress = a e i o u
++Stress = á é í ó ú
+
+auto -Stress
+
+V = &&Stress
+end
+
+[w y] / [u~ i~] / C _ #
+
+-? [C -ʔ -y -w] / / _ C #
+C / / [C -ʔ -y -w] _ #
+
+ŋ +Stress / @1 -Stress ŋ @1 +Stress / # _
+ŋ -Stress / @1 -Stress ŋ @1 -Stress / # _
+ŋ @#C C @#V +Stress / @#V -Stress ŋ @#C C @#V +Stress / # _
+ŋ @#C C @#V -Stress / @#V -Stress ŋ @#C C @#V -Stress / # _
+
+ɣ / i~ / # _ C
+ɣ / / _
+
+[lh l] / [l n]
+tl / ts
+
+ts / t / #_
+ts / s / _
+
+new categories
+Nsl = m n ŋ
+Vls = p t k ʔ
+Vds = b d g
+Aff = č j
+Fr = f s š x
+Ap = l r y w
+C = Nsl Vls Vds Aff Fr Ap
+
+Vcd = Nsl Vds j Ap
+Vcl = Vls č Fr
+
+-Stress = a e i o u
++Stress = á é í ó ú
+
+auto -Stress
+
+V = &&Stress
+end
+
+y / / i _
+w / / u _
+
+j / r / _ // _i
+š / r / _ Vcd / Vcd _ / V _ [V Vcd #] // _i
+j / g / _
+š / s / _
+
+-x +Stress / -Stress
+-x č / c

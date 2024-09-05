@@ -1,0 +1,2368 @@
+SCA Output: baalaq
+  -> baalaʔ  (-x [e q g] / [ə ʔ ɣ])
+  -> báálaʔ  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> bááláʔ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> bààláʔ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> bàláʔ   (Vl / Vs)
+  -> baláʔ   (-x +Stress+Snd / +Stress+No)
+  -> banáʔ   ([lh l] / [l n])
+  -> banaʔ   (-x +Stress / -Stress)
+
+
+SCA Output: bin
+  -> bín  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> bin  (-x +Stress / -Stress)
+
+
+SCA Output: bisa
+  -> bísa  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> bésa  ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> bés   (+Stress+No / / _)
+  -> bes   (-x +Stress / -Stress)
+
+
+SCA Output: buthe
+  -> buthə  (-x [e q g] / [ə ʔ ɣ])
+  -> búthə  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> bútsə  ([ph th kh] / [f ts x])
+  -> búts   (+Stress+No / / _)
+  -> bús    (ts / s / _)
+  -> bus    (-x +Stress / -Stress)
+
+
+SCA Output: dafin
+  -> dafín  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> dfín   (+Stress+No / / _)
+  -> dfin   (-x +Stress / -Stress)
+
+
+SCA Output: danit
+  -> danít  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> danír  ([t d] / r / V _ [V #])
+  -> dnír   (+Stress+No / / _)
+  -> dnir   (-x +Stress / -Stress)
+
+
+SCA Output: daqat
+  -> daʔat  (-x [e q g] / [ə ʔ ɣ])
+  -> daʔát  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> daʔár  ([t d] / r / V _ [V #])
+  -> dʔár   (+Stress+No / / _)
+  -> dáʔr   (ʔ V / \ / C _)
+  -> daʔr   (-x +Stress / -Stress)
+
+
+SCA Output: simi
+  -> sími  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> šími  ([s t d] / [š č j] / _ [i y])
+  -> ším   (+Stress+No / / _)
+  -> sím   (š / s / _)
+  -> sim   (-x +Stress / -Stress)
+
+
+SCA Output: dawa
+  -> dáwa  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> dáw   (+Stress+No / / _)
+  -> daw   (-x +Stress / -Stress)
+
+
+SCA Output: ŋuwe
+  -> ŋuwə  (-x [e q g] / [ə ʔ ɣ])
+  -> ŋúwə  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> ŋúw   (+Stress+No / / _)
+  -> uŋúw  (ŋ +Stress / @1 -Stress ŋ @1 +Stress / # _)
+  -> uŋú   (w / / u _)
+  -> uŋu   (-x +Stress / -Stress)
+
+
+SCA Output: debu
+  -> dəbu   (-x [e q g] / [ə ʔ ɣ])
+  -> də́bu  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> dóbu   ([a ə i u -+Stress+No] / [o o i u] / _ C (C) u~)
+  -> dób    (+Stress+No / / _)
+  -> dob    (-x +Stress / -Stress)
+
+
+SCA Output: din
+  -> dín  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> jín  ([s t d] / [š č j] / _ [i y])
+  -> gín  (j / g / _)
+  -> gin  (-x +Stress / -Stress)
+
+
+SCA Output: dise
+  -> disə  (-x [e q g] / [ə ʔ ɣ])
+  -> dísə  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> jísə  ([s t d] / [š č j] / _ [i y])
+  -> jísə  (-? [i    -+Stress+No] / [e      ] / _ C (C) ə~)
+  -> jís   (+Stress+No / / _)
+  -> gís   (j / g / _)
+  -> gis   (-x +Stress / -Stress)
+
+dise
+  -> disə  (-x [e q g] / [ə ʔ ɣ])
+  -> dísə  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> jísə  ([s t d] / [š č j] / _ [i y])
+  -> jésə  (-? [i    -+Stress+No] / [e      ] / _ C (C) ə~)
+  -> jés   (+Stress+No / / _)
+  -> rés   (j / r / _ // _i)
+  -> res   (-x +Stress / -Stress)
+
+
+SCA Output: fas
+  -> fás  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> fas  (-x +Stress / -Stress)
+
+
+SCA Output: fasi
+  -> fási  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> fáši  ([s t d] / [š č j] / _ [i y])
+  -> fáš   (+Stress+No / / _)
+  -> fár   (š / r / _ Vcd / Vcd _ / V _ [V Vcd #] // _i)
+  -> far   (-x +Stress / -Stress)
+
+
+SCA Output: fawetl
+  -> fawətl   (-x [e q g] / [ə ʔ ɣ])
+  -> fawə́tl  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> fwə́tl   (+Stress+No / / _)
+  -> fwátl    (ə / @? [a e])
+  -> fwáts    (tl / ts)
+  -> fwás     (ts / s / _)
+  -> fwas     (-x +Stress / -Stress)
+
+fawetl
+  -> fawətl   (-x [e q g] / [ə ʔ ɣ])
+  -> fawə́tl  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> fwə́tl   (+Stress+No / / _)
+  -> fwétl    (ə / @? [a e])
+  -> fwéts    (tl / ts)
+  -> fwés     (ts / s / _)
+  -> fwes     (-x +Stress / -Stress)
+
+
+SCA Output: fawetli
+  -> fawətli   (-x [e q g] / [ə ʔ ɣ])
+  -> fawə́tli  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> fawétli   ([  ə i   -+Stress+No] / [  e i  ] / _ C (C) i~)
+  -> fwétl     (+Stress+No / / _)
+  -> fwéts     (tl / ts)
+  -> fwés      (ts / s / _)
+  -> fwes      (-x +Stress / -Stress)
+
+
+SCA Output: feqe
+  -> fəʔə   (-x [e q g] / [ə ʔ ɣ])
+  -> fə́ʔə  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> féʔə   ([  ə   u -+Stress+No] / [  e   u] / _ C (C) ə~)
+  -> féʔ    (+Stress+No / / _)
+  -> feʔ    (-x +Stress / -Stress)
+
+
+SCA Output: fetlhalh
+  -> fətlhalh  (-x [e q g] / [ə ʔ ɣ])
+  -> fətlhálh  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> fəlhálh   ([tsh tlh] / [s lh])
+  -> flhálh    (+Stress+No / / _)
+  -> flál      ([lh l] / [l n])
+  -> flal      (-x +Stress / -Stress)
+
+
+SCA Output: gan
+  -> ɣan  (-x [e q g] / [ə ʔ ɣ])
+  -> ɣán  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> án   (ɣ / / _)
+  -> an   (-x +Stress / -Stress)
+
+
+SCA Output: gadiq
+  -> ɣadiʔ  (-x [e q g] / [ə ʔ ɣ])
+  -> ɣadíʔ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ɣajíʔ  ([s t d] / [š č j] / _ [i y])
+  -> ɣjíʔ   (+Stress+No / / _)
+  -> ijíʔ   (ɣ / i~ / # _ C)
+  -> igíʔ   (j / g / _)
+  -> igiʔ   (-x +Stress / -Stress)
+
+
+SCA Output: gadye
+  -> ɣadyə  (-x [e q g] / [ə ʔ ɣ])
+  -> ɣádyə  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ɣájyə  ([s t d] / [š č j] / _ [i y])
+  -> ɣájyə  (-? [a    -+Stress+No] / [e      ] / _ C (C) ə~)
+  -> ɣájy   (+Stress+No / / _)
+  -> ɣáji   ([w y] / [u~ i~] / C _ #)
+  -> áji    (ɣ / / _)
+  -> ági    (j / g / _)
+  -> agi    (-x +Stress / -Stress)
+
+gadye
+  -> ɣadyə  (-x [e q g] / [ə ʔ ɣ])
+  -> ɣádyə  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ɣájyə  ([s t d] / [š č j] / _ [i y])
+  -> ɣéjyə  (-? [a    -+Stress+No] / [e      ] / _ C (C) ə~)
+  -> ɣéjy   (+Stress+No / / _)
+  -> ɣéji   ([w y] / [u~ i~] / C _ #)
+  -> éji    (ɣ / / _)
+  -> égi    (j / g / _)
+  -> egi    (-x +Stress / -Stress)
+
+
+SCA Output: galab
+  -> ɣalab  (-x [e q g] / [ə ʔ ɣ])
+  -> ɣaláb  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ɣláb   (+Stress+No / / _)
+  -> iláb   (ɣ / i~ / # _ C)
+  -> ináb   ([lh l] / [l n])
+  -> inab   (-x +Stress / -Stress)
+
+
+SCA Output: ganit
+  -> ɣanit  (-x [e q g] / [ə ʔ ɣ])
+  -> ɣanít  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ɣanír  ([t d] / r / V _ [V #])
+  -> ɣnír   (+Stress+No / / _)
+  -> inír   (ɣ / i~ / # _ C)
+  -> inir   (-x +Stress / -Stress)
+
+
+SCA Output: welus
+  -> wəlus  (-x [e q g] / [ə ʔ ɣ])
+  -> wəlús  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> wlús   (+Stress+No / / _)
+  -> wnús   ([lh l] / [l n])
+  -> wnus   (-x +Stress / -Stress)
+
+
+SCA Output: gatlaq
+  -> ɣatlaʔ  (-x [e q g] / [ə ʔ ɣ])
+  -> ɣatláʔ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ɣtláʔ   (+Stress+No / / _)
+  -> itláʔ   (ɣ / i~ / # _ C)
+  -> itsáʔ   (tl / ts)
+  -> isáʔ    (ts / s / _)
+  -> isaʔ    (-x +Stress / -Stress)
+
+
+SCA Output: nge
+  -> ngə  (-x [e q g] / [ə ʔ ɣ])
+  -> ng   (+Stress+No / / _)
+  -> g    (Pns / Vds / # C _ / _ #)
+
+
+SCA Output: haŋuhaŋu
+  -> háŋuháŋu  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> hàŋuháŋu  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> àŋuáŋu    (h / / _)
+  -> òŋuóŋu    ([a ə i u -+Stress+No] / [o o i u] / _ C (C) u~)
+  -> òŋóŋ      (+Stress+No / / _)
+  -> oŋóŋ      (-x +Stress+Snd / +Stress+No)
+  -> oŋoŋ      (-x +Stress / -Stress)
+
+
+SCA Output: heŋheŋ
+  -> həŋhəŋ    (-x [e q g] / [ə ʔ ɣ])
+  -> hə́ŋhə́ŋ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> hə̀ŋhə́ŋ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> ə̀ŋə́ŋ    (h / / _)
+  -> àŋáŋ      (ə / @? [a e])
+  -> aŋáŋ      (-x +Stress+Snd / +Stress+No)
+  -> aŋaŋ      (-x +Stress / -Stress)
+
+heŋheŋ
+  -> həŋhəŋ    (-x [e q g] / [ə ʔ ɣ])
+  -> hə́ŋhə́ŋ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> hə̀ŋhə́ŋ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> ə̀ŋə́ŋ    (h / / _)
+  -> àŋéŋ      (ə / @? [a e])
+  -> aŋéŋ      (-x +Stress+Snd / +Stress+No)
+  -> aŋeŋ      (-x +Stress / -Stress)
+
+heŋheŋ
+  -> həŋhəŋ    (-x [e q g] / [ə ʔ ɣ])
+  -> hə́ŋhə́ŋ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> hə̀ŋhə́ŋ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> ə̀ŋə́ŋ    (h / / _)
+  -> èŋáŋ      (ə / @? [a e])
+  -> eŋáŋ      (-x +Stress+Snd / +Stress+No)
+  -> eŋaŋ      (-x +Stress / -Stress)
+
+heŋheŋ
+  -> həŋhəŋ    (-x [e q g] / [ə ʔ ɣ])
+  -> hə́ŋhə́ŋ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> hə̀ŋhə́ŋ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> ə̀ŋə́ŋ    (h / / _)
+  -> èŋéŋ      (ə / @? [a e])
+  -> eŋéŋ      (-x +Stress+Snd / +Stress+No)
+  -> eŋeŋ      (-x +Stress / -Stress)
+
+
+SCA Output: kaq
+  -> kaʔ  (-x [e q g] / [ə ʔ ɣ])
+  -> ɣaʔ  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ɣáʔ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> áʔ   (ɣ / / _)
+  -> aʔ   (-x +Stress / -Stress)
+
+
+SCA Output: kasip
+  -> ɣasip  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ɣasíp  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ɣašíp  ([s t d] / [š č j] / _ [i y])
+  -> ɣšíp   (+Stress+No / / _)
+  -> išíp   (ɣ / i~ / # _ C)
+  -> isíp   (š / s / _)
+  -> isip   (-x +Stress / -Stress)
+
+
+SCA Output: khaliŋ
+  -> kaliŋ  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> kalíŋ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> klíŋ   (+Stress+No / / _)
+  -> kníŋ   ([lh l] / [l n])
+  -> kniŋ   (-x +Stress / -Stress)
+
+
+SCA Output: phula
+  -> phúla  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> fúla   ([ph th kh] / [f ts x])
+  -> fóla   ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> fól    (+Stress+No / / _)
+  -> fón    ([lh l] / [l n])
+  -> fon    (-x +Stress / -Stress)
+
+
+SCA Output: khambuy
+  -> kambuy  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> kambúy  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> kmbúy   (+Stress+No / / _)
+  -> kbúy    (Pns / Vds / # C _ / _ #)
+  -> kbuy    (-x +Stress / -Stress)
+
+
+SCA Output: laqit
+  -> laʔit  (-x [e q g] / [ə ʔ ɣ])
+  -> laʔít  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> laʔír  ([t d] / r / V _ [V #])
+  -> lʔír   (+Stress+No / / _)
+  -> líʔr   (ʔ V / \ / C _)
+  -> níʔr   ([lh l] / [l n])
+  -> niʔr   (-x +Stress / -Stress)
+
+
+SCA Output: yenge
+  -> yəngə   (-x [e q g] / [ə ʔ ɣ])
+  -> yə́ngə  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> yéngə   ([  ə   u -+Stress+No] / [  e   u] / _ C (C) ə~)
+  -> yéng    (+Stress+No / / _)
+  -> yég     (Pns / Vds / # C _ / _ #)
+  -> yeg     (-x +Stress / -Stress)
+
+
+SCA Output: khenan
+  -> khənan  (-x [e q g] / [ə ʔ ɣ])
+  -> kənan   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> kənán   (+Stress+No / +Stress+Pri / _ C [C #])
+  -> knán    (+Stress+No / / _)
+  -> knan    (-x +Stress / -Stress)
+
+
+SCA Output: khunu
+  -> kunu  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> kúnu  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> kún   (+Stress+No / / _)
+  -> kun   (-x +Stress / -Stress)
+
+
+SCA Output: kube
+  -> kubə  (-x [e q g] / [ə ʔ ɣ])
+  -> ɣubə  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ɣúbə  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> ɣúb   (+Stress+No / / _)
+  -> úb    (ɣ / / _)
+  -> ub    (-x +Stress / -Stress)
+
+
+SCA Output: kulit
+  -> ɣulit  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ɣulít  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ɣulír  ([t d] / r / V _ [V #])
+  -> ɣlír   (+Stress+No / / _)
+  -> ilír   (ɣ / i~ / # _ C)
+  -> inír   ([lh l] / [l n])
+  -> inir   (-x +Stress / -Stress)
+
+
+SCA Output: saqam
+  -> saʔam  (-x [e q g] / [ə ʔ ɣ])
+  -> saʔám  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> sʔám   (+Stress+No / / _)
+  -> sáʔm   (ʔ V / \ / C _)
+  -> saʔm   (-x +Stress / -Stress)
+
+
+SCA Output: kumay
+  -> ɣumay  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ɣumáy  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ɣmáy   (+Stress+No / / _)
+  -> imáy   (ɣ / i~ / # _ C)
+  -> imay   (-x +Stress / -Stress)
+
+
+SCA Output: kuwi
+  -> ɣuwi  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ɣúwi  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> ɣúwi  (-? [u    -+Stress+No] / [i      ] / _ C (C) i~)
+  -> ɣúw   (+Stress+No / / _)
+  -> úw    (ɣ / / _)
+  -> ú     (w / / u _)
+  -> u     (-x +Stress / -Stress)
+
+kuwi
+  -> ɣuwi  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ɣúwi  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> ɣíwi  (-? [u    -+Stress+No] / [i      ] / _ C (C) i~)
+  -> ɣíw   (+Stress+No / / _)
+  -> íw    (ɣ / / _)
+  -> iw    (-x +Stress / -Stress)
+
+
+SCA Output: lampala
+  -> lámpala  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> lámpála  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> làmpála  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> làmpál   (+Stress+No / / _)
+  -> lampál   (-x +Stress+Snd / +Stress+No)
+  -> nampán   ([lh l] / [l n])
+  -> nampan   (-x +Stress / -Stress)
+
+
+SCA Output: laqit
+  -> laʔit  (-x [e q g] / [ə ʔ ɣ])
+  -> laʔít  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> laʔír  ([t d] / r / V _ [V #])
+  -> lʔír   (+Stress+No / / _)
+  -> líʔr   (ʔ V / \ / C _)
+  -> níʔr   ([lh l] / [l n])
+  -> niʔr   (-x +Stress / -Stress)
+
+
+SCA Output: khambuy
+  -> kambuy  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> kambúy  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> kmbúy   (+Stress+No / / _)
+  -> kbúy    (Pns / Vds / # C _ / _ #)
+  -> kbuy    (-x +Stress / -Stress)
+
+
+SCA Output: mebas
+  -> məbas  (-x [e q g] / [ə ʔ ɣ])
+  -> məbás  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> mbás   (+Stress+No / / _)
+  -> mbas   (-x +Stress / -Stress)
+
+
+SCA Output: layat
+  -> layát  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> layár  ([t d] / r / V _ [V #])
+  -> lyár   (+Stress+No / / _)
+  -> nyár   ([lh l] / [l n])
+  -> nyar   (-x +Stress / -Stress)
+
+
+SCA Output: lheŋe
+  -> lhəŋə   (-x [e q g] / [ə ʔ ɣ])
+  -> lhə́ŋə  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> lhéŋə   ([  ə   u -+Stress+No] / [  e   u] / _ C (C) ə~)
+  -> lhéŋ    (+Stress+No / / _)
+  -> léŋ     ([lh l] / [l n])
+  -> leŋ     (-x +Stress / -Stress)
+
+
+SCA Output: lhibuq
+  -> lhibuʔ  (-x [e q g] / [ə ʔ ɣ])
+  -> lhibúʔ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> lhbúʔ   (+Stress+No / / _)
+  -> lbúʔ    ([lh l] / [l n])
+  -> lbuʔ    (-x +Stress / -Stress)
+
+
+SCA Output: lhiise
+  -> lhiisə  (-x [e q g] / [ə ʔ ɣ])
+  -> lhíísə  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> lhísə   (Vl / Vs)
+  -> lhísə   (-? [i    -+Stress+No] / [e      ] / _ C (C) ə~)
+  -> lhís    (+Stress+No / / _)
+  -> lís     ([lh l] / [l n])
+  -> lis     (-x +Stress / -Stress)
+
+lhiise
+  -> lhiisə  (-x [e q g] / [ə ʔ ɣ])
+  -> lhíísə  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> lhísə   (Vl / Vs)
+  -> lhésə   (-? [i    -+Stress+No] / [e      ] / _ C (C) ə~)
+  -> lhés    (+Stress+No / / _)
+  -> lés     ([lh l] / [l n])
+  -> les     (-x +Stress / -Stress)
+
+
+SCA Output: lhiisi
+  -> lhíísi  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> lhííši  ([s t d] / [š č j] / _ [i y])
+  -> lhíši   (Vl / Vs)
+  -> lhíš    (+Stress+No / / _)
+  -> líš     ([lh l] / [l n])
+  -> lír     (š / r / _ Vcd / Vcd _ / V _ [V Vcd #] // _i)
+  -> lir     (-x +Stress / -Stress)
+
+
+SCA Output: lis
+  -> lís  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> nís  ([lh l] / [l n])
+  -> nis  (-x +Stress / -Stress)
+
+
+SCA Output: mandaŋ
+  -> mandáŋ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> mandó   (a ŋ / o / _ [C #])
+  -> mndó    (+Stress+No / / _)
+  -> ndó     (Nsl / / _ Pns)
+  -> ndó     (Pns / @1 Nsl @1 Vds)
+  -> ndo     (-x +Stress / -Stress)
+
+
+SCA Output: mandaŋ
+  -> mandáŋ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> mandó   (a ŋ / o / _ [C #])
+  -> mndó    (+Stress+No / / _)
+  -> ndó     (Nsl / / _ Pns)
+  -> ndó     (Pns / @1 Nsl @1 Vds)
+  -> ndo     (-x +Stress / -Stress)
+
+
+SCA Output: maqu
+  -> maʔu  (-x [e q g] / [ə ʔ ɣ])
+  -> máʔu  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> móʔu  ([a ə i u -+Stress+No] / [o o i u] / _ C (C) u~)
+  -> móʔ   (+Stress+No / / _)
+  -> moʔ   (-x +Stress / -Stress)
+
+
+SCA Output: matsiŋ
+  -> matsíŋ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> mtsíŋ   (+Stress+No / / _)
+  -> msíŋ    (ts / s / _)
+  -> msiŋ    (-x +Stress / -Stress)
+
+
+SCA Output: may
+  -> máy  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> may  (-x +Stress / -Stress)
+
+
+SCA Output: mebas
+  -> məbas  (-x [e q g] / [ə ʔ ɣ])
+  -> məbás  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> mbás   (+Stress+No / / _)
+  -> mbas   (-x +Stress / -Stress)
+
+
+SCA Output: yenge
+  -> yəngə   (-x [e q g] / [ə ʔ ɣ])
+  -> yə́ngə  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> yéngə   ([  ə   u -+Stress+No] / [  e   u] / _ C (C) ə~)
+  -> yéng    (+Stress+No / / _)
+  -> yég     (Pns / Vds / # C _ / _ #)
+  -> yeg     (-x +Stress / -Stress)
+
+
+SCA Output: laqit
+  -> laʔit  (-x [e q g] / [ə ʔ ɣ])
+  -> laʔít  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> laʔír  ([t d] / r / V _ [V #])
+  -> lʔír   (+Stress+No / / _)
+  -> líʔr   (ʔ V / \ / C _)
+  -> níʔr   ([lh l] / [l n])
+  -> niʔr   (-x +Stress / -Stress)
+
+
+SCA Output: meŋul
+  -> məŋul  (-x [e q g] / [ə ʔ ɣ])
+  -> məŋúl  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> mŋúl   (+Stress+No / / _)
+  -> mŋún   ([lh l] / [l n])
+  -> mŋun   (-x +Stress / -Stress)
+
+
+SCA Output: naŋa
+  -> náŋa  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> náŋ   (+Stress+No / / _)
+  -> naŋ   (-x +Stress / -Stress)
+
+
+SCA Output: nawun
+  -> nawún  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> nwún   (+Stress+No / / _)
+  -> nwun   (-x +Stress / -Stress)
+
+
+SCA Output: ndeqis
+  -> ndəʔis  (-x [e q g] / [ə ʔ ɣ])
+  -> ndəʔís  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ndʔís   (+Stress+No / / _)
+  -> ndíʔs   (ʔ V / \ / C _)
+  -> ndíʔs   (Pns / @1 Nsl @1 Vds)
+  -> ndiʔs   (-x +Stress / -Stress)
+
+
+SCA Output: ndisi
+  -> ndísi  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> ndíši  ([s t d] / [š č j] / _ [i y])
+  -> ndíš   (+Stress+No / / _)
+  -> ndíš   (Pns / @1 Nsl @1 Vds)
+  -> ndír   (š / r / _ Vcd / Vcd _ / V _ [V Vcd #] // _i)
+  -> ndir   (-x +Stress / -Stress)
+
+
+SCA Output: ndiyam
+  -> ndiyám  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ndyám   (+Stress+No / / _)
+  -> ndyám   (Pns / @1 Nsl @1 Vds)
+  -> ndyam   (-x +Stress / -Stress)
+
+
+SCA Output: ngiya
+  -> ngíya  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> ngéya  ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> ngéy   (+Stress+No / / _)
+  -> ŋgéy   (Pns / @1 Nsl @1 Vds)
+  -> eŋgéy  (ŋ @#C C @#V +Stress / @#V -Stress ŋ @#C C @#V +Stress / # _)
+  -> eŋgey  (-x +Stress / -Stress)
+
+
+SCA Output: ŋalep
+  -> ŋaləp   (-x [e q g] / [ə ʔ ɣ])
+  -> ŋalə́p  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ŋlə́p   (+Stress+No / / _)
+  -> ŋláp    (ə / @? [a e])
+  -> aŋláp   (ŋ @#C C @#V +Stress / @#V -Stress ŋ @#C C @#V +Stress / # _)
+  -> aŋnáp   ([lh l] / [l n])
+  -> aŋnap   (-x +Stress / -Stress)
+
+ŋalep
+  -> ŋaləp   (-x [e q g] / [ə ʔ ɣ])
+  -> ŋalə́p  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ŋlə́p   (+Stress+No / / _)
+  -> ŋlép    (ə / @? [a e])
+  -> eŋlép   (ŋ @#C C @#V +Stress / @#V -Stress ŋ @#C C @#V +Stress / # _)
+  -> eŋnép   ([lh l] / [l n])
+  -> eŋnep   (-x +Stress / -Stress)
+
+
+SCA Output: ŋandu
+  -> ŋándu  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> ŋóndu  ([a ə i u -+Stress+No] / [o o i u] / _ C (C) u~)
+  -> ŋónd   (+Stress+No / / _)
+  -> ŋód    (Pns / Vds / # C _ / _ #)
+  -> oŋód   (ŋ +Stress / @1 -Stress ŋ @1 +Stress / # _)
+  -> oŋod   (-x +Stress / -Stress)
+
+
+SCA Output: ŋandi
+  -> ŋándi  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> ŋéndi  ([a    -+Stress+No] / [e      ] / _ C (C) i~)
+  -> ŋénd   (+Stress+No / / _)
+  -> ŋéd    (Pns / Vds / # C _ / _ #)
+  -> eŋéd   (ŋ +Stress / @1 -Stress ŋ @1 +Stress / # _)
+  -> eŋed   (-x +Stress / -Stress)
+
+
+SCA Output: ŋuwe
+  -> ŋuwə  (-x [e q g] / [ə ʔ ɣ])
+  -> ŋúwə  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> ŋúw   (+Stress+No / / _)
+  -> uŋúw  (ŋ +Stress / @1 -Stress ŋ @1 +Stress / # _)
+  -> uŋú   (w / / u _)
+  -> uŋu   (-x +Stress / -Stress)
+
+
+SCA Output: dawa
+  -> dáwa  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> dáw   (+Stress+No / / _)
+  -> daw   (-x +Stress / -Stress)
+
+
+SCA Output: pan
+  -> pán  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> pan  (-x +Stress / -Stress)
+
+
+SCA Output: paatli
+  -> páátli  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> pátli   (Vl / Vs)
+  -> pétli   ([a    -+Stress+No] / [e      ] / _ C (C) i~)
+  -> pétl    (+Stress+No / / _)
+  -> péts    (tl / ts)
+  -> pés     (ts / s / _)
+  -> pes     (-x +Stress / -Stress)
+
+
+SCA Output: paatli
+  -> páátli  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> pátli   (Vl / Vs)
+  -> pétli   ([a    -+Stress+No] / [e      ] / _ C (C) i~)
+  -> pétl    (+Stress+No / / _)
+  -> péts    (tl / ts)
+  -> pés     (ts / s / _)
+  -> pes     (-x +Stress / -Stress)
+
+
+SCA Output: phage
+  -> phaɣə  (-x [e q g] / [ə ʔ ɣ])
+  -> pháɣə  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> fáɣə   ([ph th kh] / [f ts x])
+  -> fáɣə   (-? [a    -+Stress+No] / [e      ] / _ C (C) ə~)
+  -> fáɣ    (+Stress+No / / _)
+  -> fá     (ɣ / / _)
+  -> fa     (-x +Stress / -Stress)
+
+phage
+  -> phaɣə  (-x [e q g] / [ə ʔ ɣ])
+  -> pháɣə  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> fáɣə   ([ph th kh] / [f ts x])
+  -> féɣə   (-? [a    -+Stress+No] / [e      ] / _ C (C) ə~)
+  -> féɣ    (+Stress+No / / _)
+  -> fé     (ɣ / / _)
+  -> fe     (-x +Stress / -Stress)
+
+
+SCA Output: phaŋi
+  -> pháŋi  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> fáŋi   ([ph th kh] / [f ts x])
+  -> féŋi   ([a    -+Stress+No] / [e      ] / _ C (C) i~)
+  -> féŋ    (+Stress+No / / _)
+  -> feŋ    (-x +Stress / -Stress)
+
+
+SCA Output: phingis
+  -> phingís  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> fingís   ([ph th kh] / [f ts x])
+  -> fngís    (+Stress+No / / _)
+  -> fgís     (Pns / Vds / # C _ / _ #)
+  -> fgis     (-x +Stress / -Stress)
+
+
+SCA Output: qangat
+  -> ʔangat  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔangát  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> angát   (ʔ / / # _)
+  -> angár   ([t d] / r / V _ [V #])
+  -> ngár    (+Stress+No / / _)
+  -> ŋgár    (Pns / @1 Nsl @1 Vds)
+  -> aŋgár   (ŋ @#C C @#V +Stress / @#V -Stress ŋ @#C C @#V +Stress / # _)
+  -> aŋgar   (-x +Stress / -Stress)
+
+
+SCA Output: phula
+  -> phúla  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> fúla   ([ph th kh] / [f ts x])
+  -> fóla   ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> fól    (+Stress+No / / _)
+  -> fón    ([lh l] / [l n])
+  -> fon    (-x +Stress / -Stress)
+
+
+SCA Output: khaliŋ
+  -> kaliŋ  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> kalíŋ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> klíŋ   (+Stress+No / / _)
+  -> kníŋ   ([lh l] / [l n])
+  -> kniŋ   (-x +Stress / -Stress)
+
+
+SCA Output: phuum
+  -> phúúm  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> fúúm   ([ph th kh] / [f ts x])
+  -> fúm    (Vl / Vs)
+  -> fum    (-x +Stress / -Stress)
+
+
+SCA Output: qaabew
+  -> ʔaabəw   (-x [e q g] / [ə ʔ ɣ])
+  -> ʔáábəw   ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> ʔáábə́w  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ʔààbə́w  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> ààbə́w   (ʔ / / # _)
+  -> àbə́w    (Vl / Vs)
+  -> àbáw     (ə / @? [a e])
+  -> abáw     (-x +Stress+Snd / +Stress+No)
+  -> abaw     (-x +Stress / -Stress)
+
+qaabew
+  -> ʔaabəw   (-x [e q g] / [ə ʔ ɣ])
+  -> ʔáábəw   ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> ʔáábə́w  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ʔààbə́w  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> ààbə́w   (ʔ / / # _)
+  -> àbə́w    (Vl / Vs)
+  -> àbéw     (ə / @? [a e])
+  -> abéw     (-x +Stress+Snd / +Stress+No)
+  -> abew     (-x +Stress / -Stress)
+
+
+SCA Output: qaaŋ
+  -> ʔaaŋ  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔááŋ  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> ááŋ   (ʔ / / # _)
+  -> áŋ    (Vl / Vs)
+  -> aŋ    (-x +Stress / -Stress)
+
+
+SCA Output: qaathan
+  -> ʔaathan  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔááthan  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> ʔááthán  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ʔààthán  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> ààthán   (ʔ / / # _)
+  -> ààtsán   ([ph th kh] / [f ts x])
+  -> àtsán    (Vl / Vs)
+  -> atsán    (-x +Stress+Snd / +Stress+No)
+  -> asán     (ts / s / _)
+  -> asan     (-x +Stress / -Stress)
+
+
+SCA Output: qaathan
+  -> ʔaathan  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔááthan  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> ʔááthán  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ʔààthán  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> ààthán   (ʔ / / # _)
+  -> ààtsán   ([ph th kh] / [f ts x])
+  -> àtsán    (Vl / Vs)
+  -> atsán    (-x +Stress+Snd / +Stress+No)
+  -> asán     (ts / s / _)
+  -> asan     (-x +Stress / -Stress)
+
+
+SCA Output: qalit
+  -> ʔalit  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔalít  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> alít   (ʔ / / # _)
+  -> alír   ([t d] / r / V _ [V #])
+  -> lír    (+Stress+No / / _)
+  -> nír    ([lh l] / [l n])
+  -> nir    (-x +Stress / -Stress)
+
+
+SCA Output: nqam
+  -> nʔam  (-x [e q g] / [ə ʔ ɣ])
+  -> nʔám  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> náʔm  (ʔ V / \ / C _)
+  -> naʔm  (-x +Stress / -Stress)
+
+
+SCA Output: nam
+  -> nám  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> nam  (-x +Stress / -Stress)
+
+
+SCA Output: qangat
+  -> ʔangat  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔangát  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> angát   (ʔ / / # _)
+  -> angár   ([t d] / r / V _ [V #])
+  -> ngár    (+Stress+No / / _)
+  -> ŋgár    (Pns / @1 Nsl @1 Vds)
+  -> aŋgár   (ŋ @#C C @#V +Stress / @#V -Stress ŋ @#C C @#V +Stress / # _)
+  -> aŋgar   (-x +Stress / -Stress)
+
+
+SCA Output: qanta
+  -> ʔanta  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔánta  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ánta   (ʔ / / # _)
+  -> ánt    (+Stress+No / / _)
+  -> ánt    (-? [C -ʔ -y -w] / / _ C #)
+  -> án     (C / / [C -ʔ -y -w] _ #)
+  -> an     (-x +Stress / -Stress)
+
+qanta
+  -> ʔanta  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔánta  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ánta   (ʔ / / # _)
+  -> ánt    (+Stress+No / / _)
+  -> át     (-? [C -ʔ -y -w] / / _ C #)
+  -> at     (-x +Stress / -Stress)
+
+
+SCA Output: qanu
+  -> ʔanu  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔánu  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> ánu   (ʔ / / # _)
+  -> ónu   ([a ə i u -+Stress+No] / [o o i u] / _ C (C) u~)
+  -> ón    (+Stress+No / / _)
+  -> on    (-x +Stress / -Stress)
+
+
+SCA Output: qaŋeth
+  -> ʔaŋəth   (-x [e q g] / [ə ʔ ɣ])
+  -> ʔaŋə́th  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> aŋə́th   (ʔ / / # _)
+  -> aŋə́ts   ([ph th kh] / [f ts x])
+  -> ŋə́ts    (+Stress+No / / _)
+  -> ŋáts     (ə / @? [a e])
+  -> aŋáts    (ŋ +Stress / @1 -Stress ŋ @1 +Stress / # _)
+  -> aŋás     (ts / s / _)
+  -> aŋas     (-x +Stress / -Stress)
+
+qaŋeth
+  -> ʔaŋəth   (-x [e q g] / [ə ʔ ɣ])
+  -> ʔaŋə́th  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> aŋə́th   (ʔ / / # _)
+  -> aŋə́ts   ([ph th kh] / [f ts x])
+  -> ŋə́ts    (+Stress+No / / _)
+  -> ŋéts     (ə / @? [a e])
+  -> eŋéts    (ŋ +Stress / @1 -Stress ŋ @1 +Stress / # _)
+  -> eŋés     (ts / s / _)
+  -> eŋes     (-x +Stress / -Stress)
+
+
+SCA Output: qefaa
+  -> ʔəfaa  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔəfáá  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> əfáá   (ʔ / / # _)
+  -> əfá    (Vl / Vs)
+  -> fá     (+Stress+No / / _)
+  -> fa     (-x +Stress / -Stress)
+
+
+SCA Output: qefay
+  -> ʔəfay  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔəfáy  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> əfáy   (ʔ / / # _)
+  -> fáy    (+Stress+No / / _)
+  -> fay    (-x +Stress / -Stress)
+
+
+SCA Output: qetlaag
+  -> ʔətlaaɣ  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔətlááɣ  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> ətlááɣ   (ʔ / / # _)
+  -> ətláɣ    (Vl / Vs)
+  -> tláɣ     (+Stress+No / / _)
+  -> tlá      (ɣ / / _)
+  -> tsá      (tl / ts)
+  -> tá       (ts / t / #_)
+  -> ta       (-x +Stress / -Stress)
+
+
+SCA Output: qisa
+  -> ʔisa  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔísa  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> ísa   (ʔ / / # _)
+  -> ésa   ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> és    (+Stress+No / / _)
+  -> es    (-x +Stress / -Stress)
+
+
+SCA Output: qisni
+  -> ʔisni  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔísni  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ísni   (ʔ / / # _)
+  -> ísn    (+Stress+No / / _)
+  -> ísn    (-? [C -ʔ -y -w] / / _ C #)
+  -> ís     (C / / [C -ʔ -y -w] _ #)
+  -> is     (-x +Stress / -Stress)
+
+qisni
+  -> ʔisni  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔísni  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ísni   (ʔ / / # _)
+  -> ísn    (+Stress+No / / _)
+  -> ín     (-? [C -ʔ -y -w] / / _ C #)
+  -> in     (-x +Stress / -Stress)
+
+
+SCA Output: qitsim
+  -> ʔitsim  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔitsím  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> itsím   (ʔ / / # _)
+  -> tsím    (+Stress+No / / _)
+  -> tím     (ts / t / #_)
+  -> tim     (-x +Stress / -Stress)
+
+
+SCA Output: qumukh
+  -> ʔumukh  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔumuk   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ʔumúk   (+Stress+No / +Stress+Pri / _ C [C #])
+  -> umúk    (ʔ / / # _)
+  -> múk     (+Stress+No / / _)
+  -> muk     (-x +Stress / -Stress)
+
+
+SCA Output: qumum
+  -> ʔumum  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔumúm  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> umúm   (ʔ / / # _)
+  -> múm    (+Stress+No / / _)
+  -> mum    (-x +Stress / -Stress)
+
+
+SCA Output: qume
+  -> ʔumə  (-x [e q g] / [ə ʔ ɣ])
+  -> ʔúmə  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> úmə   (ʔ / / # _)
+  -> úm    (+Stress+No / / _)
+  -> um    (-x +Stress / -Stress)
+
+
+SCA Output: saalhe
+  -> saalhə  (-x [e q g] / [ə ʔ ɣ])
+  -> sáálhə  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> sálhə   (Vl / Vs)
+  -> sálhə   (-? [a    -+Stress+No] / [e      ] / _ C (C) ə~)
+  -> sálh    (+Stress+No / / _)
+  -> sál     ([lh l] / [l n])
+  -> sal     (-x +Stress / -Stress)
+
+saalhe
+  -> saalhə  (-x [e q g] / [ə ʔ ɣ])
+  -> sáálhə  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> sálhə   (Vl / Vs)
+  -> sélhə   (-? [a    -+Stress+No] / [e      ] / _ C (C) ə~)
+  -> sélh    (+Stress+No / / _)
+  -> sél     ([lh l] / [l n])
+  -> sel     (-x +Stress / -Stress)
+
+
+SCA Output: safilh
+  -> safílh  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> sfílh   (+Stress+No / / _)
+  -> sfíl    ([lh l] / [l n])
+  -> sfil    (-x +Stress / -Stress)
+
+
+SCA Output: sakhul
+  -> sakul  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> sakúl  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> skúl   (+Stress+No / / _)
+  -> skún   ([lh l] / [l n])
+  -> skun   (-x +Stress / -Stress)
+
+
+SCA Output: sal
+  -> sál  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> sán  ([lh l] / [l n])
+  -> san  (-x +Stress / -Stress)
+
+
+SCA Output: saqam
+  -> saʔam  (-x [e q g] / [ə ʔ ɣ])
+  -> saʔám  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> sʔám   (+Stress+No / / _)
+  -> sáʔm   (ʔ V / \ / C _)
+  -> saʔm   (-x +Stress / -Stress)
+
+
+SCA Output: kulit
+  -> ɣulit  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ɣulít  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ɣulír  ([t d] / r / V _ [V #])
+  -> ɣlír   (+Stress+No / / _)
+  -> ilír   (ɣ / i~ / # _ C)
+  -> inír   ([lh l] / [l n])
+  -> inir   (-x +Stress / -Stress)
+
+
+SCA Output: sasay
+  -> sasáy  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ssáy   (+Stress+No / / _)
+  -> sáy    (C / / # _ >)
+  -> say    (-x +Stress / -Stress)
+
+
+SCA Output: sasuf
+  -> sasúf  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ssúf   (+Stress+No / / _)
+  -> súf    (C / / # _ >)
+  -> suf    (-x +Stress / -Stress)
+
+
+SCA Output: segaag
+  -> səɣaaɣ  (-x [e q g] / [ə ʔ ɣ])
+  -> səɣááɣ  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> səɣáɣ   (Vl / Vs)
+  -> sɣáɣ    (+Stress+No / / _)
+  -> sá      (ɣ / / _)
+  -> sa      (-x +Stress / -Stress)
+
+
+SCA Output: segek
+  -> səɣək   (-x [e q g] / [ə ʔ ɣ])
+  -> səɣəɣ   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> səɣə́ɣ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> sɣə́ɣ   (+Stress+No / / _)
+  -> sɣáɣ    (ə / @? [a e])
+  -> sá      (ɣ / / _)
+  -> sa      (-x +Stress / -Stress)
+
+segek
+  -> səɣək   (-x [e q g] / [ə ʔ ɣ])
+  -> səɣəɣ   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> səɣə́ɣ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> sɣə́ɣ   (+Stress+No / / _)
+  -> sɣéɣ    (ə / @? [a e])
+  -> sé      (ɣ / / _)
+  -> se      (-x +Stress / -Stress)
+
+
+SCA Output: segeg
+  -> səɣəɣ   (-x [e q g] / [ə ʔ ɣ])
+  -> səɣə́ɣ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> sɣə́ɣ   (+Stress+No / / _)
+  -> sɣáɣ    (ə / @? [a e])
+  -> sá      (ɣ / / _)
+  -> sa      (-x +Stress / -Stress)
+
+segeg
+  -> səɣəɣ   (-x [e q g] / [ə ʔ ɣ])
+  -> səɣə́ɣ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> sɣə́ɣ   (+Stress+No / / _)
+  -> sɣéɣ    (ə / @? [a e])
+  -> sé      (ɣ / / _)
+  -> se      (-x +Stress / -Stress)
+
+
+SCA Output: siifa
+  -> síífa  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> sífa   (Vl / Vs)
+  -> séfa   ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> séf    (+Stress+No / / _)
+  -> sef    (-x +Stress / -Stress)
+
+
+SCA Output: siki
+  -> siɣi  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> síɣi  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> šíɣi  ([s t d] / [š č j] / _ [i y])
+  -> šíɣ   (+Stress+No / / _)
+  -> ší    (ɣ / / _)
+  -> sí    (š / s / _)
+  -> si    (-x +Stress / -Stress)
+
+
+SCA Output: simi
+  -> sími  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> šími  ([s t d] / [š č j] / _ [i y])
+  -> ším   (+Stress+No / / _)
+  -> sím   (š / s / _)
+  -> sim   (-x +Stress / -Stress)
+
+
+SCA Output: daqat
+  -> daʔat  (-x [e q g] / [ə ʔ ɣ])
+  -> daʔát  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> daʔár  ([t d] / r / V _ [V #])
+  -> dʔár   (+Stress+No / / _)
+  -> dáʔr   (ʔ V / \ / C _)
+  -> daʔr   (-x +Stress / -Stress)
+
+
+SCA Output: siwe
+  -> siwə  (-x [e q g] / [ə ʔ ɣ])
+  -> síwə  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> šíwə  ([s t d] / [š č j] / _ [i y])
+  -> šíwə  (-? [i    -+Stress+No] / [e      ] / _ C (C) ə~)
+  -> šíw   (+Stress+No / / _)
+  -> síw   (š / s / _)
+  -> siw   (-x +Stress / -Stress)
+
+siwe
+  -> siwə  (-x [e q g] / [ə ʔ ɣ])
+  -> síwə  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> šíwə  ([s t d] / [š č j] / _ [i y])
+  -> šéwə  (-? [i    -+Stress+No] / [e      ] / _ C (C) ə~)
+  -> šéw   (+Stress+No / / _)
+  -> séw   (š / s / _)
+  -> sew   (-x +Stress / -Stress)
+
+
+SCA Output: siwi
+  -> síwi  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> šíwi  ([s t d] / [š č j] / _ [i y])
+  -> šíw   (+Stress+No / / _)
+  -> síw   (š / s / _)
+  -> siw   (-x +Stress / -Stress)
+
+
+SCA Output: tasek
+  -> tasək   (-x [e q g] / [ə ʔ ɣ])
+  -> tasəɣ   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> tasə́ɣ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> tsə́ɣ   (+Stress+No / / _)
+  -> tsáɣ    (ə / @? [a e])
+  -> tsá     (ɣ / / _)
+  -> tsa     (-x +Stress / -Stress)
+
+tasek
+  -> tasək   (-x [e q g] / [ə ʔ ɣ])
+  -> tasəɣ   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> tasə́ɣ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> tsə́ɣ   (+Stress+No / / _)
+  -> tséɣ    (ə / @? [a e])
+  -> tsé     (ɣ / / _)
+  -> tse     (-x +Stress / -Stress)
+
+
+SCA Output: thaba
+  -> thába  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> tsába  ([ph th kh] / [f ts x])
+  -> tsáb   (+Stress+No / / _)
+  -> táb    (ts / t / #_)
+  -> tab    (-x +Stress / -Stress)
+
+
+SCA Output: thabu
+  -> thábu  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> tsábu  ([ph th kh] / [f ts x])
+  -> tsóbu  ([a ə i u -+Stress+No] / [o o i u] / _ C (C) u~)
+  -> tsób   (+Stress+No / / _)
+  -> tób    (ts / t / #_)
+  -> tob    (-x +Stress / -Stress)
+
+
+SCA Output: thalaŋ
+  -> thaláŋ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> tsaláŋ  ([ph th kh] / [f ts x])
+  -> tsaló   (a ŋ / o / _ [C #])
+  -> tsló    (+Stress+No / / _)
+  -> tsnó    ([lh l] / [l n])
+  -> tnó     (ts / t / #_)
+  -> tno     (-x +Stress / -Stress)
+
+
+SCA Output: tham
+  -> thám  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> tsám  ([ph th kh] / [f ts x])
+  -> tám   (ts / t / #_)
+  -> tam   (-x +Stress / -Stress)
+
+
+SCA Output: thani
+  -> tháni  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> tsáni  ([ph th kh] / [f ts x])
+  -> tséni  ([a    -+Stress+No] / [e      ] / _ C (C) i~)
+  -> tsén   (+Stress+No / / _)
+  -> tén    (ts / t / #_)
+  -> ten    (-x +Stress / -Stress)
+
+
+SCA Output: tlaame
+  -> tlaamə  (-x [e q g] / [ə ʔ ɣ])
+  -> tláámə  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> tlámə   (Vl / Vs)
+  -> tlámə   (-? [a    -+Stress+No] / [e      ] / _ C (C) ə~)
+  -> tlám    (+Stress+No / / _)
+  -> tsám    (tl / ts)
+  -> tám     (ts / t / #_)
+  -> tam     (-x +Stress / -Stress)
+
+tlaame
+  -> tlaamə  (-x [e q g] / [ə ʔ ɣ])
+  -> tláámə  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> tlámə   (Vl / Vs)
+  -> tlémə   (-? [a    -+Stress+No] / [e      ] / _ C (C) ə~)
+  -> tlém    (+Stress+No / / _)
+  -> tsém    (tl / ts)
+  -> tém     (ts / t / #_)
+  -> tem     (-x +Stress / -Stress)
+
+
+SCA Output: tlaquf
+  -> tlaʔuf  (-x [e q g] / [ə ʔ ɣ])
+  -> tlaʔúf  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> tlʔúf   (+Stress+No / / _)
+  -> tlúʔf   (ʔ V / \ / C _)
+  -> tsúʔf   (tl / ts)
+  -> túʔf    (ts / t / #_)
+  -> tuʔf    (-x +Stress / -Stress)
+
+
+SCA Output: lalef
+  -> laləf   (-x [e q g] / [ə ʔ ɣ])
+  -> lalə́f  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> llə́f   (+Stress+No / / _)
+  -> lláf    (ə / @? [a e])
+  -> láf     (C / / # _ >)
+  -> náf     ([lh l] / [l n])
+  -> naf     (-x +Stress / -Stress)
+
+lalef
+  -> laləf   (-x [e q g] / [ə ʔ ɣ])
+  -> lalə́f  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> llə́f   (+Stress+No / / _)
+  -> lléf    (ə / @? [a e])
+  -> léf     (C / / # _ >)
+  -> néf     ([lh l] / [l n])
+  -> nef     (-x +Stress / -Stress)
+
+
+SCA Output: tluŋse
+  -> tluŋsə  (-x [e q g] / [ə ʔ ɣ])
+  -> tlúŋsə  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> tlúŋs   (+Stress+No / / _)
+  -> tlúŋs   (-? [C -ʔ -y -w] / / _ C #)
+  -> tlúŋ    (C / / [C -ʔ -y -w] _ #)
+  -> tsúŋ    (tl / ts)
+  -> túŋ     (ts / t / #_)
+  -> tuŋ     (-x +Stress / -Stress)
+
+tluŋse
+  -> tluŋsə  (-x [e q g] / [ə ʔ ɣ])
+  -> tlúŋsə  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> tlúŋs   (+Stress+No / / _)
+  -> tlús    (-? [C -ʔ -y -w] / / _ C #)
+  -> tsús    (tl / ts)
+  -> tús     (ts / t / #_)
+  -> tus     (-x +Stress / -Stress)
+
+
+SCA Output: tsagif
+  -> tsaɣif  (-x [e q g] / [ə ʔ ɣ])
+  -> tsaɣíf  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> tsɣíf   (+Stress+No / / _)
+  -> tsíf    (ɣ / / _)
+  -> tíf     (ts / t / #_)
+  -> tif     (-x +Stress / -Stress)
+
+
+SCA Output: tsakaq
+  -> tsakaʔ  (-x [e q g] / [ə ʔ ɣ])
+  -> tsaɣaʔ  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> tsaɣáʔ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> tsɣáʔ   (+Stress+No / / _)
+  -> tsáʔ    (ɣ / / _)
+  -> táʔ     (ts / t / #_)
+  -> taʔ     (-x +Stress / -Stress)
+
+
+SCA Output: tsektsek
+  -> tsəktsək    (-x [e q g] / [ə ʔ ɣ])
+  -> tsəɣtsəɣ    ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> tsə́ɣtsə́ɣ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> tsə̀ɣtsə́ɣ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> tsàɣtsáɣ    (ə / @? [a e])
+  -> tsaɣtsáɣ    (-x +Stress+Snd / +Stress+No)
+  -> tsatsá      (ɣ / / _)
+  -> tatsá       (ts / t / #_)
+  -> tasá        (ts / s / _)
+  -> tasa        (-x +Stress / -Stress)
+
+tsektsek
+  -> tsəktsək    (-x [e q g] / [ə ʔ ɣ])
+  -> tsəɣtsəɣ    ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> tsə́ɣtsə́ɣ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> tsə̀ɣtsə́ɣ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> tsàɣtséɣ    (ə / @? [a e])
+  -> tsaɣtséɣ    (-x +Stress+Snd / +Stress+No)
+  -> tsatsé      (ɣ / / _)
+  -> tatsé       (ts / t / #_)
+  -> tasé        (ts / s / _)
+  -> tase        (-x +Stress / -Stress)
+
+tsektsek
+  -> tsəktsək    (-x [e q g] / [ə ʔ ɣ])
+  -> tsəɣtsəɣ    ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> tsə́ɣtsə́ɣ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> tsə̀ɣtsə́ɣ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> tsèɣtsáɣ    (ə / @? [a e])
+  -> tseɣtsáɣ    (-x +Stress+Snd / +Stress+No)
+  -> tsetsá      (ɣ / / _)
+  -> tetsá       (ts / t / #_)
+  -> tesá        (ts / s / _)
+  -> tesa        (-x +Stress / -Stress)
+
+tsektsek
+  -> tsəktsək    (-x [e q g] / [ə ʔ ɣ])
+  -> tsəɣtsəɣ    ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> tsə́ɣtsə́ɣ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> tsə̀ɣtsə́ɣ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> tsèɣtséɣ    (ə / @? [a e])
+  -> tseɣtséɣ    (-x +Stress+Snd / +Stress+No)
+  -> tsetsé      (ɣ / / _)
+  -> tetsé       (ts / t / #_)
+  -> tesé        (ts / s / _)
+  -> tese        (-x +Stress / -Stress)
+
+
+SCA Output: tsisa
+  -> tsísa  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> tsésa  ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> tsés   (+Stress+No / / _)
+  -> tés    (ts / t / #_)
+  -> tes    (-x +Stress / -Stress)
+
+
+SCA Output: walha
+  -> wálha  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> wálh   (+Stress+No / / _)
+  -> wál    ([lh l] / [l n])
+  -> wal    (-x +Stress / -Stress)
+
+
+SCA Output: waalhi
+  -> wáálhi  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> wálhi   (Vl / Vs)
+  -> wélhi   ([a    -+Stress+No] / [e      ] / _ C (C) i~)
+  -> wélh    (+Stress+No / / _)
+  -> wél     ([lh l] / [l n])
+  -> wel     (-x +Stress / -Stress)
+
+
+SCA Output: wanaŋ
+  -> wanáŋ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> wanó   (a ŋ / o / _ [C #])
+  -> wnó    (+Stress+No / / _)
+  -> wno    (-x +Stress / -Stress)
+
+
+SCA Output: waq
+  -> waʔ  (-x [e q g] / [ə ʔ ɣ])
+  -> wáʔ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> waʔ  (-x +Stress / -Stress)
+
+
+SCA Output: mah
+  -> máh  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> má   (h / / _)
+  -> ma   (-x +Stress / -Stress)
+
+
+SCA Output: wayug
+  -> wayuɣ  (-x [e q g] / [ə ʔ ɣ])
+  -> wayúɣ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> wyúɣ   (+Stress+No / / _)
+  -> wyú    (ɣ / / _)
+  -> wyu    (-x +Stress / -Stress)
+
+
+SCA Output: wedeŋ
+  -> wədəŋ   (-x [e q g] / [ə ʔ ɣ])
+  -> wədə́ŋ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> wərə́ŋ  ([t d] / r / V _ [V #])
+  -> wrə́ŋ   (+Stress+No / / _)
+  -> wráŋ    (ə / @? [a e])
+  -> wraŋ    (-x +Stress / -Stress)
+
+wedeŋ
+  -> wədəŋ   (-x [e q g] / [ə ʔ ɣ])
+  -> wədə́ŋ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> wərə́ŋ  ([t d] / r / V _ [V #])
+  -> wrə́ŋ   (+Stress+No / / _)
+  -> wréŋ    (ə / @? [a e])
+  -> wreŋ    (-x +Stress / -Stress)
+
+
+SCA Output: wediy
+  -> wədiy  (-x [e q g] / [ə ʔ ɣ])
+  -> wədíy  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> wəjíy  ([s t d] / [š č j] / _ [i y])
+  -> wjíy   (+Stress+No / / _)
+  -> wjí    (y / / i _)
+  -> wgí    (j / g / _)
+  -> wgi    (-x +Stress / -Stress)
+
+
+SCA Output: welus
+  -> wəlus  (-x [e q g] / [ə ʔ ɣ])
+  -> wəlús  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> wlús   (+Stress+No / / _)
+  -> wnús   ([lh l] / [l n])
+  -> wnus   (-x +Stress / -Stress)
+
+
+SCA Output: ganit
+  -> ɣanit  (-x [e q g] / [ə ʔ ɣ])
+  -> ɣanít  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ɣanír  ([t d] / r / V _ [V #])
+  -> ɣnír   (+Stress+No / / _)
+  -> inír   (ɣ / i~ / # _ C)
+  -> inir   (-x +Stress / -Stress)
+
+
+SCA Output: wiilets
+  -> wiiləts   (-x [e q g] / [ə ʔ ɣ])
+  -> wííləts   ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> wíílə́ts  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> wììlə́ts  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> wìlə́ts   (Vl / Vs)
+  -> wìláts    (ə / @? [a e])
+  -> wiláts    (-x +Stress+Snd / +Stress+No)
+  -> wináts    ([lh l] / [l n])
+  -> winás     (ts / s / _)
+  -> winas     (-x +Stress / -Stress)
+
+wiilets
+  -> wiiləts   (-x [e q g] / [ə ʔ ɣ])
+  -> wííləts   ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> wíílə́ts  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> wììlə́ts  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> wìlə́ts   (Vl / Vs)
+  -> wìléts    (ə / @? [a e])
+  -> wiléts    (-x +Stress+Snd / +Stress+No)
+  -> winéts    ([lh l] / [l n])
+  -> winés     (ts / s / _)
+  -> wines     (-x +Stress / -Stress)
+
+
+SCA Output: witsi
+  -> wítsi  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> wíts   (+Stress+No / / _)
+  -> wís    (ts / s / _)
+  -> wis    (-x +Stress / -Stress)
+
+
+SCA Output: yaaq
+  -> yaaʔ  (-x [e q g] / [ə ʔ ɣ])
+  -> yááʔ  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> yáʔ   (Vl / Vs)
+  -> yaʔ   (-x +Stress / -Stress)
+
+
+SCA Output: yagi
+  -> yaɣi  (-x [e q g] / [ə ʔ ɣ])
+  -> yáɣi  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> yéɣi  ([a    -+Stress+No] / [e      ] / _ C (C) i~)
+  -> yéɣ   (+Stress+No / / _)
+  -> yé    (ɣ / / _)
+  -> ye    (-x +Stress / -Stress)
+
+
+SCA Output: yagi
+  -> yaɣi  (-x [e q g] / [ə ʔ ɣ])
+  -> yáɣi  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> yéɣi  ([a    -+Stress+No] / [e      ] / _ C (C) i~)
+  -> yéɣ   (+Stress+No / / _)
+  -> yé    (ɣ / / _)
+  -> ye    (-x +Stress / -Stress)
+
+
+SCA Output: yangat
+  -> yangát  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> yangár  ([t d] / r / V _ [V #])
+  -> yngár   (+Stress+No / / _)
+  -> ygár    (Pns / Vds / # C _ / _ #)
+  -> ygar    (-x +Stress / -Stress)
+
+
+SCA Output: yaqa
+  -> yaʔa  (-x [e q g] / [ə ʔ ɣ])
+  -> yáʔa  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> yáʔ   (+Stress+No / / _)
+  -> yaʔ   (-x +Stress / -Stress)
+
+
+SCA Output: nye
+  -> nyə  (-x [e q g] / [ə ʔ ɣ])
+  -> ny   (+Stress+No / / _)
+  -> ni   ([w y] / [u~ i~] / C _ #)
+
+
+SCA Output: yenge
+  -> yəngə   (-x [e q g] / [ə ʔ ɣ])
+  -> yə́ngə  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> yéngə   ([  ə   u -+Stress+No] / [  e   u] / _ C (C) ə~)
+  -> yéng    (+Stress+No / / _)
+  -> yég     (Pns / Vds / # C _ / _ #)
+  -> yeg     (-x +Stress / -Stress)
+
+
+SCA Output: mebas
+  -> məbas  (-x [e q g] / [ə ʔ ɣ])
+  -> məbás  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> mbás   (+Stress+No / / _)
+  -> mbas   (-x +Stress / -Stress)
+
+
+SCA Output: yusaa
+  -> yusáá  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> yusá   (Vl / Vs)
+  -> ysá    (+Stress+No / / _)
+  -> ysa    (-x +Stress / -Stress)
+
+
+SCA Output: yusaye
+  -> yusayə  (-x [e q g] / [ə ʔ ɣ])
+  -> yusáyə  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> yusáyə  (-? [a    -+Stress+No] / [e      ] / _ C (C) ə~)
+  -> ysáy    (+Stress+No / / _)
+  -> ysay    (-x +Stress / -Stress)
+
+yusaye
+  -> yusayə  (-x [e q g] / [ə ʔ ɣ])
+  -> yusáyə  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> yuséyə  (-? [a    -+Stress+No] / [e      ] / _ C (C) ə~)
+  -> yséy    (+Stress+No / / _)
+  -> ysey    (-x +Stress / -Stress)
+
+
+SCA Output: 
+SCA Output: 
+SCA Output: wakatuukatuu
+  -> waɣatuuɣatuu  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> waɣatúúɣatúú  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> wáɣatúúɣatúú  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> wàɣatùùɣatúú  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> wàɣarùùɣarúú  ([t d] / r / V _ [V #])
+  -> wàɣarùɣarú    (Vl / Vs)
+  -> wàɣaròɣarú    ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> wàɣròɣrú      (+Stress+No / / _)
+  -> waɣroɣrú      (-x +Stress+Snd / +Stress+No)
+  -> warorú        (ɣ / / _)
+  -> waroru        (-x +Stress / -Stress)
+
+watsikatuukatuu
+  -> watsiɣatuuɣatuu  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> watsiɣatúúɣatúú  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> watsíɣatúúɣatúú  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> watsìɣatùùɣatúú  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> watsìɣarùùɣarúú  ([t d] / r / V _ [V #])
+  -> watsìɣarùɣarú    (Vl / Vs)
+  -> watsèɣaròɣarú    ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> wtsèɣròɣrú       (+Stress+No / / _)
+  -> wtseɣroɣrú       (-x +Stress+Snd / +Stress+No)
+  -> wtserorú         (ɣ / / _)
+  -> wserorú          (ts / s / _)
+  -> wseroru          (-x +Stress / -Stress)
+
+wakekatuukatuu
+  -> wakəkatuukatuu   (-x [e q g] / [ə ʔ ɣ])
+  -> waɣəɣatuuɣatuu   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> waɣəɣatúúɣatúú   ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> waɣə́ɣatúúɣatúú  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> waɣə̀ɣatùùɣatúú  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> waɣə̀ɣarùùɣarúú  ([t d] / r / V _ [V #])
+  -> waɣə̀ɣarùɣarú    (Vl / Vs)
+  -> waɣàɣaròɣarú     ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> wɣàɣròɣrú        (+Stress+No / / _)
+  -> wɣaɣroɣrú        (-x +Stress+Snd / +Stress+No)
+  -> warorú           (ɣ / / _)
+  -> waroru           (-x +Stress / -Stress)
+
+waŋukatuukatuu
+  -> waŋuɣatuuɣatuu  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> waŋuɣatúúɣatúú  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> waŋúɣatúúɣatúú  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> waŋùɣatùùɣatúú  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> waŋùɣarùùɣarúú  ([t d] / r / V _ [V #])
+  -> waŋùɣarùɣarú    (Vl / Vs)
+  -> waŋòɣaròɣarú    ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> wŋòɣròɣrú       (+Stress+No / / _)
+  -> wŋoɣroɣrú       (-x +Stress+Snd / +Stress+No)
+  -> wŋororú         (ɣ / / _)
+  -> wŋororu         (-x +Stress / -Stress)
+
+walikatuukatuu
+  -> waliɣatuuɣatuu  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> waliɣatúúɣatúú  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> walíɣatúúɣatúú  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> walìɣatùùɣatúú  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> walìɣarùùɣarúú  ([t d] / r / V _ [V #])
+  -> walìɣarùɣarú    (Vl / Vs)
+  -> walèɣaròɣarú    ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> wlèɣròɣrú       (+Stress+No / / _)
+  -> wleɣroɣrú       (-x +Stress+Snd / +Stress+No)
+  -> wlerorú         (ɣ / / _)
+  -> wnerorú         ([lh l] / [l n])
+  -> wneroru         (-x +Stress / -Stress)
+
+
+SCA Output: mahkatuukatuu
+  -> mahɣatuuɣatuu  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> mahɣatúúɣatúú  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> máhɣatúúɣatúú  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> màhɣatùùɣatúú  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> màɣatùùɣatúú   (h / / _)
+  -> màɣarùùɣarúú   ([t d] / r / V _ [V #])
+  -> màɣarùɣarú     (Vl / Vs)
+  -> màɣaròɣarú     ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> màɣròɣrú       (+Stress+No / / _)
+  -> maɣroɣrú       (-x +Stress+Snd / +Stress+No)
+  -> marorú         (ɣ / / _)
+  -> maroru         (-x +Stress / -Stress)
+
+mahtsikatuukatuu
+  -> mahtsiɣatuuɣatuu  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> mahtsiɣatúúɣatúú  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> máhtsiɣatúúɣatúú  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> máhtsíɣatúúɣatúú  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> màhtsìɣatùùɣatúú  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> màtsìɣatùùɣatúú   (h / / _)
+  -> màtsìɣarùùɣarúú   ([t d] / r / V _ [V #])
+  -> màtsìɣarùɣarú     (Vl / Vs)
+  -> màtsèɣaròɣarú     ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> màtsèɣròɣrú       (+Stress+No / / _)
+  -> matseɣroɣrú       (-x +Stress+Snd / +Stress+No)
+  -> matserorú         (ɣ / / _)
+  -> maserorú          (ts / s / _)
+  -> maseroru          (-x +Stress / -Stress)
+
+mahkekatuukatuu
+  -> mahkəkatuukatuu   (-x [e q g] / [ə ʔ ɣ])
+  -> mahɣəɣatuuɣatuu   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> mahɣəɣatúúɣatúú   ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> máhɣəɣatúúɣatúú   (+Stress+No / +Stress+Pri / _ C [C #])
+  -> máhɣə́ɣatúúɣatúú  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> màhɣə̀ɣatùùɣatúú  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> màɣə̀ɣatùùɣatúú   (h / / _)
+  -> màɣə̀ɣarùùɣarúú   ([t d] / r / V _ [V #])
+  -> màɣə̀ɣarùɣarú     (Vl / Vs)
+  -> màɣàɣaròɣarú      ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> màɣàɣròɣrú        (+Stress+No / / _)
+  -> maɣaɣroɣrú        (-x +Stress+Snd / +Stress+No)
+  -> maarorú           (ɣ / / _)
+  -> maaroru           (-x +Stress / -Stress)
+
+mahŋukatuukatuu
+  -> mahŋuɣatuuɣatuu  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> mahŋuɣatúúɣatúú  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> máhŋuɣatúúɣatúú  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> máhŋúɣatúúɣatúú  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> màhŋùɣatùùɣatúú  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> màŋùɣatùùɣatúú   (h / / _)
+  -> màŋùɣarùùɣarúú   ([t d] / r / V _ [V #])
+  -> màŋùɣarùɣarú     (Vl / Vs)
+  -> màŋòɣaròɣarú     ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> màŋòɣròɣrú       (+Stress+No / / _)
+  -> maŋoɣroɣrú       (-x +Stress+Snd / +Stress+No)
+  -> maŋororú         (ɣ / / _)
+  -> maŋororu         (-x +Stress / -Stress)
+
+mahmukatuukatuu
+  -> mahmuɣatuuɣatuu  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> mahmuɣatúúɣatúú  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> máhmuɣatúúɣatúú  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> máhmúɣatúúɣatúú  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> màhmùɣatùùɣatúú  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> màmùɣatùùɣatúú   (h / / _)
+  -> màmùɣarùùɣarúú   ([t d] / r / V _ [V #])
+  -> màmùɣarùɣarú     (Vl / Vs)
+  -> màmòɣaròɣarú     ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> màmòɣròɣrú       (+Stress+No / / _)
+  -> mamoɣroɣrú       (-x +Stress+Snd / +Stress+No)
+  -> mamororú         (ɣ / / _)
+  -> mamororu         (-x +Stress / -Stress)
+
+
+SCA Output: 
+SCA Output: 
+SCA Output: siw=dafin
+  -> siw#=#dafin  (-x = / # = #)
+  -> síw#=#dafín  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> šíw#=#dafín  ([s t d] / [š č j] / _ [i y])
+  -> šíw#=#dfín   (+Stress+No / / _)
+  -> šíwdfín      (-x # = # / / _)
+  -> šiwdfín      (-x +Stress+Pri / +Stress+No / _ ^+Stress+Pri)
+  -> siwdfín      (š / s / _)
+  -> siwdfin      (-x +Stress / -Stress)
+
+si=dafin
+  -> si#=#dafin  (-x = / # = #)
+  -> si#=#dafín  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ši#=#dafín  ([s t d] / [š č j] / _ [i y])
+  -> š#=#dfín    (+Stress+No / / _)
+  -> šdfín       (-x # = # / / _)
+  -> rdfín       (š / r / _ Vcd / Vcd _ / V _ [V Vcd #] // _i)
+  -> rdfin       (-x +Stress / -Stress)
+
+siwedafin
+  -> siwədafin   (-x [e q g] / [ə ʔ ɣ])
+  -> siwədafín   (+Stress+No / +Stress+Pri / _ C [C #])
+  -> siwə́dafín  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> siwə̀dafín  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> šiwə̀dafín  ([s t d] / [š č j] / _ [i y])
+  -> šiwə̀rafín  ([t d] / r / V _ [V #])
+  -> šiwàrafín   ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> šwàrfín     (+Stress+No / / _)
+  -> šwarfín     (-x +Stress+Snd / +Stress+No)
+  -> rwarfín     (š / r / _ Vcd / Vcd _ / V _ [V Vcd #] // _i)
+  -> rwarfin     (-x +Stress / -Stress)
+
+siwdafin
+  -> síwdafín  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> sìwdafín  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> šìwdafín  ([s t d] / [š č j] / _ [i y])
+  -> šèwdafín  ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> šèwdfín   (+Stress+No / / _)
+  -> šewdfín   (-x +Stress+Snd / +Stress+No)
+  -> sewdfín   (š / s / _)
+  -> sewdfin   (-x +Stress / -Stress)
+
+sidafin
+  -> sidafín  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> sídafín  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> sìdafín  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> šìdafín  ([s t d] / [š č j] / _ [i y])
+  -> šìrafín  ([t d] / r / V _ [V #])
+  -> šèrafín  ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> šèrfín   (+Stress+No / / _)
+  -> šerfín   (-x +Stress+Snd / +Stress+No)
+  -> serfín   (š / s / _)
+  -> serfin   (-x +Stress / -Stress)
+
+
+SCA Output: tse=dafin
+  -> tsə=dafin    (-x [e q g] / [ə ʔ ɣ])
+  -> tsə#=#dafin  (-x = / # = #)
+  -> tsə#=#dafín  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ts#=#dfín    (+Stress+No / / _)
+  -> tsdfín       (-x # = # / / _)
+  -> tdfín        (ts / t / #_)
+  -> tdfin        (-x +Stress / -Stress)
+
+tsedafin
+  -> tsədafin   (-x [e q g] / [ə ʔ ɣ])
+  -> tsədafín   (+Stress+No / +Stress+Pri / _ C [C #])
+  -> tsə́dafín  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> tsə̀dafín  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> tsə̀rafín  ([t d] / r / V _ [V #])
+  -> tsàrafín   ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> tsàrfín    (+Stress+No / / _)
+  -> tsarfín    (-x +Stress+Snd / +Stress+No)
+  -> tarfín     (ts / t / #_)
+  -> tarfin     (-x +Stress / -Stress)
+
+ŋa=dafin
+  -> ŋa#=#dafin  (-x = / # = #)
+  -> ŋa#=#dafín  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ŋ#=#dfín    (+Stress+No / / _)
+  -> ŋdfín       (-x # = # / / _)
+  -> ŋdfin       (-x +Stress / -Stress)
+
+ŋadafin
+  -> ŋadafín  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ŋádafín  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> ŋàdafín  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> ŋàrafín  ([t d] / r / V _ [V #])
+  -> ŋàrfín   (+Stress+No / / _)
+  -> ŋarfín   (-x +Stress+Snd / +Stress+No)
+  -> aŋarfín  (ŋ -Stress / @1 -Stress ŋ @1 -Stress / # _)
+  -> aŋarfin  (-x +Stress / -Stress)
+
+
+SCA Output: 
+SCA Output: siw=fawetli
+  -> siw=fawətli     (-x [e q g] / [ə ʔ ɣ])
+  -> siw#=#fawətli   (-x = / # = #)
+  -> síw#=#fawətli   (+Stress+No / +Stress+Pri / _ C [C #])
+  -> síw#=#fawə́tli  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> šíw#=#fawə́tli  ([s t d] / [š č j] / _ [i y])
+  -> šíw#=#fawétli   ([  ə i   -+Stress+No] / [  e i  ] / _ C (C) i~)
+  -> šíw#=#fwétl     (+Stress+No / / _)
+  -> šíwfwétl        (-x # = # / / _)
+  -> šiwfwétl        (-x +Stress+Pri / +Stress+No / _ ^+Stress+Pri)
+  -> šiwfwéts        (tl / ts)
+  -> šiwfwés         (ts / s / _)
+  -> siwfwés         (š / s / _)
+  -> siwfwes         (-x +Stress / -Stress)
+
+si=fawetli
+  -> si=fawətli     (-x [e q g] / [ə ʔ ɣ])
+  -> si#=#fawətli   (-x = / # = #)
+  -> si#=#fawə́tli  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> ši#=#fawə́tli  ([s t d] / [š č j] / _ [i y])
+  -> ši#=#fawétli   ([  ə i   -+Stress+No] / [  e i  ] / _ C (C) i~)
+  -> š#=#fwétl      (+Stress+No / / _)
+  -> šfwétl         (-x # = # / / _)
+  -> šfwéts         (tl / ts)
+  -> šfwés          (ts / s / _)
+  -> sfwés          (š / s / _)
+  -> sfwes          (-x +Stress / -Stress)
+
+siwefawetli
+  -> siwəfawətli    (-x [e q g] / [ə ʔ ɣ])
+  -> siwə́fawə́tli  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> siwə̀fawə́tli  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> šiwə̀fawə́tli  ([s t d] / [š č j] / _ [i y])
+  -> šiwàfawə́tli   ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> šiwàfawétli    ([  ə i   -+Stress+No] / [  e i  ] / _ C (C) i~)
+  -> šwàfwétl       (+Stress+No / / _)
+  -> šwafwétl       (-x +Stress+Snd / +Stress+No)
+  -> šwafwéts       (tl / ts)
+  -> šwafwés        (ts / s / _)
+  -> rwafwés        (š / r / _ Vcd / Vcd _ / V _ [V Vcd #] // _i)
+  -> rwafwes        (-x +Stress / -Stress)
+
+siwfawetli
+  -> siwfawətli   (-x [e q g] / [ə ʔ ɣ])
+  -> síwfawətli   (+Stress+No / +Stress+Pri / _ C [C #])
+  -> síwfawə́tli  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> sìwfawə́tli  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> šìwfawə́tli  ([s t d] / [š č j] / _ [i y])
+  -> šèwfawə́tli  ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> šèwfawétli   ([  ə i   -+Stress+No] / [  e i  ] / _ C (C) i~)
+  -> šèwfwétl     (+Stress+No / / _)
+  -> šewfwétl     (-x +Stress+Snd / +Stress+No)
+  -> šewfwéts     (tl / ts)
+  -> šewfwés      (ts / s / _)
+  -> sewfwés      (š / s / _)
+  -> sewfwes      (-x +Stress / -Stress)
+
+sifawetli
+  -> sifawətli   (-x [e q g] / [ə ʔ ɣ])
+  -> sífawə́tli  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> sìfawə́tli  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> šìfawə́tli  ([s t d] / [š č j] / _ [i y])
+  -> šèfawə́tli  ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> šèfawétli   ([  ə i   -+Stress+No] / [  e i  ] / _ C (C) i~)
+  -> šèfwétl     (+Stress+No / / _)
+  -> šefwétl     (-x +Stress+Snd / +Stress+No)
+  -> šefwéts     (tl / ts)
+  -> šefwés      (ts / s / _)
+  -> sefwés      (š / s / _)
+  -> sefwes      (-x +Stress / -Stress)
+
+
+SCA Output: tse=fawetli
+  -> tsə=fawətli     (-x [e q g] / [ə ʔ ɣ])
+  -> tsə#=#fawətli   (-x = / # = #)
+  -> tsə#=#fawə́tli  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> tsə#=#fawétli   ([  ə i   -+Stress+No] / [  e i  ] / _ C (C) i~)
+  -> ts#=#fwétl      (+Stress+No / / _)
+  -> tsfwétl         (-x # = # / / _)
+  -> tsfwéts         (tl / ts)
+  -> tfwéts          (ts / t / #_)
+  -> tfwés           (ts / s / _)
+  -> tfwes           (-x +Stress / -Stress)
+
+tsefawetli
+  -> tsəfawətli    (-x [e q g] / [ə ʔ ɣ])
+  -> tsə́fawə́tli  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> tsə̀fawə́tli  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> tsàfawə́tli   ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> tsàfawétli    ([  ə i   -+Stress+No] / [  e i  ] / _ C (C) i~)
+  -> tsàfwétl      (+Stress+No / / _)
+  -> tsafwétl      (-x +Stress+Snd / +Stress+No)
+  -> tsafwéts      (tl / ts)
+  -> tafwéts       (ts / t / #_)
+  -> tafwés        (ts / s / _)
+  -> tafwes        (-x +Stress / -Stress)
+
+ŋa=fawetli
+  -> ŋa=fawətli     (-x [e q g] / [ə ʔ ɣ])
+  -> ŋa#=#fawətli   (-x = / # = #)
+  -> ŋa#=#fawə́tli  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> ŋa#=#fawétli   ([  ə i   -+Stress+No] / [  e i  ] / _ C (C) i~)
+  -> ŋ#=#fwétl      (+Stress+No / / _)
+  -> ŋfwétl         (-x # = # / / _)
+  -> ŋfwéts         (tl / ts)
+  -> ŋfwés          (ts / s / _)
+  -> ŋfwes          (-x +Stress / -Stress)
+
+ŋafawetli
+  -> ŋafawətli   (-x [e q g] / [ə ʔ ɣ])
+  -> ŋáfawə́tli  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> ŋàfawə́tli  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> ŋàfawétli   ([  ə i   -+Stress+No] / [  e i  ] / _ C (C) i~)
+  -> ŋàfwétl     (+Stress+No / / _)
+  -> ŋafwétl     (-x +Stress+Snd / +Stress+No)
+  -> aŋafwétl    (ŋ -Stress / @1 -Stress ŋ @1 -Stress / # _)
+  -> aŋafwéts    (tl / ts)
+  -> aŋafwés     (ts / s / _)
+  -> aŋafwes     (-x +Stress / -Stress)
+
+
+SCA Output: 
+SCA Output: siw=khaliŋ
+  -> siw#=#khaliŋ  (-x = / # = #)
+  -> siw#=#kaliŋ   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> síw#=#kalíŋ   (+Stress+No / +Stress+Pri / _ C [C #])
+  -> šíw#=#kalíŋ   ([s t d] / [š č j] / _ [i y])
+  -> šíw#=#klíŋ    (+Stress+No / / _)
+  -> šíwklíŋ       (-x # = # / / _)
+  -> šiwklíŋ       (-x +Stress+Pri / +Stress+No / _ ^+Stress+Pri)
+  -> šiwkníŋ       ([lh l] / [l n])
+  -> siwkníŋ       (š / s / _)
+  -> siwkniŋ       (-x +Stress / -Stress)
+
+si=khaliŋ
+  -> si#=#khaliŋ  (-x = / # = #)
+  -> si#=#kaliŋ   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> si#=#kalíŋ   (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ši#=#kalíŋ   ([s t d] / [š č j] / _ [i y])
+  -> š#=#klíŋ     (+Stress+No / / _)
+  -> šklíŋ        (-x # = # / / _)
+  -> škníŋ        ([lh l] / [l n])
+  -> skníŋ        (š / s / _)
+  -> skniŋ        (-x +Stress / -Stress)
+
+siwekhaliŋ
+  -> siwəkhaliŋ  (-x [e q g] / [ə ʔ ɣ])
+  -> siwəkaliŋ   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> siwəkalíŋ   (+Stress+No / +Stress+Pri / _ C [C #])
+  -> siwə́kalíŋ  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> siwə̀kalíŋ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> šiwə̀kalíŋ  ([s t d] / [š č j] / _ [i y])
+  -> šiwàkalíŋ   ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> šwàklíŋ     (+Stress+No / / _)
+  -> šwaklíŋ     (-x +Stress+Snd / +Stress+No)
+  -> šwakníŋ     ([lh l] / [l n])
+  -> rwakníŋ     (š / r / _ Vcd / Vcd _ / V _ [V Vcd #] // _i)
+  -> rwakniŋ     (-x +Stress / -Stress)
+
+siwkhaliŋ
+  -> siwkaliŋ  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> síwkalíŋ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> sìwkalíŋ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> šìwkalíŋ  ([s t d] / [š č j] / _ [i y])
+  -> šèwkalíŋ  ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> šèwklíŋ   (+Stress+No / / _)
+  -> šewklíŋ   (-x +Stress+Snd / +Stress+No)
+  -> šewkníŋ   ([lh l] / [l n])
+  -> sewkníŋ   (š / s / _)
+  -> sewkniŋ   (-x +Stress / -Stress)
+
+sikhaliŋ
+  -> sikaliŋ  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> sikalíŋ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> síkalíŋ  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> sìkalíŋ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> šìkalíŋ  ([s t d] / [š č j] / _ [i y])
+  -> šèkalíŋ  ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> šèklíŋ   (+Stress+No / / _)
+  -> šeklíŋ   (-x +Stress+Snd / +Stress+No)
+  -> šekníŋ   ([lh l] / [l n])
+  -> sekníŋ   (š / s / _)
+  -> sekniŋ   (-x +Stress / -Stress)
+
+
+SCA Output: tse=khaliŋ
+  -> tsə=khaliŋ    (-x [e q g] / [ə ʔ ɣ])
+  -> tsə#=#khaliŋ  (-x = / # = #)
+  -> tsə#=#kaliŋ   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> tsə#=#kalíŋ   (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ts#=#klíŋ     (+Stress+No / / _)
+  -> tsklíŋ        (-x # = # / / _)
+  -> tskníŋ        ([lh l] / [l n])
+  -> tkníŋ         (ts / t / #_)
+  -> tkniŋ         (-x +Stress / -Stress)
+
+tsekhaliŋ
+  -> tsəkhaliŋ  (-x [e q g] / [ə ʔ ɣ])
+  -> tsəkaliŋ   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> tsəkalíŋ   (+Stress+No / +Stress+Pri / _ C [C #])
+  -> tsə́kalíŋ  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> tsə̀kalíŋ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> tsàkalíŋ   ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> tsàklíŋ    (+Stress+No / / _)
+  -> tsaklíŋ    (-x +Stress+Snd / +Stress+No)
+  -> tsakníŋ    ([lh l] / [l n])
+  -> takníŋ     (ts / t / #_)
+  -> takniŋ     (-x +Stress / -Stress)
+
+ŋa=khaliŋ
+  -> ŋa#=#khaliŋ  (-x = / # = #)
+  -> ŋa#=#kaliŋ   ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ŋa#=#kalíŋ   (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ŋ#=#klíŋ     (+Stress+No / / _)
+  -> ŋklíŋ        (-x # = # / / _)
+  -> ŋkníŋ        ([lh l] / [l n])
+  -> ŋkniŋ        (-x +Stress / -Stress)
+
+ŋakhaliŋ
+  -> ŋakaliŋ  ([kh k] / [k ɣ] / _ / # _ // ŋ_)
+  -> ŋakalíŋ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ŋákalíŋ  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> ŋàkalíŋ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> ŋàklíŋ   (+Stress+No / / _)
+  -> ŋaklíŋ   (-x +Stress+Snd / +Stress+No)
+  -> aŋaklíŋ  (ŋ -Stress / @1 -Stress ŋ @1 -Stress / # _)
+  -> aŋakníŋ  ([lh l] / [l n])
+  -> aŋakniŋ  (-x +Stress / -Stress)
+
+
+SCA Output: 
+SCA Output: siw=saqam
+  -> siw=saʔam    (-x [e q g] / [ə ʔ ɣ])
+  -> siw#=#saʔam  (-x = / # = #)
+  -> síw#=#saʔám  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> šíw#=#saʔám  ([s t d] / [š č j] / _ [i y])
+  -> šíw#=#sʔám   (+Stress+No / / _)
+  -> šíwsʔám      (-x # = # / / _)
+  -> šiwsʔám      (-x +Stress+Pri / +Stress+No / _ ^+Stress+Pri)
+  -> šiwsáʔm      (ʔ V / \ / C _)
+  -> siwsáʔm      (š / s / _)
+  -> siwsaʔm      (-x +Stress / -Stress)
+
+si=saqam
+  -> si=saʔam    (-x [e q g] / [ə ʔ ɣ])
+  -> si#=#saʔam  (-x = / # = #)
+  -> si#=#saʔám  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ši#=#saʔám  ([s t d] / [š č j] / _ [i y])
+  -> š#=#sʔám    (+Stress+No / / _)
+  -> šsʔám       (-x # = # / / _)
+  -> šsáʔm       (ʔ V / \ / C _)
+  -> ssáʔm       (š / s / _)
+  -> ssaʔm       (-x +Stress / -Stress)
+
+siwesaqam
+  -> siwəsaʔam   (-x [e q g] / [ə ʔ ɣ])
+  -> siwəsaʔám   (+Stress+No / +Stress+Pri / _ C [C #])
+  -> siwə́saʔám  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> siwə̀saʔám  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> šiwə̀saʔám  ([s t d] / [š č j] / _ [i y])
+  -> šiwàsaʔám   ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> šwàsʔám     (+Stress+No / / _)
+  -> šwasʔám     (-x +Stress+Snd / +Stress+No)
+  -> šwasáʔm     (ʔ V / \ / C _)
+  -> rwasáʔm     (š / r / _ Vcd / Vcd _ / V _ [V Vcd #] // _i)
+  -> rwasaʔm     (-x +Stress / -Stress)
+
+siwsaqam
+  -> siwsaʔam  (-x [e q g] / [ə ʔ ɣ])
+  -> síwsaʔám  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> sìwsaʔám  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> šìwsaʔám  ([s t d] / [š č j] / _ [i y])
+  -> šèwsaʔám  ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> šèwsʔám   (+Stress+No / / _)
+  -> šewsʔám   (-x +Stress+Snd / +Stress+No)
+  -> šewsáʔm   (ʔ V / \ / C _)
+  -> sewsáʔm   (š / s / _)
+  -> sewsaʔm   (-x +Stress / -Stress)
+
+sisaqam
+  -> sisaʔam  (-x [e q g] / [ə ʔ ɣ])
+  -> sisaʔám  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> sísaʔám  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> sìsaʔám  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> šìsaʔám  ([s t d] / [š č j] / _ [i y])
+  -> šèsaʔám  ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> šèsʔám   (+Stress+No / / _)
+  -> šesʔám   (-x +Stress+Snd / +Stress+No)
+  -> šesáʔm   (ʔ V / \ / C _)
+  -> sesáʔm   (š / s / _)
+  -> sesaʔm   (-x +Stress / -Stress)
+
+
+SCA Output: tse=saqam
+  -> tsə=saʔam    (-x [e q g] / [ə ʔ ɣ])
+  -> tsə#=#saʔam  (-x = / # = #)
+  -> tsə#=#saʔám  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ts#=#sʔám    (+Stress+No / / _)
+  -> tssʔám       (-x # = # / / _)
+  -> tssáʔm       (ʔ V / \ / C _)
+  -> tsáʔm        (ts / t / #_)
+  -> tsaʔm        (-x +Stress / -Stress)
+
+tsesaqam
+  -> tsəsaʔam   (-x [e q g] / [ə ʔ ɣ])
+  -> tsəsaʔám   (+Stress+No / +Stress+Pri / _ C [C #])
+  -> tsə́saʔám  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> tsə̀saʔám  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> tsàsaʔám   ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> tsàsʔám    (+Stress+No / / _)
+  -> tsasʔám    (-x +Stress+Snd / +Stress+No)
+  -> tsasáʔm    (ʔ V / \ / C _)
+  -> tasáʔm     (ts / t / #_)
+  -> tasaʔm     (-x +Stress / -Stress)
+
+ŋa=saqam
+  -> ŋa=saʔam    (-x [e q g] / [ə ʔ ɣ])
+  -> ŋa#=#saʔam  (-x = / # = #)
+  -> ŋa#=#saʔám  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ŋ#=#sʔám    (+Stress+No / / _)
+  -> ŋsʔám       (-x # = # / / _)
+  -> ŋsáʔm       (ʔ V / \ / C _)
+  -> aŋsáʔm      (ŋ @#C C @#V +Stress / @#V -Stress ŋ @#C C @#V +Stress / # _)
+  -> aŋsaʔm      (-x +Stress / -Stress)
+
+ŋasaqam
+  -> ŋasaʔam  (-x [e q g] / [ə ʔ ɣ])
+  -> ŋasaʔám  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ŋásaʔám  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> ŋàsaʔám  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> ŋàsʔám   (+Stress+No / / _)
+  -> ŋasʔám   (-x +Stress+Snd / +Stress+No)
+  -> ŋasáʔm   (ʔ V / \ / C _)
+  -> aŋasáʔm  (ŋ -Stress / @1 -Stress ŋ @1 -Stress / # _)
+  -> aŋasaʔm  (-x +Stress / -Stress)
+
+
+SCA Output: 
+SCA Output: siw=thalaŋ=baalaq
+  -> siw=thalaŋ=baalaʔ      (-x [e q g] / [ə ʔ ɣ])
+  -> siw#=#thalaŋ#=#baalaʔ  (-x = / # = #)
+  -> siw#=#thalaŋ#=#báálaʔ  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> síw#=#thaláŋ#=#bááláʔ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> síw#=#thaláŋ#=#bààláʔ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> síw#=#tsaláŋ#=#bààláʔ  ([ph th kh] / [f ts x])
+  -> šíw#=#tsaláŋ#=#bààláʔ  ([s t d] / [š č j] / _ [i y])
+  -> šíw#=#tsaló#=#bààláʔ   (a ŋ / o / _ [C #])
+  -> šíw#=#tsaló#=#bàláʔ    (Vl / Vs)
+  -> šíw#=#tsló#=#bàláʔ     (+Stress+No / / _)
+  -> šíw#=#tsló#=#baláʔ     (-x +Stress+Snd / +Stress+No)
+  -> šíwtslóbaláʔ           (-x # = # / / _)
+  -> šiwtslobaláʔ           (-x +Stress+Pri / +Stress+No / _ ^+Stress+Pri)
+  -> šiwtsnobanáʔ           ([lh l] / [l n])
+  -> šiwsnobanáʔ            (ts / s / _)
+  -> siwsnobanáʔ            (š / s / _)
+  -> siwsnobanaʔ            (-x +Stress / -Stress)
+
+si=thalaŋ=baalaq
+  -> si=thalaŋ=baalaʔ      (-x [e q g] / [ə ʔ ɣ])
+  -> si#=#thalaŋ#=#baalaʔ  (-x = / # = #)
+  -> si#=#thalaŋ#=#báálaʔ  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> si#=#thaláŋ#=#bááláʔ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> si#=#thaláŋ#=#bààláʔ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> si#=#tsaláŋ#=#bààláʔ  ([ph th kh] / [f ts x])
+  -> ši#=#tsaláŋ#=#bààláʔ  ([s t d] / [š č j] / _ [i y])
+  -> ši#=#tsaló#=#bààláʔ   (a ŋ / o / _ [C #])
+  -> ši#=#tsaló#=#bàláʔ    (Vl / Vs)
+  -> š#=#tsló#=#bàláʔ      (+Stress+No / / _)
+  -> š#=#tsló#=#baláʔ      (-x +Stress+Snd / +Stress+No)
+  -> štslóbaláʔ            (-x # = # / / _)
+  -> štslobaláʔ            (-x +Stress+Pri / +Stress+No / _ ^+Stress+Pri)
+  -> štsnobanáʔ            ([lh l] / [l n])
+  -> šsnobanáʔ             (ts / s / _)
+  -> ssnobanáʔ             (š / s / _)
+  -> ssnobanaʔ             (-x +Stress / -Stress)
+
+siwethalaŋ=baalaq
+  -> siwəthalaŋ=baalaʔ     (-x [e q g] / [ə ʔ ɣ])
+  -> siwəthalaŋ#=#baalaʔ   (-x = / # = #)
+  -> siwəthalaŋ#=#báálaʔ   ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> siwəthaláŋ#=#bááláʔ   (+Stress+No / +Stress+Pri / _ C [C #])
+  -> siwə́thaláŋ#=#bááláʔ  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> siwə̀thaláŋ#=#bààláʔ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> siwə̀tsaláŋ#=#bààláʔ  ([ph th kh] / [f ts x])
+  -> šiwə̀tsaláŋ#=#bààláʔ  ([s t d] / [š č j] / _ [i y])
+  -> šiwə̀tsaló#=#bààláʔ   (a ŋ / o / _ [C #])
+  -> šiwə̀tsaló#=#bàláʔ    (Vl / Vs)
+  -> šiwàtsaló#=#bàláʔ     ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> šwàtsló#=#bàláʔ       (+Stress+No / / _)
+  -> šwatsló#=#baláʔ       (-x +Stress+Snd / +Stress+No)
+  -> šwatslóbaláʔ          (-x # = # / / _)
+  -> šwatslobaláʔ          (-x +Stress+Pri / +Stress+No / _ ^+Stress+Pri)
+  -> šwatsnobanáʔ          ([lh l] / [l n])
+  -> šwasnobanáʔ           (ts / s / _)
+  -> rwasnobanáʔ           (š / r / _ Vcd / Vcd _ / V _ [V Vcd #] // _i)
+  -> rwasnobanaʔ           (-x +Stress / -Stress)
+
+siwthalaŋ=baalaq
+  -> siwthalaŋ=baalaʔ    (-x [e q g] / [ə ʔ ɣ])
+  -> siwthalaŋ#=#baalaʔ  (-x = / # = #)
+  -> siwthalaŋ#=#báálaʔ  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> síwthaláŋ#=#bááláʔ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> sìwthaláŋ#=#bààláʔ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> sìwtsaláŋ#=#bààláʔ  ([ph th kh] / [f ts x])
+  -> šìwtsaláŋ#=#bààláʔ  ([s t d] / [š č j] / _ [i y])
+  -> šìwtsaló#=#bààláʔ   (a ŋ / o / _ [C #])
+  -> šìwtsaló#=#bàláʔ    (Vl / Vs)
+  -> šèwtsaló#=#bàláʔ    ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> šèwtsló#=#bàláʔ     (+Stress+No / / _)
+  -> šewtsló#=#baláʔ     (-x +Stress+Snd / +Stress+No)
+  -> šewtslóbaláʔ        (-x # = # / / _)
+  -> šewtslobaláʔ        (-x +Stress+Pri / +Stress+No / _ ^+Stress+Pri)
+  -> šewtsnobanáʔ        ([lh l] / [l n])
+  -> šewsnobanáʔ         (ts / s / _)
+  -> sewsnobanáʔ         (š / s / _)
+  -> sewsnobanaʔ         (-x +Stress / -Stress)
+
+sithalaŋ=baalaq
+  -> sithalaŋ=baalaʔ    (-x [e q g] / [ə ʔ ɣ])
+  -> sithalaŋ#=#baalaʔ  (-x = / # = #)
+  -> sithalaŋ#=#báálaʔ  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> sithaláŋ#=#bááláʔ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> síthaláŋ#=#bááláʔ  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> sìthaláŋ#=#bààláʔ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> sìtsaláŋ#=#bààláʔ  ([ph th kh] / [f ts x])
+  -> šìtsaláŋ#=#bààláʔ  ([s t d] / [š č j] / _ [i y])
+  -> šìtsaló#=#bààláʔ   (a ŋ / o / _ [C #])
+  -> šìtsaló#=#bàláʔ    (Vl / Vs)
+  -> šètsaló#=#bàláʔ    ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> šètsló#=#bàláʔ     (+Stress+No / / _)
+  -> šetsló#=#baláʔ     (-x +Stress+Snd / +Stress+No)
+  -> šetslóbaláʔ        (-x # = # / / _)
+  -> šetslobaláʔ        (-x +Stress+Pri / +Stress+No / _ ^+Stress+Pri)
+  -> šetsnobanáʔ        ([lh l] / [l n])
+  -> šesnobanáʔ         (ts / s / _)
+  -> sesnobanáʔ         (š / s / _)
+  -> sesnobanaʔ         (-x +Stress / -Stress)
+
+
+SCA Output: tse=thalaŋ=baalaq
+  -> tsə=thalaŋ=baalaʔ      (-x [e q g] / [ə ʔ ɣ])
+  -> tsə#=#thalaŋ#=#baalaʔ  (-x = / # = #)
+  -> tsə#=#thalaŋ#=#báálaʔ  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> tsə#=#thaláŋ#=#bááláʔ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> tsə#=#thaláŋ#=#bààláʔ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> tsə#=#tsaláŋ#=#bààláʔ  ([ph th kh] / [f ts x])
+  -> tsə#=#tsaló#=#bààláʔ   (a ŋ / o / _ [C #])
+  -> tsə#=#tsaló#=#bàláʔ    (Vl / Vs)
+  -> ts#=#tsló#=#bàláʔ      (+Stress+No / / _)
+  -> ts#=#tsló#=#baláʔ      (-x +Stress+Snd / +Stress+No)
+  -> tstslóbaláʔ            (-x # = # / / _)
+  -> tstslobaláʔ            (-x +Stress+Pri / +Stress+No / _ ^+Stress+Pri)
+  -> tslobaláʔ              (C / / # _ >)
+  -> tsnobanáʔ              ([lh l] / [l n])
+  -> tnobanáʔ               (ts / t / #_)
+  -> tnobanaʔ               (-x +Stress / -Stress)
+
+tsethalaŋ=baalaq
+  -> tsəthalaŋ=baalaʔ     (-x [e q g] / [ə ʔ ɣ])
+  -> tsəthalaŋ#=#baalaʔ   (-x = / # = #)
+  -> tsəthalaŋ#=#báálaʔ   ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> tsəthaláŋ#=#bááláʔ   (+Stress+No / +Stress+Pri / _ C [C #])
+  -> tsə́thaláŋ#=#bááláʔ  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> tsə̀thaláŋ#=#bààláʔ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> tsə̀tsaláŋ#=#bààláʔ  ([ph th kh] / [f ts x])
+  -> tsə̀tsaló#=#bààláʔ   (a ŋ / o / _ [C #])
+  -> tsə̀tsaló#=#bàláʔ    (Vl / Vs)
+  -> tsàtsaló#=#bàláʔ     ([a ə i u -+Stress+No] / [a a e o] / _ C (C) a~)
+  -> tsàtsló#=#bàláʔ      (+Stress+No / / _)
+  -> tsatsló#=#baláʔ      (-x +Stress+Snd / +Stress+No)
+  -> tsatslóbaláʔ         (-x # = # / / _)
+  -> tsatslobaláʔ         (-x +Stress+Pri / +Stress+No / _ ^+Stress+Pri)
+  -> tsatsnobanáʔ         ([lh l] / [l n])
+  -> tatsnobanáʔ          (ts / t / #_)
+  -> tasnobanáʔ           (ts / s / _)
+  -> tasnobanaʔ           (-x +Stress / -Stress)
+
+ŋa=thalaŋ=baalaq
+  -> ŋa=thalaŋ=baalaʔ      (-x [e q g] / [ə ʔ ɣ])
+  -> ŋa#=#thalaŋ#=#baalaʔ  (-x = / # = #)
+  -> ŋa#=#thalaŋ#=#báálaʔ  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> ŋa#=#thaláŋ#=#bááláʔ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ŋa#=#thaláŋ#=#bààláʔ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> ŋa#=#tsaláŋ#=#bààláʔ  ([ph th kh] / [f ts x])
+  -> ŋa#=#tsaló#=#bààláʔ   (a ŋ / o / _ [C #])
+  -> ŋa#=#tsaló#=#bàláʔ    (Vl / Vs)
+  -> ŋ#=#tsló#=#bàláʔ      (+Stress+No / / _)
+  -> ŋ#=#tsló#=#baláʔ      (-x +Stress+Snd / +Stress+No)
+  -> ŋtslóbaláʔ            (-x # = # / / _)
+  -> ŋtslobaláʔ            (-x +Stress+Pri / +Stress+No / _ ^+Stress+Pri)
+  -> ŋtsnobanáʔ            ([lh l] / [l n])
+  -> ŋsnobanáʔ             (ts / s / _)
+  -> ŋsnobanaʔ             (-x +Stress / -Stress)
+
+ŋathalaŋ=baalaq
+  -> ŋathalaŋ=baalaʔ    (-x [e q g] / [ə ʔ ɣ])
+  -> ŋathalaŋ#=#baalaʔ  (-x = / # = #)
+  -> ŋathalaŋ#=#báálaʔ  ([Vl +Stress+No] / [Vl +Stress+Pri])
+  -> ŋathaláŋ#=#bááláʔ  (+Stress+No / +Stress+Pri / _ C [C #])
+  -> ŋáthaláŋ#=#bááláʔ  (-rtl C* +Stress+No C* +Stress+No C* / C* +Stress+Pri C* +Stress+No C*)
+  -> ŋàthaláŋ#=#bààláʔ  (-x +Stress+Pri / +Stress+Snd / _ ^+Stress+Pri)
+  -> ŋàtsaláŋ#=#bààláʔ  ([ph th kh] / [f ts x])
+  -> ŋàtsaló#=#bààláʔ   (a ŋ / o / _ [C #])
+  -> ŋàtsaló#=#bàláʔ    (Vl / Vs)
+  -> ŋàtsló#=#bàláʔ     (+Stress+No / / _)
+  -> ŋatsló#=#baláʔ     (-x +Stress+Snd / +Stress+No)
+  -> ŋatslóbaláʔ        (-x # = # / / _)
+  -> ŋatslobaláʔ        (-x +Stress+Pri / +Stress+No / _ ^+Stress+Pri)
+  -> aŋatslobaláʔ       (ŋ -Stress / @1 -Stress ŋ @1 -Stress / # _)
+  -> aŋatsnobanáʔ       ([lh l] / [l n])
+  -> aŋasnobanáʔ        (ts / s / _)
+  -> aŋasnobanaʔ        (-x +Stress / -Stress)
+
+

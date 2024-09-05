@@ -1,5 +1,91 @@
 # Brassica changelog
 
+## Unreleased
+
+### Behaviour
+
+(Note: breaking changes are boldfaced.)
+
+- Bugfixes:
+  - Etymologies are now added in all situations when processing an MDF file
+  - Desktop version correctly warns about unsaved changes when opening a file
+  - Rules such as `[p f] / [f h] / (a) _ #` are no longer applied twice to the same grapheme
+      (as a consequence of changes to rule application, see below)
+- New support for phonetic features:
+  - Features can be written as maximal `$name#ident(values)` after another lexeme
+  - Categories named `+Feature`, `-Feature` and `+Feature+Value`
+      get special interpretation with intersections and subtractions
+  - New category syntax: `&` before category name forces union interpretation
+      even for category names beginning with `+`/`-`
+  - Syntax `&Feature` after set operation (`&`/`+`/`-`) to include both `-Feature` and `+Feature`
+      (i.e. all graphemes with a setting for that feature)
+  - Declaration `auto <FeaturalCategory>` in category definition block
+      can be used to treat said feature autosegmentally
+      whenever a grapheme in the selected category is mentioned
+- Other changes to sound change syntax:
+  - `report` directive allows for reporting intermediate results in input→output mode
+  - Graphemes followed by `~` are now allowed inside a category block,
+      but **disallowed in category names and in `extra` declarations** (where they would be meaningless)
+  - **Category intersection now produces a category with graphemes
+      in the same order as the last category mentioned, rather than the first**
+  - Optional elements or categories can now be prefixed by `%` to make them match greedily
+  - New backreference syntax `@#id` allows categories to be matched by ID rather than number
+- Changes to rule application algorithm:
+  - **Sound change applications can now overlap,
+      such that the replacement from one application can be used as the environment for the next**
+  - New flag `-no` allows for reverting to the previous behaviour (non-overlapping applications)
+  - **Make RTL and LTR application symmetric,
+      by reimplementing the former as LTR application with words and rules reversed:
+      consequently category correspondences, backreferences etc. are also reversed**
+- Improvements to graphical interface:
+  - Whitespace is now preserved when displaying sound change output on desktop and web
+  - New keyboard shortcuts in desktop GUI:
+      Ctrl+Enter to apply rules, Ctrl+Tab to toggle between rules and words textboxes
+  - Improvements to output from ‘Report rules apply’:
+    comments are no longer included next to rules, and
+    outputs are no longer aligned across input words (greatly increasing responsiveness on desktop)
+  - User can now choose which MDF hierarchy to use for dictionaries
+  - Web version brought closer to parity with desktop version
+      by adding MDF support and an option to ‘synchronise scroll positions’
+  - When ‘view results live’ is selected, results are updated on changes to all controls,
+      not just changes to words or sound changes
+  - Add ‘Edit’ menu to desktop GUI, including ‘Find’ dialog box
+  - Fields of web GUI can now be initialised using URL query parameters
+    (`r` for rules, `w` for words)
+  - Add ‘select all’ buttons to web GUI
+  - Improve display of web application controls on small screens
+  - Sound changes editor on web version has been rewritten to work around bug with combining diacritics
+
+### Code
+
+- CMakeLists for desktop GUI now track Haskell binary dependency correctly
+- Changes resulting from addition of `report`:
+  - New constructor `ReportS` added to `Brassica.SoundChange.Types.Statement`
+  - New functions `Brassica.SoundChange.Apply.Internal.applyChangesWithReports`,
+      `Brassica.SoundChange.Apply.Internal.applyChangesWithChangesWithReports`
+  - A constructor `ReportWord` has been added to `Brassica.SoundChange.Apply.Internal.LogItem`,
+      while its former record fields `input` and `output` have been replaced with functions
+      `logInput` and `logOutput`.
+  - `Brassica.SoundChange.Frontend.Internal` has been restructured to allow display of intermediate results
+  - New function `Brassica.SoundChange.Tokenise.joinComponents` added to assist with said restructure
+- Changes resulting from addition of features:
+  - New constructors `Feature` and `Autosegment` added to `Brassica.SoundChange.Types.Lexeme`
+    (the latter primarily for internal use)
+  - New type `Brassica.SoundChange.Apply.Internal`
+  - New constructor `DefineAuto` added to `Brassica.SoundChange.Types.CategoryDefinition`
+  - Changes in category expansion:
+      new type `Brassica.SoundChange.Category.AutosegmentDef`,
+      and new constructors `InvalidDerivedValue` and `InvalidAuto`
+        added to `Brassica.SoundChange.Category.ExpandError`
+- Changes resulting from new rule application algorithm:
+  - New constructore `PrevEnd` added to `Brassica.SoundChange.Apply.Internal.RuleTag`
+  - New field `nonOverlappingTarget` added to `Brassica.SoundChange.Types.Flags`
+- New constructors `GreedyOptional` and `GreedyCategory` for `Brassica.SoundChange.Types.Lexeme`
+- `Brassica.SoundChange.Frontend.Internal.InputLexiconFormat`
+    now depends on new type `Brassica.SoundChange.Frontend.Internal.MDFHierarchy`
+- Word boundaries are now simply ordinary graphemes `"#"`:
+    `Brassica.SoundChange.Types.Grapheme` is now a type synonym for `[Char]`
+
 ## 0.3.0
 
 ### Behaviour

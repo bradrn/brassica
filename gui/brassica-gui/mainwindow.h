@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include "brassicaprocess.h"
+#include "finddialog.h"
 #include "ruleshighlighter.h"
 #include "settings.h"
 
@@ -34,6 +35,7 @@ private:
     QRadioButton *inputhighlightBtn;
     QRadioButton *rawBtn;
     QRadioButton *mdfBtn;
+    QRadioButton *mdfAltBtn;
     QGroupBox *outputFormatBox;
     QRadioButton *mdfoutBtn;
     QRadioButton *mdfetymoutBtn;
@@ -61,6 +63,9 @@ private:
     void doSaveRules(QString fileName);
     void doSaveLexicon(QString fileName);
 
+    bool checkRulesDirty();
+    bool checkLexiconDirty();
+
     QString currentRulesFile;
     QString currentLexiconFile;
 
@@ -68,6 +73,8 @@ private:
     bool lexiconDirty = false;
 
     void refreshTitle();
+
+    FindDialog *findDialog = nullptr;
 
     Settings settings;
     void applySettings();
@@ -84,11 +91,18 @@ private slots:
     void saveLexicon();
     void saveLexiconAs();
 
+    void toggleCursor();
+
     void rulesModified();
     void lexiconModified();
 
     void updateOutputFromWordsSlider(int value);
     void updateWordsFromOutputSlider(int value);
+
+    void reselectCheckboxes();
+
+    void showFindWindow();
+    void findNext(QString substring, FindDialog::FindArea area, QTextDocument::FindFlags flags);
 
     void showParadigmBuilder();
 

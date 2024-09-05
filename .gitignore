@@ -1,4 +1,5 @@
 .stack-work/
+cabal.project.local
 dist*/
 node_modules/
 *~
@@ -8,9 +9,12 @@ node_modules/
 *.wasm
 electron/node_modules
 electron/static
-gui/build*
+build*
 stub/
 CMakeLists.txt.user
 stack.yaml.lock
 gui/brassica-web/dist/*.js
 gui/brassica-web/dist/examples/
+test/*.out
+.cache
+.clangd

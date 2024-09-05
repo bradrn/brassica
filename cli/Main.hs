@@ -32,6 +32,8 @@ main = execParser opts >>= \case
                     Left err -> putStrLn $ case err of
                         (NotFound s) -> "Could not find category: " ++ s
                         InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
+                        InvalidDerivedValue -> "Invalid value used as derived grapheme in autosegment"
+                        InvalidAuto s -> "Invalid category name used for autosegment: " ++ s
                         MismatchedLengths -> "Mismatched lengths in feature definition"
                     Right rules' ->
                         withSourceFileIf inWordsFile $ \inC ->
@@ -53,8 +55,12 @@ main = execParser opts >>= \case
             , FromFile <$> strArgument
                 (metavar "RULES" <> help "File containing sound changes")
             ]
-        <*> flag Raw MDF
-            (long "mdf" <> help "Parse input words in MDF format")
+        <*> asum
+            [ flag Raw (MDF Standard)
+                (long "mdf" <> help "Parse input words in MDF format (standard hierarchy)")
+            , flag Raw (MDF Alternate)
+                (long "mdf-alt" <> help "Parse input words in MDF format (alternate hierarchy)")
+            ]
         <*> (asum
                 [ flag' (const ReportRulesApplied)
                     (long "report" <> help "Report rules applied rather than outputting words")
@@ -79,7 +85,7 @@ main = execParser opts >>= \case
             (long "out" <> short 'o' <> help "File to which output words should be written (if not specified will write to stdout)"))
 
     incrFor Raw = True
-    incrFor MDF = False
+    incrFor (MDF _) = False
 
     -- duplicated in paradigm builder CLI
     withSourceFileIf :: Maybe FilePath -> (ConduitM i B.ByteString IO () -> IO a) -> IO a

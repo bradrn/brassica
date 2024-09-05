@@ -158,8 +158,13 @@ toTree h = fst . go (Root [])
                 in go (s <+:> subtree) fs'
 
             -- otherwise, recurse into the hierarchy
-            (m:_, _) ->
-                let (subtree, fs') = go (Missing m []) (f:fs)
+            (ms, _) ->
+                -- NB. 'last ms' is the /highest/ missing level! Then
+                -- the recursive call infers the next-highest level,
+                -- and so on until all the levels are created. This
+                -- could be sped up by creating all the levels at once,
+                -- but it's not worth it for now.
+                let (subtree, fs') = go (Missing (last ms) []) (f:fs)
                 in go (s <+:> subtree) fs'
 
 -- | Inverse of 'toTree': convert an 'SFMTree' back into a linear

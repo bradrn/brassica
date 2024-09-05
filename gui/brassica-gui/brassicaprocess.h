@@ -18,7 +18,8 @@ public:
     enum InputLexiconFormat
     {
         Raw,
-        MDF
+        MDFStandard,
+        MDFAlternate
     };
     enum HighlightMode
     {

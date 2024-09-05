@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "finddialog.h"
 #include "paradigmwindow.h"
 #include "settingsdialog.h"
 
@@ -12,9 +13,13 @@
 #include <QMessageBox>
 #include <QRadioButton>
 #include <QScrollBar>
+#include <QShortcut>
 #include <QTextCodec>
 #include <QTextStream>
 #include <Qt>
+#include <qkeysequence.h>
+#include <qnamespace.h>
+#include <qradiobutton.h>
 
 MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
     : QMainWindow(parent)
@@ -34,8 +39,14 @@ MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
 
     connect(applyBtn      , &QPushButton::clicked  , this, [this] { applySoundChanges(false, false); });
     connect(reportRulesBtn, &QPushButton::clicked  , this, [this] { applySoundChanges(false, true); } );
-    connect(rulesEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
-    connect(wordsEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
+
+    QShortcut *applyShortcut1 = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Return), this);
+    QShortcut *applyShortcut2 = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Enter ), this);
+    connect(applyShortcut1, &QShortcut::activated, this, [this] { applySoundChanges(false, false); });
+    connect(applyShortcut2, &QShortcut::activated, this, [this] { applySoundChanges(false, false); });
+
+    QShortcut *toggleShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Tab), this);
+    connect(toggleShortcut, &QShortcut::activated, this, &MainWindow::toggleCursor);
 
     connect(rulesEdit, &QPlainTextEdit::textChanged, this, &MainWindow::rulesModified);
     connect(wordsEdit, &QPlainTextEdit::textChanged, this, &MainWindow::lexiconModified);
@@ -48,17 +59,24 @@ MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
         if (checked) updateOutputFromWordsSlider(wordsEditVScroll->value());
     });
 
-    connect(mdfBtn, &QRadioButton::toggled, this, [this](bool checked) {
-        if (checked) {
-            mdfoutBtn->setEnabled(true);
-            mdfetymoutBtn->setEnabled(true);
-        } else {
-            if (mdfoutBtn->isChecked() || mdfetymoutBtn->isChecked())
-                rawoutBtn->setChecked(true);
-            mdfoutBtn->setEnabled(false);
-            mdfetymoutBtn->setEnabled(false);
-        }
-    });
+    connect(mdfBtn   , &QRadioButton::toggled, this, &MainWindow::reselectCheckboxes);
+    connect(mdfAltBtn, &QRadioButton::toggled, this, &MainWindow::reselectCheckboxes);
+
+    // live highlighting
+    connect(rulesEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
+    connect(wordsEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
+    connect(nohighlightBtn   , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(diffhighlightBtn , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(inputhighlightBtn, &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(rawBtn           , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(mdfBtn           , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(mdfAltBtn        , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(mdfoutBtn        , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(mdfetymoutBtn    , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(rawoutBtn        , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(inoutBtn         , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+
+    connect(viewLive, &QRadioButton::toggled, this, [this](bool checked) { if (checked) applySoundChanges(false, false); });
 }
 
 MainWindow::~MainWindow()
@@ -122,8 +140,11 @@ void MainWindow::setupWidgets(QWidget *central)
     rawBtn->setChecked(true);
     inputFormatLayout->addWidget(rawBtn);
 
-    mdfBtn = new QRadioButton("MDF file");
+    mdfBtn = new QRadioButton("MDF file (standard hierarchy)");
     inputFormatLayout->addWidget(mdfBtn);
+
+    mdfAltBtn = new QRadioButton("MDF file (alternate hierarchy)");
+    inputFormatLayout->addWidget(mdfAltBtn);
 
     outputFormatBox = new QGroupBox("Output format");
     QVBoxLayout *outputFormatLayout = new QVBoxLayout(outputFormatBox);
@@ -175,6 +196,11 @@ void MainWindow::setupWidgets(QWidget *central)
     outputEditVScroll = outputEdit->verticalScrollBar();
 }
 
+#define DOTOFOCUS(FN) [this] { \
+    QPlainTextEdit *f = dynamic_cast<QPlainTextEdit*>(focusWidget()); \
+    if (f != nullptr) f->FN(); \
+}
+
 void MainWindow::setupMenuBar()
 {
     QMenu *fileMenu = menuBar()->addMenu("&File");
@@ -184,6 +210,16 @@ void MainWindow::setupMenuBar()
     fileMenu->addAction("Open lexicon", QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_O), this, &MainWindow::openLexicon);
     fileMenu->addAction("Save lexicon", QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_S), this, &MainWindow::saveLexicon);
     fileMenu->addAction("Save lexicon as", this, &MainWindow::saveLexiconAs);
+
+    QMenu *editMenu = menuBar()->addMenu("&Edit");
+    editMenu->addAction("Undo", QKeySequence::Undo, this, DOTOFOCUS(undo));
+    editMenu->addAction("Redo", QKeySequence::Redo, this, DOTOFOCUS(redo));
+    editMenu->addSeparator();
+    editMenu->addAction("Cut", QKeySequence::Cut, this, DOTOFOCUS(cut));
+    editMenu->addAction("Copy", QKeySequence::Copy, this, DOTOFOCUS(copy));
+    editMenu->addAction("Paste", QKeySequence::Paste, this, DOTOFOCUS(paste));
+    editMenu->addSeparator();
+    editMenu->addAction("Find", QKeySequence::Find, this, &MainWindow::showFindWindow);
 
     QMenu *toolsMenu = menuBar()->addMenu("&Tools");
     toolsMenu->addAction("Paradigm builder", this, &MainWindow::showParadigmBuilder);
@@ -227,6 +263,46 @@ void MainWindow::doSaveLexicon(QString fileName)
     refreshTitle();
 }
 
+bool MainWindow::checkRulesDirty()
+{
+    if (rulesDirty) {
+        const QMessageBox::StandardButton ret =
+            QMessageBox::warning(this, "Brassica",
+                                 "The sound changes have been modified.\nDo you want to save your changes?",
+                                 QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        switch (ret) {
+        case QMessageBox::Save:
+            saveRules(); break;
+        case QMessageBox::Cancel:
+            return true;
+        default:
+            break;
+        }
+    }
+
+    return false;
+}
+
+bool MainWindow::checkLexiconDirty()
+{
+    if (lexiconDirty) {
+        const QMessageBox::StandardButton ret =
+            QMessageBox::warning(this, "Brassica",
+                                 "The lexicon has been modified.\nDo you want to save your changes?",
+                                 QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        switch (ret) {
+        case QMessageBox::Save:
+            saveLexicon(); break;
+        case QMessageBox::Cancel:
+            return true;
+        default:
+            break;
+        }
+    }
+
+    return false;
+}
+
 void MainWindow::refreshTitle()
 {
     // can't use setWindowModified here because we have
@@ -266,36 +342,8 @@ void MainWindow::applySettings()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    if (rulesDirty) {
-        const QMessageBox::StandardButton ret =
-            QMessageBox::warning(this, "Brassica",
-                "The sound changes have been modified.\nDo you want to save your changes?",
-                QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-        switch (ret) {
-            case QMessageBox::Save:
-                saveRules(); break;
-            case QMessageBox::Cancel:
-                event->ignore(); return;
-            default:
-                break;
-        }
-    }
-
-    if (lexiconDirty) {
-        const QMessageBox::StandardButton ret =
-            QMessageBox::warning(this, "Brassica",
-                                 "The lexicon has been modified.\nDo you want to save your changes?",
-                                 QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-        switch (ret) {
-        case QMessageBox::Save:
-            saveLexicon(); break;
-        case QMessageBox::Cancel:
-            event->ignore(); return;
-        default:
-            break;
-        }
-    }
-
+    if (checkRulesDirty()) { event->ignore(); return; }
+    if (checkLexiconDirty()) { event->ignore(); return; }
     event->accept();
 }
 
@@ -309,7 +357,8 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
     //QString output = proc->applyRules(categories, rules, words);
 
     BrassicaProcess::InputLexiconFormat infmt = BrassicaProcess::Raw;
-    if (mdfBtn->isChecked()) infmt = BrassicaProcess::MDF;
+    if (mdfBtn->isChecked()) infmt = BrassicaProcess::MDFStandard;
+    else if (mdfAltBtn->isChecked()) infmt = BrassicaProcess::MDFAlternate;
 
     BrassicaProcess::HighlightMode checkedHl = BrassicaProcess::NoHighlight;
     if (diffhighlightBtn->isChecked()) checkedHl = BrassicaProcess::DifferentToLastRun;
@@ -331,7 +380,7 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
         multiResultSep->text());
 
     blockScrollTrackingEvent = true;
-    outputEdit->setHtml(output);
+    outputEdit->setHtml("<pre>" + output + "</pre>");
 
     blockScrollTrackingEvent = false;
     updateOutputFromWordsSlider(wordsEditVScroll->value());
@@ -339,6 +388,8 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
 
 void MainWindow::openRules()
 {
+    if (checkRulesDirty()) return;
+
     QString fileName = QFileDialog::getOpenFileName(this, "Open rules", QString(), "Brassica rules (*.bsc);;All files (*.*)");
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -364,6 +415,8 @@ void MainWindow::saveRulesAs()
 
 void MainWindow::openLexicon()
 {
+    if (checkLexiconDirty()) return;
+
     QString fileName = QFileDialog::getOpenFileName(this, "Open lexicon", QString(), "Lexicon files (*.lex);;MDF files (*.mdf *.txt);;All files (*.*)");
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -392,6 +445,13 @@ void MainWindow::saveLexiconAs()
 {
     QString fileName = QFileDialog::getSaveFileName(this, "Open lexicon", QString(), "Lexicon files (*.lex);;MDF files (*.mdf *.txt);;All files (*.*)");
     doSaveLexicon(fileName);
+}
+
+
+void MainWindow::toggleCursor()
+{
+    if (rulesEdit->hasFocus()) { wordsEdit->setFocus(Qt::TabFocusReason); return; }
+    if (wordsEdit->hasFocus()) { rulesEdit->setFocus(Qt::TabFocusReason); return; }
 }
 
 void MainWindow::rulesModified()
@@ -443,6 +503,57 @@ void MainWindow::updateWordsFromOutputSlider(int value)
             (ratio * (wordsMax - wordsMin)) + wordsMin);
     }
 }
+
+void MainWindow::reselectCheckboxes()
+{
+    if (mdfBtn->isChecked() || mdfAltBtn->isChecked()) {
+        mdfoutBtn->setEnabled(true);
+        mdfetymoutBtn->setEnabled(true);
+    } else {
+        if (mdfoutBtn->isChecked() || mdfetymoutBtn->isChecked())
+            rawoutBtn->setChecked(true);
+        mdfoutBtn->setEnabled(false);
+        mdfetymoutBtn->setEnabled(false);
+    }
+}
+
+void MainWindow::showFindWindow() {
+    if (!findDialog) {
+        FindDialog::FindArea area;
+        if (rulesEdit->hasFocus()) area = FindDialog::Changes;
+        else if (wordsEdit->hasFocus()) area = FindDialog::Input;
+        else area = FindDialog::Output;
+
+        findDialog = new FindDialog(area, this);
+        connect(findDialog, &FindDialog::findNext, this, &MainWindow::findNext);
+    }
+
+    findDialog->show();
+    findDialog->raise();
+    findDialog->activateWindow();
+}
+
+void MainWindow::findNext(QString substring,
+                          FindDialog::FindArea area,
+                          QTextDocument::FindFlags flags) {
+    QTextCursor cursor;
+    switch (area) {
+    case FindDialog::Changes: cursor = rulesEdit->textCursor(); break;
+    case FindDialog::Input:   cursor = wordsEdit->textCursor(); break;
+    case FindDialog::Output:  cursor = outputEdit->textCursor(); break;
+    }
+
+    QTextDocument *doc = cursor.document();
+    QTextCursor found = doc->find(substring, cursor, flags);
+    if (!found.isNull()) {
+        switch (area) {
+        case FindDialog::Changes: rulesEdit->setTextCursor(found); break;
+        case FindDialog::Input:   wordsEdit->setTextCursor(found); break;
+        case FindDialog::Output:  outputEdit->setTextCursor(found); break;
+        }
+    }
+}
+
 
 void MainWindow::showParadigmBuilder()
 {

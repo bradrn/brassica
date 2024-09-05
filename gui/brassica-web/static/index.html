@@ -41,6 +41,7 @@
           <span class="file-buttons">
             <input type="button" id="open-rules" value="Open" />
             <input type="button" id="download-rules" value="Download" />
+            <input type="button" id="select-all-rules" value="Select all" />
             <input type="file" id="input-file-rules" class="hidden-file-input" />
           </span>
         </div>
@@ -52,6 +53,7 @@
           <span class="file-buttons">
             <input type="button" id="open-words" value="Open" />
             <input type="button" id="download-words" value="Download" />
+            <input type="button" id="select-all-words" value="Select all" />
             <input type="file" id="input-file-words" class="hidden-file-input" />
           </span>
         </div>
@@ -76,6 +78,21 @@
           </div>
         </fieldset>
         <fieldset>
+          <legend>Input lexicon format</legend>
+          <div>
+            <input type="radio" id="in-wordlist" name="inputFormat" value="wordlist" checked />
+            <label for="in-wordlist">Wordlist + glosses</label>
+          </div>
+          <div>
+            <input type="radio" id="in-mdfstandard" name="inputFormat" value="mdfStandard" />
+            <label for="in-mdfstandard">MDF file (standard hierarchy)</label>
+          </div>
+          <div>
+            <input type="radio" id="in-mdfalternate" name="inputFormat" value="mdfAlternate" />
+            <label for="in-mdfalternate">MDF file (alternate hierarchy)</label>
+          </div>
+        </fieldset>
+        <fieldset>
           <legend>Output format</legend>
           <div>
             <input type="radio" id="fmt-wordlist" name="outputFormat" value="rawout" checked />
@@ -85,10 +102,22 @@
             <input type="radio" id="fmt-inout" name="outputFormat" value="inout" />
             <label for="fmt-inout">Input&rarr;output</label>
           </div>
+          <div>
+            <input type="radio" id="fmt-mdf" name="outputFormat" value="mdf" disabled />
+            <label for="fmt-mdf">MDF output</label>
+          </div>
+          <div>
+            <input type="radio" id="fmt-mdfetym" name="outputFormat" value="mdfetym" disabled />
+            <label for="fmt-mdfetym">MDF output with etymologies</label>
+          </div>
         </fieldset>
         <div>
           <input type="checkbox" id="view-live" name="viewLive" />
           <label for="view-live">View results live</label>
+        </div>
+        <div>
+          <input type="checkbox" id="synchronise-scroll" name="synchroniseScroll" checked />
+          <label for="synchronise-scroll">Synchronise scroll positions</label>
         </div>
         <div>
           <label for="sep">Multiple result separator:</label>
@@ -98,6 +127,9 @@
       <div id="results-div" class="box-container">
         <div class="header">
           <label>Results</label>
+          <span class="file-buttons">
+            <input type="button" id="select-all-results" value="Select all" />
+          </span>
         </div>
         <div id="results" class="input-box"></div>
       </div>

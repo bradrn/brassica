@@ -21,27 +21,27 @@ import Brassica.SoundChange.Types (SoundChanges, PWord, plaintext', Expanded, Gr
 
 main :: IO ()
 main = defaultMain $ testGroup "brassica-tests"
-    [ proto21eTest applyChanges showWord "proto21e golden test" "proto21e.out" "proto21e.golden"
-    , proto21eTest applyChangesWithLogs showLogs "proto21e golden test with log" "proto21e-log.out" "proto21e-log.golden"
+    [ changesTest applyChanges showWord "changes golden test" "words.out" "words.golden"
+    , changesTest applyChangesWithLogs showLogs "changes golden test with log" "words-log.out" "words-log.golden"
     ]
   where
     showWord = detokeniseWords . concatMap (splitMultipleResults " ")
 
     showLogs logs = unlines $ fmap (reportAsText plaintext') $ concat $ getWords logs
 
-proto21eTest
+changesTest
     :: (SoundChanges Expanded [Grapheme] -> PWord -> [a])
     -> ([Component [a]] -> String)
     -> String
     -> FilePath
     -> FilePath
     -> TestTree
-proto21eTest applyFn showWord testName outName goldenName =
+changesTest applyFn showWord testName outName goldenName =
     let outName' = "test/" ++ outName
         goldenName' = "test/" ++ goldenName
     in goldenVsFile testName goldenName' outName' $
         withFile outName' WriteMode $ \outFile -> fmap (either id id) . runExceptT $ do
-            soundChangesData <- B8.toString <$> liftIO (B.readFile "test/proto21e.bsc")
+            soundChangesData <- B8.toString <$> liftIO (B.readFile "test/changes.bsc")
             soundChanges' <- catchEither (parseSoundChanges soundChangesData) $ \err -> do
                 liftIO $ putStrLn $
                     "Cannot parse the SCA file because:\n" ++
@@ -59,7 +59,7 @@ proto21eTest applyFn showWord testName outName goldenName =
                     withFirstCategoriesDecl tokeniseWords soundChanges
                     >>> (fmap.fmap.fmap) (applyFn soundChanges)
                     >>> either prettyError prettyOutput
-            liftIO $ withSourceFile "test/proto21e.in" $ flip connect
+            liftIO $ withSourceFile "test/words.in" $ flip connect
                 $ decodeUtf8C
                 .| linesUnboundedC
                 .| mapC (evolve . T.unpack)

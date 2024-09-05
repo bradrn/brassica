@@ -100,7 +100,8 @@ QString BrassicaProcess::toJson(InputLexiconFormat val)
 {
     switch (val) {
         case Raw: return "Raw";
-        case MDF: return "MDF";
+        case MDFStandard: return "MDFStandard";
+        case MDFAlternate: return "MDFAlternate";
     }
     return "internal error: BrassicaProcess::toJson(InputLexiconFormat)";
 }

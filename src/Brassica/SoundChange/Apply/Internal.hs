@@ -31,6 +31,7 @@ module Brassica.SoundChange.Apply.Internal
          RuleTag(..)
        , RuleStatus(..)
        , MatchOutput(..)
+       , FeatureState(..)
        , match
        , matchMany
        , matchMany'
@@ -55,18 +56,24 @@ module Brassica.SoundChange.Apply.Internal
        , applyChangesWithLog
        , applyChangesWithLogs
        , applyChangesWithChanges
+       , applyChangesWithReports
+       , applyChangesWithChangesAndReports
        ) where
 
 import Control.Applicative ((<|>))
 import Control.Category ((>>>))
-import Control.Monad ((>=>), join)  -- needed for mtl>=2.3
+import Control.Monad ((>=>), (<=<), join)  -- needed for mtl>=2.3
 import Data.Containers.ListUtils (nubOrd)
 import Data.Functor ((<&>))
+import Data.List (elemIndex)
 import Data.Maybe (maybeToList, fromMaybe, listToMaybe, mapMaybe)
 import GHC.Generics (Generic)
 
 import Control.DeepSeq (NFData)
 import Control.Monad.State
+
+import qualified Data.Map.Strict as Map
+import qualified Data.Map.Merge.Strict as Map
 
 import Brassica.SoundChange.Apply.Internal.MultiZipper
 import Brassica.SoundChange.Types
@@ -77,6 +84,7 @@ data RuleTag
     = AppStart     -- ^ The start of a rule application
     | TargetStart  -- ^ The start of the target
     | TargetEnd    -- ^ The end of the target
+    | PrevEnd      -- ^ The end of the replacement from the last rule application
     deriving (Eq, Ord, Show)
 
 -- | A monad in which to process a 'MultiZipper' over
@@ -110,6 +118,9 @@ try p = StateT $ \s ->
         [] -> [(Nothing, s)]
         r -> first Just <$> r
 
+data FeatureState = Index Int | Indeterminate
+    deriving (Show, Eq)
+
 -- | Describes the output of a 'match' operation.
 data MatchOutput = MatchOutput
     { -- | For each category matched, the index of the matched
@@ -123,6 +134,12 @@ data MatchOutput = MatchOutput
     , matchedKleenes   :: [Int]
       -- | The graphemes which were matched
     , matchedGraphemes :: [Grapheme]
+      -- | The features which were matched
+    , matchedFeatures :: Map.Map String [FeatureState]
+      -- | Backreferences which were matched by ID
+    , matchedBackrefIds :: Map.Map String Int
+      -- | Features which were matched by ID
+    , matchedFeatureIds :: Map.Map String FeatureState
     } deriving (Show)
 
 modifyMatchedGraphemes :: ([Grapheme] -> [Grapheme]) -> MatchOutput -> MatchOutput
@@ -132,8 +149,17 @@ appendGrapheme :: MatchOutput -> Grapheme -> MatchOutput
 appendGrapheme out g = modifyMatchedGraphemes (++[g]) out
 
 instance Semigroup MatchOutput where
-    (MatchOutput a1 b1 c1 d1 e1) <> (MatchOutput a2 b2 c2 d2 e2) =
+    (MatchOutput a1 b1 c1 d1 e1 f1 g1 h1) <> (MatchOutput a2 b2 c2 d2 e2 f2 g2 h2) =
         MatchOutput (a1++a2) (b1++b2) (c1++c2) (d1++d2) (e1++e2)
+            (Map.merge Map.preserveMissing Map.preserveMissing
+                (Map.zipWithMatched $ const (++))
+                f1 f2)
+            (Map.merge Map.preserveMissing Map.preserveMissing
+                (Map.zipWithMatched $ \_ _ g -> g)
+                g1 g2)
+            (Map.merge Map.preserveMissing Map.preserveMissing
+                (Map.zipWithMatched $ \_ _ g -> g)
+                h1 h2)
 
 zipWith' :: [a] -> [b] -> (a -> b -> c) -> [c]
 zipWith' xs ys f = zipWith f xs ys
@@ -144,11 +170,20 @@ zipWith' xs ys f = zipWith f xs ys
 insertAt :: Int -> a -> [a] -> [a]
 insertAt n a as = let (xs,ys) = splitAt n as in xs ++ (a:ys)
 
+insertAtOptional :: Int -> Bool -> MatchOutput -> MatchOutput
+insertAtOptional n o mz = mz { matchedOptionals = insertAt n o $ matchedOptionals mz }
+
 insertAtCat :: Int -> Int -> MatchOutput -> MatchOutput
 insertAtCat n i mz = mz { matchedCatIxs = insertAt n i $ matchedCatIxs mz }
 
 insertAtKleene :: Int -> Int -> MatchOutput -> MatchOutput
 insertAtKleene n i mz = mz { matchedKleenes = insertAt n i $ matchedKleenes mz }
+
+appendFeatureAt :: Int -> String -> FeatureState -> MatchOutput -> MatchOutput
+appendFeatureAt n name fs out = out { matchedFeatures = Map.alter go name $ matchedFeatures out }
+  where
+    go Nothing = Just [fs]
+    go (Just fss) = Just $ insertAt n fs fss
 
 -- | Match a single 'Lexeme' against a 'MultiZipper', and advance the
 -- 'MultiZipper' past the match. For each match found, returns the
@@ -160,11 +195,20 @@ match :: MatchOutput          -- ^ The previous 'MatchOutput'
       -> [(MatchOutput, MultiZipper t Grapheme)]
       -- ^ The output: a tuple @(g, mz)@ as described below.
 match out prev (Optional l) mz =
-    (out <> MatchOutput [] [False] [] [] [], mz) :
-    matchMany (out <> MatchOutput [] [True] [] [] []) prev l mz
+    let i = length (matchedOptionals out)
+    in
+        (insertAtOptional i False out, mz) :
+        matchMany (insertAtOptional i True out) prev l mz
+match out prev (GreedyOptional l) mz =
+    let i = length (matchedOptionals out)
+        m = matchMany (insertAtOptional i True out) prev l mz
+    in case m of
+        -- skip, but only if no matches
+        [] -> [(insertAtOptional i False out, mz)]
+        _ -> m
 match out prev (Wildcard l) mz = matchWildcard out prev l mz
 match out prev (Kleene l) mz = matchKleene out prev l mz
-match out _ (Grapheme g) mz = (out <> MatchOutput [] [] [] [] [g],) <$> maybeToList (matchGrapheme g mz)
+match out _ (Grapheme g) mz = (appendGrapheme out g,) <$> maybeToList (matchGrapheme g mz)
 match out prev (Category (FromElements gs)) mz =
     concat $ zipWith' gs [0..] $ \e i ->
         -- make sure to insert new index BEFORE any new ones which
@@ -173,15 +217,66 @@ match out prev (Category (FromElements gs)) mz =
             case e of
                 Left  g  -> match out prev (Grapheme g :: Lexeme Expanded a) mz
                 Right ls -> matchMany out prev ls mz
+match out prev (GreedyCategory c) mz =
+    -- Take first match only
+    case match out prev (Category c) mz of
+        [] -> []
+        (m:_) -> [m]
 match out prev Geminate mz = case prev of
     Nothing -> []
-    Just prev' -> (out <> MatchOutput [] [] [] [] [prev'],) <$> maybeToList (matchGrapheme prev' mz)
+    Just prev' -> (appendGrapheme out prev',) <$> maybeToList (matchGrapheme prev' mz)
+match out prev (Backreference (Left ident) (FromElements gs)) mz
+    | Nothing <- Map.lookup ident (matchedBackrefIds out) =
+        -- first occurrence, set backref
+        -- similar to Category case above
+        concat $ zipWith' gs [0..] $ \e i ->
+            first (\o -> o { matchedBackrefIds = Map.insert ident i $ matchedBackrefIds o })
+                <$> case e of
+                    Left  g  -> match out prev (Grapheme g :: Lexeme Expanded a) mz
+                    Right ls -> matchMany out prev ls mz
 match out prev (Backreference i (FromElements gs)) mz = do
-    e <- maybeToList $
-        (gs !?) =<< matchedCatIxs out !? (i-1)
+    e <- maybeToList $ case i of
+        Left i' -> (gs !?) =<< Map.lookup i' (matchedBackrefIds out)
+        Right i' -> (gs !?) =<< matchedCatIxs out !? (i'-1)
     case e of
         Left  g  -> match out prev (Grapheme g :: Lexeme Expanded a) mz
         Right ls -> matchMany out prev ls mz
+match out prev (Feature _n (Just ident) kvs l) mz
+    | Just fs <- Map.lookup ident (matchedFeatureIds out) = do
+        -- similar to next case, but just check that features are the same
+        -- (NB. feature name is irrelevant for this)
+        (out', mz') <- match out prev l mz
+        let fs' = case matchedGraphemes out' of
+                gs | Just g <- lastMay gs -> checkFeature kvs g
+                _ -> Indeterminate
+            satisfied = case (fs, fs') of
+                (Indeterminate, _) -> True
+                (_, Indeterminate) -> True
+                _ -> fs == fs'
+        if satisfied
+            then pure (out', mz')
+            else []
+match out prev (Feature n ident kvs l) mz = do
+    let i = maybe 0 length $ Map.lookup n (matchedFeatures out)
+    (out', mz') <- match out prev l mz
+    let fs = case matchedGraphemes out' of
+            gs | Just g <- lastMay gs -> checkFeature kvs g
+            _ -> Indeterminate
+    pure $ case ident of
+        Nothing -> (appendFeatureAt i n fs out', mz')
+        Just ident' ->
+            ( out' { matchedFeatureIds = Map.insert ident' fs $ matchedFeatureIds out' }
+            , mz'
+            )
+match out prev (Autosegment n kvs gs) mz =
+    -- act as 'Category' + 'Feature', without capture
+    gs >>= \a -> match out prev (Feature n Nothing kvs $ Grapheme a) mz
+
+checkFeature :: Eq a => [[a]] -> a -> FeatureState
+checkFeature [] _ = Indeterminate
+checkFeature (gs:gss) x
+    | Just i <- x `elemIndex` gs = Index i
+    | otherwise = checkFeature gss x
 
 matchKleene
     :: MatchOutput
@@ -208,7 +303,7 @@ matchWildcard = go []
   where
     go matched out prev l mz = case match out prev l mz of
         [] -> maybeToList (consume mz) >>= \case
-            (GBoundary, _) -> []   -- don't continue past word boundary
+            ("#", _) -> []   -- don't continue past word boundary
             (g, mz') -> go (g:matched) (appendGrapheme out g) prev l mz'
         r -> r <&> \(out', mz') ->
             ( out'
@@ -242,7 +337,7 @@ matchMany' :: Maybe Grapheme
           -> [Lexeme Expanded 'Matched]
           -> MultiZipper t Grapheme
           -> [(MatchOutput, MultiZipper t Grapheme)]
-matchMany' = matchMany (MatchOutput [] [] [] [] [])
+matchMany' = matchMany (MatchOutput [] [] [] [] [] Map.empty Map.empty Map.empty)
 
 -- Small utility function, not exported
 lastMay :: [a] -> Maybe a
@@ -253,10 +348,11 @@ data ReplacementIndices = ReplacementIndices
     , ixInOptionals :: Int
     , ixInWildcards :: Int
     , ixInKleenes :: Int
+    , ixInFeatures :: Map.Map String Int
     , forcedCategory :: Maybe CategoryNumber
     } deriving (Show)
 
-data CategoryNumber = CategoryNumber Int | Nondeterministic
+data CategoryNumber = CategoryNumber Int | CategoryId String | Nondeterministic
     deriving (Show)
 
 advanceCategory :: ReplacementIndices -> Int -> (CategoryNumber, ReplacementIndices)
@@ -284,6 +380,12 @@ advanceKleene ix =
     let i = ixInKleenes ix
     in (i, ix { ixInKleenes = i+1 })
 
+advanceFeature :: String -> ReplacementIndices -> Maybe (Int, ReplacementIndices)
+advanceFeature n ix =
+    case Map.lookup n (ixInFeatures ix) of
+        Nothing -> Just (0, ix { ixInFeatures = Map.insert n 1    $ ixInFeatures ix })
+        Just i  -> Just (i, ix { ixInFeatures = Map.adjust (+1) n $ ixInFeatures ix })
+
 forceCategory :: CategoryNumber -> ReplacementIndices -> ReplacementIndices
 forceCategory i ixs = ixs { forcedCategory = Just i }
 
@@ -302,7 +404,7 @@ mkReplacement
     -> [MultiZipper t Grapheme]
 mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
   where
-    startIxs = ReplacementIndices 0 0 0 0 Nothing
+    startIxs = ReplacementIndices 0 0 0 0 Map.empty Nothing
 
     go
         :: ReplacementIndices
@@ -331,7 +433,14 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
                         case g' of
                             Left g -> [(ixs', (insert g mz, Just g))]
                             Right ls -> go ixs' ls (mz, prev)
-                    _ -> [(ixs', (insert (GMulti "\xfffd") mz, Nothing))]  -- Unicode replacement character
+                    _ -> [(ixs', (insert "\xfffd" mz, Nothing))]  -- Unicode replacement character
+            (CategoryId ci, ixs') ->  -- as above
+                case Map.lookup ci (matchedBackrefIds out) of
+                    Just i | Just g' <- gs !? i ->
+                        case g' of
+                            Left g -> [(ixs', (insert g mz, Just g))]
+                            Right ls -> go ixs' ls (mz, prev)
+                    _ -> [(ixs', (insert "\xfffd" mz, Nothing))]  -- Unicode replacement character
             (Nondeterministic, ixs') -> gs >>= \case
                 Left g -> [(ixs', (insert g mz, Just g))]
                 Right ls -> go ixs' ls (mz, prev)
@@ -351,7 +460,10 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
     replaceLex ixs Discard mz prev =
         let (_, ixs') = advanceCategory ixs numCatsMatched
         in [(ixs', (mz, prev))]
-    replaceLex ixs (Backreference i c) mz prev =
+    replaceLex ixs (Backreference (Left i) c) mz prev =
+        let ixs' = forceCategory (CategoryId i) ixs
+        in replaceLex ixs' (Category c) mz prev
+    replaceLex ixs (Backreference (Right i) c) mz prev =
         let ixs' = forceCategory (CategoryNumber $ i-1) ixs -- 1-based indexing!
         in replaceLex ixs' (Category c) mz prev
     replaceLex ixs (Multiple c) mz prev =
@@ -368,6 +480,43 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
         in case matchedKleenes out !? i of
             Just n -> go ixs' (replicate n l) (mz, prev)
             Nothing -> [(ixs', (mz, prev))]
+    replaceLex ixs (Feature n ident kvs l) mz prev =
+        let (fs, ixs') = case ident of
+                Nothing -> case advanceFeature n ixs of
+                    Just (i, ixs_)
+                        | Just fss <- Map.lookup n (matchedFeatures out)
+                        , Just fs_ <- fss !? i
+                        -> (fs_, ixs_)
+                    _ -> (Indeterminate, ixs)
+                Just ident' -> case Map.lookup ident' (matchedFeatureIds out) of
+                    Just fs_ -> (fs_, ixs)
+                    Nothing -> (Indeterminate, ixs)
+        in do
+            (ixs'', (mz', prev')) <- replaceLex ixs' l mz prev
+            case prev' of
+                Just g | g /= "#" -> do
+                    g' <- case fs of
+                        Index i -> pure $ applyFeature kvs g i
+                        Indeterminate
+                            | gs:_ <- kvs ->
+                                applyFeature kvs g <$> [0 .. length gs - 1]
+                            | otherwise -> pure g
+                    -- now overwrite previous grapheme
+                    let mz'' = zap (Just . const g') mz'
+                    pure (ixs'', (mz'', Just g'))
+                -- cannot modify nonexistent or boundary grapheme
+                _ -> pure (ixs'', (mz', prev'))
+    replaceLex ixs (Autosegment _ _ []) mz prev = pure (ixs, (mz, prev))
+    replaceLex ixs (Autosegment n kvs (g:_)) mz prev =
+        -- ignore other segments, just produce a single one
+        -- as modulated by a 'Feature'
+        replaceLex ixs (Feature n Nothing kvs $ Grapheme g) mz prev
+
+applyFeature :: [[String]] -> String -> Int -> String
+applyFeature [] g _ = g
+applyFeature (gs:gss) g i
+    | g `elem` gs = fromMaybe "\xfffd" $ gs !? i
+    | otherwise = applyFeature gss g i
 
 -- | Given a 'Rule' and a 'MultiZipper', determines whether the
 -- 'exception' of that rule (if any) applies starting at the current
@@ -405,8 +554,11 @@ matchRuleAtPoint target (env1,env2) mz = flip runRuleAp mz $ do
             modify $ tag TargetStart
             matchResult <- RuleAp $ matchMany' Nothing target
             modify $ tag TargetEnd
-            _ <- RuleAp $ matchMany env1Out (listToMaybe $ matchedGraphemes matchResult) env2
-            return matchResult
+            env2Out <- RuleAp $ matchMany env1Out (listToMaybe $ matchedGraphemes matchResult) env2
+            -- environment can affect replacement via feature IDs
+            -- only, so collect those
+            let featureIds = matchedFeatureIds $ env1Out <> matchResult <> env2Out
+            return matchResult { matchedFeatureIds = featureIds }
 
 data RuleStatus
     = SuccessNormal      -- ^ Rule was successful, no need for special handling
@@ -417,8 +569,8 @@ data RuleStatus
 -- | Given a 'Rule', determine if the rule matches at the current
 -- point; if so, apply the rule, adding appropriate tags.
 applyOnce :: Rule Expanded -> StateT (MultiZipper RuleTag Grapheme) [] RuleStatus
-applyOnce r@Rule{target, replacement, exception} =
-    modify (tag AppStart) >> go (environment r)
+applyOnce Rule{..} =
+    modify (tag AppStart) >> go environment
   where
     go [] = return Failure
     go (env:envs) = do
@@ -429,19 +581,29 @@ applyOnce r@Rule{target, replacement, exception} =
                     Nothing -> pure []
                     Just ex -> gets $ join . toList .
                         extend' (exceptionAppliesAtPoint target ex)
-                gets (locationOf TargetStart) >>= \p ->
-                    if maybe True (`elem` exs) p
-                    then return Failure
-                    else do
-                        originalWord <- get
+                originalWord <- get
+                let pMay = locationOf TargetStart originalWord
+                    pMay' = locationOf PrevEnd originalWord
+                case pMay of
+                    Nothing -> error "applyOnce: start of target was not tagged"
+                    Just p
+                        | p `elem` exs -> return Failure
+                        -- do not apply rule if it would be
+                        -- applied twice to the same substring
+                        | applyDirection flags == LTR
+                        , Just p' <- pMay', p < p' -> return Failure
+                        | otherwise -> do
                         modifyMay $ delete (TargetStart, TargetEnd)
                         modifyMay $ seek TargetStart
                         modifyM $ \w ->
                             let replacedWords = mkReplacement out replacement w
-                            in case sporadic (flags r) of
+                            in case sporadic flags of
                                 -- make sure to re-insert original word
                                 PerApplication -> originalWord : replacedWords
                                 _ -> replacedWords
+                        -- we want TargetEnd to move forward as the replacement is added,
+                        -- but not TargetStart, so restore its old position
+                        modifyMay $ tagAt TargetStart p
                         return $
                             -- An epenthesis rule will cause an infinite loop
                             -- if it matched no graphemes before the replacement
@@ -457,39 +619,57 @@ setupForNextApplication
     -> Rule Expanded
     -> MultiZipper RuleTag Grapheme
     -> Maybe (MultiZipper RuleTag Grapheme)
-setupForNextApplication status Rule{flags=Flags{applyDirection}} =
-    fmap untag . case applyDirection of
-        RTL -> seek AppStart >=> bwd
-        LTR -> case status of
-            SuccessNormal -> seek TargetEnd
-            SuccessEpenthesis ->
-                -- need to move forward if applying an epenthesis rule to avoid an infinite loop
-                seek TargetEnd >=> fwd
-            Failure -> seek AppStart >=> fwd
+setupForNextApplication status Rule{flags=Flags{nonOverlappingTarget}} =
+    resetTags <=< case status of
+        SuccessNormal ->
+            seek (if nonOverlappingTarget then TargetEnd else TargetStart)
+        SuccessEpenthesis ->
+            -- need to move forward if applying an epenthesis rule to avoid an infinite loop
+            seek TargetEnd >=> fwd
+        Failure -> seek AppStart >=> fwd
+  where
+    resetTags mz =
+        -- update PrevEnd to farthest replaced position on success,
+        -- or keep it the same on failure
+        let p = locationOf TargetEnd mz
+            p' = locationOf PrevEnd mz
+            newPrevEnd = case status of
+                Failure -> p'
+                _ -> max p p'
+        in maybe Just (tagAt PrevEnd) newPrevEnd $ untag mz
 
 -- | Apply a 'Rule' to a 'MultiZipper'. The application will start at
 -- the beginning of the 'MultiZipper', and will be repeated as many
 -- times as possible. Returns all valid results.
 applyRule :: Rule Expanded -> MultiZipper RuleTag Grapheme -> [MultiZipper RuleTag Grapheme]
 applyRule r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
-    let startingPos = case applyDirection $ flags r of
-            LTR -> toBeginning mz
-            RTL -> toEnd mz
-        result = repeatRule (applyOnce r) startingPos
+    let result = case applyDirection (flags r) of
+            LTR -> repeatRule $ toBeginning mz
+            RTL -> fmap reverseMZ $ repeatRule $ toBeginning $ reverseMZ mz
     in case sporadic (flags r) of
         PerWord -> mz : result
         _ -> result  -- PerApplication handled in 'applyOnce'
   where
+    r' = case applyDirection (flags r) of
+        LTR -> r
+        RTL -> Rule
+            { target = reverse $ target r
+            , replacement = reverse $ replacement r
+            , environment = reverseEnv <$> environment r
+            , exception = reverseEnv <$> exception r
+            , flags = flags r
+            , plaintext = plaintext r
+            }
+
+    reverseEnv (e1, e2) = (reverse e2, reverse e1)
+
     repeatRule
-        :: StateT (MultiZipper RuleTag Grapheme) [] RuleStatus
-        -> MultiZipper RuleTag Grapheme
+        :: MultiZipper RuleTag Grapheme
         -> [MultiZipper RuleTag Grapheme]
-    repeatRule m mz = runStateT m mz >>= \(status, mz') ->
-        if (status /= Failure) && applyOnceOnly (flags r)
+    repeatRule mz = runStateT (applyOnce r') mz >>= \(status, mz') ->
+        if (status /= Failure) && applyOnceOnly (flags r')
         then [mz']
-        else case setupForNextApplication status r mz' of
-            Just mz'' -> repeatRule m mz''
-            Nothing -> [mz']
+        else maybe [mz'] repeatRule (setupForNextApplication status r' mz')
 
 -- | Check if a 'MultiZipper' matches a 'Filter'.
 filterMatches :: Filter Expanded -> MultiZipper RuleTag Grapheme -> Bool
@@ -502,12 +682,12 @@ filterMatches (Filter _ ls) = go . toBeginning
             _ -> True  -- filter has matched
 
 -- | Check that the 'MultiZipper' contains only graphemes listed in
--- the given 'CategoriesDecl', replacing all unlisted graphemes with
--- U+FFFD.
+-- the given 'CategoriesDecl', replacing all unlisted graphemes other
+-- than @"#"@ with U+FFFD.
 checkGraphemes :: [Grapheme] -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme
 checkGraphemes gs = fmap $ \case
-    GBoundary -> GBoundary
-    g -> if g `elem` gs then g else GMulti "\xfffd"
+    "#" -> "#"
+    g -> if g `elem` gs then g else "\xfffd"
 
 -- | Apply a 'Statement' to a 'MultiZipper', returning zero, one or
 -- more results.
@@ -519,6 +699,7 @@ applyStatement (RuleS r) mz = applyRule r mz
 applyStatement (FilterS f) mz
     | filterMatches f mz = []
     | otherwise = [mz]
+applyStatement ReportS mz = [mz]
 applyStatement (DirectiveS gs) mz = [checkGraphemes gs mz]
 
 -- | Apply a single 'Rule' to a word.
@@ -548,14 +729,25 @@ applyStatementStr st =
     >>> fmap (toList >>> removeBoundaries)
     >>> nubOrd
 
--- | A log item representing a single application of an action. (In
--- practise this will usually be a 'Statement'.) Specifies the action
--- which was applied, as well as the ‘before’ and ‘after’ states.
-data LogItem r = ActionApplied
-    { action :: r
-    , input :: PWord
-    , output :: Maybe PWord
-    } deriving (Show, Functor, Generic, NFData)
+-- | A log item representing a single action. When this action was a
+-- sound change, Specifies the action which was applied, as well as
+-- the ‘before’ and ‘after’ states.
+data LogItem r
+    = ActionApplied r PWord (Maybe PWord)
+    | ReportWord PWord
+    deriving (Show, Functor, Generic, NFData)
+
+-- action :: LogItem r -> Maybe r
+-- action (ActionApplied r _ _) = Just r
+-- action (ReportWord _) = Nothing
+
+logInput :: LogItem r -> PWord
+logInput (ActionApplied _ i _) = i
+logInput (ReportWord i) = i
+
+logOutput :: LogItem r -> Maybe PWord
+logOutput (ActionApplied _ _ o) = o
+logOutput (ReportWord o) = Just o
 
 -- | Logs the evolution of a 'PWord' as various actions are applied to
 -- it. The actions (usually 'Statement's) are of type @r@.
@@ -570,8 +762,10 @@ data PWordLog r = PWordLog
 toPWordLog :: [LogItem r] -> Maybe (PWordLog r)
 toPWordLog [] = Nothing
 toPWordLog ls@(l : _) = Just $ PWordLog
-    { initialWord = input l
-    , derivations = (\ActionApplied{..} -> (output, action)) <$> ls
+    { initialWord = logInput l
+    , derivations = flip mapMaybe ls $ \case
+            ActionApplied action _ output -> Just (output, action)
+            _ -> Nothing
     }
 
 -- | Render a single 'PWordLog' to rows of an HTML table. For
@@ -635,26 +829,32 @@ applyStatementWithLog
     :: Statement Expanded [Grapheme]
     -> PWord
     -> [LogItem (Statement Expanded [Grapheme])]
+applyStatementWithLog ReportS w = [ReportWord w]
 applyStatementWithLog st w = case applyStatementStr st w of
     [] -> [ActionApplied st w Nothing]
     [w'] | w' == w -> []
     r -> ActionApplied st w . Just <$> r
 
 -- | Apply 'SoundChanges' to a word. For each possible result, returns
--- a 'LogItem' for each 'Statement' which altered the input.
+-- a 'LogItem' for each 'Statement' which altered the input, plus a
+-- 'ReportWord' for at least the input and output words.
 applyChangesWithLog
     :: SoundChanges Expanded [Grapheme]
     -> PWord
     -> [[LogItem (Statement Expanded [Grapheme])]]
-applyChangesWithLog [] _ = [[]]
-applyChangesWithLog (st:sts) w =
-    case applyStatementWithLog st w of
-        [] -> applyChangesWithLog sts w
-        outputActions -> outputActions >>= \l@ActionApplied{output} ->
-            case output of
-                Just w' -> (l :) <$> applyChangesWithLog sts w'
-                -- apply no further changes to a deleted word
-                Nothing -> [[l]]
+applyChangesWithLog [] w = [[ReportWord w]]  -- always report the final result
+applyChangesWithLog scs w = (ReportWord w:) <$> go scs w
+  where
+    go [] w' = [[ReportWord w']]  -- alw'ays report the final result
+    go (st:sts) w' =
+        case applyStatementWithLog st w' of
+            [] -> go sts w'
+            outputActions -> outputActions >>= \case
+                l@(ReportWord w'') -> (l :) <$> go sts w''
+                l@(ActionApplied _ _ output) -> case output of
+                    Just w'' -> (l :) <$> go sts w''
+                    -- apply no further changes to a deleted w'ord
+                    Nothing -> [[l]]
 
 -- | Apply 'SoundChanges' to a word, returning an 'PWordLog'
 -- for each possible result.
@@ -671,7 +871,16 @@ applyChanges sts w =
   where
     -- If no changes were applied, output is same as input
     lastOutput [] = Just w
-    lastOutput ls = output $ last ls
+    lastOutput ls = logOutput $ last ls
+
+-- | TODO
+applyChangesWithReports :: SoundChanges Expanded [Grapheme] -> PWord -> [[PWord]]
+applyChangesWithReports sts w = getReports <$> applyChangesWithLog sts w
+  where
+    getReports [] = []
+    getReports [ActionApplied _ _ (Just w')] = [w']
+    getReports (ReportWord w':ls) = w' : getReports ls
+    getReports (_:ls) = getReports ls
 
 -- | Apply 'SoundChanges' to a word returning the final results, as
 -- well as a boolean value indicating whether the word should be
@@ -680,9 +889,27 @@ applyChanges sts w =
 applyChangesWithChanges :: SoundChanges Expanded [Grapheme] -> PWord -> [(Maybe PWord, Bool)]
 applyChangesWithChanges sts w = applyChangesWithLog sts w <&> \case
     [] -> (Just w, False)
-    logs -> (output $ last logs, hasChanged logs)
+    logs -> (logOutput $ last logs, hasChanged logs)
   where
     hasChanged = any $ \case
         ActionApplied (RuleS rule) _ _ -> highlightChanges $ flags rule
         ActionApplied (FilterS _) _ _ -> False  -- cannot highlight nonexistent word
         ActionApplied (DirectiveS _) _ _ -> True
+        ActionApplied ReportS _ _ -> False  -- reporting a word yields no change
+        ReportWord _ -> False
+
+-- | TODO
+applyChangesWithChangesAndReports :: SoundChanges Expanded [Grapheme] -> PWord -> [[(PWord, Bool)]]
+applyChangesWithChangesAndReports sts w = getReports <$> applyChangesWithLog sts w
+  where
+    getReports :: [LogItem (Statement Expanded [Grapheme])] -> [(PWord, Bool)]
+    getReports [] = []
+    getReports l = go False l
+      where
+        go _ [] = []
+        go hasChanged (ActionApplied action _ _:ls) =
+            let hasChanged' = case action of
+                    RuleS rule -> hasChanged || highlightChanges (flags rule)
+                    _ -> hasChanged
+            in go hasChanged' ls
+        go hasChanged (ReportWord w':ls) = (w', hasChanged) : go hasChanged ls

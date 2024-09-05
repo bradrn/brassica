@@ -1,5 +1,14 @@
-import ace from "ace-builds";
 import Split from "split.js";
+
+import {EditorState, EditorSelection} from "@codemirror/state"
+import {EditorView, keymap, highlightSpecialChars, drawSelection, dropCursor,
+        rectangularSelection, crosshairCursor, lineNumbers} from "@codemirror/view"
+import {StreamLanguage, LanguageSupport, HighlightStyle, syntaxHighlighting,
+        bracketMatching} from "@codemirror/language"
+import {tags} from "@lezer/highlight"
+import {defaultKeymap, history, historyKeymap} from "@codemirror/commands"
+import {searchKeymap, highlightSelectionMatches} from "@codemirror/search"
+import {closeBrackets, closeBracketsKeymap} from "@codemirror/autocomplete"
 
 import {hs, withBytesPtr, decodeStableCStringLen, encoder, decoder} from "./interop.js";
 
@@ -10,12 +19,18 @@ import {hs, withBytesPtr, decodeStableCStringLen, encoder, decoder} from "./inte
 
 const results = hs.initResults();  // NB: not const on Haskell side!
 
-function applyChanges(changes, words, sep, reportRules, highlightMode, outputMode) {
+function applyChanges(changes, words, sep, reportRules, inputMode, highlightMode, outputMode) {
     const inputChanges = encoder.encode(changes);
     const inputWords = encoder.encode(words);
     const sepEncoded = encoder.encode(sep);
 
     const reportRulesC = reportRules ? 1 : 0;
+
+    var inModeC = 0;
+    switch (inputMode) {
+    case 'mdfStandard':  inModeC = 1; break;
+    case 'mdfAlternate': inModeC = 1; break;
+    }
 
     var hlModeC = 0;
     switch (highlightMode) {
@@ -24,8 +39,10 @@ function applyChanges(changes, words, sep, reportRules, highlightMode, outputMod
     }
 
     var outModeC = 0;
-    if (outputMode === 'inout') {
-        outModeC = 3;
+    switch (outputMode) {
+    case 'mdf':     outModeC = 1; break;
+    case 'mdfetym': outModeC = 2; break;
+    case 'inout':   outModeC = 3; break;
     }
 
     var output = "";
@@ -37,7 +54,7 @@ function applyChanges(changes, words, sep, reportRules, highlightMode, outputMod
                         inputChangesPtr, inputChangesLen,
                         inputWordsPtr, inputWordsLen,
                         sepPtr, sepLen,
-                        reportRules, 0, hlModeC, outModeC, results);
+                        reportRules, inModeC, hlModeC, outModeC, results);
                     output = decodeStableCStringLen(outputStableCStringLen);
                 } catch (err) {
                     output = err;
@@ -53,140 +70,149 @@ function applyChanges(changes, words, sep, reportRules, highlightMode, outputMod
  * Syntax highlighting *
  ***********************/
 
-ace.define('ace/mode/brassica', function(require, exports, module) {
-    var oop = require("ace/lib/oop");
-    var TextMode = require("ace/mode/text").Mode;
-    var BrassicaHighlightRules = require("ace/mode/brassica_highlight_rules").BrassicaHighlightRules;
+const brassicaMainRules = [
+    { token: "keyword",
+      regex: />|#|\(|\)|{|}|\\|\^|%|~|\*|nohighlight|extra|filter|report|@[0-9]+|@\?/
+    },
+    { token: "separator",
+      regex: /\/|_|→|->/
+    },
+    { token: "controlOperator",  // actually features - but why not?
+      regex: /\$[^\s#[\](){}>\\→/_^%~*@$]+(#[^\s#[\](){}>\\→/_^%~*@$]+)?/
+    },
+    { token: "meta",
+      regex: /^-(x|1|ltr|rtl|\?\?|\?)/
+    },
+    { token: "variableName",  // categories - there's no closer tag type
+      regex: /\[.*?\]/
+    }
+];
 
-    var Mode = function() {
-        this.HighlightRules = BrassicaHighlightRules;
-    };
-    oop.inherits(Mode, TextMode);
-
-    (function() {
-        // Extra logic goes here. (see below)
-    }).call(Mode.prototype);
-
-    exports.Mode = Mode;
-});
-
-ace.define('ace/mode/brassica_highlight_rules', function(require, exports, module) {
-    var oop = require("ace/lib/oop");
-    var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
-
-    var BrassicaHighlightRules = function() {
-        this.$rules = {
-            start: [
-                { token: "keyword",
-                  regex: ">|#|\\(|\\)|{|}|\\\\|\\^|%|~|\\*|categories|end|new|nohighlight|feature|extra|filter|@[0-9]+|@\\?"
-                },
-                { token: "separator",
-                  regex: "/|_|→|->"
-                },
-                {
-                  token: "flag",
-                  regex: "^-(x|1|ltr|rtl|\\?\\?|\\?)"
-                },
-                { token: "comment",
-                  regex: ";.*$"
-                },
-                { token: "category",
-                  regex: "\\[.*?\\]"
-                },
-            ]
-        };
-        this.normalizeRules();
-    };
-
-    oop.inherits(BrassicaHighlightRules, TextHighlightRules);
-    exports.BrassicaHighlightRules = BrassicaHighlightRules;
-});
-
-var categoryMarkers = [];
-function rehighlightCategories(editor) {
-    // preliminary: remove all markers
-    categoryMarkers.forEach((id) => editor.session.removeMarker(id));
-
-    const rules = editor.getValue();
-    const rulesLines = rules.split("\n");
-
-    // first pass: accumulate categories
-    let categories = [];
-    const featureRegex = /=|\/|feature/g;
-    let inCategories = false;
-    rulesLines.forEach((line) => {
-        if (line.includes("categories")) {
-            inCategories = true;
-        } else if (line === "end") {
-            inCategories = false;
-        } else if (line.includes("feature")) {
-            let lineParts = line.split(featureRegex);
-            // every second part from the end is a category name,
-            for (let i = lineParts.length-2; i>=0; i-=2) {
-                categories.push(lineParts[i].trim());
+const brassicaLang = StreamLanguage.define({
+    name: "Brassica",
+    startState: (i) => { return { categories: [], cblock: false }},
+    token: function (stream, state) {
+        if (stream.match(/;.*$/)) {
+            return "comment";
+        }
+        if (state.cblock) {
+            if (stream.match(/^end$/)) {
+                state.cblock = false;
+                return "keyword";
             }
-        } else if (inCategories) {
-            let lineParts = line.split("=");
-            if (lineParts.length > 1) {
-                categories.push(lineParts[0].trim());
+            if (stream.match(/feature|auto/)) {
+                return "keyword";
+            }
+            const catMatch = stream.match(/^(\S+)(?=\s+=)/);
+            if (catMatch) {
+                state.categories.push(catMatch[1]);
+                return "variableName";
+            }
+        } else {
+            if (stream.match(/^new categories( nohighlight)?$/)) {
+                state.categories = []
+                state.cblock = true;
+                return "keyword";
+            }
+            if (stream.match(/^categories$/)) {
+                state.cblock = true;
+                return "keyword";
+            }
+            for (let rule of brassicaMainRules) {
+                if (stream.match(rule.regex)) {
+                    return rule.token;
+                }
+            }
+            for (let category of state.categories) {
+                if (stream.match(category)) {
+                    return "variableName";
+                }
             }
         }
-    });
-
-    let catsRegex = new RegExp(categories.join("|"), "gd");
-
-    // second pass: find row/column coords of matches
-    // and add them as markers
-    const Range = ace.require("ace/range").Range;
-    let ranges = [];
-    for (let row=0; row<rulesLines.length; ++row) {
-        let matches = rulesLines[row].matchAll(catsRegex);
-        for (const match of matches) {
-            let r = new Range(
-                row, match.index,
-                row, match.index + match[0].length);
-            let id = editor.session.addMarker(r, "regex_category", "text");
-            categoryMarkers.push(id);
-        };
+        stream.next();
+        return null;
     }
-}
+});
+
+const brassicaHighlightStyle = HighlightStyle.define([
+    {tag: tags.keyword, color: "#00f"},
+    {tag: tags.separator, fontWeight: "bold"},
+    {tag: tags.controlOperator,  color: "rgb(34,139,34)"},
+    {tag: tags.meta, color: "rgb(0,128,128)"},
+    {tag: tags.variableName, backgroundColor: "rgb(245,245,220)"},
+    {tag: tags.comment, "color": "rgb(0,128,0)"}
+]);
 
 
 /***********************
  * Set up content      *
  ***********************/
 
-var rulesEditor = ace.edit("rules");
-rulesEditor.session.setMode("ace/mode/brassica");
-rulesEditor.renderer.setShowGutter(false);
-rulesEditor.setHighlightActiveLine(false);
-rulesEditor.renderer.setOptions({
-    fontFamily: "monospace",
-    fontSize: "inherit",
-});
-rulesEditor.addEventListener("input", (event) => {
-    rehighlightCategories(rulesEditor);
-    updateForm(false, true);
-});
-
 Split(["#rules-div", "#words-div", "#results-div"]);
 
 const form = document.getElementById("brassica-form");
 const viewLive = document.getElementById("view-live");
 const wordsArea = document.getElementById("words");
+const resultsDiv = document.getElementById("results");
+
+const urlParams = new URLSearchParams(window.location.search);
+wordsArea.value = urlParams.get("w");
+
+let rulesEditor = new EditorView({
+    doc: urlParams.get("r"),
+    extensions: [
+        highlightSpecialChars(),
+        history(),
+        drawSelection(),
+        dropCursor(),
+        EditorState.allowMultipleSelections.of(true),
+        syntaxHighlighting(brassicaHighlightStyle),
+        bracketMatching(),
+        closeBrackets(),
+        rectangularSelection(),
+        crosshairCursor(),
+        highlightSelectionMatches(),
+        new LanguageSupport(brassicaLang),
+        keymap.of([
+            ...closeBracketsKeymap,
+            ...defaultKeymap,
+            ...searchKeymap,
+            ...historyKeymap
+        ])
+    ],
+    dispatchTransactions: function (trs, view) {
+        view.update(trs);
+        updateForm(false, true);
+    },
+    parent: document.getElementById("rules"),
+})
+
+const hlNoneRadio = document.getElementById("hl-none");
+const hlLastRadio = document.getElementById("hl-last");
+const hlInputRadio = document.getElementById("hl-input");
+
+const inWordlistRadio = document.getElementById("in-wordlist");
+const inMdfStandardRadio = document.getElementById("in-mdfstandard");
+const inMdfAlternateRadio = document.getElementById("in-mdfalternate");
+
+const fmtWordlistRadio = document.getElementById("fmt-wordlist");
+const fmtInoutRadio = document.getElementById("fmt-inout");
+const fmtMdfRadio = document.getElementById("fmt-mdf");
+const fmtMdfEtymRadio = document.getElementById("fmt-mdfetym");
 
 function updateForm(reportRules, needsLive) {
     if (needsLive && !viewLive.checked) return;
 
     const data = new FormData(form);
-    const rules = rulesEditor.getValue();
+    const rules = rulesEditor.state.doc.toString();
     const words = data.get("words");
     const sep = data.get("sep");
     const highlightMode = data.get("highlightMode");
+    const inputFormat = data.get("inputFormat");
     const outputFormat = data.get("outputFormat");
 
-    const output = applyChanges(rules, words, sep, reportRules, highlightMode, outputFormat);
-    document.getElementById("results").innerHTML = output;
+    const output = applyChanges(rules, words, sep, reportRules, inputFormat, highlightMode, outputFormat);
+    resultsDiv.innerHTML = "<pre>" + output + "</pre>";
 }
 
 form.addEventListener("submit", (event) => {
@@ -195,8 +221,18 @@ form.addEventListener("submit", (event) => {
     updateForm(reportRules, false);
 });
 
-wordsArea.addEventListener("input", (event) =>
-    updateForm(false, true));
+// live highlight
+wordsArea          .addEventListener("input", (event) => updateForm(false, true));
+hlNoneRadio        .addEventListener("input", (event) => updateForm(false, true));
+hlLastRadio        .addEventListener("input", (event) => updateForm(false, true));
+hlInputRadio       .addEventListener("input", (event) => updateForm(false, true));
+inWordlistRadio    .addEventListener("input", (event) => updateForm(false, true));
+inMdfStandardRadio .addEventListener("input", (event) => updateForm(false, true));
+inMdfAlternateRadio.addEventListener("input", (event) => updateForm(false, true));
+fmtWordlistRadio   .addEventListener("input", (event) => updateForm(false, true));
+fmtInoutRadio      .addEventListener("input", (event) => updateForm(false, true));
+fmtMdfRadio        .addEventListener("input", (event) => updateForm(false, true));
+fmtMdfEtymRadio    .addEventListener("input", (event) => updateForm(false, true));
 
 const exampleSelect = document.getElementById("examples");
 const exampleMsg = "This will overwrite your current rules and lexicon. Are you sure you want to proceed?";
@@ -212,9 +248,9 @@ exampleSelect.addEventListener("change", async (event) => {
     const bsc = await fetch(bscFile).then((response) => response.text());
     const lex = await fetch(lexFile).then((response) => response.text());
 
-    rulesEditor.setValue(bsc);
-    rulesEditor.clearSelection();
-    document.getElementById("words").value = lex;
+    let spec = {from: 0, to: rulesEditor.state.doc.length, insert: bsc};
+    rulesEditor.dispatch(rulesEditor.state.update({changes: spec}))
+    wordsArea.value = lex;
 });
 
 const blurb = document.getElementById("blurb");
@@ -243,11 +279,26 @@ function save(filename, data) {
 
 document.getElementById("download-rules").addEventListener("click", (event) => {
     event.preventDefault();
-    save("rules.bsc", rulesEditor.getValue());
+    save("rules.bsc", rulesEditor.state.doc.toString());
 });
 document.getElementById("download-words").addEventListener("click", (event) => {
     event.preventDefault();
     save("words.lex", wordsArea.value);
+});
+
+document.getElementById("select-all-rules").addEventListener("click", (event) => {
+    let sel = EditorSelection.range(0, rulesEditor.state.doc.length);
+    rulesEditor.dispatch(rulesEditor.state.update({selection: sel}));
+});
+document.getElementById("select-all-words").addEventListener("click", (event) => {
+    wordsArea.select();
+});
+document.getElementById("select-all-results").addEventListener("click", (event) => {
+    // see https://stackoverflow.com/a/1173319
+    var range = document.createRange();
+    range.selectNode(resultsDiv);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
 });
 
 const inputFileRules = document.getElementById("input-file-rules");
@@ -256,8 +307,8 @@ inputFileRules.addEventListener("change", (event) => {
     if (file) {
         const reader = new FileReader();
         reader.onload = (e) => {
-            rulesEditor.setValue(e.target.result);
-            rulesEditor.clearSelection();
+            let spec = {from: 0, to: rulesEditor.state.doc.length, insert: e.target.result};
+            rulesEditor.dispatch(rulesEditor.state.update({changes: spec}))
         };
         reader.readAsText(file);
     }
@@ -280,3 +331,47 @@ inputFileWords.addEventListener("change", (event) => {
 document
     .getElementById("open-words")
     .addEventListener("click", (event) => inputFileWords.click());
+
+function reselectRadios(event) {
+    if (inMdfStandardRadio.checked || inMdfAlternateRadio.checked) {
+        fmtMdfRadio.disabled = false;
+        fmtMdfEtymRadio.disabled = false;
+    } else {
+        if (fmtMdfRadio.checked || fmtMdfEtymRadio.checked) {
+            fmtWordlistRadio.checked = true;
+        }
+        fmtMdfRadio.disabled = true;
+        fmtMdfEtymRadio.disabled = true;
+    }
+}
+
+inWordlistRadio    .addEventListener("input", reselectRadios)
+inMdfStandardRadio .addEventListener("input", reselectRadios)
+inMdfAlternateRadio.addEventListener("input", reselectRadios)
+
+const synchroniseScroll = document.getElementById("synchronise-scroll");
+var blockScrollTrackingEvent = false;
+
+wordsArea.addEventListener("scroll", function (event) {
+    if (!synchroniseScroll.checked) return;
+
+    if (blockScrollTrackingEvent) {
+        blockScrollTrackingEvent = false;
+    } else {
+        const ratio = wordsArea.scrollTop / wordsArea.scrollHeight;
+        blockScrollTrackingEvent = true;
+        resultsDiv.scrollTop = ratio * resultsDiv.scrollHeight;
+    }
+});
+
+resultsDiv.addEventListener("scroll", function (event) {
+    if (!synchroniseScroll.checked) return;
+
+    if (blockScrollTrackingEvent) {
+        blockScrollTrackingEvent = false;
+    } else {
+        const ratio = resultsDiv.scrollTop / resultsDiv.scrollHeight;
+        blockScrollTrackingEvent = true;
+        wordsArea.scrollTop = ratio * wordsArea.scrollHeight;
+    }
+});

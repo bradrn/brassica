@@ -109,12 +109,17 @@ textarea.input-box:not(.lib-config) {
     border: none;
     resize: none;
 }
+pre {
+    font: inherit;
+    margin: 0;
+}
 #controls {
     padding: 0 5px;
     display: flex;
     flex-flow: column nowrap;
     gap: 5px;
     min-width: 13em;
+    overflow: auto;
 }
 #controls input[type="submit"] {
     font: inherit;
@@ -124,19 +129,24 @@ textarea.input-box:not(.lib-config) {
     padding-top: 2rem;
 }
 
-.ace-tm .ace_separator {
-    font-weight: bold;
+#rules-div {
+    /* Necessary to remove min-width so that split resizing works as
+       expected: split.js will prevent it from getting too small anyway
+     */
+    min-width: 0;
 }
-.ace-tm .ace_flag {
-    color: rgb(0,128,128);
+
+#rules {
+    overflow: auto;
 }
-.ace-tm .ace_category,
-.regex_category {
-    background-color: rgb(245,245,220);
+
+.cm-editor {
+    height: 100%;
+    background-color: #FFF;
 }
-.regex_category {
-    position: absolute;
-    z-index: 20;
+
+.cm-scroller {
+    overflow: auto;
 }
 
 .split {
