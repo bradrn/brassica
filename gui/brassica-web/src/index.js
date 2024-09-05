@@ -180,6 +180,10 @@ let rulesEditor = new EditorView({
             ...historyKeymap
         ])
     ],
+    dispatchTransactions: function (trs, view) {
+        view.update(trs);
+        updateForm(false, true);
+    },
     parent: document.getElementById("rules"),
 })
 
