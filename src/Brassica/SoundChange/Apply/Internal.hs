@@ -34,7 +34,6 @@ module Brassica.SoundChange.Apply.Internal
        , FeatureState(..)
        , match
        , matchMany
-       , matchMany'
        , mkReplacement
        , exceptionAppliesAtPoint
        , matchRuleAtPoint
@@ -73,7 +72,6 @@ import Control.DeepSeq (NFData)
 import Control.Monad.State
 
 import qualified Data.Map.Strict as Map
-import qualified Data.Map.Merge.Strict as Map
 
 import Brassica.SoundChange.Apply.Internal.MultiZipper
 import Brassica.SoundChange.Types
@@ -142,24 +140,28 @@ data MatchOutput = MatchOutput
     , matchedFeatureIds :: Map.Map String FeatureState
     } deriving (Show)
 
+-- | Create 'MatchOutput' for next section of rule given last output
+newOutput :: MatchOutput -> MatchOutput
+newOutput m = MatchOutput
+    { matchedCatIxs = []
+    , matchedOptionals = []
+    , matchedWildcards = []
+    , matchedKleenes = []
+    , matchedGraphemes = []
+    , matchedFeatures = Map.empty
+    , matchedBackrefIds = matchedBackrefIds m
+    , matchedFeatureIds = matchedFeatureIds m
+    }
+
+initialOutput :: MatchOutput
+initialOutput = MatchOutput [] [] [] [] [] Map.empty Map.empty Map.empty
+
 modifyMatchedGraphemes :: ([Grapheme] -> [Grapheme]) -> MatchOutput -> MatchOutput
 modifyMatchedGraphemes f MatchOutput{..} = MatchOutput{matchedGraphemes=f matchedGraphemes, ..}
 
 appendGrapheme :: MatchOutput -> Grapheme -> MatchOutput
 appendGrapheme out g = modifyMatchedGraphemes (++[g]) out
 
-instance Semigroup MatchOutput where
-    (MatchOutput a1 b1 c1 d1 e1 f1 g1 h1) <> (MatchOutput a2 b2 c2 d2 e2 f2 g2 h2) =
-        MatchOutput (a1++a2) (b1++b2) (c1++c2) (d1++d2) (e1++e2)
-            (Map.merge Map.preserveMissing Map.preserveMissing
-                (Map.zipWithMatched $ const (++))
-                f1 f2)
-            (Map.merge Map.preserveMissing Map.preserveMissing
-                (Map.zipWithMatched $ \_ _ g -> g)
-                g1 g2)
-            (Map.merge Map.preserveMissing Map.preserveMissing
-                (Map.zipWithMatched $ \_ _ g -> g)
-                h1 h2)
 
 zipWith' :: [a] -> [b] -> (a -> b -> c) -> [c]
 zipWith' xs ys f = zipWith f xs ys
@@ -331,13 +333,6 @@ matchMany out _ [] mz = [(out, mz)]
 matchMany out prev (l:ls) mz =
     match out prev l mz >>= \(out', mz') ->
     matchMany  out' (lastMay (matchedGraphemes out') <|> prev) ls mz'
-
--- | 'matchMany' without any previous match output.
-matchMany' :: Maybe Grapheme
-          -> [Lexeme Expanded 'Matched]
-          -> MultiZipper t Grapheme
-          -> [(MatchOutput, MultiZipper t Grapheme)]
-matchMany' = matchMany (MatchOutput [] [] [] [] [] Map.empty Map.empty Map.empty)
 
 -- Small utility function, not exported
 lastMay :: [a] -> Maybe a
@@ -527,10 +522,10 @@ exceptionAppliesAtPoint
     -> Environment Expanded
     -> MultiZipper RuleTag Grapheme -> [Int]
 exceptionAppliesAtPoint target (ex1, ex2) mz = fmap fst $ flip runRuleAp mz $ do
-    ex1Out <- RuleAp $ matchMany' Nothing ex1
+    ex1Out <- RuleAp $ matchMany initialOutput Nothing ex1
     pos <- gets curPos
-    MatchOutput{matchedGraphemes} <- RuleAp $ matchMany' Nothing target
-    _ <- RuleAp $ matchMany ex1Out (listToMaybe matchedGraphemes) ex2
+    targetOut@MatchOutput{matchedGraphemes} <- RuleAp $ matchMany (newOutput ex1Out) Nothing target
+    _ <- RuleAp $ matchMany (newOutput targetOut) (listToMaybe matchedGraphemes) ex2
     return pos
 
 -- | Given a target and environment, determine if they rule
@@ -544,7 +539,8 @@ matchRuleAtPoint
     -> MultiZipper RuleTag Grapheme
     -> [(MatchOutput, MultiZipper RuleTag Grapheme)]
 matchRuleAtPoint target (env1,env2) mz = flip runRuleAp mz $ do
-    env1Out <- RuleAp $ matchMany' Nothing env1
+    let initMO = MatchOutput [] [] [] [] [] Map.empty Map.empty Map.empty
+    env1Out <- RuleAp $ matchMany initMO Nothing env1
     -- start of target needs to be INSIDE 'MultiZipper'!
     -- otherwise get weird things like /x/#_ resulting in
     -- #abc#→#xabd#x when it should be #abc#→#xabc#
@@ -552,13 +548,16 @@ matchRuleAtPoint target (env1,env2) mz = flip runRuleAp mz $ do
         True -> RuleAp $ const []
         False -> do
             modify $ tag TargetStart
-            matchResult <- RuleAp $ matchMany' Nothing target
+            matchResult <- RuleAp $ matchMany (newOutput env1Out) Nothing target
             modify $ tag TargetEnd
-            env2Out <- RuleAp $ matchMany env1Out (listToMaybe $ matchedGraphemes matchResult) env2
-            -- environment can affect replacement via feature IDs
+            env2Out <- RuleAp $ matchMany (newOutput matchResult)
+                (listToMaybe $ matchedGraphemes matchResult) env2
+            -- environment can affect replacement via IDs
             -- only, so collect those
-            let featureIds = matchedFeatureIds $ env1Out <> matchResult <> env2Out
-            return matchResult { matchedFeatureIds = featureIds }
+            return matchResult
+                { matchedFeatureIds = matchedFeatureIds env2Out
+                , matchedBackrefIds = matchedBackrefIds env2Out
+                }
 
 data RuleStatus
     = SuccessNormal      -- ^ Rule was successful, no need for special handling
@@ -676,7 +675,7 @@ filterMatches :: Filter Expanded -> MultiZipper RuleTag Grapheme -> Bool
 filterMatches (Filter _ ls) = go . toBeginning
   where
     go mz =
-        let mzs = matchMany' Nothing ls mz
+        let mzs = matchMany initialOutput Nothing ls mz
         in case mzs of
             [] -> maybe False go $ fwd mz  -- try next position if there is one
             _ -> True  -- filter has matched
