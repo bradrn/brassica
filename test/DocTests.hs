@@ -3,27 +3,24 @@
 
 module Main where
 
-import Control.Category ((>>>))
-import System.IO (IOMode(..), withFile)
+import Data.Functor ((<&>))
+import Data.List (intercalate)
+import Data.Maybe (mapMaybe)
+import Data.Traversable (for)
 import Text.Pandoc
-import Test.Tasty ( defaultMain, testGroup, TestTree )
+import Test.Tasty (defaultMain, testGroup)
 import Test.Tasty.Providers
 
-import qualified Data.ByteString as B
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 
-import Brassica.SoundChange (applyChanges, splitMultipleResults, applyChangesWithLogs, reportAsText)
+import Brassica.SoundChange (applyChanges)
 import Brassica.SoundChange.Category (expandSoundChanges)
 import Brassica.SoundChange.Parse (parseSoundChanges, errorBundlePretty)
-import Brassica.SoundChange.Tokenise (tokeniseWords, detokeniseWords, withFirstCategoriesDecl, Component, getWords, tokeniseWord)
-import Brassica.SoundChange.Types (SoundChanges, PWord, plaintext', Expanded, Grapheme)
-import Data.Functor ((<&>))
-import Data.Maybe (mapMaybe)
-import Debug.Trace
-import Data.Traversable (for)
-import Data.List (intersperse, intercalate)
-import Brassica.SoundChange.Tokenise (concatWithBoundary)
+import Brassica.SoundChange.Tokenise
+    ( withFirstCategoriesDecl,
+      tokeniseWord,
+      concatWithBoundary )
 
 main :: IO ()
 main = defaultMain $ testGroup "brassica-doctests"
