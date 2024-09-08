@@ -11,6 +11,7 @@
   - Desktop version correctly warns about unsaved changes when opening a file
   - Rules such as `[p f] / [f h] / (a) _ #` are no longer applied twice to the same grapheme
       (as a consequence of changes to rule application, see below)
+  - `noreplace` categories now tokenise multigraphs as expected
 - New support for phonetic features:
   - Features can be written as maximal `$name#ident(values)` after another lexeme
   - Categories named `+Feature`, `-Feature` and `+Feature+Value`
@@ -85,6 +86,8 @@
     now depends on new type `Brassica.SoundChange.Frontend.Internal.MDFHierarchy`
 - Word boundaries are now simply ordinary graphemes `"#"`:
     `Brassica.SoundChange.Types.Grapheme` is now a type synonym for `[Char]`
+- Expansion now results in sound changes with declaration type `(Bool, [Grapheme])`
+    rather than `[Grapheme]`
 
 ## 0.3.0
 

@@ -30,7 +30,7 @@ main = defaultMain $ testGroup "brassica-tests"
     showLogs logs = unlines $ fmap (reportAsText plaintext') $ concat $ getWords logs
 
 changesTest
-    :: (SoundChanges Expanded [Grapheme] -> PWord -> [a])
+    :: (SoundChanges Expanded (Bool, [Grapheme]) -> PWord -> [a])
     -> ([Component [a]] -> String)
     -> String
     -> FilePath

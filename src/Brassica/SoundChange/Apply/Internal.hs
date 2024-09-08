@@ -690,7 +690,7 @@ checkGraphemes gs = fmap $ \case
 -- | Apply a 'Statement' to a 'MultiZipper', returning zero, one or
 -- more results.
 applyStatement
-    :: Statement Expanded [Grapheme]
+    :: Statement Expanded (Bool, [Grapheme])
     -> MultiZipper RuleTag Grapheme
     -> [MultiZipper RuleTag Grapheme]
 applyStatement (RuleS r) mz = applyRule r mz
@@ -698,7 +698,9 @@ applyStatement (FilterS f) mz
     | filterMatches f mz = []
     | otherwise = [mz]
 applyStatement ReportS mz = [mz]
-applyStatement (DirectiveS gs) mz = [checkGraphemes gs mz]
+applyStatement (DirectiveS (noreplace, gs)) mz
+    | noreplace = [mz]
+    | otherwise = [checkGraphemes gs mz]
 
 -- | Apply a single 'Rule' to a word.
 --
@@ -719,7 +721,7 @@ applyRuleStr r =
 -- Note: as with 'applyRuleStr', duplicate outputs from this function
 -- are removed. To keep duplicates, use the lower-level internal
 -- function 'applyStatement' directly.
-applyStatementStr :: Statement Expanded [Grapheme] -> PWord -> [PWord]
+applyStatementStr :: Statement Expanded (Bool, [Grapheme]) -> PWord -> [PWord]
 applyStatementStr st =
     addBoundaries
     >>> fromListStart
@@ -824,9 +826,9 @@ reportAsText render item = unlines $
 -- each possible result, or @[]@ if the rule does not apply and the
 -- input is returned unmodified.
 applyStatementWithLog
-    :: Statement Expanded [Grapheme]
+    :: Statement Expanded (Bool, [Grapheme])
     -> PWord
-    -> [LogItem (Statement Expanded [Grapheme])]
+    -> [LogItem (Statement Expanded (Bool, [Grapheme]))]
 applyStatementWithLog ReportS w = [ReportWord w]
 applyStatementWithLog st w = case applyStatementStr st w of
     [] -> [ActionApplied st w Nothing]
@@ -837,9 +839,9 @@ applyStatementWithLog st w = case applyStatementStr st w of
 -- a 'LogItem' for each 'Statement' which altered the input, plus a
 -- 'ReportWord' for at least the input and output words.
 applyChangesWithLog
-    :: SoundChanges Expanded [Grapheme]
+    :: SoundChanges Expanded (Bool, [Grapheme])
     -> PWord
-    -> [[LogItem (Statement Expanded [Grapheme])]]
+    -> [[LogItem (Statement Expanded (Bool, [Grapheme]))]]
 applyChangesWithLog [] w = [[ReportWord w]]  -- always report the final result
 applyChangesWithLog scs w = (ReportWord w:) <$> go scs w
   where
@@ -857,13 +859,13 @@ applyChangesWithLog scs w = (ReportWord w:) <$> go scs w
 -- | Apply 'SoundChanges' to a word, returning an 'PWordLog'
 -- for each possible result.
 applyChangesWithLogs
-    :: SoundChanges Expanded [Grapheme]
+    :: SoundChanges Expanded (Bool, [Grapheme])
     -> PWord
-    -> [PWordLog (Statement Expanded [Grapheme])]
+    -> [PWordLog (Statement Expanded (Bool, [Grapheme]))]
 applyChangesWithLogs scs w = mapMaybe toPWordLog $ applyChangesWithLog  scs w
 
 -- | Apply a set of 'SoundChanges' to a word.
-applyChanges :: SoundChanges Expanded [Grapheme] -> PWord -> [PWord]
+applyChanges :: SoundChanges Expanded (Bool, [Grapheme]) -> PWord -> [PWord]
 applyChanges sts w =
     mapMaybe lastOutput $ applyChangesWithLog sts w
   where
@@ -872,7 +874,7 @@ applyChanges sts w =
     lastOutput ls = logOutput $ last ls
 
 -- | TODO
-applyChangesWithReports :: SoundChanges Expanded [Grapheme] -> PWord -> [[PWord]]
+applyChangesWithReports :: SoundChanges Expanded (Bool, [Grapheme]) -> PWord -> [[PWord]]
 applyChangesWithReports sts w = getReports <$> applyChangesWithLog sts w
   where
     getReports [] = []
@@ -884,7 +886,7 @@ applyChangesWithReports sts w = getReports <$> applyChangesWithLog sts w
 -- well as a boolean value indicating whether the word should be
 -- highlighted in a UI due to changes from its initial value. (Note
 -- that this accounts for 'highlightChanges' values.)
-applyChangesWithChanges :: SoundChanges Expanded [Grapheme] -> PWord -> [(Maybe PWord, Bool)]
+applyChangesWithChanges :: SoundChanges Expanded (Bool, [Grapheme]) -> PWord -> [(Maybe PWord, Bool)]
 applyChangesWithChanges sts w = applyChangesWithLog sts w <&> \case
     [] -> (Just w, False)
     logs -> (logOutput $ last logs, hasChanged logs)
@@ -897,10 +899,10 @@ applyChangesWithChanges sts w = applyChangesWithLog sts w <&> \case
         ReportWord _ -> False
 
 -- | TODO
-applyChangesWithChangesAndReports :: SoundChanges Expanded [Grapheme] -> PWord -> [[(PWord, Bool)]]
+applyChangesWithChangesAndReports :: SoundChanges Expanded (Bool, [Grapheme]) -> PWord -> [[(PWord, Bool)]]
 applyChangesWithChangesAndReports sts w = getReports <$> applyChangesWithLog sts w
   where
-    getReports :: [LogItem (Statement Expanded [Grapheme])] -> [(PWord, Bool)]
+    getReports :: [LogItem (Statement Expanded (Bool, [Grapheme]))] -> [(PWord, Bool)]
     getReports [] = []
     getReports l = go False l
       where
