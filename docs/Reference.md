@@ -5,370 +5,789 @@
 This document descibes the syntax and application of Brassica sound changes.
 If you’re new to Brassica, you probably want to read the [getting started guide](Getting-Started.md) instead.
 
-## Elements of a sound change file
+```
+Note: example statements will be specified throughout in code blocks such as these.
+Their results will be specified as comments like:
+; input word → output word.
+
+Examples will assume the following category definitions:
+
+categories noreplace
+C = m n p t ch k b d j g f s sh h v z r l w y
+
+-Stress = a e i o u
++Stress = á é í ó ú
+
+auto -Stress
+
+V = &&Stress
+end
+```
+
+## Overall structure
+
+### Statements
 
 A Brassica sound change file comprises a list of **statements**,
   separated by one or more newlines.
 Each statement can be:
 - a [sound change](#sound-change-rules);
 - a [category definition block](#category-definition-block);
-- a [filter](#filters); or
-- an [extra graphemes declaration](#extra-graphemes).
+- a [filter](#filters);
+- an [extra graphemes declaration](#extra-graphemes); or
+- a [report instruction](#reporting).
 
-Brassica processes statements in order from the top of the file to the bottom.
-For each input word, a statement may make modifications to the word,
-  possibly changing the number of output words.
-Alternately a statement can change how Brassica interprets following rules:
-  for instance, by defining new categories.
+Additionally, **comments** may be specified as text after a semicolon.
+Commented text is ignored when processing sound changes.
 
-## Sound change rules
+### Phases of processing
 
-The bulk of this document is dedicated to describing **sound change rules**.
-These are the most common type of statement in an ordinary Brassica sound change description.
+Brassica processes a sound change file by taking it through several phases:
 
-### Overall structure and interpretation
+1. Firstly, the file is **parsed**
+     converting the written text into Brassica’s internal representation of sound changes.
+2. Next those sound changes undergo **expansion**.
+   Category definition blocks are removed,
+     while graphemes which are given definitions in those blocks are replaced by categories or autosegments.
+3. Finally the sound changes can be **applied** to an input word.
+   Each statement is applied to the input word in order from top to bottom,
+     producing zero, one or more output words.
+   The output of each statement is used as the input to the next.
 
-A sound change rule has the following general structure,
-  where `(...)` indicates that the section within the brackets is optional,
-  and `(...)*` indicates that the section within the brackets can be repeated one or more times:
+Additionally, before sound changes can be applied to file containing words,
+  the words file must first be **tokenised** as follows:
+
+1. Words to be affected by sound changes are distinguished from surrounding
+     whitespace, glosses, field markers and other elements which should not be modified.
+2. These words are then divided into **graphemes**.
+   Each grapheme is a sequence of one or more Unicode characters,
+     treated as a single unit for the purposes of sound changes.
+
+Tokenisation is determined by
+  the first category definition block in the sound changes file, if one exists.
+Any **multigraphs** (graphemes with more than one character)
+  which are listed in that category definition block,
+  or any preceding [extra graphemes declarations](#extra-graphemes),
+  are tokenised in words as a single grapheme.
+All other characters are tokenised as single-character graphemes.
+If multiple tokenisations are possible,
+  Brassica will form the longest possible grapheme at each point in the word,
+  from left to right.
+
+## Sound changes
+
+### Sound change syntax
+
+A sound change rule has the following syntax
+  (using [EBNF as defined in the W3C XML standard](https://www.w3.org/TR/REC-xml/#sec-notation)):
+```ebnf
+SoundChange ::= Flag* Lexeme* ("/" | "→" | "->") Lexeme* ("/" Environment)* ("//" Environment)?
+Flag ::= "-ltr" | "-rtl" | "-1" | "-?" | "-??" | "-x" | "-no"
+Environment ::= Lexeme* "_" Lexeme*
 ```
-(flag)* target / replacement (/ environment)* (// exception)
-```
-The first slash in a sound change may be replaced by `→` or `->` with no change in meaning.
-
-These components are as follows:
-- A rule begins with zero or more space-separated [**flags**](#flags)
-    which change the way in which the rule is applied.
-- The **target** denotes the part of the input word to be replaced with the replacement.
-  It consists of zero or more lexemes (see below).
-- The **replacement** denotes what should be substituted for the target in the output word.
-  Like the target, it consists of zero or more lexemes.
-- The **environment**s specify the situations in which the target will be replaced by the replacement,
-    and any **exception** specifies a situation in which the target must not be replaced by the replacement.
-  Each has the form `before _ after`,
-    where `before` and `after` each comprise zero or more lexemes (like the target).
+The components of a sound change are named as follows:
+- The **target** comprises the lexemes before the first separator (`/` or `→` or `->`).
+  It denotes the part of the input word to be replaced with the replacement.
+- The **replacement** comprises the lexemes after the first separator.
+  It denotes what should be substituted for the target in the output word.
+- Each **environment** comprises two lists of lexemes separated by an underscore (denoting the target).
+  These specify the situations in which the target will be replaced by the replacement.
+- An environment after `//` is an **exception**, specifying a situation in which the target may not be replaced by the replacement.
 
 Each **lexeme** represents a certain part of an input or output word.
-Lexemes must be separated by spaces except when omitting the spaces is unambiguous.
+Lexemes are defined as follows:
+```ebnf
+Lexeme ::= Grapheme  [wfc: defined below]
+         | InlineCategory
+         | "@" [1-9] S (InlineCategory | Grapheme)
+         | "@#" Grapheme S (InlineCategory | Grapheme)
+         | "(" (S Grapheme)+ S ")"
+         | ">"
+         | "^" S Lexeme
+         | Lexeme S "*"
+         | Lexeme S "$" Grapheme ("#" Grapheme)? FeatureSpec?
+         | "%" (InlineCategory | Grapheme)     [wfc: only in target or environment]
+         | "%(" (S Grapheme)+ S ")"            [wfc: only in target or environment]
+         | "@?" S (InlineCategory | Grapheme)  [wfc: only in replacement]
+         | "~"                                 [wfc: only in replacement]
+         | "\"                                 [wfc: only in replacement]
 
-In the target, environment and exception,
-  a lexeme describes a part of the input word to be **matched** by Brassica.
-In the replacement,
-  a lexeme denotes a part of the output word which is **produced** by Brassica.
-Lexemes in the replacement can **take their value** from lexemes in the target,
-  to produce complex sound changes where parts of the input word are copied or altered in the output word.
+InlineCategory ::= "[" InnerCategory "]"
+InnerCategory ::= (Grapheme | "+" Grapheme | "-" Grapheme | "&" Grapheme)+
 
-The available lexeme types are as follows:
-- One or more letters, matching a single [**grapheme**](#graphemes) or a **predefined category**
-  - The **word boundary** marker `#` is treated as a special kind of grapheme
-- A list of graphemes within square brackets, representing a **category** of graphemes
-  - `@n` (where `n` is a number) before a category denotes a category **backreference**
-  - `@?` before a category denotes **multiple outputs**
-- A sequence of lexemes within parentheses, representing **optional** lexemes
-- `>`, representing a **geminate** grapheme
-- `^`, representing a **wildcard** matching any number of graphemes until another lexeme
-- `*`, the Kleene star, representing **repetition** of a lexeme
-- Within the replacement only:
-  - `~`, representing a **discarded** category
-  - `/`, representing **metathesis** of the target
-For more on each of these lexemes, see below.
-
-(Note that the underscore is *not* a lexeme: it is a separator between lexemes.
-As such it cannot occur everywhere that other lexemes can.)
-
-To understand the sound change application process, consider some arbitrary input word.
-This word is composed of a list of **graphemes** (either single letters or multigraphs),
-  starting and finishing with word boundary markers.
-Brassica then applies a sound change of the form `target / replacement / before _ after` as follows:
-
-1. The application process begins at the initial word boundary.
-2. Test the target and environment:
-   1. Test each lexeme in `before` to see if it matches each next grapheme in the input word.
-      If they all match, move forward to after the matched graphemes.
-   2. Test each lexeme in `target` to see if it matches each next grapheme in the input word,
-        recording any information which might be needed for the replacement.
-      If they all match, and move forward to after the matched graphemes.
-   3. Test each lexeme in `after` to see if it matches each next grapheme in the input word.
-      If they all match, move forward to after the matched graphemes.
-3. Did all of the above lexemes match successfully?
-   - If any did not match, go back to the position before the environment,
-       move forward by one grapheme if possible, and try again from step **2**.
-   - If they all matched, delete the target, and replace it with the new graphemes specified by the `replacement`
-       (creating multiple output words if necessary).
-     Then move to the grapheme after the replacement and go back to step **2**.
-
-A particularly important consequence of this rule application process is that *environments can overlap, but targets never can*.
-For instance, compare the two rules below:
+FeatureSpec = "(" S (Grapheme ("~" Grapheme)+)* S ")"
 ```
-C V C V / C V́ C V
-V / V́ / C _ C V
+Consecutive lexemes or graphemes must be separated by whitespace,
+  except when omitting the whitespace is unambiguous.
+Within a lexeme, `S` above denotes a place where whitespace can optionally be inserted.
+
+The lexeme types listed above are as follows:
+
+- A **grapheme**, indicating zero or more letters
+  - **Word boundaries**, represented as `#`, are treated in many ways as a special kind of grapheme
+  - Some graphemes may be treated as **predefined categories** or **autosegments**
+      if a category definition block is present
+- An **inline category**, indicating a set of graphemes or lexemes
+- A **numeric backreference**, refering back to a previous category by position
+- A **named backreference**, labelling or refering back to a category by name
+- **Optional** lexemes, denoting a list of one or more lexemes to be optional
+- A **geminate**, indicating duplication of the previous grapheme
+- A **wildcard**, representing any number of graphemes until a following lexeme
+- A **Kleene star**, representing **repetition** of a lexeme zero or more times
+- A **phonetic feature**, indicating lists of graphemes grouped by common properties
+- A **greedy category**, indicating a category which can be matched at most one time
+- A **greedy optional**, indicating a set of graphemes which can be matched zero or one times but not both
+- A **multiple outputs** declaration, indicating a category which specifies multiple outputs
+- A **discard**, indicating a category which is absent in the output
+- **Metathesis**, indicating the reverse of the target graphemes
+
+See below for further details on each lexeme type.
+
+### Sound change application
+
+A sound change is applied to an input word using two basic operations
+  (which will be defined later for each lexeme type):
+
+- A lexeme can be **matched** to a portion of the input word.
+  If the match succeeds, it can record information about the input word for later use.
+- A lexeme can **produce** graphemes in the output word,
+    possibly using information taken from matches in the target.
+
+Matching occurs in the target, environment(s) and exception of a sound change.
+Production occurs in the replacement of a sound change.
+
+The sound change application algorithm is similar to that described by [Howard (1973:53-63)](https://dspace.mit.edu/bitstream/handle/1721.1/12982/26083289-MIT.pdf#page=70).
+Simplifying slightly, for the usual case of left-to-right application, rule application occurs as follows:
+
+1. Add word boundary graphemes `#` to the beginning and end of the word.
+2. Initialise the current position to the beginning of the word.
+3. If the sound change has an exception, and that exception matches the current position, go to the next position.
+4. For each environment in the sound change, or for the environment `_` if no environment is specified:
+    1. Match each lexeme before the underscore to the input word in sequence, from left to right.
+    2. Match each lexeme in the target to the input word, in the same manner.
+    3. Match each lexeme after the underscore to the input word, in the same manner.
+5. If any of the previous matches did not succeed,
+     reset the position to one grapheme after the original position, and go back to step **3**.
+6. Otherwise:
+   1. Produce the replacement graphemes by concatenating the graphemes
+        produced by each lexeme in the replacement, from left to right.
+   2. Find the graphemes in the input word which were matched by the target, and replace them with the new replacement graphemes.
+   3. Move to the position at the start of the replaced graphemes and go back to step **3**.
+7. When the position reaches the end of the word,
+     remove the initial and final word boundary graphemes,
+     and finish by returning the result as the output word.
+ 
+At any point a matching or production operation may produce **multiple results**.
+In this case, the application algorithm continues for each result independently.
+
+The operation of this algorithm can be affected by the presence of rule flags, as follows:
+
+- The `-ltr` flag does nothing (but explicitly specifies the usual left-to-right operation as above).
+
+- The `-rtl` flag applies the rule from right to left.
+  Rule application starts at the right edge of the rule and moves left, rather than *vice versa*.
+  Similarly, lexemes are traversed from right to left within the sound change rule.
+
+  (Note that this flips the usual meaning of lexemes such as `>` and wildcards!)
+  
+- `-1` causes rule application to terminate after the first successful match.
+
+- `-no` applies a rule with *no overlap*:
+    the target of one application may not be used as the environment of the next.
+  This is accomplished by modifying step **6.3** above to move to the end of the replacement,
+    rather than its start.
+
+- `-?` causes the whole rule application to produce one additional result,
+    which is identical to the input word.
+
+- `-??` causes an additional result to be produced for each successful replacement,
+    which is identical to the word before that replacement.
+
+```brassica
+C -Stress C V / C +Stress C V
+
+; pa → pa (no change)
+; pati → páti
+; patiku → pátiku
+; patikupu → pátikúpu
 ```
-On a word of the form `CVCV`, these two rules behave identically.
-However, they behave differently on a word of the form `CVCVCV`:
-- The target of the first rule matches the first four graphemes, yielding `CV́CVCV`.
-  After this, application moves on to the remaining graphemes after the target, namely `CV`.
-  Therefore the rule cannot apply further and the final result is `CV́CVCV`.
-- The target of the second rule matches the first `V`, surrouded by the environment `C _ C V` as expected.
-  After this, application moves on to the remaining graphemes after the target, which are now `CVCV`.
-  The rule can again match the first `V` surrounded by `C _ C V`.
-  After this target the remaining graphemes are `CV`, and the rule cannot apply further:
-    the final result is `CV́CV́CV`.
-The behaviour of this first rule can be useful to implement e.g. alternating stress patterns.
-On the other hand, it can cause difficulties with implementng other sound changes such as vowel harmony.
 
-### Flags
+```brassica
+-rtl C -Stress C V / C +Stress C V
 
-The rule application process described above can be modified by **flags** at the beginning of a rule.
-Brassica supports the following flags:
+; pa → pa (no change)
+; pati → páti
+; patiku → patíku
+; patikupu → pátikúpu
+```
 
-- `-rtl` alters the rule application process to begin at the right edge of the word and move backwards,
-    rather than starting at the left edge and moving forward as described above.
-  (The default behaviour can be explicitly requested with the flag `-ltr`, which currently has no effect.)
-- `-1` causes a rule to be applied at most once per word, by halting the application process after the first replacement.
-- `-?` yields a sporadic rule: in addition to the expected result, the input word is preserved as a second output word.
-- `-??` yields a rule which is sporadic per-occurrence:
-    two outputs are produced for each application site, where the rule has been applied at that site in one output, and has not been applied in the other output.
-  In total, for *n* application sites this yields up to 2*ⁿ* outputs.
-- `-x` suppresses output highlighting in the GUI.
-  For details see the [Getting Started guide](Getting-Started.mdw).
+```brassica
+-1 -rtl C -Stress C V / C +Stress C V
 
-Flags can be combined (when not incompatible with each other) by adding spaces between them.
-For instance, a rule beginning with `-rtl -1` will be applied only once, at the rightmost possible position in the word.
-The order of flags does not matter.
-For incompatible flags (`-ltr`/`-rtl`, or `-?`/`-??`) the behaviour is left unspecified.
+; pa → pa (no change)
+; pati → páti
+; patiku → patíku
+; patikupu → patikúpu
+```
+
+```brassica
+e / i / i C _
+
+; mide → midi
+; midese → midisi
+; midesenetake → midisinitake
+```
+
+```brassica
+-no e / i / i C _
+
+; mide → midi
+; midese → midise
+; midesenetake → midisenetake
+```
 
 ### Graphemes
 
-As mentioned previously, words are represented as lists of **graphemes**.
-A grapheme corresponds to one or more Unicode characters.
-Graphemes are the basic unit of sound change application in Brassica:
-  in particular, Brassica will never split up a multiple-character grapheme (**multigraph**),
-  although a sound change rule may explicitly replace it with single-character graphemes.
+As mentioned [previously](#phases-of-processing), words are represented as lists of graphemes.
+These graphemes form the basic unit of sound change in Brassica.
+In particular, Brassica will never split up a multigraph
+  except when specifically directed to do so by a sound change
+  (e.g. `sh / s h`).
+  
+A grapheme is specified as a sequence of one or more non-whitespace characters.
+Any printable character may occur within a category,
+  with the exception of the reserved characters `#[](){}>\\→/_^%~*@$;`.
+However, a grapheme may begin with `*`.
 
-Sound change application begins with input words being **tokenised** into graphemes.
-Tokenisation depends on whether the sound change file contains any [category definition blocks](#category-definition-block).
-If it does not, tokenisation will never form multigraphs:
-  each character (including combining marks) is treated as its own grapheme.
+Within a sound change or category, a grapheme matches only that grapheme exactly.
+It similarly will produce itself in the replacement.
 
-However, if a category definition block is present,
-  the first such block will be scanned for multigraphs by Brassica.
-Any multigraphs listed in that block will be tokenised as a single grapheme if present in any input words.
+Depending on a previous category definition block,
+  a grapheme may be replaced by a category or autosegment during [expansion](#phases-of-processing).
+To prevent this, the grapheme may be followed by a tilde `~`.
+The tilde is not considered part of the grapheme itself.
+  
+The **word boundary** marker `#` is treated as a special grapheme.
+As mentioned in the previous section,
+  it is inserted at the beginning and end of every word before sound change application begins.
+Otherwise, it receives no special treatment.
 
-After tokenisation, multigraphs can be introduced or removed by sound change rules.
-For instance, a sound change `t h / th` will convert
-  a sequence of the two graphemes ⟨t⟩ and ⟨h⟩
-  to the single grapheme ⟨th⟩.
-The reverse would be `th / t h`, which works as expected.
+```brassica
+sh / y / _ #
 
-The **word boundary** marker `#` is treated as a special kind of grapheme.
-For each sound change application,
-  word boundaries are automatically inserted at the beginning and end of every input word
-Thus rules such as `k / / _ #` or `v / b / # _` will work as expected.
+; as → as (no change)
+; ah → ah (no change)
+; ash → ay
+; anish → aniy
+; shash#shash → shay#shay
+```
 
-However, if the input contains any instances of `#`,
-  these will also be treated as explicit word boundaries.
-In addition to the usual sound changes with word boundaries in the environment,
-  these internal word boundaries can be deleted or inserted with rules
-  such as `# / / _` (which deletes all internal word boundaries).
-
-(It can be particularly useful to choose a grapheme to act as a marker of boundary type.
-For instance, one could distinguish a clitic boundary as `#=#` and a word boundary as `##`.
-Two boundary markers are used such that both the preceding and following graphemes
-  are adjacent to word boundaries as expected by sound changes.)
 
 ### Categories
 
-A **category** is a list of graphemes or lexemes which should be treated in the same way.
+A **category** is a list of graphemes or lexemes (**elements**)
+  which are to be treated similarly within a sound change.
 In brief, a category can match or produce any of its constituent elements.
 
-The simplest way to define a category is by placing a list of space-separated graphemes in square brackets:
-  for instance, `[p t ch k]` is a category which contains the four graphemes ⟨p⟩, ⟨t⟩, ⟨ch⟩ and ⟨k⟩.
-As a special kind of grapheme, word boundaries are also allowed in a category.
-A category may include other lexemes, or sequences of zero or more lexemes, if they are written between curly braces `{}`.
-
-Categories can also be predefined in a [category definition block](#category-definition-block).
-Such a block associates graphemes with categories:
-   afterwards, whenever one of those graphemes is seen in a sound change rule, it is replaced with the corresponding category.
-This allows more convenient reuse of categories such as ‘all vowels’ or ‘all consonants’ when they are used by many different rules.
+Categories can be written in two ways in a sound change.
+An **inline category** is written by placing a list of space-separated elements between square brackets.
+Each element can be a single grapheme,
+  or a sequence of zero or more lexemes placed between braces.
+  
+Alternatively, a category can be **predefined** in a [category definition block](#category-definition-block).
+This associates graphemes with categories.
+The process of [expansion](#phases-of-processing) will then
+  replace each grapheme with the corresponding category,
+  whenever one of those graphemes is mentioned.
+  
+(Note: as mentioned earlier, this guide assumes that `C`, `V`, `+Stress` and `-Stress` are predefined.)
 
 Predefined categories can be combined with each other or with other graphemes or lexemes.
 This is done by mentioning them in a subsequent category.
-By default, this yields the **concatenation** of the two categories.
-If the second category is prefixed by `+`, it creates the **intersection** of the categories;
-  if it is prefixed by `-`, the result is the **subtraction** of the second category.
+Category combinations are interpreted from left to right.
+The **category operation** can be specified by placing a character before the category name:
 
-For example, consider a category definition block
-  which defines `Stop` as the category `[p t k]`, and `Labial` as `[m p f]`.
-Then:
-- `[Stop Labial]` is the category `[d p t k m p f]`
-- `[Stop +Labial]` is the category `[p]` (the intersection of the two categories: they have only ⟨p⟩ in common)
-- `[Stop -Labial]` is the category `[t k]` (all `Stop`s which are not `Labial`)
+- `&Category` acts to **concatenate** `Category` with the preceding category.
+  The result contains all the elements already present in the category,
+    followed by all the elements of the second category.
+- `+Category` acts to **intersect** `Category` with the preceding category.
+  The result contains every element of the preceding category which is also present in `Category`,
+    in the same order as `Category`.
+- `-Category` acts to **subtract** `Category` with the preceding category.
+  The result contains every element of the preceding category, preserving their order,
+    except for those which are present in `Category`.
 
-Multiple categories are combined left to right.
-For instance, `[m Stop]` would be `[m p t k]`, so `[m Stop -Labial]` would be `[m p]`.
+If no character is present before the category name,
+  the chosen operation depends on the category name:
 
-Each category is therefore, ultimately, a list of lexemes (which will usually be single graphemes).
-In the description below, the **index** of a lexeme in a category will refer to its position in the list:
+- If the category name begins with `+` or `-`, intersection is used.
+- Otherwise, concatenation is used.
+
+Three more operations are defined for use with [phonetic features](#phonetic-features):
+  
+- `&&Feature` is equivalent to `&+Feature &-Feature`
+- `+&Feature` is equivalent to intersection with the category defined by `[&+Feature &-Feature]`
+- `-&Feature` is equivalent to subtraction with the category defined by `[&+Feature &-Feature]`
+
+By these operations, each category is expanded to ultimately become a list of graphemes and lexemes.
+In the description below, the **index** of a category element will refer to its position in the list:
   thus, first, second, third, etc.
+  
+An unmodified category (without backreferences of any kind) will match an input word
+  if and only if at least one of its constituent graphemes or lexemes match that input.
+When this occurs in the target, the index of the matched element
+  is appended to a **list of matched category indices** maintained by the target.
 
-A category will match an input word if and only if
-  at least one of its constituent graphemes or lexemes match that input.
-For each category matched in the target,
-  the index of its matched element(s) will be be saved for use in the replacement.
+If multiple elements of a target category can match, multiple results are produced, one for each element.
+This behaviour can be disabled using a **greedy category**, written by prefixing the category with `%`.
+Such a category will match at most one element,
+  traversing its elements from left to right.
 
 Each category in the replacement can take its value from a category matched in the target.
-When this occurs, the replacement category produces the lexeme(s)
-  which are at the same index as that of the lexeme(s) which were matched by the corresponding target category.
-If the replacement category is too short to have any element at that index,
-  the Unicode replacement character U+FFFF (�) is inserted instead.
-If more than one element was matched in the input category, multiple output words will be produced,
-  for each corresponding element in the output category.
-
-In the absence of backreferences (explained below),
-  Brassica matches replacement categories with target categories from left to right.
-The first category encountered in the replacement takes its value from the first category matched in the target;
-  the second category in the replacement takes its value from the second in the target;
-  and so on.
+In the absence of backreferences, each category reads the next index in turn
+  from the list of matched category indices gathered in the target,
+  starting at the first item of that list.
+The lexeme produced is that which is at the same index in the replacement category
+  as that of the lexeme which were matched by the corresponding target category.
+If the replacement category has no element at that index,
+  the Unicode replacement character U+FFFF (�) is produced instead.
 
 If there are more categories in the replacement than in the target,
-  some replacement categories may not correspond to any category in the target.
-In this case Brassica creates **multiple output words**: one for each element of the category.
-This behaviour can also be forced for any category in the replacement, by writing `@?` before the category.
+  some replacement categories may not be able to read an index from the list of matched category indices.
+In this case Brassica creates multiple output words: one for each element of the category.
+Additionally, the previous behaviour can be forced for any category in the replacement
+  by writing `@?` before the category, to create a lexeme with **multiple outputs**.
+  
+The **discard** character `~` in the replacement acts as a category which never produces output.
+It causes one matched category index to be skipped,
+  such that the next category without a backreference takes its value from the next category in the target.
 
-There are two ways to control the matching of categories between the target and replacement.
-Firstly, the **discard** character `~` causes the next target category to be ignored in the replacement.
-Effectively, it acts like a replacement category which never produces output.
-For instance, `[a b] [a b] [a b] / [x y] ~ [x y]` applied to input word `aba` produces output `xx`.
+```brassica
+ə / [a e]
 
-Secondly, a **backreference** can be placed before a category in any part of a rule.
-A backreference takes the form `@n`, where `n` can be any number greater than 0.
+kəm → kam/kem
+kəmə → kama/kame/kema/keme
+```
 
-The meaning of a backreference depends on its position in the rule.
-In the replacement, a backreference specifies which target category corresponds to the replacement category.
-If each target category is given a number starting from 1, counting from left to right,
-  a replacement category backreferenced to `@n` will take its index from the `n`th category in the target.
-As with `@?`, such backreferenced categories are skipped when matching up other target and replacement categories.
+```brassica
+[a b] [a b] [a b] / [x y] ~ [x y]
 
-When matching, a backreference instead **constrains** which category elements can be matched.
-Taking a backreference in the target as an example, this operates as follows:
-1. Categories in the target are numbered from 1 as previously described.
-2. If a target category is encountered with a backreference `@n`:
-   - If the `n`th target category has been matched,
-       retrieve the matched index of that category,
-       and attempt to match the lexeme(s) at that same index of the current category.
-   - Otherwise, fail.
-Similar descriptions apply to the environment and exception.
+; aaa → xx
+; aba → xx
+; aab → xy
+; abb → xy
+; baa → yx
+; bba → yx
+; bab → yy
+; bbb → yy
+```
 
-### Lexemes for repetition
+### Category backreferences
 
-The remaining lexemes describe different kinds of repetition:
-  parentheses for optional lexemes (0× or 1× repetition),
-  `>` for gemination (2× repetition),
-  `*` for arbitrary repetition, `^` for wildcard matching and `\` for metathesis.
+Backreferences allow explicitly specifying the correspondence between categories.
+Two forms of backreference exist: identifier backreferences, and numeric backreferences.
 
-Blocks of **optional lexemes** can be expressed by surrounding the lexemes in question with parentheses.
-When matching an optional block, two matches are attempted:
+An **identifier backreference** is written as `@#id` followed by a category,
+  where the identifier `id` can be any grapheme except `#` which is not followed by a tilde.
+Identifier backreferences extend over the entirety of a rule:
+  any two categories with the same identifier
+  must match or produce an element at the same index as each other.
+
+```brassica
+@#example [p t k] / ʔ / @#example [p t k] _ @example [u i a]
+
+; ppu → pʔu
+; tti → tʔi
+; kka → kʔa
+; pta → pta (no change)
+; kpu → kpu (no change)
+```
+
+```brassica
+@#first [a b] [a b] @#second [a b] / @#first [x y] @#second [x y]
+
+; aaa → xx
+; aba → xx
+; aab → xy
+; abb → xy
+; baa → yx
+; bba → yx
+; bab → yy
+; bbb → yy
+```
+
+```brassica
+@#stop [p t k] / @#stop [p t k] @#stop [f s x] / _ @#stop [i i u]
+
+; api → apfi
+; apu → apu (no change)
+; ati → atsi
+; atu → atu (no change)
+; aki → aki (no change)
+; aku → akxu
+```
+
+A **numeric backreference** is written as `@n` followed by a category,
+  where `n` can be any number greater than 0.
+Unlike identifier backreferences,
+  the meaning of a numeric backreference depends on which sound change part it is in:
+  
+- In the target, a numeric backreference `@n Category`
+    refers to the `n`th element of the list of matched category indices in the target.
+  The `n`th element of `Category` must then match successfully.
+- In an environment or exception, a backreference has the same meaning,
+    except that it refers to the list of matched category indices
+    in the environment or exception in which the backreference is placed.
+  The scope of backreferences extends across the underscore representing the target.
+- In the replacement, a numeric backreference `@n Category`
+    refers to the `n`th element of the list of matched category indices in the *target* (not the replacement).
+  The `n`th element of `Category` is then produced.
+  
+Note that, as lexemes are traversed from right to left in a sound change flagged as `-rtl`,
+  numeric backreferences naturally operate in the same order in such rules.
+  
+```
+[m n ŋ] [b d g] / @2 [m n ŋ] @2 [b d g]
+
+; anbe → ambe
+; aŋde → ande
+; amge → aŋge
+```
+
+### Optional lexemes
+
+A sequence of lexemes can be made **optional** by surrounding them with parentheses.
+When matching optional lexemes, two matches are attempted:
   one in which the optional lexemes are matched, and another in which the optional lexemes are ignored.
-(If both matches succeed, more than one output word may be produced.)
+The whole match succeeds if either of these matches succeed.
 
-Each optional block in the replacement takes its value from an optional block in the target,
-  in a similar manner to categories.
-If an optional block in the target matched successfully,
-  the corresponding optional lexemes in the replacement will produce graphemes as usual.
-But if the optional block in the target did not match,
-  no graphemes will be produced by the corresponding optional lexemes in the replacement.
-If an optional block in the replacement does not correspond to any optionals in the target,
-  two outputs will be produced corresponding to both of those cases.
+Similarly to categories, a **list of matched optionals** is maintained by the target.
+Each list element specifies whether the optional lexemes were matched or ignored.
+If both matches succeeded, two output words are produced, one for each possibility.
+A **greedy optional** supresses this by taking only the output word where the lexemes were matched.
 
-**Gemination** can be expressed with `>`.
-In the target, environment or exception, this always matches a grapheme which is the same as the last one matched.
-This is the case even between the target and another rule part:
-  for instance, `[a e] / i / _ >` will take `aa` to `ia`, and `ee` to `ie`, but `ae` or `ea` will not change.
+Each optional block encountered in the replacement reads the next value from the list of matched optionals.
+If that value states that the corresponding target optional is matched,
+  then the lexemes in the replacement optional produce their graphemes as usual.
+If it states otherwise, the replacement optional is ignored and produces no graphemes.
+If there are more optionals in the replacement than there are in the target,
+  then two results are produced for each optional which cannot read its value from the target:
+  one where no graphemes are produced, and one where graphemes are produced.
 
-Similarly, in the replacement, `>` produces a grapheme
-  which is the same as the previous grapheme which was produced.
-At the beginning of the replacement there is no previous grapheme,
-  so `>` in this situation will produce no output graphemes.
+```brassica
+a / e / _ (C) i
 
-**Arbitrary repetition** can be expressed by following a lexeme with `*`
-  (also known as the **Kleene star**).
-When matching, a lexeme followed by `*` is matched repeatedly, as many times as possible (zero or more).
-In the target, the number of times it matched is saved.
+; ai → ei
+; ami → emi
+; ammi → ammi (no change)
+```
 
-In the replacement, a lexeme followed by `*` produces graphemes repeatedly.
-Similarly to categories and optional lexemes,
-  the number of times the lexeme is repeated is taken from a corresponding Kleene star in the target.
-If there is no corresponding Kleene star, no output is produced by this lexeme.
+```brassica
+[t d s] (y) i / [ch j sh] (i) ə
 
-The character `^` before another lexeme denotes a **wildcard** which can match or produce any graphemes.
-When matching, this matches zero or more graphemes, until the following lexeme can match.
-In the target, the matched graphemes are saved for use in the replacement.
+; ti → chə
+; dyi → jiə
+; sai → sai (no change)
+```
 
-As with the Kleene star, the graphemes produced by a wildcard in the replacement
-  depend on what was matched in the target.
-Each wildcard in the replacement produces the same graphemes
-  which were matched by the corresponding wildcard in the target, if there is one.
+```brassica
+V V / V (ʔ) V
 
-Finally, **metathesis** is denoted by `\` in the replacement only.
-This simply takes the graphemes matched by the whole target,
-  and produces those in reverse order.
+; ae → ae/aʔe
+; iʔu → iʔu (no change)
+```
+
+### Unlimited repetition
+
+Brassica contains two lexemes which can be used to represent unlimited repetition.
+These are the wildcard `^` and the Kleene star `*`.
+
+A **wildcard** lexeme takes the form `^l`, where `l` is any lexeme.
+This matches zero or more graphemes, followed by `l`
+  (at the first location where it is able to successfully match the input).
+The match fails if `l` cannot be matched successfully at any point before the next word boundary.
+
+As with categories and optionals, a **list of matched wildcards** is maintained by the target.
+Each list element contains the graphemes matched by each wildcard in the target.
+Each wildcard `^l` in the replacement
+  then produces the same graphemes matched by the corresponding wildcard in the target,
+  followed by producing the graphemes which result from `l`.
+  
+A **Kleene star** lexeme takes the form `l*`, where `l` is again any lexeme.
+This matches zero or more repetitions of `l`.
+As many repetititions as possible are matched.
+This lexeme never fails to match.
+
+A **list of matched Kleene stars** is maintained by the target.
+Each list element specifies the number of times which the corresponding Kleene star lexeme was matched.
+Each Kleene star `l*` in the replacement
+  then produces the graphemes corresponding to `l`
+  the same number of times as the corresponding Kleene star in the target was matched.
+  
+Note that the wildcard and Kleene star are opposites in important ways:
+
+|          | Wildcard             | Star                           |
+|----------|----------------------|--------------------------------|
+| Matches… | Arbitrary graphemes  | Specific lexeme                |
+| …until…  | Given lexeme matches | Given lexeme no longer matches |
+  
+
+```brassica
+-Stress / +Stress / _ C* #
+
+; eta → etá
+; etap → etáp
+; etaymbs → etáymbs
+```
+
+```brassica
+[b d] / [m n] / _ ^ [m n]
+
+; abenet → amenet
+; adepitekem → anepitekem
+```
+  
+### Phonetic features and autosegments
+
+A phonetic feature defines lists of graphemes which correspond to each other.
+As with categories, phonetic features may be inline or predefined.
+
+An **inline feature** is specified as `l$Name(…)`, where:
+
+- `l` is any lexeme (the **base lexeme** of the feature)
+- `Name` is a grapheme which is not `#` or followed by `~`,
+- `…` is a list of space-separated **correspondence sets**,
+    each of which is a tilde-separated list of graphemes.
+  Each correspondence set in a feature should have the same number of graphemes.
+
+A **predefined feature** is specified as `l$Name`:
+  that is, the same syntax, but without any explicitly specified feature values.
+Instead, the feature values are taken from predefined categories, as follows:
+
+- If categories named `-Name` and `+Name` exist,
+    the correspondence sets consist of
+    the first element of `-Name` with the first element of `+Name`,
+    the second element of `-Name` with the second element of `+Name`,
+    and so on.
+- If there are two or more categories whose names begin with `+Name+`,
+    the correspondence sets consist of
+    the first elements of all these categories, then their second elements, and so on.
+  The order of graphemes within a correspondence set is not explicitly specified,
+    but is guaranteed to be consistent both within a feature and across features.
+  (As of Brassica 1.0.0 they are arranged in ascending alphabetical order of the category names.)
+
+The **values** of a feature are taken to cross-cut their correspondence sets.
+A feature has two values if it has two elements in each correspondence,
+  three values if it has three elements in each correspondence, and so on.
+For instance, the inline feature `l$Voicing(p~b t~d k~g)` has two values,
+  the first consisting of {`p`,`t`,`k`}, and the second consisting of {`b`,`d`,`g`}.
+  
+When matching a feature, the lexeme `l` is first matched.
+Then, the last grapheme matched by `l` is compared to each of the values of that feature.
+Any values which contain that grapheme are recorded.
+If the grapheme is not contained in any values of that feature,
+  a value of ‘indeterminate’ is recorded.
+
+The target maintains one **list of matched features**
+  for each distinct feature name which is mentioned.
+For each feature in the target,
+  the matched feature value is appended to the corresponding list.
+
+Each feature in the replacement then takes its value
+  from the list of matched features in the target,
+  in the following way:
+  
+1. Graphemes are produced as normal from the base lexeme.
+2. The next matched feature value is taken from the list of matched features
+     which corresponds to the feature name.
+3. The last grapheme produced by the base lexeme is altered
+     to correspond to the matched feature value, as follows:
+   - If the grapheme is already in the corresponding feature value of the replacement feature,
+       no change occurs.
+   - If it is in a different feature value of the replacement feature to that feature value which was matched,
+       the appropriate member of its correspondence set is selected,
+       such that the result has the same feature value as that which was matched.
+   - If the matched feature value was ‘indeterminate’, multiple output words are produced,
+       one for each member of its correspondence set.
+
+As with categories, a feature may also be given an **identifier**,
+  as `#id` immediately following the feature name.
+Again the `id` may be any grapheme except `#` which is not followed by a tilde.
+Two features with the same identifier always match or produce corresponding feature values.
+
+In addition, category definition blocks may cause graphemes to be defined as
+  **autosegmental** with respect to a feature.
+Effectively, an autosegmental grapheme acts as a feature with a single correspondence set:
+
+- When matching, it matches any element of that correspondence set.
+  In the target it appends the corresponding feature value to the appropriate list of matched features.
+- In the replacement, it produces the element of its correspondence set
+    which has the appropriate feature value.
+
+When an autosegmental grapheme is within a category,
+  the set of graphemes which it can match or produce
+  may additionally be affected by category operations.
+
+```brassica
+C$Voice(p~b t~d k~g) C / C C$Voice(p~b t~d k~g)
+
+; apte → apte (no change)
+; apde → apte
+; agpe → agbe
+; anta → anta/anda
+```
+
+```brassica
+V / V$Stress#spread / V$Stress#spread _
+
+; táene → táéne
+; sióna → siona
+```
+
+```brassica
+a / e  ; note 'a' and 'e' are defined autosegmental with respect to $Stress
+
+; tana → tena
+; tána → téna
+; taná → tené
+; táná → téné
+```
+
+### Other lexemes
+
+The following lexemes exist in addition to those mentioned above:
+
+- **Gemination** is represented by `>`.
+  This matches or produces the same grapheme as that which was last matched or produced.
+
+- **Metathesis** is represented by `\` in the replacement only.
+  It produces in reversed order the graphemes which were matched in the target.
+
+```brassica
+C / / _ >
+
+; atte → ate
+; oshshe → oshe
+```
+
+```brassica
+C ʔ / \ / V _
+
+; namʔe → naʔme
+; kanatʔ → kanaʔt
+```
 
 ## Category definition block
 
 ### Overall structure and interpretation
 
-A **category definition block** is introduced by writing `categories` on its own line,
-  and ended by writing `end` on its own line.
-The first line can also contain `new` before `categories`, and/or `noreplace` after `categories`
-  (both separated by a space).
+A category definition block has the following syntax:
 
-Between the first and the last lines, one can write **category definitions**.
-A category definition contains a grapheme, followed by `=` and then a category.
-Any category description which can go between square brackets in a sound change rule
-  may also follow `=` in a category definition.
+```ebnf
+CategoryDefinitionBlock ::=
+    "new"? "categories" "noreplace"? N (CategoryDefinition N)* "end"
 
-(A category definition block can also contain [feature definitions](#feature-definitions), described below.)
+CategoryDefinition ::= Grapheme "=" InnerCategory
+                     | "auto" Grapheme
+                     | "feature" FeatureDefinition
+                     
+FeatureDefinition ::=
+    "feature" (Grapheme "=")? InnerCategory "/" (Grapheme "=" InnerCategory)+
+```
 
-Each category definition defines the grapheme before the `=` as a synonym for the category after the `=`.
-This definition remains in effect for all statements following the category definition, unless:
-- Some following category definition gives a new definition for the same grapheme
-    (in a different category definition block or in the same one)
-- A following category definition block is introduced with `new`,
-    after which point all previous category definitions are removed.
+(Where `N` represents an operating system-dependent line terminator,
+  and `Grapheme` and `InnerCategory` are as defined [above](#sound-change-syntax).
+Spaces must be included between elements except around `=`.)
 
-A category definition block has the side-effect of **filtering unknown graphemes** from input words.
-For each category definition block, Brassica maintains a list of all graphemes mentioned so far, comprising:
-- Those mentioned on the right-hand side of category definitions in that block
-- Those similarly mentioned in all previous category blocks,
-    up to and including the last block introduced with `new categories`
-- Any [extra graphemes](#extra-graphemes) mentioned before the category block
-Then, when a word encounters a category definition block
-  (after having been modified by zero or more sound changes or other statements),
-  any graphemes not in this list are replaced by U+FFFF (�).
+A category definition block contains a list of definitions, each of which can be:
+
+- a **category definition**, containing a grapheme,
+    followed by `=` and then a [category](#categories);
+- an **autosegment definition**, specifying the name of a category
+    from which to produce [autosegments](#phonetic-features-and-autosegments); or
+- a **feature definition**, listing a set of category definitions from which to create featural categories.
+
+Each kind of definition introduces one or more graphemic **names**,
+  each of which is associated with a single lexeme as its **value**.
+For category definitions, the value is the category defined after the equals sign.
+For other definitions, see below.
+
+As with sound changes, category definitions are traversed in order from top to bottom.
+When each definition is encountered, it is added to the global set of definitions,
+  overwriting a previous definition with the same name if one exists.
+However, if a category definition block begins with the word `new`,
+  all previous definitions are removed before category definition block is processed.
+
+During [expansion](#phases-of-processing),
+  whenever a grapheme is encountered which is the name of a definition active at that point,
+  that grapheme is replaced with its value.
+This occurs in all sound changes, category definitions and filters.
+As mentioned [earlier](#graphemes),
+  this replacement can be disabled by following the grapheme with a tilde `~`.
+
+During sound change application, category definition blocks act to filter graphemes.
+Brassica collects the graphemes
+  which are mentioned in every definition value
+  active at the point immediately following the category definition block,
+  as well as those mentioned in any previous [extra graphemes declarations](#extra-graphemes).
+Then, for each word, the graphemes in that word are compared to this list of collected graphemes.
+Any grapheme which is not in the list is replaced by U+FFFF (�).
 This behaviour can be disabled by introducing the category definition block with `noreplace`.
 
-(Additionally the first category block in the file influences tokenisation into multigraphs,
-  as [described above](#graphemes).)
+Additionally, the first category block in the file influences tokenisation into multigraphs,
+  as [described above](#phases-of-processing).
+
+### Autosegment definitions
+
+An autosegmental definition takes the form `auto`, followed by a category name.
+The category name should be that of a category
+  which is available for use as a [predefined feature](#phonetic-features-and-autosegments):
+  that is, it should have form `-Name` or `+Name`, or begin with `+Name+`.
+
+Each grapheme in the listed category
+  is given a definition as [autosegmental](#phonetic-features-and-autosegments).
+The correspondence set of that autosegmental grapheme contains
+  all the graphemes of the other categories with the same feature name.
+
+Note that, as with other kinds of definitions,
+  no more than one autosegmental definition can be given for any given grapheme.
+An attempt to create nested autosegmental definitions will cause an error, as of Brassica 1.0.0.
+
+For a concrete example, consider:
+```
++Tone+High = á é í ó ú
++Tone+Mid = a e i o u
++Tone+Low = à è ì ò ù
+
+auto +Tone+Mid
+```
+This will define the elements of `+Tone+Mid` as autosegmental, as follows:
+- `a` is defined as autosegmental with correspondence set {`á`, `à`, `a`}
+- `e` is defined as autosegmental with correspondence set {`é`, `è`, `e`}
+- `i` is defined as autosegmental with correspondence set {`í`, `ì`, `i`}
+- `o` is defined as autosegmental with correspondence set {`ó`, `ò`, `o`}
+- `u` is defined as autosegmental with correspondence set {`ú`, `ù`, `u`}
 
 ### Feature definitions
 
-Category definition blocks can also include **feature definitions**.
-Each feature definition has the following form:
-```
-feature (C₁ =) <category₁> / C₂ = <category₂> (/ Cₙ = <categoryₙ>)*
-```
-Where parentheses enclose optional elements, an asterisk denotes repetition zero or more times,
-  each `C` can be any grapheme name, and each `<category>` is a category.
-In what follows, a subscript `ₙ` (or superscript `ⁿ`) represents some arbitrary number.
+Note: **feature definitions are deprecated**
+  in favour of [autosegment definitions](#autosegment-definitions).
 
-Let each `<categoryₙ>` have elements `cₙ¹`, `cₙ²`, etc.
+To expand on the previous EBNF definition,
+  a feature definition has the following form:
+```
+feature (C₁ =) <category₁> (/ Cₙ = <categoryₙ>)+
+```
+Here, a subscript `ₙ` (or superscript `ᵐ`) is used to represent some arbitrary number of elements in a list.
+
+Let each `<categoryₙ>` have elements `cₙ¹`, `cₙ²`, etc., up to `cₙᵐ`
 Then, a feature definition as above creates the same category definitions as if the following had been written:
 ```
-(C₁ = <category₁>)
-C₂ = <category₂>
-(Cₙ = <categoryₙ>)*
+C₁ = <category₁>
+(Cₙ = <categoryₙ>)+
 
-(c₁ⁿ = c₁ⁿ c₂ⁿ (cₙⁿ)*)*
+c₁¹ = c₁¹ cₙ¹+
+(c₁ᵐ = c₁ᵐ cₙᵐ+)+
 ```
 
 For a concrete example, consider:
@@ -390,10 +809,6 @@ u = u ú ù
 The key is the last set of category definitions:
   after this point, every mention of `a` will match any of `[a á à]`, and so on.
 
-Occasionally this last behaviour might be unwanted:
-  one might want to refer to the **base grapheme** (say, `a`) alone.
-This can be accomplished by following it with a tilde: `a~`.
-
 ## Other statements
 
 ### Filters
@@ -402,11 +817,6 @@ A **filter** is a statement which deletes output words matching some criterion.
 A filter is defined by writing `filter`, followed by a sequence of lexemes as in the target of a rule.
 The filter will then remove from the output any words which match those lexemes.
 
-Filters are most useful together with rules which can create multiple outputs.
-A filter may be used to delete unwanted output words
-  (for instance, those which violate some phonological constraint)
-  while keeping wanted outputs.
-
 ### Extra graphemes
 
 An **extra graphemes** declaration takes the form of `extra` followed by a list of graphemes.
@@ -414,3 +824,13 @@ It defines a list of graphemes which are not part of any category
   (and hence not mentioned in any category definition block),
   but nonetheless should never be replaced by U+FFFF by any category definition block.
 Each `extra` declaration overwrites any previous one.
+
+(See [category definition blocks](#category-definition-block) for further details.)
+
+### Reporting
+
+A **report** instruction is simply the word `report` placed on a line of its own.
+This will cause Brassica to record all output words at that point in the rules file.
+These intermediate results will be displayed
+  if selecting ‘Input→output’ format in a graphical interface,
+  or `--show-input` in the CLI.
