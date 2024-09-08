@@ -74,6 +74,16 @@ If multiple tokenisations are possible,
   Brassica will form the longest possible grapheme at each point in the word,
   from left to right.
 
+### Word highlighting
+
+The graphical frontends of Brassica provide an option to highlight output words which are ‘Different to input’.
+This highlighting occurs for all words which satisfy one of the following conditions:
+
+- At least one sound change has successfully matched,
+    where the input word has different graphemes to the output word,
+    and the sound change was not flagged with `-x`.
+- At least one grapheme in the word was replaced by a category definition block.
+
 ## Sound changes
 
 ### Sound change syntax
