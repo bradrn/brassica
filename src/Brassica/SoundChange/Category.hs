@@ -289,14 +289,14 @@ extendCategories cs' (overwrite, defs) =
 
 expandSoundChanges
     :: SoundChanges CategorySpec Directive
-    -> Either ExpandError (SoundChanges Expanded [Grapheme])
+    -> Either ExpandError (SoundChanges Expanded (Bool, [Grapheme]))
 expandSoundChanges = fmap catMaybes . flip evalStateT (M.empty, []) . traverse go
   where
     go  :: Statement CategorySpec Directive
         -> StateT
             (Categories, [String])
             (Either ExpandError)
-            (Maybe (Statement Expanded [Grapheme]))
+            (Maybe (Statement Expanded (Bool, [Grapheme])))
     go (RuleS r) = do
         cs <- gets fst
         lift $ Just . RuleS <$> expandRule cs r
@@ -312,9 +312,7 @@ expandSoundChanges = fmap catMaybes . flip evalStateT (M.empty, []) . traverse g
         (cs, extra) <- get
         cs' <- lift $ extendCategories cs (overwrite, defs)
         put (cs', extra)
-        pure $ if noreplace
-            then Nothing
-            else Just $ DirectiveS $ extra ++ mapMaybe left (values cs')
+        pure $ Just $ DirectiveS (noreplace, extra ++ mapMaybe left (values cs'))
 
     left (Left l) = Just l
     left (Right _) = Nothing

@@ -111,7 +111,7 @@ data ParseOutput a = ParsedRaw [Component a] | ParsedMDF SFM
 tokeniseAccordingToInputFormat
     :: InputLexiconFormat
     -> OutputMode
-    -> SoundChanges Expanded [Grapheme]
+    -> SoundChanges Expanded (Bool, [Grapheme])
     -> String
     -> Either (ParseErrorBundle String Void) [Component PWord]
 tokeniseAccordingToInputFormat Raw _ cs =
@@ -139,12 +139,12 @@ tokeniseAccordingToInputFormat (MDF _) o cs = \input -> do
 -- the changes in the specified mode.
 parseTokeniseAndApplyRules
     :: (forall a b. (a -> b) -> [Component a] -> [Component b])  -- ^ mapping function to use (for parallelism)
-    -> SoundChanges Expanded [Grapheme] -- ^ changes
+    -> SoundChanges Expanded (Bool, [Grapheme]) -- ^ changes
     -> String       -- ^ words
     -> InputLexiconFormat
     -> ApplicationMode
     -> Maybe [Component PWord]  -- ^ previous results
-    -> ApplicationOutput PWord (Statement Expanded [Grapheme])
+    -> ApplicationOutput PWord (Statement Expanded (Bool, [Grapheme]))
 parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
     case tokeniseAccordingToInputFormat intype (getOutputMode mode) statements ws of
         Left e -> ParseError e
@@ -182,14 +182,14 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
     extractMaybe (Just a, b) = Just (a, b)
     extractMaybe (Nothing, _) = Nothing
 
-    doApply :: OutputMode -> SoundChanges Expanded [Grapheme] -> PWord -> [Component [PWord]]
+    doApply :: OutputMode -> SoundChanges Expanded (Bool, [Grapheme]) -> PWord -> [Component [PWord]]
     doApply WordsWithProtoOutput scs w =
         let intermediates :: [[PWord]]
             intermediates = fmap nubOrd $ transpose $ Brassica.SoundChange.Apply.Internal.applyChangesWithReports scs w
         in intersperse (Separator " → ") (fmap Word intermediates)
     doApply _ scs w = [Word $ applyChanges scs w]
 
-    doApplyWithChanges :: OutputMode -> SoundChanges Expanded [Grapheme] -> PWord -> [Component [(PWord, Bool)]]
+    doApplyWithChanges :: OutputMode -> SoundChanges Expanded (Bool, [Grapheme]) -> PWord -> [Component [(PWord, Bool)]]
     doApplyWithChanges WordsWithProtoOutput scs w =
         let intermediates :: [[(PWord, Bool)]]
             intermediates = fmap nubOrd $ transpose $ Brassica.SoundChange.Apply.Internal.applyChangesWithChangesAndReports scs w

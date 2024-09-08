@@ -163,8 +163,8 @@ detokeniseWords = detokeniseWords' concatWithBoundary
 
 -- | Given a list of sound changes, extract the list of multigraphs
 -- defined in the first categories declaration of the 'SoundChange's.
-findFirstCategoriesDecl :: SoundChanges c [Grapheme] -> [String]
-findFirstCategoriesDecl (DirectiveS gs:_) = gs
+findFirstCategoriesDecl :: SoundChanges c (Bool, [Grapheme]) -> [String]
+findFirstCategoriesDecl (DirectiveS (_,gs):_) = gs
 findFirstCategoriesDecl (_:ss) = findFirstCategoriesDecl ss
 findFirstCategoriesDecl [] = []
 
@@ -172,5 +172,5 @@ findFirstCategoriesDecl [] = []
 -- like @'withFirstCategoriesDecl' 'tokeniseWords' changes words@ (to
 -- tokenise using the graphemes from the first categories declaration)
 -- and so on.
-withFirstCategoriesDecl :: ([String] -> t) -> SoundChanges c [Grapheme] -> t
+withFirstCategoriesDecl :: ([String] -> t) -> SoundChanges c (Bool, [Grapheme]) -> t
 withFirstCategoriesDecl tok ss = tok (findFirstCategoriesDecl ss)
