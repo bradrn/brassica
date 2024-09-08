@@ -360,7 +360,7 @@ In the absence of backreferences, each category reads the next index in turn
 The lexeme produced is that which is at the same index in the replacement category
   as that of the lexeme which were matched by the corresponding target category.
 If the replacement category has no element at that index,
-  the Unicode replacement character U+FFFF (�) is produced instead.
+  the Unicode replacement character U+FFFD (�) is produced instead.
 
 If there are more categories in the replacement than in the target,
   some replacement categories may not be able to read an index from the list of matched category indices.
@@ -404,7 +404,7 @@ Identifier backreferences extend over the entirety of a rule:
   must match or produce an element at the same index as each other.
 
 ```brassica
-@#example [p t k] / ʔ / @#example [p t k] _ @example [u i a]
+@#example [p t k] / ʔ / @#example [p t k] _ @#example [u i a]
 
 ; ppu → pʔu
 ; tti → tʔi
@@ -657,8 +657,8 @@ V / V$Stress#spread / V$Stress#spread _
 ```brassica
 a / e  ; note 'a' and 'e' are defined autosegmental with respect to $Stress
 
-; tana → tena
-; tána → téna
+; tana → tene
+; tána → téne
 ; taná → tené
 ; táná → téné
 ```
@@ -741,7 +741,7 @@ Brassica collects the graphemes
   active at the point immediately following the category definition block,
   as well as those mentioned in any previous [extra graphemes declarations](#extra-graphemes).
 Then, for each word, the graphemes in that word are compared to this list of collected graphemes.
-Any grapheme which is not in the list is replaced by U+FFFF (�).
+Any grapheme which is not in the list is replaced by U+FFFD (�).
 This behaviour can be disabled by introducing the category definition block with `noreplace`.
 
 Additionally, the first category block in the file influences tokenisation into multigraphs,
@@ -832,7 +832,7 @@ The filter will then remove from the output any words which match those lexemes.
 An **extra graphemes** declaration takes the form of `extra` followed by a list of graphemes.
 It defines a list of graphemes which are not part of any category
   (and hence not mentioned in any category definition block),
-  but nonetheless should never be replaced by U+FFFF by any category definition block.
+  but nonetheless should never be replaced by U+FFFD by any category definition block.
 Each `extra` declaration overwrites any previous one.
 
 (See [category definition blocks](#category-definition-block) for further details.)
