@@ -589,8 +589,7 @@ applyOnce Rule{..} =
                         | p `elem` exs -> return Failure
                         -- do not apply rule if it would be
                         -- applied twice to the same substring
-                        | applyDirection flags == LTR
-                        , Just p' <- pMay', p < p' -> return Failure
+                        | Just p' <- pMay', p < p' -> return Failure
                         | otherwise -> do
                         modifyMay $ delete (TargetStart, TargetEnd)
                         modifyMay $ seek TargetStart
