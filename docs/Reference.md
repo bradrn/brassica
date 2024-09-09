@@ -373,10 +373,10 @@ It causes one matched category index to be skipped,
   such that the next category without a backreference takes its value from the next category in the target.
 
 ```brassica
-ə / [a e]
+ə / [a~ e~]
 
-kəm → kam/kem
-kəmə → kama/kame/kema/keme
+; kəm → kam/kem
+; kəmə → kama/kame/kema/keme
 ```
 
 ```brassica
@@ -456,7 +456,7 @@ Unlike identifier backreferences,
 Note that, as lexemes are traversed from right to left in a sound change flagged as `-rtl`,
   numeric backreferences naturally operate in the same order in such rules.
   
-```
+```brassica
 [m n ŋ] [b d g] / @2 [m n ŋ] @2 [b d g]
 
 ; anbe → ambe

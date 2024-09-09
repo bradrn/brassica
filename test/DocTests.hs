@@ -24,7 +24,8 @@ import Brassica.SoundChange.Tokenise
 
 main :: IO ()
 main = defaultMain $ testGroup "brassica-doctests"
-    [ doctest "docs/Reference.md" $ Just "\
+    [ doctest "docs/Writing-Sound-Changes.md" ""
+    , doctest "docs/Reference.md" "\
 \categories noreplace\n\
 \C = m n p t ch k b d j g f s sh h v z r l w y\n\
 \-Stress = a e i o u\n\
@@ -34,10 +35,10 @@ main = defaultMain $ testGroup "brassica-doctests"
 \end\n"
     ]
 
-doctest :: FilePath -> Maybe String -> TestTree
+doctest :: FilePath -> String -> TestTree
 doctest file prefix = singleTest file $ DocTest file prefix
 
-data DocTest = DocTest FilePath (Maybe String)
+data DocTest = DocTest FilePath String
 
 instance IsTest DocTest where
     testOptions = pure []
@@ -49,14 +50,13 @@ instance IsTest DocTest where
                 let rules = flip mapMaybe blocks $ \case
                         CodeBlock (_, cs, _) text
                             | "brassica" `elem` cs
-                            , rule:xs <- T.lines text
                             ->
-                                let rule' = maybe id (++) prefix $ T.unpack rule
-                                    examples = flip mapMaybe xs $ \x ->
+                                let rule = prefix ++ T.unpack text
+                                    examples = flip mapMaybe (T.lines text) $ \x ->
                                         case words $ T.unpack x of
                                             ";":i:"→":o:_ -> Just (i, o)
                                             _ -> Nothing
-                                in Just (rule', examples)
+                                in Just (rule, examples)
                         _ -> Nothing
                     results = for rules $ \(rule, examples) ->
                         case parseSoundChanges rule of
