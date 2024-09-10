@@ -556,7 +556,14 @@ Note that the wildcard and Kleene star are opposites in important ways:
 ; abenet → amenet
 ; adepitekem → anepitekem
 ```
-  
+
+```brassica
+[a i u] ^[ä ï ü] / [ä ï ü] ^[a i u]
+
+; antï → änti
+; antepï → äntepi
+```
+
 ### Phonetic features and autosegments
 
 A phonetic feature defines lists of graphemes which correspond to each other.
