@@ -139,7 +139,7 @@ The lexeme types listed above are as follows:
       if a category definition block is present
 - An **inline category**, indicating a set of graphemes or lexemes
 - A **numeric backreference**, refering back to a previous category by position
-- A **named backreference**, labelling or refering back to a category by name
+- An **identifier backreference**, labelling or refering back to a category by identifier
 - **Optional** lexemes, denoting a list of one or more lexemes to be optional
 - A **geminate**, indicating duplication of the previous grapheme
 - A **wildcard**, representing any number of graphemes until a following lexeme
