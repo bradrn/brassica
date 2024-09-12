@@ -335,7 +335,7 @@ If no character is present before the category name,
 
 Three more operations are defined for use with [phonetic features](#phonetic-features):
   
-- `&&Feature` is equivalent to `&+Feature &-Feature`
+- `&&Feature` is equivalent to `&-Feature &+Feature`
 - `+&Feature` is equivalent to intersection with the category defined by `[&+Feature &-Feature]`
 - `-&Feature` is equivalent to subtraction with the category defined by `[&+Feature &-Feature]`
 
