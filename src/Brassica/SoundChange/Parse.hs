@@ -84,8 +84,9 @@ parseGreedyCategory :: Parser (Lexeme CategorySpec 'Matched)
 parseGreedyCategory = GreedyCategory <$> (char '%' *> parseExplicitCategory')
 
 parseExplicitCategory' :: ParseLexeme a => Parser (CategorySpec a)
-parseExplicitCategory' =
-    CategorySpec <$> (symbol "[" *> someTill parseCategoryModification (symbol "]"))
+parseExplicitCategory' = fmap CategorySpec $
+    (:) <$> (symbol "[" *> parseCategoryModification (Just Union))
+        <*> manyTill (parseCategoryModification Nothing) (symbol "]")
 
 -- This is unused currently, but convenient to keep around just in case
 -- parseCategory :: ParseLexeme a => Parser (Lexeme CategorySpec a)
@@ -99,14 +100,14 @@ parseCategoryStandalone
 parseCategoryStandalone = do
     g <- parseGrapheme' True
     _ <- symbol "="
-    mods <- some parseCategoryModification
+    mods <- some (parseCategoryModification Nothing)
     return (g, CategorySpec mods)
 
 parseFeature :: Parser FeatureSpec
 parseFeature = do
     _ <- symbol "feature"
     featureBaseName <- optional $ try $ parseGrapheme' False <* symbol "="
-    featureBaseValues <- CategorySpec <$> some parseCategoryModification
+    featureBaseValues <- CategorySpec <$> some (parseCategoryModification Nothing)
     featureDerived <- some (symbol "/" *> parseCategoryStandalone) <* scn
     pure FeatureSpec { featureBaseName, featureBaseValues, featureDerived }
 
@@ -115,9 +116,10 @@ parseAuto = symbol "auto" *> parseGrapheme' False <* scn
 
 parseCategoryModification
     :: ParseLexeme a
-    => Parser (CategoryModification, Either Grapheme [Lexeme CategorySpec a])
-parseCategoryModification = (,)
-    <$> parsePrefix
+    => Maybe CategoryModification
+    -> Parser (CategoryModification, Either Grapheme [Lexeme CategorySpec a])
+parseCategoryModification force = (,)
+    <$> maybe parsePrefix pure force
     <*> ( (Right <$> (symbol "{" *> manyTill parseLexeme (symbol "}")))
         <|> (Left <$> parseGrapheme))
   where
