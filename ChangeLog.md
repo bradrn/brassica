@@ -18,6 +18,8 @@
       get special interpretation with intersections and subtractions
   - New category syntax: `&` before category name forces union interpretation
       even for category names beginning with `+`/`-`
+  - Change to category syntax: first element of category is always interpreted as union
+      (**technically a breaking change**, but unlikely in existing sound changes)
   - Syntax `&Feature` after set operation (`&`/`+`/`-`) to include both `-Feature` and `+Feature`
       (i.e. all graphemes with a setting for that feature)
   - Declaration `auto <FeaturalCategory>` in category definition block
