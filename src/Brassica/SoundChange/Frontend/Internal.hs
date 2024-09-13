@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE RankNTypes      #-}
 {-# LANGUAGE TupleSections   #-}
 
@@ -65,6 +66,7 @@ data OutputMode
     | WordsOnlyOutput
     | MDFOutputWithEtymons
     | WordsWithProtoOutput
+    | WordsWithProtoOutputPreserve
     deriving (Show, Eq)
 instance Enum OutputMode where
     -- used for conversion to and from C, so want control over values
@@ -72,11 +74,13 @@ instance Enum OutputMode where
     fromEnum WordsOnlyOutput = 1
     fromEnum MDFOutputWithEtymons = 2
     fromEnum WordsWithProtoOutput = 3
+    fromEnum WordsWithProtoOutputPreserve = 4
 
     toEnum 0 = MDFOutput
     toEnum 1 = WordsOnlyOutput
     toEnum 2 = MDFOutputWithEtymons
     toEnum 3 = WordsWithProtoOutput
+    toEnum 4 = WordsWithProtoOutputPreserve
     toEnum _ = undefined
 
 -- | Output of a single application of rules to a wordlist: either a
@@ -183,20 +187,28 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
     extractMaybe (Nothing, _) = Nothing
 
     doApply :: OutputMode -> SoundChanges Expanded (Bool, [Grapheme]) -> PWord -> [Component [PWord]]
-    doApply WordsWithProtoOutput scs w =
+    doApply WordsWithProtoOutput scs w = doApplyWithProto scs w
+    doApply WordsWithProtoOutputPreserve scs w = doApplyWithProto scs w
+    doApply _ scs w = [Word $ applyChanges scs w]
+
+    doApplyWithProto scs w =
         let intermediates :: [[PWord]]
             intermediates = fmap nubOrd $ transpose $ Brassica.SoundChange.Apply.Internal.applyChangesWithReports scs w
         in intersperse (Separator " → ") (fmap Word intermediates)
-    doApply _ scs w = [Word $ applyChanges scs w]
 
     doApplyWithChanges :: OutputMode -> SoundChanges Expanded (Bool, [Grapheme]) -> PWord -> [Component [(PWord, Bool)]]
-    doApplyWithChanges WordsWithProtoOutput scs w =
+    doApplyWithChanges WordsWithProtoOutput scs w = doApplyWithChangesWithProto scs w
+    doApplyWithChanges WordsWithProtoOutputPreserve scs w = doApplyWithChangesWithProto scs w
+    doApplyWithChanges _ scs w = [Word $ mapMaybe extractMaybe $ applyChangesWithChanges scs w]
+
+    doApplyWithChangesWithProto scs w =
         let intermediates :: [[(PWord, Bool)]]
             intermediates = fmap nubOrd $ transpose $ Brassica.SoundChange.Apply.Internal.applyChangesWithChangesAndReports scs w
         in intersperse (Separator " → ") (fmap Word intermediates)
-    doApplyWithChanges _ scs w = [Word $ mapMaybe extractMaybe $ applyChangesWithChanges scs w]
 
-    joinComponents' WordsWithProtoOutput = joinComponents . linespace
+    joinComponents' WordsWithProtoOutput =
+        joinComponents . intersperse (Separator "\n") . filter (\case Word _ -> True; _ -> False)
+    joinComponents' WordsWithProtoOutputPreserve = joinComponents . linespace
     joinComponents' _ = joinComponents
 
     -- Insert newlines as necessary to put each 'Word' on a separate line

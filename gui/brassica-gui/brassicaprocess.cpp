@@ -123,6 +123,7 @@ QString BrassicaProcess::toJson(OutputMode val)
         case WordsOnlyOutput:      return "WordsOnlyOutput";
         case MDFOutputWithEtymons: return "MDFOutputWithEtymons";
         case WordsWithProtoOutput: return "WordsWithProtoOutput";
+        case WordsWithProtoOutputPreserve: return "WordsWithProtoOutputPreserve";
     }
         return "internal error: BrassicaProcess::toJson(OutputMode)";
 }

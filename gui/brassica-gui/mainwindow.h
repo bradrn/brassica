@@ -41,6 +41,7 @@ private:
     QRadioButton *mdfetymoutBtn;
     QRadioButton *rawoutBtn;
     QRadioButton *inoutBtn;
+    QRadioButton *inoutBtnPreserve;
     QPushButton *reportRulesBtn;
     QCheckBox *viewLive;
     QCheckBox *synchroniseScrolls;
