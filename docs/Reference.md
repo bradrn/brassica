@@ -314,7 +314,9 @@ The process of [expansion](#phases-of-processing) will then
 
 Predefined categories can be combined with each other or with other graphemes or lexemes.
 This is done by mentioning them in a subsequent category.
-Category combinations are interpreted from left to right.
+Category combinations are interpreted from left to right,
+  using the first element of the category as the initial state of the category
+  (no matter whether it is a predefined category, a grapheme or a list of lexemes).
 The **category operation** can be specified by placing a character before the category name:
 
 - `&Category` acts to **concatenate** `Category` with the preceding category.
