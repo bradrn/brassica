@@ -32,7 +32,8 @@ public:
         MDFOutput,
         WordsOnlyOutput,
         MDFOutputWithEtymons,
-        WordsWithProtoOutput
+        WordsWithProtoOutput,
+        WordsWithProtoOutputPreserve
     };
 
     QString parseTokeniseAndApplyRules(QString rules,

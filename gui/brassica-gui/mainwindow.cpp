@@ -75,6 +75,7 @@ MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
     connect(mdfetymoutBtn    , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
     connect(rawoutBtn        , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
     connect(inoutBtn         , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(inoutBtnPreserve , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
 
     connect(viewLive, &QRadioButton::toggled, this, [this](bool checked) { if (checked) applySoundChanges(false, false); });
 }
@@ -156,6 +157,9 @@ void MainWindow::setupWidgets(QWidget *central)
 
     inoutBtn = new QRadioButton("Input→output");
     outputFormatLayout->addWidget(inoutBtn);
+
+    inoutBtnPreserve = new QRadioButton("Input→output + glosses");
+    outputFormatLayout->addWidget(inoutBtnPreserve);
 
     mdfoutBtn = new QRadioButton("MDF output");
     mdfoutBtn->setEnabled(false);
@@ -368,6 +372,7 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
     if (mdfoutBtn->isChecked()) outMode = BrassicaProcess::MDFOutput;
     else if (mdfetymoutBtn->isChecked()) outMode = BrassicaProcess::MDFOutputWithEtymons;
     else if (inoutBtn->isChecked()) outMode = BrassicaProcess::WordsWithProtoOutput;
+    else if (inoutBtnPreserve->isChecked()) outMode = BrassicaProcess::WordsWithProtoOutputPreserve;
 
     QString output = proc->parseTokeniseAndApplyRules(
         rules,

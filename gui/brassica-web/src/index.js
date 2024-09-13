@@ -43,6 +43,7 @@ function applyChanges(changes, words, sep, reportRules, inputMode, highlightMode
     case 'mdf':     outModeC = 1; break;
     case 'mdfetym': outModeC = 2; break;
     case 'inout':   outModeC = 3; break;
+    case 'inoutpreserve': outModeC = 4; break;
     }
 
     var output = "";
@@ -197,6 +198,7 @@ const inMdfAlternateRadio = document.getElementById("in-mdfalternate");
 
 const fmtWordlistRadio = document.getElementById("fmt-wordlist");
 const fmtInoutRadio = document.getElementById("fmt-inout");
+const fmtInoutPreserveRadio = document.getElementById("fmt-inoutpreserve");
 const fmtMdfRadio = document.getElementById("fmt-mdf");
 const fmtMdfEtymRadio = document.getElementById("fmt-mdfetym");
 
@@ -231,6 +233,7 @@ inMdfStandardRadio .addEventListener("input", (event) => updateForm(false, true)
 inMdfAlternateRadio.addEventListener("input", (event) => updateForm(false, true));
 fmtWordlistRadio   .addEventListener("input", (event) => updateForm(false, true));
 fmtInoutRadio      .addEventListener("input", (event) => updateForm(false, true));
+fmtInoutPreserveRadio.addEventListener("input", (event) => updateForm(false, true));
 fmtMdfRadio        .addEventListener("input", (event) => updateForm(false, true));
 fmtMdfEtymRadio    .addEventListener("input", (event) => updateForm(false, true));
 

@@ -56,6 +56,7 @@
   - Add ‘select all’ buttons to web GUI
   - Improve display of web application controls on small screens
   - Sound changes editor on web version has been rewritten to work around bug with combining diacritics
+  - Add option for ‘input→output’ display format to include glosses and whitespace
 
 ### Code
 
@@ -88,6 +89,7 @@
     `Brassica.SoundChange.Types.Grapheme` is now a type synonym for `[Char]`
 - Expansion now results in sound changes with declaration type `(Bool, [Grapheme])`
     rather than `[Grapheme]`
+- New constructor `WordsWithProtoOutputPreserve` for `Brassica.SoundChange.Frontend.Internal.OutputMode`
 
 ## 0.3.0
 
