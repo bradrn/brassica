@@ -341,6 +341,12 @@ Three more operations are defined for use with [phonetic features](#phonetic-fea
 - `+&Feature` is equivalent to intersection with the category defined by `[&+Feature &-Feature]`
 - `-&Feature` is equivalent to subtraction with the category defined by `[&+Feature &-Feature]`
 
+```brassica
+. / [&&Stress]
+
+; . → a/e/i/o/u/á/é/í/ó/ú
+```
+
 By these operations, each category is expanded to ultimately become a list of graphemes and lexemes.
 In the description below, the **index** of a category element will refer to its position in the list:
   thus, first, second, third, etc.
