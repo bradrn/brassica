@@ -770,7 +770,7 @@ In Brassica, the basic principle of iterative sound changes is that
 However, environments may overlap with targets, as well as with themselves.
 
 Starting with a simple case, consider a rule of trochaic **stress assignment**:
-  that is, a rule which stresses every second syllable.
+  that is, a rule which stresses every first syllable.
 Representing stressed vowels with an acute accent,
   this can be stated as follows:
 ```brassica
