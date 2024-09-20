@@ -804,7 +804,7 @@ Note that the last syllable in this word remains unstressed,
   because the target is defined to match bisyllabic feet only.
 Similarly, the monosyllabic word ⟨pat⟩ is not stressed.
 If this is undesired, the rule can be changed to match monosyllabic feet, as `C* Vu C* %(Vu C*) / C* Vs C* (Vu C*)`.
-(A [greedy optional](#multiple results) is necessary to make the target unambiguous.)
+(A [greedy optional](#multiple-results) is necessary to make the target unambiguous.)
 
 (Alternatively, a rule can be added to stress monosyllabic words only,
   for instance `Vu / Vs / # C* _ C* #`.)
