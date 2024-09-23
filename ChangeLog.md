@@ -44,6 +44,8 @@
   - Whitespace is now preserved when displaying sound change output on desktop and web
   - New keyboard shortcuts in desktop GUI:
       Ctrl+Enter to apply rules, Ctrl+Tab to toggle between rules and words textboxes
+  - Some labels have been changed to be more descriptive:
+    ‘Different to input’ to ‘Any rule applied’, and ‘Wordlist’ to ‘Wordlist + glosses’
   - Improvements to output from ‘Report rules apply’:
     comments are no longer included next to rules, and
     outputs are no longer aligned across input words (greatly increasing responsiveness on desktop)

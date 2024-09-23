@@ -130,7 +130,7 @@ void MainWindow::setupWidgets(QWidget *central)
     diffhighlightBtn = new QRadioButton("Different to last run");
     highlightLayout->addWidget(diffhighlightBtn);
 
-    inputhighlightBtn = new QRadioButton("Different to input");
+    inputhighlightBtn = new QRadioButton("Any rule applied");
     highlightLayout->addWidget(inputhighlightBtn);
 
     QGroupBox *inputFormatBox = new QGroupBox("Input lexicon format");
