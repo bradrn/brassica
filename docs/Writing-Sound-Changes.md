@@ -395,6 +395,21 @@ Thus, the following sound change replaces `b` with `p` and `d` with `t` at the e
 ; dadag → dada
 ```
 
+### Romanisation
+
+Unlike some sound change applies, Brassica has no special provisions for romanisation conventions.
+This is because they can be written as ordinary sound changes.
+For instance, the ‘Latin to Portuguese’ sound changes
+  specify at the end `-x l j / lh`, to convert ⟨lj⟩ to ⟨lh⟩ as required by Portuguese spelling.
+
+Note that the previous rule begins with `-x`.
+This is an example of a **flag**:
+  an element which changes something about the rule application process.
+In this case, it suppresses rule highlighting in the graphical interface.
+It is suggested to add `-x` before every romanisation rule,
+  or any other such ‘unimportant’ sound changes:
+  refer to the document on [Using Brassica](./Using-Brassica.md) for more information.
+
 ## Advanced usage
 
 ### Multigraphs
@@ -646,8 +661,7 @@ The most common situation is that of **sporadic** sound changes.
 Such sound changes apply only to a subset of words, with no clear conditioning factor.
 In Brassica, you can simulate these using a rule with two outputs:
   one where the rule has been applied, and one where the rule has not been applied.
-Create these rules by adding `-?` to the beginning of the rule.
-(This is an example of a **flag**, which acts to control rule application.)
+Create these rules by adding the flag `-?` to the beginning of the rule.
 
 For instance, in the following example,
   the second rule simulates the *meet*–*meat* merger in English,
@@ -928,10 +942,10 @@ There are two ways to do this:
   Then, if you select the output format ‘Input→output’,
     the output word at each `report` point will be presented alongside the final output.
 - To see the effect of all sound changes at once,
-    select the option to ‘Report rules applied’.
+    select the button to ‘Report rules applied’.
   This will show the evolution of every word in the input as it evolves through every sound change.
 
-For more on these, see the guide to Brassica’s frontend [TODO write this guide].
+For more on these, see the guide to [Using Brassica](./Using-Brassica.md).
 
 It can be more difficult to debug single sound changes which are misbehaving.
 However, there are some tricks you can use:
