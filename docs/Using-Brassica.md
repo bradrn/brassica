@@ -40,7 +40,8 @@ The graphical interface appears as follows:
 ![Image of Brassica GUI](./screenshot.png)
 
 (This is a screenshot of the desktop version.
-The web version should appear similar to this.)
+The web version should appear similar to this.
+This screenshot shows the ‘Middle to Modern English’ set of example files.)
 
 For normal usage,
   enter your sound change rules in the leftmost textbox,
