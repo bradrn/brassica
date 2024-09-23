@@ -76,7 +76,7 @@ If multiple tokenisations are possible,
 
 ### Word highlighting
 
-The graphical frontends of Brassica provide an option to highlight output words which are ‘Different to input’.
+The graphical frontends of Brassica provide an option to highlight output words when ‘Any rule applied’.
 This highlighting occurs for all words which satisfy one of the following conditions:
 
 - At least one sound change has successfully matched,
