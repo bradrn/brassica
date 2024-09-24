@@ -115,7 +115,7 @@ Lexeme ::= Grapheme  [wfc: defined below]
          | ">"
          | "^" S Lexeme
          | Lexeme S "*"
-         | Lexeme S "$" Grapheme ("#" Grapheme)? FeatureSpec?
+         | Lexeme S "$" "-"? Grapheme ("#" Grapheme)? FeatureSpec?
          | "%" (InlineCategory | Grapheme)     [wfc: only in target or environment]
          | "%(" (S Grapheme)+ S ")"            [wfc: only in target or environment]
          | "@?" S (InlineCategory | Grapheme)  [wfc: only in replacement]
@@ -640,6 +640,14 @@ As with categories, a feature may also be given an **identifier**,
 Again the `id` may be any grapheme except `#` which is not followed by a tilde.
 Two features with the same identifier always match or produce corresponding feature values.
 
+A feature may be **negated** by writing `-` immediately after `$`.
+This reverses the interpretation of the feature, as follows:
+- In the replacement, it produces every grapheme of that correspondence set
+    with a *different* feature value to that which was matched.
+- When matching with an identifier, it can match any grapheme
+    with a *different* feature value to that of the first grapheme matched with that identifier.
+- Otherwise it has no effect when matching.
+
 In addition, category definition blocks may cause graphemes to be defined as
   **autosegmental** with respect to a feature.
 Effectively, an autosegmental grapheme acts as a feature with a single correspondence set:
@@ -676,6 +684,22 @@ a / e  ; note 'a' and 'e' are defined autosegmental with respect to $Stress
 ; tána → téne
 ; taná → tené
 ; táná → téné
+```
+
+```brassica
+categories
++POA+Lab = p b f v
++POA+Alv = t d s z
++POA+Pal = ch j sh r
+end
+
+; stress test of negated features: heterorganic POA randomisation
+C$-POA#poa / C$-POA#poa / C$POA#poa _
+
+; apse → apse/apshe
+; arbe → arde/arbe
+; apfe → apfe (no change)
+; adke → adke (no change)
 ```
 
 ### Other lexemes

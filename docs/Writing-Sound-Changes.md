@@ -1286,6 +1286,29 @@ In the previous rule, `Active` vowels receive the same `Back`ness value
 The `#harmony` identifier is used to link the two feature references together.
 (Note that any name could have been used for the identifier:
   this author thinks that `#harmony` reads well.)
+  
+Finally, feature matching can be **negated** in the replacement by adding a `-` after the `$`.
+For instance, consider a case where vowel tone is produced from consonant voicing:
+  in this case, low tone (`-High`) should be produced from voiced consonants (`+Voice`) and *vice versa*.
+This can be written as follows:
+
+```brassica
+categories
+C = m n p t k f s b d g v z
+
+-Voice = p t k f s ? ?
++Voice = b d g v z m n
+
+-High = a e i o u
++High = á é í ó ú
+V = &&High
+end
+
+V / V$-High#voice / C$Voice#voice _
+
+; akageme → akágeme
+; sunasopke → súnasópké
+```
 
 ### Autosegmental features
 
