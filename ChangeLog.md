@@ -57,6 +57,7 @@
   - When ‘view results live’ is selected, results are updated on changes to all controls,
       not just changes to words or sound changes
   - Add ‘Edit’ menu to desktop GUI, including ‘Find’ dialog box
+  - Add ‘Help’ menu to desktop GUI
   - Fields of web GUI can now be initialised using URL query parameters
     (`r` for rules, `w` for words)
   - Add ‘select all’ buttons to web GUI

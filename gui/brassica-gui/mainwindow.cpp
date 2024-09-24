@@ -3,6 +3,7 @@
 #include "paradigmwindow.h"
 #include "settingsdialog.h"
 
+#include <QDesktopServices>
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -18,6 +19,7 @@
 #include <QTextStream>
 #include <Qt>
 #include <qkeysequence.h>
+#include <qmessagebox.h>
 #include <qnamespace.h>
 #include <qradiobutton.h>
 
@@ -228,6 +230,21 @@ void MainWindow::setupMenuBar()
     QMenu *toolsMenu = menuBar()->addMenu("&Tools");
     toolsMenu->addAction("Paradigm builder", this, &MainWindow::showParadigmBuilder);
     toolsMenu->addAction("Options...", this, &MainWindow::editSettings);
+
+    QMenu *helpMenu = menuBar()->addMenu("&Help");
+    helpMenu->addAction("Open online help", this, [this] {
+        QDesktopServices::openUrl(
+            QUrl("https://github.com/bradrn/brassica/blob/v1.0.0/docs")
+            );
+    });
+    helpMenu->addAction("About Brassica", this, [this] {
+        QMessageBox::about(
+            this,
+            "About Brassica",
+            "Brassica 1.0.0.\nCopyright Brad Neimann © 2020-2024\nWebsite: https://bradrn.com/brassica"
+            );
+    });
+    helpMenu->addAction("About Qt", this, [this] { QMessageBox::aboutQt(this); });
 }
 
 QVBoxLayout *MainWindow::mkLayoutWithContainer(QSplitter *splitter)
