@@ -82,6 +82,8 @@ On the desktop version only, there are three menu items:
 - The ‘Tools’ menu lets you open two tools:
   - The **paradigm builder**, documented in a separate guide [TODO write this].
   - The options dialog, currently restricted to **setting the desired font** for each textbox.
+  
+- The ‘Help’ menu contains help and information about Brassica.
 
 Also on desktop only, there are two keyboard shortcuts:
 
