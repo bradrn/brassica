@@ -64,10 +64,10 @@ Additionally, before sound changes can be applied to file containing words,
      treated as a single unit for the purposes of sound changes.
 
 Tokenisation is determined by
-  the first category definition block in the sound changes file, if one exists.
+  the first [category definition block](#category-definition-block) in the sound changes file,
+  and/or the first [extra graphemes declarations](#extra-graphemes).
 Any **multigraphs** (graphemes with more than one character)
-  which are listed in that category definition block,
-  or any preceding [extra graphemes declarations](#extra-graphemes),
+  which are listed in those two declarations
   are tokenised in words as a single grapheme.
 All other characters are tokenised as single-character graphemes.
 If multiple tokenisations are possible,

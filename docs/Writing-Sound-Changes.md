@@ -441,11 +441,32 @@ Writing `ā / a y` avoids this issue.
 By default, Brassica tokenises input words into single-letter graphemes:
   ⟨bath⟩ becomes `b`+`a`+`t`+`h`, and ⟨enga⟩ becomes `e`+`n`+`g`+`a`,
   even if subsequent rules create multigraphs `th` and `ng`.
-However, this behaviour is changed if the **first category block** contains any multigraphs.
+However, this behaviour changes if any multigraphs are listed
+  in the **first category block** in the sound changes file.
+(They can also be listed in an `extra` graphemes declaration
+  if you don’t feel like writing out a whole category block.)
 In this case, Brassica will assume that those multigraphs are also present in the input,
   and will create those multigraphs in the input without needing any extra rules.
 Brassica encourages a style where each category block lists all relevant phonemes,
   so this will usually result in correct tokenisation.
+  
+Thus, in the following example, ⟨ch sh⟩ are tokenised as single graphemes
+  because they are listed in a category block.
+They are thus treated as single units by the following sound changes:
+```brassica
+categories
+C = p t ch k b d j g f s sh h r l w y
+
+V = a e i o u
+end
+
+h / sh / _ i
+C C / C >
+
+; achi → achi (no change)
+; ahi → ashi
+; yashfo → yashsho
+```
 
 Some languages have a romanisation in which a multigraph and the corresponding letter sequence are both used for different consonants.
 This can be observed e.g. in some Australian languages which use ⟨ng⟩ for /ŋ/ but ⟨n⟩+⟨g⟩ for /nɡ/.
