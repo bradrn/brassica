@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TupleSections #-}
 
 module Brassica.SoundChange.Category
@@ -290,8 +291,10 @@ extendCategories cs' (overwrite, defs) =
 expandSoundChanges
     :: SoundChanges CategorySpec Directive
     -> Either ExpandError (SoundChanges Expanded (Bool, [Grapheme]))
-expandSoundChanges = fmap catMaybes . flip evalStateT (M.empty, []) . traverse go
+expandSoundChanges scs = fmap catMaybes $ flip evalStateT (M.empty, []) $ traverse go scs
   where
+    noCategories = any (\case DirectiveS (Categories {}) -> True; _ -> False) scs
+
     go  :: Statement CategorySpec Directive
         -> StateT
             (Categories, [String])
@@ -307,7 +310,10 @@ expandSoundChanges = fmap catMaybes . flip evalStateT (M.empty, []) . traverse g
     go (DirectiveS (ExtraGraphemes extra)) = do
         (cs, _) <- get
         put (cs, extra)
-        pure Nothing
+        pure $
+            if noCategories
+            then Just $ DirectiveS (True, extra)
+            else Nothing
     go (DirectiveS (Categories overwrite noreplace defs)) = do
         (cs, extra) <- get
         cs' <- lift $ extendCategories cs (overwrite, defs)

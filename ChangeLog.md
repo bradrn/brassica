@@ -33,6 +33,8 @@
       in the same order as the last category mentioned, rather than the first**
   - Optional elements or categories can now be prefixed by `%` to make them match greedily
   - New backreference syntax `@#id` allows categories to be matched by ID rather than number
+  - `extra` graphemes are now always taken into account for multigraph tokenisation
+      (**technically a breaking change**, but unlikely in existing sound changes)
 - Changes to rule application algorithm:
   - **Sound change applications can now overlap,
       such that the replacement from one application can be used as the environment for the next**
