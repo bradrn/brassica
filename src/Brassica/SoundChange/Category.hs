@@ -164,11 +164,11 @@ expandLexeme cs (Kleene l) = Kleene <$> expandLexeme cs l
 expandLexeme _  Discard = Right Discard
 expandLexeme cs (Backreference i c) = Backreference i <$> expand cs c
 expandLexeme cs (Multiple c) = Multiple <$> expand cs c
-expandLexeme cs (Feature n i [] l) = do
+expandLexeme cs (Feature r n i [] l) = do
     kvs <- expandFeature cs n
     l' <- expandLexeme cs l
-    pure $ Feature n i kvs l'
-expandLexeme cs (Feature n i kvs l) = Feature n i kvs <$> expandLexeme cs l
+    pure $ Feature r n i kvs l'
+expandLexeme cs (Feature r n i kvs l) = Feature r n i kvs <$> expandLexeme cs l
 expandLexeme _  (Autosegment n kvs gs) =
     -- in reality this case should never occur from parsed sound changes
     pure $ Autosegment n kvs gs

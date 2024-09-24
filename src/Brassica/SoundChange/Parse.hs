@@ -175,6 +175,7 @@ parsePost l =
   where
     parseFeatureApp =
         Feature <$ char '$'
+        <*> fmap isJust (optional $ char '-')
         <*> parseGrapheme' False
         <*> optional (char '#' *> parseGrapheme' False)
         <*> fmap (fromMaybe [])
