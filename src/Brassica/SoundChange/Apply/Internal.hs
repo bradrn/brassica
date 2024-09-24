@@ -243,7 +243,7 @@ match out prev (Backreference i (FromElements gs)) mz = do
     case e of
         Left  g  -> match out prev (Grapheme g :: Lexeme Expanded a) mz
         Right ls -> matchMany out prev ls mz
-match out prev (Feature _n (Just ident) kvs l) mz
+match out prev (Feature r _n (Just ident) kvs l) mz
     | Just fs <- Map.lookup ident (matchedFeatureIds out) = do
         -- similar to next case, but just check that features are the same
         -- (NB. feature name is irrelevant for this)
@@ -254,11 +254,14 @@ match out prev (Feature _n (Just ident) kvs l) mz
             satisfied = case (fs, fs') of
                 (Indeterminate, _) -> True
                 (_, Indeterminate) -> True
-                _ -> fs == fs'
+                _  ->
+                    if r
+                    then fs /= fs'  -- reverse comparison
+                    else fs == fs'
         if satisfied
             then pure (out', mz')
             else []
-match out prev (Feature n ident kvs l) mz = do
+match out prev (Feature _r n ident kvs l) mz = do
     let i = maybe 0 length $ Map.lookup n (matchedFeatures out)
     (out', mz') <- match out prev l mz
     let fs = case matchedGraphemes out' of
@@ -272,7 +275,7 @@ match out prev (Feature n ident kvs l) mz = do
             )
 match out prev (Autosegment n kvs gs) mz =
     -- act as 'Category' + 'Feature', without capture
-    gs >>= \a -> match out prev (Feature n Nothing kvs $ Grapheme a) mz
+    gs >>= \a -> match out prev (Feature False n Nothing kvs $ Grapheme a) mz
 
 checkFeature :: Eq a => [[a]] -> a -> FeatureState
 checkFeature [] _ = Indeterminate
@@ -475,7 +478,7 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
         in case matchedKleenes out !? i of
             Just n -> go ixs' (replicate n l) (mz, prev)
             Nothing -> [(ixs', (mz, prev))]
-    replaceLex ixs (Feature n ident kvs l) mz prev =
+    replaceLex ixs (Feature r n ident kvs l) mz prev =
         let (fs, ixs') = case ident of
                 Nothing -> case advanceFeature n ixs of
                     Just (i, ixs_)
@@ -488,24 +491,25 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
                     Nothing -> (Indeterminate, ixs)
         in do
             (ixs'', (mz', prev')) <- replaceLex ixs' l mz prev
-            case prev' of
-                Just g | g /= "#" -> do
+            case (kvs, prev') of
+                (gs:_, Just g) | g /= "#" -> do
                     g' <- case fs of
-                        Index i -> pure $ applyFeature kvs g i
-                        Indeterminate
-                            | gs:_ <- kvs ->
-                                applyFeature kvs g <$> [0 .. length gs - 1]
-                            | otherwise -> pure g
+                        Index i -> applyFeature kvs g <$>
+                            if r
+                            then filter (/=i) [0 .. length gs - 1]
+                            else pure i
+                        Indeterminate -> applyFeature kvs g <$> [0 .. length gs - 1]
                     -- now overwrite previous grapheme
                     let mz'' = zap (Just . const g') mz'
                     pure (ixs'', (mz'', Just g'))
-                -- cannot modify nonexistent or boundary grapheme
+                -- cannot modify nonexistent or boundary grapheme,
+                -- or if there are zero key-value pairs
                 _ -> pure (ixs'', (mz', prev'))
     replaceLex ixs (Autosegment _ _ []) mz prev = pure (ixs, (mz, prev))
     replaceLex ixs (Autosegment n kvs (g:_)) mz prev =
         -- ignore other segments, just produce a single one
         -- as modulated by a 'Feature'
-        replaceLex ixs (Feature n Nothing kvs $ Grapheme g) mz prev
+        replaceLex ixs (Feature False n Nothing kvs $ Grapheme g) mz prev
 
 applyFeature :: [[String]] -> String -> Int -> String
 applyFeature [] g _ = g

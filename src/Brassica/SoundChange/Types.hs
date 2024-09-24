@@ -121,8 +121,8 @@ data Lexeme category (a :: LexemeType) where
     -- | In Brassica sound-change syntax, specified as \@? before a category
     Multiple :: category 'Replacement -> Lexeme category 'Replacement
     -- | In Brassica sound-change syntax, specified as
-    -- @$name#id(a~a′~a″ b~b′~b″ …)@ after another 'Lexeme'
-    Feature :: String -> Maybe String -> [[String]] -> Lexeme category a -> Lexeme category a
+    -- @$(-)name#id(a~a′~a″ b~b′~b″ …)@ after another 'Lexeme'
+    Feature :: Bool -> String -> Maybe String -> [[String]] -> Lexeme category a -> Lexeme category a
     -- | Special lexeme for internal use: acts as a non-capturing
     -- category in target/environment, and as 'Grapheme' in
     -- replacement, in each case surrounded by a 'Feature'
@@ -141,7 +141,7 @@ mapCategory f (Kleene l) = Kleene (mapCategory f l)
 mapCategory _ Discard = Discard
 mapCategory f (Backreference i c) = Backreference i (f c)
 mapCategory f (Multiple c) = Multiple (f c)
-mapCategory f (Feature n i kvs l) = Feature n i kvs $ mapCategory f l
+mapCategory f (Feature r n i kvs l) = Feature r n i kvs $ mapCategory f l
 mapCategory _ (Autosegment n kvs gs) = Autosegment n kvs gs
 
 mapCategoryA
@@ -161,7 +161,7 @@ mapCategoryA f (Kleene l) = Kleene <$> mapCategoryA f l
 mapCategoryA _ Discard = pure Discard
 mapCategoryA f (Backreference i c) = Backreference i <$> f c
 mapCategoryA f (Multiple c) = Multiple <$> f c
-mapCategoryA f (Feature n i kvs l) = Feature n i kvs <$> mapCategoryA f l
+mapCategoryA f (Feature r n i kvs l) = Feature r n i kvs <$> mapCategoryA f l
 mapCategoryA _ (Autosegment n kvs gs) = pure $ Autosegment n kvs gs
 
 -- | The type of a category after expansion.
@@ -182,7 +182,7 @@ generalise _ Geminate = Geminate
 generalise f (Backreference i es) = Backreference i $ f es
 generalise f (Wildcard l) = Wildcard $ generalise f l
 generalise f (Kleene l) = Kleene $ generalise f l
-generalise f (Feature n i kvs l) = Feature n i kvs $ generalise f l
+generalise f (Feature r n i kvs l) = Feature r n i kvs $ generalise f l
 generalise _ (Autosegment n kvs gs) = Autosegment n kvs gs
 
 generaliseExpanded :: Expanded 'AnyPart -> Expanded a
@@ -209,7 +209,7 @@ instance (forall x. NFData (c x)) => NFData (Lexeme c a) where
     rnf Discard = ()
     rnf (Backreference i l) = i `deepseq` rnf l
     rnf (Multiple l) = rnf l
-    rnf (Feature n i kvs l) = l `deepseq` n `deepseq` i `deepseq` rnf kvs
+    rnf (Feature r n i kvs l) = r `deepseq` l `deepseq` n `deepseq` i `deepseq` rnf kvs
     rnf (Autosegment n kvs gs) = n `deepseq` kvs `deepseq` rnf gs
 
 -- | An 'Environment' is a tuple of @(before, after)@ components,
