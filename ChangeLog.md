@@ -68,6 +68,7 @@
 ### Code
 
 - CMakeLists for desktop GUI now track Haskell binary dependency correctly
+- Renamed `Brassica.SoundChange.Category` to `Brassica.SoundChange.Expand`
 - Changes resulting from addition of `report`:
   - New constructor `ReportS` added to `Brassica.SoundChange.Types.Statement`
   - New functions `Brassica.SoundChange.Apply.Internal.applyChangesWithReports`,
@@ -83,9 +84,9 @@
   - New type `Brassica.SoundChange.Apply.Internal`
   - New constructor `DefineAuto` added to `Brassica.SoundChange.Types.CategoryDefinition`
   - Changes in category expansion:
-      new type `Brassica.SoundChange.Category.AutosegmentDef`,
+      new type `Brassica.SoundChange.Expand.AutosegmentDef`,
       and new constructors `InvalidDerivedValue` and `InvalidAuto`
-        added to `Brassica.SoundChange.Category.ExpandError`
+        added to `Brassica.SoundChange.Expand.ExpandError`
 - Changes resulting from new rule application algorithm:
   - New constructore `PrevEnd` added to `Brassica.SoundChange.Apply.Internal.RuleTag`
   - New field `nonOverlappingTarget` added to `Brassica.SoundChange.Types.Flags`

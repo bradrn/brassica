@@ -15,7 +15,7 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as T
 
 import Brassica.SoundChange (applyChanges)
-import Brassica.SoundChange.Category (expandSoundChanges)
+import Brassica.SoundChange.Expand (expandSoundChanges)
 import Brassica.SoundChange.Parse (parseSoundChanges, errorBundlePretty)
 import Brassica.SoundChange.Tokenise
     ( withFirstCategoriesDecl,

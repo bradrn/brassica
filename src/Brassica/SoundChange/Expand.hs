@@ -6,10 +6,10 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TupleSections #-}
 
-module Brassica.SoundChange.Category
+module Brassica.SoundChange.Expand
        ( Categories
        , AutosegmentDef(..)
-       , Brassica.SoundChange.Category.lookup
+       , Brassica.SoundChange.Expand.lookup
        , values
        , ExpandError(..)
        , expand

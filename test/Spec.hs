@@ -14,7 +14,7 @@ import qualified Data.ByteString.UTF8 as B8
 import qualified Data.Text as T
 
 import Brassica.SoundChange (applyChanges, splitMultipleResults, applyChangesWithLogs, reportAsText)
-import Brassica.SoundChange.Category (expandSoundChanges)
+import Brassica.SoundChange.Expand (expandSoundChanges)
 import Brassica.SoundChange.Parse (parseSoundChanges, errorBundlePretty)
 import Brassica.SoundChange.Tokenise (tokeniseWords, detokeniseWords, withFirstCategoriesDecl, Component, getWords)
 import Brassica.SoundChange.Types (SoundChanges, PWord, plaintext', Expanded, Grapheme)

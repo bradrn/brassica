@@ -28,7 +28,7 @@ library
                  , Brassica.SoundChange.Apply
                  , Brassica.SoundChange.Apply.Internal
                  , Brassica.SoundChange.Apply.Internal.MultiZipper
-                 , Brassica.SoundChange.Category
+                 , Brassica.SoundChange.Expand
                  , Brassica.SoundChange.Frontend.Internal
                  , Brassica.SoundChange.Parse
                  , Brassica.SoundChange.Tokenise
