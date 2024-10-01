@@ -34,14 +34,14 @@ newtype AbstractGrammeme = AbstractGrammeme String
     deriving stock (Show, Eq)
     deriving newtype (IsString)
 
--- | A condition which must be satisfied before including a 'Feature'
--- in a word. 
+-- | A condition which must be satisfied for a 'Feature' to be
+-- included in a word.
 data Condition
     = Always
     -- ^ Condition which is always satisfied
     | Is FeatureName Grammeme
-    -- ^ Satisfied when the specified feature (identified by its name)
-    -- has been assigned to the specified 'Grammeme'
+    -- ^ Satisfied when the specified feature has been assigned to the
+    -- specified 'Grammeme'
     | Not FeatureName Grammeme
     -- ^ Satisfied when the specified feature has /not/ been assigned
     -- to the specified 'Grammeme'
@@ -54,6 +54,7 @@ data Condition
 data Feature = Feature Condition (Maybe FeatureName) [Grammeme]
     deriving (Show, Eq)
 
+-- | Name to identify a specific 'Feature'.
 newtype FeatureName = FeatureName String
     deriving stock (Show, Eq)
     deriving newtype (IsString)
@@ -64,9 +65,9 @@ newtype FeatureName = FeatureName String
 data Statement = NewFeature Feature | NewMapping [AbstractGrammeme] Affix
     deriving (Show, Eq)
 
--- | A paradigm is specified as a list of 'Statement's. The list is
--- basically big-endian, in that the slowest-varying feature should be
--- listed first. (So if e.g. tense is listed first, then first all
--- words of tense 1 are listed, next all words of tense 2 are listed,
--- and so on.)
+-- | A paradigm is specified as a list of 'Statement's. The order is
+-- reflected in the output 'Brassica.Paradigm.Apply.ResultsTree': the
+-- root has one child for each grammeme in the first 'Feature', with
+-- each child then having one child for each grammeme in the second
+-- 'Feature', and so on.
 type Paradigm = [Statement]

@@ -1,11 +1,16 @@
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE TupleSections #-}
 
-{-| __Warning:__ This module is __internal__, and does __not__ follow
-  the Package Versioning Policy. It may be useful for extending
-  Brassica, but be prepared to track development closely if you import
-  this module.
--}
+-- |
+-- Module      : Brassica.SoundChange.Apply.Internal.MultiZipper
+-- Copyright   : See LICENSE file
+-- License     : BSD3
+-- Maintainer  : Brad Neimann
+--
+-- __Warning:__ This module is __internal__, and does __not__ follow
+-- the Package Versioning Policy. It may be useful for extending
+-- Brassica, but be prepared to track development closely if you import
+-- this module.
 module Brassica.SoundChange.Apply.Internal.MultiZipper
        ( MultiZipper
        -- * Conversion
@@ -64,11 +69,11 @@ import qualified Data.Map.Strict as M
 -- positioned at the index one past the end of the list, rather than
 -- at the last element of the list. Although this makes some functions
 -- slightly more complex — most notably, 'value' becomes non-total —
--- it makes other algorithms simpler. For instance, this lets
--- functions processing a 'MultiZipper' to process a portion of the
--- 'MultiZipper' and then move to the next element immediately after
--- the processed portion, allowing another function to be run to
--- process the next part of the 'MultiZipper'.)
+-- it makes sound changes application easier to implement. In
+-- particular, it means that functions processing a portion of a
+-- 'MultiZipper' can finish by moving to the next element immediately
+-- after the processed portion; any subsequent function will then
+-- continue by processing the next part of the 'MultiZipper'.)
 data MultiZipper t a = MultiZipper (V.Vector a) Int (M.Map t Int)
     deriving (Show, Functor, Foldable, Traversable)
 
@@ -89,6 +94,8 @@ fromListPos as pos =
 toList :: MultiZipper t a -> [a]
 toList (MultiZipper as _ _) = V.toList as
 
+-- | Reverse the contents of a 'MultiZipper', ensuring its current
+-- position and tags remain attatched to their elements.
 reverseMZ :: MultiZipper t a -> MultiZipper t a
 reverseMZ (MultiZipper as pos ts) =
     let l = length as

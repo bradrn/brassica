@@ -1,10 +1,14 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-{-| This module contains types and functions for working with the MDF
-  dictionary format, used by programs such as [SIL Toolbox](https://software.sil.org/toolbox/).
-  For more on the MDF format, refer to e.g.
-  [Coward & Grimes (2000), /Making Dictionaries: A guide to lexicography and the Multi-Dictionary Formatter/](http://downloads.sil.org/legacy/shoebox/MDF_2000.pdf).
--}
+-- |
+-- Module      : Brassica.SFM.MDF
+-- Copyright   : See LICENSE file
+-- License     : BSD3
+-- Maintainer  : Brad Neimann
+--
+-- This module contains types and functions for working with the MDF
+-- dictionary format. For more on the MDF format, refer to e.g.
+-- [Coward & Grimes (2000)](http://downloads.sil.org/legacy/shoebox/MDF_2000.pdf).
 module Brassica.SFM.MDF where
 
 import Brassica.SFM.SFM
@@ -71,7 +75,7 @@ fieldLangs = M.fromList
     , ("xr" , Regional)   , ("xv" , Vernacular)
     ]
 
--- | Standard MDF hierarchy: with @\lx@ > @\se@ > @\ps@ > @\sn@.
+-- | Standard MDF hierarchy, with @\lx@ > @\se@ > @\ps@ > @\sn@.
 -- Intended for use with 'toTree'.
 mdfHierarchy :: Hierarchy
 mdfHierarchy = M.fromList
@@ -98,7 +102,7 @@ mdfHierarchy = M.fromList
     , ("wr", "sn"), ("xe", "xv"), ("xn", "xv"), ("xr", "xv"), ("xv", "rf")
     ]
 
--- | Alternate MDF hierarchy: with @\lx@ > @\sn@ > @\se@ > @\ps@.
+-- | Alternate MDF hierarchy, with @\lx@ > @\sn@ > @\se@ > @\ps@.
 -- Intended for use with 'toTree'.
 mdfAlternateHierarchy :: Hierarchy
 mdfAlternateHierarchy = M.fromList
@@ -130,15 +134,20 @@ mdfAlternateHierarchy = M.fromList
 -- if using 'tokeniseWords'; everything else is treated as a
 -- 'Separator', so that it is not disturbed by operations such as rule
 -- application or rendering to text.
+--
+-- (This is a simple wrapper around 'tokeniseField'.)
 tokeniseMDF
     :: [String]  -- ^ List of available multigraphs (as with 'tokeniseWord')
     -> SFM -> Either (ParseErrorBundle String Void) [Component PWord]
 tokeniseMDF gs = fmap concat . traverse (tokeniseField gs)
 
--- | Like 'tokeniseMDF', but for a single 'Field'.
+-- | Like 'tokeniseMDF', but for a single 'Field' rather than a whole
+-- SFM file.
 tokeniseField :: [String] -> Field -> Either (ParseErrorBundle String Void) [Component PWord]
 tokeniseField gs f = case M.lookup (fieldMarker f) fieldLangs of
     Just Vernacular ->
+        -- initialise megaparsec state with position starting at given
+        -- field
         let ps = initialPosState "" (fieldValue f)
             s = State
                 { stateInput = fieldValue f
@@ -154,7 +163,7 @@ tokeniseField gs f = case M.lookup (fieldMarker f) fieldLangs of
 
     _ -> Right [Separator $ '\\' : fieldMarker f ++ fieldWhitespace f ++ fieldValue f]
 
--- | Add etymological fields to an 'MDF' by duplicating the values in
+-- | Add etymological fields to an MDF file by duplicating the values in
 -- @\lx@, @\se@ and @\ge@ fields. e.g.:
 --
 -- > \lx kapa
@@ -178,6 +187,10 @@ tokeniseField gs f = case M.lookup (fieldMarker f) fieldLangs of
 -- This can be helpful when applying sound changes to an MDF file: the
 -- vernacular words can be copied as etymologies, and then the sound
 -- changes can be applied leaving the etymologies as is.
+--
+-- Note that the hierarchy must already be resolved before this
+-- function can be used, as it depends on the tree structure to know
+-- where the etymologies should be placed.
 duplicateEtymologies
     :: (String -> String)
     -- ^ Transformation to apply to etymologies, e.g. @('*':)@

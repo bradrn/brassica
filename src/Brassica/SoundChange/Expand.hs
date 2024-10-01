@@ -6,16 +6,38 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TupleSections #-}
 
+-- |
+-- Module      : Brassica.SoundChange.Expand
+-- Copyright   : See LICENSE file
+-- License     : BSD3
+-- Maintainer  : Brad Neimann
+--
+-- This module implements the process of /expansion/, from Brassica’s
+-- surface syntax to a simpler representation in which all categories,
+-- features and autosegments have been inlined. For further
+--
+-- In the surface syntax, each category is represented as a
+-- 'CategorySpec', a description in terms of predefined categories
+-- combined with category operations. Expansion converts each one to
+-- an 'Expanded' list of graphemes.
+--
+-- Similarly, category definitions are parsed as 'Directive's. Once
+-- inlined, these can be replaced with simple 'GraphemeList's to be
+-- used for filtering graphemes.
 module Brassica.SoundChange.Expand
-       ( Categories
-       , AutosegmentDef(..)
-       , Brassica.SoundChange.Expand.lookup
-       , values
+       (
+       -- * Main function
+         expandSoundChanges
        , ExpandError(..)
+       -- * Expanding individual elements
        , expand
        , expandRule
        , extendCategories
-       , expandSoundChanges
+       -- * Categories
+       , Categories
+       , AutosegmentDef(..)
+       , Brassica.SoundChange.Expand.lookup
+       , values
        ) where
 
 import Prelude hiding (lookup)
@@ -49,22 +71,22 @@ data AutosegmentDef = AutosegmentDef
 -- categories.
 type Categories = M.Map String (Either (Expanded 'AnyPart) AutosegmentDef)
 
--- | Lookup a category name in 'Categories'.
+-- | Lookup a category name in t'Categories'.
 lookup :: String -> Categories -> Maybe (Either (Expanded a) AutosegmentDef)
 lookup = (fmap (first generaliseExpanded) .) . M.lookup
 
 -- | Returns a list of every value mentioned in a set of
--- 'Categories'
+-- t'Categories'
 values :: Categories -> [Either Grapheme [Lexeme Expanded 'AnyPart]]
 values = nubOrd . concatMap (either elements autoElements) . M.elems
   where
     autoElements = fmap Left . autoGraphemes
 
--- Errors which can be emitted while inlining or expanding category
+-- | Errors which can be emitted while inlining or expanding category
 -- definitions.
 data ExpandError
     = NotFound String
-      -- ^ A category with that name was not found
+      -- ^ A category with the given name was not found
     | InvalidBaseValue
       -- ^ A 'Lexeme' was used as a base value in a feature
     | InvalidDerivedValue
@@ -72,10 +94,10 @@ data ExpandError
     | InvalidAuto String
       -- ^ A bad category was used in an autosegment declaration
     | MismatchedLengths
-      -- ^ A 'FeatureSpec' contained a mismatched number of values
+      -- ^ A phonetic feature or 'FeatureSpec' contained a mismatched number of values
     deriving (Show, Generic, NFData)
 
--- | Given a category, return the list of values which it
+-- | Given an unexpanded category, return the list of values which it
 -- matches.
 expand :: Categories -> CategorySpec a -> Either ExpandError (Expanded a)
 expand cs (MustInline g) = case lookup g cs of
@@ -220,6 +242,7 @@ unsnoc :: [a] -> Maybe ([a], a)
 unsnoc = foldr (\x -> Just . maybe ([], x) (\(~(a, b)) -> (x : a, b))) Nothing
 {-# INLINABLE unsnoc #-}
 
+-- | Expand all categories in a given sound change 'Rule'.
 expandRule :: Categories -> Rule CategorySpec -> Either ExpandError (Rule Expanded)
 expandRule cs r = Rule
     <$> traverse (expandLexeme cs) (target r)
@@ -236,6 +259,8 @@ expandRule cs r = Rule
 expandFilter :: Categories -> Filter CategorySpec -> Either ExpandError (Filter Expanded)
 expandFilter cs (Filter p f) = Filter p <$> traverse (expandLexeme cs) f
 
+-- | Extend a set of previously defined t'Categories' to give the
+-- resulting state after a v'Categories' directive.
 extendCategories
     :: Categories
     -> (Bool, [CategoryDefinition])  -- ^ The fields of a v'Categories' directive
@@ -288,9 +313,25 @@ extendCategories cs' (overwrite, defs) =
     mkAuto :: String -> String -> [String] -> (String, Either (Expanded 'AnyPart) AutosegmentDef)
     mkAuto f g gs = (g, Right $ AutosegmentDef f gs)
 
+-- | Expand a set of 'SoundChanges'. Expansion proceeds from beginning
+-- to end as follows:
+--
+--     * Rules and filters are expanded by expanding all categories
+--       within them (with 'expand'). Graphemes are replaced with
+--       categories or autosegments if previously defined as such.
+--
+--     * If a v'Categories' definition block is found, the categories
+--       defined within it are expanded and added to (or replace) the
+--       list of current categories. The block is replaced with a list
+--       of currently defined graphemes.
+--
+--     * If 'ExtraGraphemes' are found, they are added to a list of
+--       currently defined graphemes. They are replaced with a
+--       'GraphemeList' only if no categories are defined in the
+--       'SoundChanges'.
 expandSoundChanges
     :: SoundChanges CategorySpec Directive
-    -> Either ExpandError (SoundChanges Expanded (Bool, [Grapheme]))
+    -> Either ExpandError (SoundChanges Expanded GraphemeList)
 expandSoundChanges scs = fmap catMaybes $ flip evalStateT (M.empty, []) $ traverse go scs
   where
     noCategories = any (\case DirectiveS (Categories {}) -> True; _ -> False) scs

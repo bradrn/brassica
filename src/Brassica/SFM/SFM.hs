@@ -1,12 +1,17 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE LambdaCase #-}
 
-{-| This module implements basic support for the SIL Standard Format
-Marker (SFM) format, used by dictionary software such as
-[FieldWorks](https://software.sil.org/fieldworks/). This format forms
-the basis of standards such as Multi-Dictionary Formatter (MDF),
-implemented here in 'Brassica.SFM.MDF'.
--}
+-- |
+-- Module      : Brassica.SFM.SFM
+-- Copyright   : See LICENSE file
+-- License     : BSD3
+-- Maintainer  : Brad Neimann
+--
+-- This module implements basic support for the SIL Standard Format
+-- Marker (SFM) format, used by dictionary software such as
+-- [FieldWorks](https://software.sil.org/fieldworks/). This format forms
+-- the basis of standards such as Multi-Dictionary Formatter (MDF),
+-- implemented here in @Brassica.SFM.MDF@.
 module Brassica.SFM.SFM
        ( -- * Linear SFM documents
          Field(..)
@@ -41,6 +46,7 @@ data Field = Field
     -- ^ Whitespace after the field marker
     , fieldSourcePos :: Maybe SourcePos
     -- ^ Optionally, a Megaparsec 'SourcePos' marking the start of the value
+    -- (to enable further parsing)
     , fieldValue :: String
     -- ^ The value of the field, including all whitespace until the next marker
     } deriving (Show)
@@ -80,7 +86,7 @@ entry = do
     value <- parseFieldValue
     pure (marker, s, ps, value)
 
--- | Parse an SFM file to an 'SFM'.
+-- | Parse an SFM file to an 'SFM' value.
 parseSFM
     :: String  -- ^ Name of source file
     -> String  -- ^ Input SFM data to parse
@@ -108,7 +114,8 @@ data SFMTree
     deriving (Show)
 
 -- | The hierarchy underlying an SFM document, defined as a map from
--- field names to their parents. Unlisted fields are treated as roots.
+-- field names to their parents. Fields which are absent from the map
+-- are treated as roots.
 type Hierarchy = M.Map String String
 
 -- | Returns the full hierarchy of a marker, starting with its
@@ -126,11 +133,11 @@ hierarchyFor h = go
 (Filled f s) <+:> t = Filled f (s ++ [t])
 (Missing f s) <+:> t = Missing f (s ++ [t])
 
--- | Use a 'Hierarchy' to generate a tree structure from an 'SFM'
--- document. Fields are converted to 'Filled' nodes, containing as
--- many following nodes as possible, until the next node which is at
--- the same level of the hierarchy or lower. 'Missing' nodes are
--- created for any missing levels of the hierarchy.
+-- | Generate a tree structure from an 'SFM' document according to the
+-- given 'Hierarchy'. Fields are converted to 'Filled' nodes,
+-- containing as many following nodes as possible, until the next node
+-- which is at the same level of the hierarchy or lower. 'Missing'
+-- nodes are created for any missing levels of the hierarchy.
 toTree :: Hierarchy -> SFM -> SFMTree
 toTree h = fst . go (Root [])
   where
@@ -180,7 +187,8 @@ mapField g (Root s) = Root $ mapField g <$> s
 mapField g (Filled f s) = Filled (g f) $ mapField g <$> s
 mapField g (Missing m s) = Missing m $ mapField g <$> s
 
--- | Depth-first search for fields under an 'SFMTree'.
+-- | Depth-first search for fields under an 'SFMTree' which satisfy
+-- the given predicate.
 searchField :: (Field -> Maybe a) -> SFMTree -> [a]
 searchField p (Root ts) = searchField p =<< ts
 searchField p (Filled f ts)

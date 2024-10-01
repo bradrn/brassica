@@ -16,6 +16,8 @@ import Data.List (sortOn, foldl', intercalate)
 import Data.Maybe (mapMaybe)
 import Data.Ord (Down(Down))
 
+-- | Results from applying a 'Paradigm' to a word, represented as a tree
+-- containing each possible choice of 'Grammeme's.
 data ResultsTree a = Node [ResultsTree a] | Result a
     deriving (Show, Functor, Foldable)
 
@@ -23,6 +25,8 @@ addLevel :: (a -> [a]) -> ResultsTree a -> ResultsTree a
 addLevel f (Result r) = Node $ Result <$> f r
 addLevel f (Node rs) = Node $ addLevel f <$> rs
 
+-- | Depth of a 'ResultsTree': i.e. how many levels of 'Node's it
+-- contains.
 depth :: ResultsTree a -> Int
 depth (Node ts) = maximum $ (1+) . depth <$> ts
 depth (Result _) = 0

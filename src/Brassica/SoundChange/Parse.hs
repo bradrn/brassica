@@ -5,6 +5,15 @@
 {-# LANGUAGE RecordWildCards  #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
+-- |
+-- Module      : Brassica.SoundChange.Parse
+-- Copyright   : See LICENSE file
+-- License     : BSD3
+-- Maintainer  : Brad Neimann
+--
+-- Functions to parse sound changes in Brassica syntax. (For details
+-- on the syntax, refer to the
+-- [reference guide](https://github.com/bradrn/brassica/blob/v1.0.0/docs/Reference.md).)
 module Brassica.SoundChange.Parse
     ( parseRule
     , parseSoundChanges
@@ -283,14 +292,12 @@ filterParser = fmap (uncurry Filter) $ match $ symbol "filter" *> parseLexemes <
 reportParser :: Parser ()
 reportParser = symbol "report" *> sc *> ((newline *> void (optional scn)) <|> eof)
 
--- | Parse a 'String' in Brassica sound change syntax into a
--- 'Rule'. Returns 'Left' if the input string is malformed.
---
--- For details on the syntax, refer to <https://github.com/bradrn/brassica/blob/v1.0.0/docs/Reference.md>.
+-- | Parse a single sound change into a 'Rule'. Returns 'Left' if the
+-- input string is malformed.
 parseRule :: String -> Either (ParseErrorBundle String Void) (Rule CategorySpec)
 parseRule = runParser (scn *> ruleParser <* eof) ""
 
--- | Parse a list of 'SoundChanges'.
+-- | Parse a sound change file into a set of 'SoundChanges'.
 parseSoundChanges :: String -> Either (ParseErrorBundle String Void) (SoundChanges CategorySpec Directive)
 parseSoundChanges = runParser (scn *> parser <* eof) ""
   where

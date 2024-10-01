@@ -5,11 +5,21 @@
 {-# LANGUAGE RankNTypes      #-}
 {-# LANGUAGE TupleSections   #-}
 
-{-| __Warning:__ This module is __internal__, and does __not__ follow
-  the Package Versioning Policy. It may be useful for extending
-  Brassica, but be prepared to track development closely if you import
-  this module.
--}
+-- |
+-- Module      : Brassica.SoundChange.Frontend.Internal
+-- Copyright   : See LICENSE file
+-- License     : BSD3
+-- Maintainer  : Brad Neimann
+--
+-- __Warning:__ This module is __internal__, and does __not__ follow
+-- the Package Versioning Policy. It may be useful for extending
+-- Brassica, but be prepared to track development closely if you import
+-- this module.
+--
+-- This module exists primarily as an internal common interface for
+-- Brassica’s two ‘official’ GUI frontends (desktop and web). If you
+-- wish to make your own frontend to Brassica, it is probably easier
+-- to write it yourself rather than trying to use this.
 module Brassica.SoundChange.Frontend.Internal where
 
 import Control.Monad ((<=<))
@@ -38,17 +48,24 @@ import Brassica.SoundChange.Types
 -- | Rule application mode of the SCA.
 data ApplicationMode
     = ApplyRules HighlightMode OutputMode String
+    -- ^ Apply sound changes as normal, with the given modes and
+    -- separator
     | ReportRulesApplied
+    -- ^ Apply reporting the rules which were applied (as HTML)
     deriving (Show, Eq)
 
+-- | Get the 'OutputMode' if one is set, otherwise default to
+-- 'WordsOnlyOutput'.
 getOutputMode :: ApplicationMode -> OutputMode
 getOutputMode (ApplyRules _ o _) = o
-getOutputMode ReportRulesApplied = WordsOnlyOutput  -- default option
+getOutputMode ReportRulesApplied = WordsOnlyOutput
 
+-- | Mode for highlighting output words
 data HighlightMode
     = NoHighlight
     | DifferentToLastRun
     | DifferentToInput
+    -- ^ NB. now labeled ‘any rule applied’ in GUI
     deriving (Show, Eq)
 instance Enum HighlightMode where
     -- used for conversion to and from C, so want control over values
@@ -61,6 +78,8 @@ instance Enum HighlightMode where
     toEnum 2 = DifferentToInput
     toEnum _ = undefined
 
+-- | Mode for reporting output words (and sometimes intermediate and
+-- input words too)
 data OutputMode
     = MDFOutput
     | WordsOnlyOutput
@@ -92,6 +111,7 @@ data ApplicationOutput a r
     | ParseError (ParseErrorBundle String Void)
     deriving (Show, Generic, NFData)
 
+-- | For MDF input, the hierarchy used
 data MDFHierarchy = Standard | Alternate
     deriving (Show, Eq)
 
@@ -109,9 +129,13 @@ instance Enum InputLexiconFormat where
     toEnum 2 = MDF Alternate
     toEnum _ = undefined
 
+-- | Either a list of 'Component's for a Brassica wordlist file, or a
+-- list of 'SFM' fields for an MDF file
 data ParseOutput a = ParsedRaw [Component a] | ParsedMDF SFM
     deriving (Show, Functor, Foldable, Traversable)
 
+-- | Given the selected input and output modes, and the expanded sound
+-- changes, tokenise the input according to the format which was selected
 tokeniseAccordingToInputFormat
     :: InputLexiconFormat
     -> OutputMode

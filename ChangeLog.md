@@ -12,6 +12,7 @@
   - Rules such as `[p f] / [f h] / (a) _ #` are no longer applied twice to the same grapheme
       (as a consequence of changes to rule application, see below)
   - `noreplace` categories now tokenise multigraphs as expected
+- Documentation (user guides and Haddocks) have been comprensively rewritten
 - New support for phonetic features:
   - Features can be written as maximal `$name#ident(values)` after another lexeme
   - Categories named `+Feature`, `-Feature` and `+Feature+Value`

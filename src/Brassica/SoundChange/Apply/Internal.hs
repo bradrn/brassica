@@ -20,11 +20,40 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-{-| __Warning:__ This module is __internal__, and does __not__ follow
-  the Package Versioning Policy. It may be useful for extending
-  Brassica, but be prepared to track development closely if you import
-  this module.
--}
+-- |
+-- Module      : Brassica.SoundChange.Apply.Internal
+-- Copyright   : See LICENSE file
+-- License     : BSD3
+-- Maintainer  : Brad Neimann
+--
+-- __Warning:__ This module is __internal__, and does __not__ follow
+-- the Package Versioning Policy. It may be useful for extending
+-- Brassica, but be prepared to track development closely if you import
+-- this module.
+--
+-- This module contains the lower-level functions used by Brassica to
+-- match and apply sound changes. The overall algorithm is similar to
+-- that described by [Howard (1973)](https://dspace.mit.edu/bitstream/handle/1721.1/12982/26083289-MIT.pdf?sequence=2).
+--
+-- Some essential points:
+--
+--     * Words are represented as 'MultiZipper's, with a cursor index
+--       and zero or more tagged indices. A sound change can then be
+--       applied ('applyRule') by advancing through the word from left
+--       to right. (Right-to-left application is achieved by reversing
+--       both word and rule.)
+--
+--     * For each potential application site, 'applyOnce' checks the
+--       target, environments and exceptions. If they are all
+--       satisfied, it then replaces the target graphemes with the
+--       replacement graphemes. After running 'applyOnce',
+--       'setupForNextApplication' can be used to advance to the next
+--       application site.
+--
+--     * The lowest-level function for matching is 'match', which
+--       matches an individual 'Lexeme' at some point in a word. The
+--       lowest-level function for replacement is 'mkReplacement',
+--       which constructs replacement graphemes.
 module Brassica.SoundChange.Apply.Internal
        (
        -- * Lexeme matching
@@ -32,6 +61,8 @@ module Brassica.SoundChange.Apply.Internal
        , RuleStatus(..)
        , MatchOutput(..)
        , FeatureState(..)
+       , newOutput
+       , initialOutput
        , match
        , matchMany
        , mkReplacement
@@ -39,6 +70,7 @@ module Brassica.SoundChange.Apply.Internal
        , matchRuleAtPoint
        -- * Sound change application
        , applyOnce
+       , setupForNextApplication
        , applyRule
        , checkGraphemes
        , applyStatement
@@ -82,7 +114,9 @@ data RuleTag
     = AppStart     -- ^ The start of a rule application
     | TargetStart  -- ^ The start of the target
     | TargetEnd    -- ^ The end of the target
-    | PrevEnd      -- ^ The end of the replacement from the last rule application
+    | PrevEnd
+    -- ^ The end of the replacement from the last rule application
+    -- (used to avoid infinite loops from iterative rules)
     deriving (Eq, Ord, Show)
 
 -- | A monad in which to process a 'MultiZipper' over
@@ -91,11 +125,7 @@ data RuleTag
 -- backtracking and multiple answers (backtracking over the state
 -- too).
 newtype RuleAp a = RuleAp { runRuleAp :: MultiZipper RuleTag Grapheme -> [(a, MultiZipper RuleTag Grapheme)] }
-    deriving (Functor, Applicative, Monad, MonadState (MultiZipper RuleTag Grapheme)
-
-    , MonadFail
-
-    )
+    deriving (Functor, Applicative, Monad, MonadState (MultiZipper RuleTag Grapheme), MonadFail)
       via (StateT (MultiZipper RuleTag Grapheme) [])
 
 -- | Lift a partial modification function into a 'State'. Update state
@@ -116,31 +146,35 @@ try p = StateT $ \s ->
         [] -> [(Nothing, s)]
         r -> first Just <$> r
 
+-- | The result of matching a 'Feature' or 'Autosegment': either a
+-- specific index in the 'Feature', or an indeterminate result (when
+-- no indices matched)
 data FeatureState = Index Int | Indeterminate
     deriving (Show, Eq)
 
 -- | Describes the output of a 'match' operation.
 data MatchOutput = MatchOutput
-    { -- | For each category matched, the index of the matched
-      -- grapheme in that category.
+    { -- | For each non-backreferenced category matched: the index of
+      -- the matched grapheme in that category.
       matchedCatIxs    :: [Int]
-      -- | For each optional group whether it matched or not
+      -- | For each optional group: whether it matched or not
     , matchedOptionals :: [Bool]
-      -- | For each wildcard, the graphemes which it matched
+      -- | For each wildcard: the graphemes which it matched
     , matchedWildcards :: [[Grapheme]]
-      -- | For each Kleene star, how many repetitions it matched
+      -- | For each Kleene star: how many repetitions it matched
     , matchedKleenes   :: [Int]
-      -- | The graphemes which were matched
+      -- | The actual graphemes which were matched
     , matchedGraphemes :: [Grapheme]
-      -- | The features which were matched
+      -- | The features which were matched, by name
     , matchedFeatures :: Map.Map String [FeatureState]
-      -- | Backreferences which were matched by ID
+      -- | Backreferenced categories which were matched, by ID
     , matchedBackrefIds :: Map.Map String Int
-      -- | Features which were matched by ID
+      -- | Backreferenced features which were matched, by ID
     , matchedFeatureIds :: Map.Map String FeatureState
     } deriving (Show)
 
 -- | Create 'MatchOutput' for next section of rule given last output
+-- (preserving backreferences but emptying all other fields)
 newOutput :: MatchOutput -> MatchOutput
 newOutput m = MatchOutput
     { matchedCatIxs = []
@@ -153,6 +187,7 @@ newOutput m = MatchOutput
     , matchedFeatureIds = matchedFeatureIds m
     }
 
+-- | The empty 'MatchOutput'
 initialOutput :: MatchOutput
 initialOutput = MatchOutput [] [] [] [] [] Map.empty Map.empty Map.empty
 
@@ -189,7 +224,7 @@ appendFeatureAt n name fs out = out { matchedFeatures = Map.alter go name $ matc
 
 -- | Match a single 'Lexeme' against a 'MultiZipper', and advance the
 -- 'MultiZipper' past the match. For each match found, returns the
--- 'MatchOutput' tupled with the updated 'MultiZipper'.
+-- updated 'MatchOutput' tupled with the updated 'MultiZipper'.
 match :: MatchOutput          -- ^ The previous 'MatchOutput'
       -> Maybe Grapheme       -- ^ The previously-matched grapheme, if any. (Used to match a 'Geminate'.)
       -> Lexeme Expanded 'Matched  -- ^ The lexeme to match.
@@ -324,9 +359,7 @@ matchGraphemeP :: (Grapheme -> Bool) -> MultiZipper t Grapheme -> Maybe (MultiZi
 matchGraphemeP p mz = value mz >>= \cs -> if p cs then fwd mz else Nothing
 
 -- | Match a list of several 'Lexeme's against a
--- 'MultiZipper'. Arguments and output are the same as with 'match',
--- though the outputs are given as a list of indices and graphemes
--- rather than as a single index and grapheme.
+-- 'MultiZipper'. Arguments and output are as with 'match'.
 matchMany :: MatchOutput
           -> Maybe Grapheme
           -> [Lexeme Expanded 'Matched]
@@ -519,11 +552,11 @@ applyFeature (gs:gss) g i
 
 -- | Given a 'Rule' and a 'MultiZipper', determines whether the
 -- 'exception' of that rule (if any) applies starting at the current
--- position of the 'MultiZipper'; if it does, returns the index of the
--- first element of each matching 'target'.
+-- position of the 'MultiZipper'; if it does, returns the index at
+-- which each matching target begins.
 exceptionAppliesAtPoint
-    :: [Lexeme Expanded 'Matched]
-    -> Environment Expanded
+    :: [Lexeme Expanded 'Matched]  -- ^ Target
+    -> Environment Expanded        -- ^ Exceptional environment
     -> MultiZipper RuleTag Grapheme -> [Int]
 exceptionAppliesAtPoint target (ex1, ex2) mz = fmap fst $ flip runRuleAp mz $ do
     ex1Out <- RuleAp $ matchMany initialOutput Nothing ex1
@@ -532,14 +565,14 @@ exceptionAppliesAtPoint target (ex1, ex2) mz = fmap fst $ flip runRuleAp mz $ do
     _ <- RuleAp $ matchMany (newOutput targetOut) (listToMaybe matchedGraphemes) ex2
     return pos
 
--- | Given a target and environment, determine if they rule
--- matches. If so, for each match, set the appropriate 'RuleTag's and
--- return a tuple of @(is, gs)@, where @gs@ is a list of matched
--- t'Grapheme's, and @is@ is a list of indices, one for each
--- 'Category' lexeme matched.
+-- | Given a target and environment, determine if the rule matches at
+-- the current position of the 'MultiZipper'. If so, for each match,
+-- return the 'MatchOutput' and the output 'MultiZipper'. The output
+-- 'MultiZipper' is advanced past the matched environment, and has its
+-- 'RuleTag's set as appropriate.
 matchRuleAtPoint
-    :: [Lexeme Expanded 'Matched]
-    -> Environment Expanded
+    :: [Lexeme Expanded 'Matched]  -- ^ Target
+    -> Environment Expanded        -- ^ Environment
     -> MultiZipper RuleTag Grapheme
     -> [(MatchOutput, MultiZipper RuleTag Grapheme)]
 matchRuleAtPoint target (env1,env2) mz = flip runRuleAp mz $ do
@@ -563,9 +596,10 @@ matchRuleAtPoint target (env1,env2) mz = flip runRuleAp mz $ do
                 , matchedBackrefIds = matchedBackrefIds env2Out
                 }
 
+-- | Status of a rule application at a single location.
 data RuleStatus
-    = SuccessNormal      -- ^ Rule was successful, no need for special handling
-    | SuccessEpenthesis  -- ^ Rule was successful, but cursor was not advanced: need to avoid infinite loop
+    = SuccessNormal      -- ^ Rule was successful, with no need for special handling
+    | SuccessEpenthesis  -- ^ Rule was successful, but cursor was not advanced (need to avoid infinite loop)
     | Failure            -- ^ Rule failed
     deriving (Eq, Show)
 
@@ -643,10 +677,13 @@ setupForNextApplication status Rule{flags=Flags{nonOverlappingTarget}} =
 -- | Apply a 'Rule' to a 'MultiZipper'. The application will start at
 -- the beginning of the 'MultiZipper', and will be repeated as many
 -- times as possible. Returns all valid results.
+--
+-- Note: unlike 'applyRuleStr', this can produce duplicate outputs.
 applyRule :: Rule Expanded -> MultiZipper RuleTag Grapheme -> [MultiZipper RuleTag Grapheme]
 applyRule r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
     let result = case applyDirection (flags r) of
             LTR -> repeatRule $ toBeginning mz
+            -- Apply RTL by reversing both rule and word
             RTL -> fmap reverseMZ $ repeatRule $ toBeginning $ reverseMZ mz
     in case sporadic (flags r) of
         PerWord -> mz : result
@@ -684,8 +721,8 @@ filterMatches (Filter _ ls) = go . toBeginning
             _ -> True  -- filter has matched
 
 -- | Check that the 'MultiZipper' contains only graphemes listed in
--- the given 'CategoriesDecl', replacing all unlisted graphemes other
--- than @"#"@ with U+FFFD.
+-- the given list, replacing all unlisted graphemes other than @"#"@
+-- with U+FFFD.
 checkGraphemes :: [Grapheme] -> MultiZipper RuleTag Grapheme -> MultiZipper RuleTag Grapheme
 checkGraphemes gs = fmap $ \case
     "#" -> "#"
@@ -694,7 +731,7 @@ checkGraphemes gs = fmap $ \case
 -- | Apply a 'Statement' to a 'MultiZipper', returning zero, one or
 -- more results.
 applyStatement
-    :: Statement Expanded (Bool, [Grapheme])
+    :: Statement Expanded GraphemeList
     -> MultiZipper RuleTag Grapheme
     -> [MultiZipper RuleTag Grapheme]
 applyStatement (RuleS r) mz = applyRule r mz
@@ -706,11 +743,7 @@ applyStatement (DirectiveS (noreplace, gs)) mz
     | noreplace = [mz]
     | otherwise = [checkGraphemes gs mz]
 
--- | Apply a single 'Rule' to a word.
---
--- Note: duplicate outputs from this function are removed. To keep
--- duplicates, use the lower-level internal function 'applyRule'
--- directly.
+-- | Apply a single sound change 'Rule' to a word.
 applyRuleStr :: Rule Expanded -> PWord -> [PWord]
 -- Note: 'fromJust' is safe here as 'apply' should always succeed
 applyRuleStr r =
@@ -720,12 +753,10 @@ applyRuleStr r =
     >>> fmap (toList >>> removeBoundaries)
     >>> nubOrd
 
--- | Apply a single 'Statement' to a word.
---
--- Note: as with 'applyRuleStr', duplicate outputs from this function
--- are removed. To keep duplicates, use the lower-level internal
--- function 'applyStatement' directly.
-applyStatementStr :: Statement Expanded (Bool, [Grapheme]) -> PWord -> [PWord]
+-- | Apply a single 'Statement' to a word. The statement can be a
+-- sound change, a filter, or any other element which remains in a
+-- sound change file after expansion.
+applyStatementStr :: Statement Expanded GraphemeList -> PWord -> [PWord]
 applyStatementStr st =
     addBoundaries
     >>> fromListStart
@@ -753,16 +784,20 @@ logOutput :: LogItem r -> Maybe PWord
 logOutput (ActionApplied _ _ o) = o
 logOutput (ReportWord o) = Just o
 
--- | Logs the evolution of a 'PWord' as various actions are applied to
--- it. The actions (usually 'Statement's) are of type @r@.
+-- | Logs the evolution of a word as it undergoes sound changes and
+-- other actions. The actions are of type @r@ (which will usually be
+-- 'Statement').
 data PWordLog r = PWordLog
     { initialWord :: PWord
     -- ^ The initial word, before any actions have been applied
     , derivations :: [(Maybe PWord, r)]
     -- ^ The state of the word after each action @r@, stored alongside
-    -- the action which was applied at each point
+    -- the action which was applied at each point; or 'Nothing' if the
+    -- word was deleted
     } deriving (Show, Functor, Generic, NFData)
 
+-- | Convert a list of individual 'LogItem's for a single word to a
+-- 'PWordLog' summarising the whole evolution of that word.
 toPWordLog :: [LogItem r] -> Maybe (PWordLog r)
 toPWordLog [] = Nothing
 toPWordLog ls@(l : _) = Just $ PWordLog
@@ -772,22 +807,23 @@ toPWordLog ls@(l : _) = Just $ PWordLog
             _ -> Nothing
     }
 
--- | Render a single 'PWordLog' to rows of an HTML table. For
+-- | Pretty-print a single 'PWordLog' as rows of an HTML table. For
 -- instance, the example log given in the documentation for
 -- 'reportAsText' would be converted to the following HTML:
 --
--- > "<tr><td>tara</td><td>&rarr;</td><td>tazha</td><td>(r / zh)</td></tr><tr><td></td><td>&rarr;</td><td>tazh</td><td>(V / / _ #)</td></tr>"
+-- > <tr><td>tara</td><td>&rarr;</td><td>tazha</td><td>(r / zh)</td></tr><tr><td></td><td>&rarr;</td><td>tazh</td><td>(V / / _ #)</td></tr>
 --
--- Which might be displayed in an HTML table as something like the
--- following:
+-- Which might be displayed in a browser as follows:
 --
--- +------+---+-------+-------------+ 
+-- +------+---+-------+-------------+
 -- | tara | → | tazha | (r / zh)    |
--- +------+---+-------+-------------+ 
+-- +------+---+-------+-------------+
 -- |      | → | tazh  | (V / / _ #) |
--- +------+---+-------+-------------+ 
+-- +------+---+-------+-------------+
 
-reportAsHtmlRows :: (r -> String) -> PWordLog r -> String
+reportAsHtmlRows
+    :: (r -> String)  -- ^ Specifies how to pretty-print actions as text
+    -> PWordLog r -> String
 reportAsHtmlRows render item = go (concatWithBoundary $ initialWord item) (derivations item)
   where
     go _ [] = ""
@@ -797,22 +833,26 @@ reportAsHtmlRows render item = go (concatWithBoundary $ initialWord item) (deriv
          ++ "</td><td>(" ++ render action ++ ")</td></tr>")
         ++ go "" ds
 
--- | Render a single 'PWordLog' to plain text. For instance, this log:
+-- | Pretty-print a 'PWordLog' as plain text. For instance, this log:
 --
--- > PWordLog
--- >   { initialWord = ["t", "a", "r", "a"]
--- >   , derivations =
--- >     [ (["t", "a", "zh", "a"], "r / zh")
--- >     , (["t", "a", "zh"], "V / / _ #")
--- >     ]
--- >   }
+-- @
+-- 'PWordLog'
+--   { 'initialWord' = ["t", "a", "r", "a"]
+--   , 'derivations' =
+--     [ ('Just' ["t", "a", "zh", "a"], "r \/ zh")
+--     , ('Just' ["t", "a", "zh"], "V \/ \/ _ #")
+--     ]
+--   }
+-- @
 --
--- Would render as:
+-- Would be pretty-printed by @'reportAsText' 'id'@ as:
 --
 -- > tara
 -- >   -> tazha  (r / zh)
 -- >   -> tazh   (V / / _ #)
-reportAsText :: (r -> String) -> PWordLog r -> String
+reportAsText
+    :: (r -> String)  -- ^ Specifies how to pretty-print actions as text
+    -> PWordLog r -> String
 reportAsText render item = unlines $
     concatWithBoundary (initialWord item) : fmap toLine (alignWithPadding $ derivations item)
   where
@@ -830,9 +870,9 @@ reportAsText render item = unlines $
 -- each possible result, or @[]@ if the rule does not apply and the
 -- input is returned unmodified.
 applyStatementWithLog
-    :: Statement Expanded (Bool, [Grapheme])
+    :: Statement Expanded GraphemeList
     -> PWord
-    -> [LogItem (Statement Expanded (Bool, [Grapheme]))]
+    -> [LogItem (Statement Expanded GraphemeList)]
 applyStatementWithLog ReportS w = [ReportWord w]
 applyStatementWithLog st w = case applyStatementStr st w of
     [] -> [ActionApplied st w Nothing]
@@ -843,9 +883,9 @@ applyStatementWithLog st w = case applyStatementStr st w of
 -- a 'LogItem' for each 'Statement' which altered the input, plus a
 -- 'ReportWord' for at least the input and output words.
 applyChangesWithLog
-    :: SoundChanges Expanded (Bool, [Grapheme])
+    :: SoundChanges Expanded GraphemeList
     -> PWord
-    -> [[LogItem (Statement Expanded (Bool, [Grapheme]))]]
+    -> [[LogItem (Statement Expanded GraphemeList)]]
 applyChangesWithLog [] w = [[ReportWord w]]  -- always report the final result
 applyChangesWithLog scs w = (ReportWord w:) <$> go scs w
   where
@@ -860,16 +900,17 @@ applyChangesWithLog scs w = (ReportWord w:) <$> go scs w
                     -- apply no further changes to a deleted w'ord
                     Nothing -> [[l]]
 
--- | Apply 'SoundChanges' to a word, returning an 'PWordLog'
--- for each possible result.
+-- | Apply a set of 'SoundChanges' to a word, returning a log of which
+-- sound changes applied to produce each output word.
 applyChangesWithLogs
-    :: SoundChanges Expanded (Bool, [Grapheme])
+    :: SoundChanges Expanded GraphemeList
     -> PWord
-    -> [PWordLog (Statement Expanded (Bool, [Grapheme]))]
+    -> [PWordLog (Statement Expanded GraphemeList)]
 applyChangesWithLogs scs w = mapMaybe toPWordLog $ applyChangesWithLog  scs w
 
--- | Apply a set of 'SoundChanges' to a word.
-applyChanges :: SoundChanges Expanded (Bool, [Grapheme]) -> PWord -> [PWord]
+-- | Apply a set of 'SoundChanges' to a word, returning the final
+-- output word(s).
+applyChanges :: SoundChanges Expanded GraphemeList -> PWord -> [PWord]
 applyChanges sts w =
     mapMaybe lastOutput $ applyChangesWithLog sts w
   where
@@ -877,8 +918,9 @@ applyChanges sts w =
     lastOutput [] = Just w
     lastOutput ls = logOutput $ last ls
 
--- | TODO
-applyChangesWithReports :: SoundChanges Expanded (Bool, [Grapheme]) -> PWord -> [[PWord]]
+-- | Apply a set of 'SoundChanges' to a word, returning the final
+-- output word(s) as well as any intermediate results from 'ReportS'.
+applyChangesWithReports :: SoundChanges Expanded GraphemeList -> PWord -> [[PWord]]
 applyChangesWithReports sts w = getReports <$> applyChangesWithLog sts w
   where
     getReports [] = []
@@ -886,11 +928,11 @@ applyChangesWithReports sts w = getReports <$> applyChangesWithLog sts w
     getReports (ReportWord w':ls) = w' : getReports ls
     getReports (_:ls) = getReports ls
 
--- | Apply 'SoundChanges' to a word returning the final results, as
--- well as a boolean value indicating whether the word should be
--- highlighted in a UI due to changes from its initial value. (Note
--- that this accounts for 'highlightChanges' values.)
-applyChangesWithChanges :: SoundChanges Expanded (Bool, [Grapheme]) -> PWord -> [(Maybe PWord, Bool)]
+-- | Apply a set of 'SoundChanges' to a word returning the final
+-- output word(s), as well as a boolean value indicating whether each
+-- has been changed from the input (accounting for 'highlightChanges'
+-- flags).
+applyChangesWithChanges :: SoundChanges Expanded GraphemeList -> PWord -> [(Maybe PWord, Bool)]
 applyChangesWithChanges sts w = applyChangesWithLog sts w <&> \case
     [] -> (Just w, False)
     logs -> (logOutput $ last logs, hasChanged logs)
@@ -902,11 +944,13 @@ applyChangesWithChanges sts w = applyChangesWithLog sts w <&> \case
         ActionApplied ReportS _ _ -> False  -- reporting a word yields no change
         ReportWord _ -> False
 
--- | TODO
-applyChangesWithChangesAndReports :: SoundChanges Expanded (Bool, [Grapheme]) -> PWord -> [[(PWord, Bool)]]
+-- | Apply a set of 'SoundChanges' to a word, returning the final
+-- output word(s) as well as any intermediate results from 'ReportS',
+-- each with a boolean marking changed results (as with 'applyChangesWithChanges').
+applyChangesWithChangesAndReports :: SoundChanges Expanded GraphemeList -> PWord -> [[(PWord, Bool)]]
 applyChangesWithChangesAndReports sts w = getReports <$> applyChangesWithLog sts w
   where
-    getReports :: [LogItem (Statement Expanded (Bool, [Grapheme]))] -> [(PWord, Bool)]
+    getReports :: [LogItem (Statement Expanded GraphemeList)] -> [(PWord, Bool)]
     getReports [] = []
     getReports l = go False l
       where

@@ -5,19 +5,29 @@
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE ViewPatterns      #-}
 
+-- |
+-- Module      : Brassica.SoundChange.Tokenise
+-- Copyright   : See LICENSE file
+-- License     : BSD3
+-- Maintainer  : Brad Neimann
+--
+-- This module provides functions to parse a Brassica words file into
+-- its constituent 'Component's, and to tokenise the words in that
+-- file into their constituent graphemes to form 'PWord's. It also
+-- provides functions to reverse these processes.
 module Brassica.SoundChange.Tokenise
-       ( 
+       (
+       -- * Tokenisation
+         tokeniseWord
+       , concatWithBoundary
        -- * Components
-         Component(..)
+       , Component(..)
        , getWords
        , splitMultipleResults
        , joinComponents
-       -- * High-level interface
-       , tokeniseWord
        , tokeniseWords
        , detokeniseWords'
        , detokeniseWords
-       , concatWithBoundary
        , findFirstCategoriesDecl
        , withFirstCategoriesDecl
        -- * Lower-level functions
@@ -41,10 +51,12 @@ import Text.Megaparsec.Char
 
 import Brassica.SoundChange.Types
 
--- | Represents a component of a tokenised input string. v'Word's in
--- the input are represented as the type parameter @a@ — which for
--- this reason will usually, though not always, be 'PWord'.
-data Component a = Word a | Separator String | Gloss String
+-- | Represents a component of a Brassica words file. Each word in the
+-- input has type @a@ (often 'PWord' or @['PWord']@).
+data Component a
+    = Word a            -- ^ An input word to which sound changes will be applied
+    | Separator String  -- ^ A separator, e.g. whitespace
+    | Gloss String      -- ^ A gloss (in Brassica syntax, between square brackets)
     deriving (Eq, Show, Functor, Foldable, Traversable, Generic, NFData)
 
 -- | Flatten a nested list of 'Component's.
@@ -68,8 +80,8 @@ getWords = mapMaybe $ \case
 --
 -- For instance:
 --
--- >>> splitMultipleResults " " (Word ["abc", "def", "ghi"])
--- [Word "abc", Separator " ", Word "def", Separator " ", Word "ghi"]
+-- >>> splitMultipleResults "/" (Word ["abc", "def", "ghi"])
+-- [Word "abc", Separator "/", Word "def", Separator "/", Word "ghi"]
 --
 -- >>> splitMultipleResults " " (Word ["abc"])
 -- [Word "abc"]
@@ -77,18 +89,19 @@ splitMultipleResults :: String -> Component [a] -> [Component a]
 splitMultipleResults wh (Word as) = intersperse (Separator wh) $ Word <$> as
 splitMultipleResults _ (Separator w) = [Separator w]
 splitMultipleResults _ (Gloss g) = [Gloss g]
-    
+
 -- | Megaparsec parser for 'PWord's — see 'tokeniseWord' documentation
--- for details on the parsing strategy and the meaning of the second
--- parameter. For most usecases 'tokeniseWord' should suffice;
--- 'wordParser' itself is only really useful in unusual situations
--- (e.g. as part of a larger parser). The first parameter gives a list
--- of characters (aside from whitespace) which should be excluded from
--- words, i.e. the parser will stop if any of them are found. The second
--- gives a list of multigraphs which might be expected.
+-- for details on the parsing strategy. For most usecases
+-- 'tokeniseWord' should suffice; 'wordParser' itself is only really
+-- useful in unusual situations (e.g. as part of a larger parser).
 --
--- Note: the second parameter __must__ be 'sortByDescendingLength'-ed;
--- otherwise multigraphs will not be parsed correctly.
+-- The first parameter gives a list of characters aside from
+-- whitespace which should be excluded from words, i.e. the parser
+-- will stop if any of them are found. The second gives a list of
+-- multigraphs which might be expected, as with 'tokeniseWord'.
+--
+-- Note: the second parameter __must__ be already be sorted by descending length;
+-- otherwise multigraphs will not be parsed correctly (i.e. greedily).
 wordParser :: [Char] -> [String] -> ParsecT Void String Identity PWord
 wordParser excludes gs = some $
     ("#" <$ single '#')
@@ -100,7 +113,7 @@ wordParser excludes gs = some $
 -- | Megaparsec parser for 'Component's. Similarly to 'wordParser',
 -- usually it’s easier to use 'tokeniseWords' instead.
 componentsParser
-    :: ParsecT Void String Identity a
+    :: ParsecT Void String Identity a  -- ^ Parser for individual words (e.g. 'wordParser')
     -> ParsecT Void String Identity [Component a]
 componentsParser p = many $
     (Separator <$> takeWhile1P Nothing isSpace) <|>
@@ -115,6 +128,8 @@ componentsParser p = many $
            then '[' : concat contents ++ "]"
            else concat contents
 
+-- | Sort a list of lists by the length of the inner lists, in
+-- descending order.
 sortByDescendingLength :: [[a]] -> [[a]]
 sortByDescendingLength = sortBy (compare `on` Down . length)
 
@@ -126,7 +141,7 @@ sortByDescendingLength = sortBy (compare `on` Down . length)
 -- multigraphs is a prefix of another, the tokeniser will prefer the
 -- longest if possible. If there are no matching multigraphs starting
 -- at a particular character in the 'String', 'tokeniseWord' will
--- treat that character as its own t'Grapheme'. For instance:
+-- take that character as forming its own t'Grapheme'. For instance:
 --
 -- >>> tokeniseWord [] "cherish"
 -- Right [GMulti "c",GMulti "h",GMulti "e",GMulti "r",GMulti "i",GMulti "s",GMulti "h"]
@@ -139,17 +154,16 @@ sortByDescendingLength = sortBy (compare `on` Down . length)
 tokeniseWord :: [String] -> String -> Either (ParseErrorBundle String Void) PWord
 tokeniseWord (sortByDescendingLength -> gs) = parse (wordParser "[" gs) ""
 
--- | Given a list of available multigraphs, tokenise an input string
--- into a list of words and other 'Component's. This uses the same
--- tokenisation strategy as 'tokeniseWords', but also recognises
--- 'Gloss'es (in square brackets) and 'Separator's (in the form of
--- whitespace).
+-- | Given a list of available multigraphs, tokenise an input words
+-- file into a list of words and other 'Component's. This uses the
+-- same tokenisation strategy as 'tokeniseWords', but also recognises
+-- 'Gloss'es (in square brackets) and 'Separator's (as whitespace).
 tokeniseWords :: [String] -> String -> Either (ParseErrorBundle String Void) [Component PWord]
 tokeniseWords (sortByDescendingLength -> gs) =
         parse (componentsParser $ wordParser "[" gs) ""
 
--- | Given a function to convert 'Word's to strings, converts a list
--- of 'Component's to strings.
+-- | Inverse of 'tokeniseWords': given a function to convert v'Word's
+-- to strings, converts a list of 'Component's to strings.
 detokeniseWords' :: (a -> String) -> [Component a] -> String
 detokeniseWords' f = concatMap $ \case
     Word gs -> f gs
@@ -162,7 +176,7 @@ detokeniseWords :: [Component PWord] -> String
 detokeniseWords = detokeniseWords' concatWithBoundary
 
 -- | Given a list of sound changes, extract the list of multigraphs
--- defined in the first categories declaration of the 'SoundChange's.
+-- defined in the first 'GraphemeList' of the 'SoundChanges'.
 findFirstCategoriesDecl :: SoundChanges c (Bool, [Grapheme]) -> [String]
 findFirstCategoriesDecl (DirectiveS (_,gs):_) = gs
 findFirstCategoriesDecl (_:ss) = findFirstCategoriesDecl ss
