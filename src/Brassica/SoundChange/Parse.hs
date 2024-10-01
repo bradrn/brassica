@@ -303,7 +303,7 @@ parseSoundChanges :: String -> Either (ParseErrorBundle String Void) (SoundChang
 parseSoundChanges = runParser (scn *> parser <* eof) ""
   where
     parser = many $
-        DirectiveS <$> parseDirective
+        DeclS <$> parseDirective
         <|> FilterS <$> filterParser
         <|> ReportS <$ reportParser
         <|> RuleS <$> ruleParser

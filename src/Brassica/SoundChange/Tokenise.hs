@@ -180,7 +180,7 @@ detokeniseWords = detokeniseWords' concatWithBoundary
 -- | Given a list of sound changes, extract the list of multigraphs
 -- defined in the first 'GraphemeList' of the 'SoundChanges'.
 findFirstCategoriesDecl :: SoundChanges c GraphemeList -> [String]
-findFirstCategoriesDecl (DirectiveS (GraphemeList _ gs):_) = gs
+findFirstCategoriesDecl (DeclS (GraphemeList _ gs):_) = gs
 findFirstCategoriesDecl (_:ss) = findFirstCategoriesDecl ss
 findFirstCategoriesDecl [] = []
 

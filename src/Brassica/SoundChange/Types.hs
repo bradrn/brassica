@@ -66,7 +66,7 @@ module Brassica.SoundChange.Types
        , Statement(..)
        , plaintext'
        , SoundChanges
-       -- * Directives [TODO find better name]
+       -- * Directives
        , Directive(..)
        , CategoryDefinition(..)
        , FeatureSpec(..)
@@ -330,28 +330,29 @@ deriving instance (forall a. Show (c a)) => Show (Filter c)
 deriving instance (forall a. NFData (c a)) => NFData (Filter c)
 
 -- | A 'Statement' within a sound change file can be a single sound
--- change rule, a filter, or some other directive.
+-- change rule, a filter, an instruction to report intermediate
+-- results, or some other declaration.
 --
--- The directive depends on the current sound change phase. Usually it
--- will be 'Directive' after parsing, or 'GraphemeList' after
--- expansion.
+-- The declaration type depends on the current sound change
+-- phase. Usually it will be 'Directive' after parsing, or
+-- 'GraphemeList' after expansion.
 data Statement c decl
     = RuleS (Rule c)        -- ^ Sound change rule
     | FilterS (Filter c)    -- ^ Filter
     | ReportS               -- ^ Report intermediate result
-    | DirectiveS decl
+    | DeclS decl            -- ^ Declaration (phase-dependent)
     deriving (Generic)
 
 deriving instance (forall a. Show (c a), Show decl) => Show (Statement c decl)
 deriving instance (forall a. NFData (c a), NFData decl) => NFData (Statement c decl)
 
 -- | A simple wrapper around 'plaintext' for 'Statement's. Returns
--- @"\<directive\>"@ for all 'DirectiveS' inputs.
+-- @"\<directive\>"@ for all 'DeclS' inputs.
 plaintext' :: Statement c decl -> String
 plaintext' (RuleS r) = plaintext r
 plaintext' (FilterS (Filter p _)) = p
 plaintext' ReportS = "intermediate result"
-plaintext' (DirectiveS _) = "<directive>"
+plaintext' (DeclS _) = "<declaration>"
 
 -- | A set of 'SoundChanges' is simply a list of 'Statement's.
 type SoundChanges c decl = [Statement c decl]
@@ -407,7 +408,8 @@ data CategoryDefinition
     deriving (Show, Eq, Ord, Generic, NFData)
 
 -- | A directive used in Brassica sound-change syntax: anything which
--- is not actually a sound change (TODO find better name)
+-- occurs in a sound change file with the primary purpose of defining
+-- something for later use.
 data Directive
     = Categories  -- ^ Category definition block
         Bool  -- ^ Whether category was introduced with @new@

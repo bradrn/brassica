@@ -335,7 +335,7 @@ expandSoundChanges
     -> Either ExpandError (SoundChanges Expanded GraphemeList)
 expandSoundChanges scs = fmap catMaybes $ flip evalStateT (M.empty, []) $ traverse go scs
   where
-    noCategories = any (\case DirectiveS (Categories {}) -> True; _ -> False) scs
+    noCategories = any (\case DeclS (Categories {}) -> True; _ -> False) scs
 
     go  :: Statement CategorySpec Directive
         -> StateT
@@ -349,18 +349,18 @@ expandSoundChanges scs = fmap catMaybes $ flip evalStateT (M.empty, []) $ traver
         cs <- gets fst
         lift $ Just . FilterS <$> expandFilter cs f
     go ReportS = pure (Just ReportS)
-    go (DirectiveS (ExtraGraphemes extra)) = do
+    go (DeclS (ExtraGraphemes extra)) = do
         (cs, _) <- get
         put (cs, extra)
         pure $
             if noCategories
-            then Just $ DirectiveS $ GraphemeList True extra
+            then Just $ DeclS $ GraphemeList True extra
             else Nothing
-    go (DirectiveS (Categories overwrite noreplace defs)) = do
+    go (DeclS (Categories overwrite noreplace defs)) = do
         (cs, extra) <- get
         cs' <- lift $ extendCategories cs (overwrite, defs)
         put (cs', extra)
-        pure $ Just $ DirectiveS $ GraphemeList noreplace $ extra ++ mapMaybe grapheme (values cs')
+        pure $ Just $ DeclS $ GraphemeList noreplace $ extra ++ mapMaybe grapheme (values cs')
 
     grapheme [Grapheme g] = Just g
     grapheme _ = Nothing

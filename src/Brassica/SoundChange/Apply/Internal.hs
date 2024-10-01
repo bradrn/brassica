@@ -733,7 +733,7 @@ applyStatement (FilterS f) mz
     | filterMatches f mz = []
     | otherwise = [mz]
 applyStatement ReportS mz = [mz]
-applyStatement (DirectiveS (GraphemeList noreplace gs)) mz
+applyStatement (DeclS (GraphemeList noreplace gs)) mz
     | noreplace = [mz]
     | otherwise = [checkGraphemes gs mz]
 
@@ -934,7 +934,7 @@ applyChangesWithChanges sts w = applyChangesWithLog sts w <&> \case
     hasChanged = any $ \case
         ActionApplied (RuleS rule) _ _ -> highlightChanges $ flags rule
         ActionApplied (FilterS _) _ _ -> False  -- cannot highlight nonexistent word
-        ActionApplied (DirectiveS _) _ _ -> True
+        ActionApplied (DeclS _) _ _ -> True
         ActionApplied ReportS _ _ -> False  -- reporting a word yields no change
         ReportWord _ -> False
 

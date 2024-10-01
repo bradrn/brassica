@@ -51,7 +51,7 @@
       Ctrl+Enter to apply rules, Ctrl+Tab to toggle between rules and words textboxes
   - Some labels have been changed to be more descriptive:
     ‘Different to input’ to ‘Any rule applied’, and ‘Wordlist’ to ‘Wordlist + glosses’
-  - Improvements to output from ‘Report rules apply’:
+  - Improvements to output from ‘Report rules apply’: most importantly,
     comments are no longer included next to rules, and
     outputs are no longer aligned across input words (greatly increasing responsiveness on desktop)
   - User can now choose which MDF hierarchy to use for dictionaries
@@ -72,6 +72,7 @@
 
 - CMakeLists for desktop GUI now track Haskell binary dependency correctly
 - Renamed `Brassica.SoundChange.Category` to `Brassica.SoundChange.Expand`
+- Renamed constructor `Brassica.SoundChange.Types.DirectiveS` to `Brassica.SoundChange.Types.DeclS` 
 - Changes resulting from addition of `report`:
   - New constructor `ReportS` added to `Brassica.SoundChange.Types.Statement`
   - New functions `Brassica.SoundChange.Apply.Internal.applyChangesWithReports`,
