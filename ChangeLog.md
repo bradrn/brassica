@@ -96,7 +96,7 @@
     now depends on new type `Brassica.SoundChange.Frontend.Internal.MDFHierarchy`
 - Word boundaries are now simply ordinary graphemes `"#"`:
     `Brassica.SoundChange.Types.Grapheme` is now a type synonym for `[Char]`
-- Expansion now results in sound changes with declaration type `(Bool, [Grapheme])`
+- Expansion now results in sound changes with declaration type `GraphemesList`
     rather than `[Grapheme]`
 - New constructor `WordsWithProtoOutputPreserve` for `Brassica.SoundChange.Frontend.Internal.OutputMode`
 - Remove now-unnecessary pattern `Brassica.SoundChange.Types.Boundary`
