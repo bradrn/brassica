@@ -100,6 +100,8 @@
     rather than `[Grapheme]`
 - New constructor `WordsWithProtoOutputPreserve` for `Brassica.SoundChange.Frontend.Internal.OutputMode`
 - Remove now-unnecessary pattern `Brassica.SoundChange.Types.Boundary`
+- In parsing modules, re-export whole module `Text.Megaparsec.Error`
+    rather than only re-exporting the single function `errorBundlePretty`
 
 ## 0.3.0
 

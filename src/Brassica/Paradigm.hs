@@ -6,8 +6,10 @@
 --
 module Brassica.Paradigm
        (
+       -- * Re-export
+         module Text.Megaparsec.Error
        -- * Paradigm representation
-         Process(..)
+       , Process(..)
        , Affix
        , Grammeme(..)
        , AbstractGrammeme(..)
@@ -23,11 +25,9 @@ module Brassica.Paradigm
        , applyParadigm
        , ResultsTree(..)
        , depth
-       -- ** Re-export
-       , errorBundlePretty
        ) where
 
 import Brassica.Paradigm.Apply
 import Brassica.Paradigm.Parse
 import Brassica.Paradigm.Types
-import Text.Megaparsec (errorBundlePretty)
+import Text.Megaparsec.Error

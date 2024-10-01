@@ -18,7 +18,7 @@ module Brassica.SoundChange.Parse
     ( parseRule
     , parseSoundChanges
       -- ** Re-export
-    , errorBundlePretty
+    , module Text.Megaparsec.Error
     ) where
 
 import Data.Char (isSpace)
@@ -33,6 +33,7 @@ import Control.Monad (void, guard)
 import Text.Megaparsec hiding (State)
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
+import Text.Megaparsec.Error
 
 import Brassica.SoundChange.Types
 
