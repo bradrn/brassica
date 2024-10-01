@@ -107,6 +107,7 @@
 - Category elements are now represented as simply `[Lexeme category a]`
     (synonym `Brassica.SoundChanges.Types.CategoryElement`),
     without any special case for single-grapheme elements
+- `concatWithBoundary` is now no longer re-exported from `Brassica.SoundChange.Tokenise`
 
 ## 0.3.0
 

@@ -100,8 +100,6 @@ removeBoundaries :: PWord -> PWord
 removeBoundaries = dropWhile (=="#") . dropWhileEnd (=="#")
 
 -- | Render a 'PWord' as a 'String': does 'removeBoundaries' then 'concat'.
---
--- Inverse of 'Brassica.SoundChange.Tokenise.tokeniseWord'.
 concatWithBoundary :: PWord -> String
 concatWithBoundary = concat . removeBoundaries
 

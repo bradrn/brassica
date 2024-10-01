@@ -17,10 +17,8 @@
 -- provides functions to reverse these processes.
 module Brassica.SoundChange.Tokenise
        (
-       -- * Tokenisation
+       -- * High-level interface
          tokeniseWord
-       , concatWithBoundary
-       -- * Components
        , Component(..)
        , getWords
        , splitMultipleResults
@@ -145,12 +143,16 @@ sortByDescendingLength = sortBy (compare `on` Down . length)
 --
 -- >>> tokeniseWord [] "cherish"
 -- Right [GMulti "c",GMulti "h",GMulti "e",GMulti "r",GMulti "i",GMulti "s",GMulti "h"]
--- 
+--
 -- >>> tokeniseWord ["e","h","i","r","s","sh"] "cherish"
 -- Right [GMulti "c",GMulti "h",GMulti "e",GMulti "r",GMulti "i",GMulti "sh"]
--- 
+--
 -- >>> tokeniseWord ["c","ch","e","h","i","r","s","sh"] "cherish"
 -- Right [GMulti "ch",GMulti "e",GMulti "r",GMulti "i",GMulti "sh"]
+--
+-- The resulting 'PWord' can be converted back to a 'String' using
+-- 'concatWithBoundary'. (However, it is not strictly speaking a true
+-- inverse as it deletes word boundaries).
 tokeniseWord :: [String] -> String -> Either (ParseErrorBundle String Void) PWord
 tokeniseWord (sortByDescendingLength -> gs) = parse (wordParser "[" gs) ""
 
