@@ -926,11 +926,15 @@ applyChangesWithReports sts w = getReports <$> applyChangesWithLog sts w
 -- output word(s), as well as a boolean value indicating whether each
 -- has been changed from the input (accounting for 'highlightChanges'
 -- flags).
-applyChangesWithChanges :: SoundChanges Expanded GraphemeList -> PWord -> [(Maybe PWord, Bool)]
-applyChangesWithChanges sts w = applyChangesWithLog sts w <&> \case
-    [] -> (Just w, False)
-    logs -> (logOutput $ last logs, hasChanged logs)
+applyChangesWithChanges :: SoundChanges Expanded GraphemeList -> PWord -> [(PWord, Bool)]
+applyChangesWithChanges sts w = mapMaybe go $ applyChangesWithLog sts w
   where
+    go = \case
+        [] -> Just (w, False)
+        logs -> case logOutput (last logs) of
+            Just out -> Just (out, hasChanged logs)
+            Nothing -> Nothing
+
     hasChanged = any $ \case
         ActionApplied (RuleS rule) _ _ -> highlightChanges $ flags rule
         ActionApplied (FilterS _) _ _ -> False  -- cannot highlight nonexistent word

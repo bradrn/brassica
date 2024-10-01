@@ -207,9 +207,6 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
     unsafeCastComponent (Separator s) = Separator s
     unsafeCastComponent (Gloss s) = Gloss s
 
-    extractMaybe (Just a, b) = Just (a, b)
-    extractMaybe (Nothing, _) = Nothing
-
     doApply :: OutputMode -> SoundChanges Expanded GraphemeList -> PWord -> [Component [PWord]]
     doApply WordsWithProtoOutput scs w = doApplyWithProto scs w
     doApply WordsWithProtoOutputPreserve scs w = doApplyWithProto scs w
@@ -223,7 +220,7 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
     doApplyWithChanges :: OutputMode -> SoundChanges Expanded GraphemeList -> PWord -> [Component [(PWord, Bool)]]
     doApplyWithChanges WordsWithProtoOutput scs w = doApplyWithChangesWithProto scs w
     doApplyWithChanges WordsWithProtoOutputPreserve scs w = doApplyWithChangesWithProto scs w
-    doApplyWithChanges _ scs w = [Word $ mapMaybe extractMaybe $ applyChangesWithChanges scs w]
+    doApplyWithChanges _ scs w = [Word $ applyChangesWithChanges scs w]
 
     doApplyWithChangesWithProto scs w =
         let intermediates :: [[(PWord, Bool)]]
