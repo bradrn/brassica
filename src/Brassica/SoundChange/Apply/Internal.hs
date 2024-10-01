@@ -733,7 +733,7 @@ applyStatement (FilterS f) mz
     | filterMatches f mz = []
     | otherwise = [mz]
 applyStatement ReportS mz = [mz]
-applyStatement (DirectiveS (noreplace, gs)) mz
+applyStatement (DirectiveS (GraphemeList noreplace gs)) mz
     | noreplace = [mz]
     | otherwise = [checkGraphemes gs mz]
 

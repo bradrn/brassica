@@ -13,7 +13,7 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.UTF8 as B8
 import qualified Data.Text as T
 
-import Brassica.SoundChange (applyChanges, splitMultipleResults, applyChangesWithLogs, reportAsText)
+import Brassica.SoundChange (applyChanges, splitMultipleResults, applyChangesWithLogs, reportAsText, GraphemeList)
 import Brassica.SoundChange.Expand (expandSoundChanges)
 import Brassica.SoundChange.Parse (parseSoundChanges, errorBundlePretty)
 import Brassica.SoundChange.Tokenise (tokeniseWords, detokeniseWords, withFirstCategoriesDecl, Component, getWords)
@@ -30,7 +30,7 @@ main = defaultMain $ testGroup "brassica-tests"
     showLogs logs = unlines $ fmap (reportAsText plaintext') $ concat $ getWords logs
 
 changesTest
-    :: (SoundChanges Expanded (Bool, [Grapheme]) -> PWord -> [a])
+    :: (SoundChanges Expanded GraphemeList -> PWord -> [a])
     -> ([Component [a]] -> String)
     -> String
     -> FilePath

@@ -70,7 +70,7 @@ module Brassica.SoundChange.Types
        , Directive(..)
        , CategoryDefinition(..)
        , FeatureSpec(..)
-       , GraphemeList
+       , GraphemeList(..)
        ) where
 
 import Control.DeepSeq (NFData(..), deepseq)
@@ -424,4 +424,5 @@ data Directive
 -- multigraphs are used, and in rule application to filter unwanted
 -- graphemes. The first 'Bool' indicates whether filtration should
 -- occur for any particular categories block.
-type GraphemeList = (Bool, [Grapheme])
+data GraphemeList = GraphemeList Bool [Grapheme]
+    deriving (Eq, Show, Ord, Generic, NFData)

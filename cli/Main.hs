@@ -109,7 +109,7 @@ data Options = Options
 processWords
     :: (MonadIO m, MonadThrow m)
     => Bool  -- split into lines?
-    -> SoundChanges Expanded (Bool, [Grapheme])
+    -> SoundChanges Expanded GraphemeList
     -> InputLexiconFormat
     -> ApplicationMode
     -> ConduitT B.ByteString B.ByteString m ()
@@ -127,7 +127,7 @@ processWords incr rules wordsFormat outMode =
         Left e -> throwM e
         Right r -> yield r
 
-    processApplicationOutput :: ApplicationOutput PWord (Statement Expanded (Bool, [Grapheme])) -> Either ParseException Text
+    processApplicationOutput :: ApplicationOutput PWord (Statement Expanded GraphemeList) -> Either ParseException Text
     processApplicationOutput (HighlightedWords cs) = Right $ pack $ detokeniseWords' highlight cs
     processApplicationOutput (AppliedRulesTable is) = Right $ pack $ unlines $ reportAsText plaintext' <$> is
     processApplicationOutput (ParseError e) = Left $ ParseException $ errorBundlePretty e

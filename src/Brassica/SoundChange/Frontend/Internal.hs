@@ -139,7 +139,7 @@ data ParseOutput a = ParsedRaw [Component a] | ParsedMDF SFM
 tokeniseAccordingToInputFormat
     :: InputLexiconFormat
     -> OutputMode
-    -> SoundChanges Expanded (Bool, [Grapheme])
+    -> SoundChanges Expanded GraphemeList
     -> String
     -> Either (ParseErrorBundle String Void) [Component PWord]
 tokeniseAccordingToInputFormat Raw _ cs =
@@ -167,12 +167,12 @@ tokeniseAccordingToInputFormat (MDF _) o cs = \input -> do
 -- the changes in the specified mode.
 parseTokeniseAndApplyRules
     :: (forall a b. (a -> b) -> [Component a] -> [Component b])  -- ^ mapping function to use (for parallelism)
-    -> SoundChanges Expanded (Bool, [Grapheme]) -- ^ changes
+    -> SoundChanges Expanded GraphemeList -- ^ changes
     -> String       -- ^ words
     -> InputLexiconFormat
     -> ApplicationMode
     -> Maybe [Component PWord]  -- ^ previous results
-    -> ApplicationOutput PWord (Statement Expanded (Bool, [Grapheme]))
+    -> ApplicationOutput PWord (Statement Expanded GraphemeList)
 parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
     case tokeniseAccordingToInputFormat intype (getOutputMode mode) statements ws of
         Left e -> ParseError e
@@ -210,7 +210,7 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
     extractMaybe (Just a, b) = Just (a, b)
     extractMaybe (Nothing, _) = Nothing
 
-    doApply :: OutputMode -> SoundChanges Expanded (Bool, [Grapheme]) -> PWord -> [Component [PWord]]
+    doApply :: OutputMode -> SoundChanges Expanded GraphemeList -> PWord -> [Component [PWord]]
     doApply WordsWithProtoOutput scs w = doApplyWithProto scs w
     doApply WordsWithProtoOutputPreserve scs w = doApplyWithProto scs w
     doApply _ scs w = [Word $ applyChanges scs w]
@@ -220,7 +220,7 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
             intermediates = fmap nubOrd $ transpose $ Brassica.SoundChange.Apply.Internal.applyChangesWithReports scs w
         in intersperse (Separator " → ") (fmap Word intermediates)
 
-    doApplyWithChanges :: OutputMode -> SoundChanges Expanded (Bool, [Grapheme]) -> PWord -> [Component [(PWord, Bool)]]
+    doApplyWithChanges :: OutputMode -> SoundChanges Expanded GraphemeList -> PWord -> [Component [(PWord, Bool)]]
     doApplyWithChanges WordsWithProtoOutput scs w = doApplyWithChangesWithProto scs w
     doApplyWithChanges WordsWithProtoOutputPreserve scs w = doApplyWithChangesWithProto scs w
     doApplyWithChanges _ scs w = [Word $ mapMaybe extractMaybe $ applyChangesWithChanges scs w]
