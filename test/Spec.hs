@@ -17,7 +17,7 @@ import Brassica.SoundChange (applyChanges, splitMultipleResults, applyChangesWit
 import Brassica.SoundChange.Expand (expandSoundChanges)
 import Brassica.SoundChange.Parse (parseSoundChanges, errorBundlePretty)
 import Brassica.SoundChange.Tokenise (tokeniseWords, detokeniseWords, withFirstCategoriesDecl, Component, getWords)
-import Brassica.SoundChange.Types (SoundChanges, PWord, plaintext', Expanded, Grapheme)
+import Brassica.SoundChange.Types (SoundChanges, PWord, plaintext', Expanded)
 
 main :: IO ()
 main = defaultMain $ testGroup "brassica-tests"
