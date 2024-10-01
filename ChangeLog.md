@@ -86,7 +86,7 @@
   - New constructor `DefineAuto` added to `Brassica.SoundChange.Types.CategoryDefinition`
   - Changes in category expansion:
       new type `Brassica.SoundChange.Expand.AutosegmentDef`,
-      and new constructors `InvalidDerivedValue` and `InvalidAuto`
+      and new constructor `InvalidDerivedValue`
         added to `Brassica.SoundChange.Expand.ExpandError`
 - Changes resulting from new rule application algorithm:
   - New constructore `PrevEnd` added to `Brassica.SoundChange.Apply.Internal.RuleTag`

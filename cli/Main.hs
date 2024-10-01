@@ -33,7 +33,6 @@ main = execParser opts >>= \case
                         (NotFound s) -> "Could not find category: " ++ s
                         InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
                         InvalidDerivedValue -> "Invalid value used as derived grapheme in autosegment"
-                        InvalidAuto s -> "Invalid category name used for autosegment: " ++ s
                         MismatchedLengths -> "Mismatched lengths in feature definition"
                     Right rules' ->
                         withSourceFileIf inWordsFile $ \inC ->

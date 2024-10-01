@@ -83,7 +83,6 @@ parseTokeniseAndApplyRules_hs
                         InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
                         MismatchedLengths -> "Mismatched lengths in feature definition"
                         InvalidDerivedValue -> "Invalid value used as derived grapheme in autosegment"
-                        InvalidAuto s -> "Invalid category name used for autosegment: " ++ s
                 Right statements' ->
                     case parseTokeniseAndApplyRules (fmap.fmap) statements' wsText infmt mode prev of
                         ParseError e -> newStableCStringLen $ "<pre>" ++ errorBundlePretty e ++ "</pre>"

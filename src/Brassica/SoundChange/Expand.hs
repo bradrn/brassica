@@ -91,8 +91,6 @@ data ExpandError
       -- ^ A 'Lexeme' was used as a base value in a feature
     | InvalidDerivedValue
       -- ^ A 'Lexeme' was used as a derived value in an autosegment
-    | InvalidAuto String
-      -- ^ A bad category was used in an autosegment declaration
     | MismatchedLengths
       -- ^ A phonetic feature or 'FeatureSpec' contained a mismatched number of values
     deriving (Show, Generic, NFData)
