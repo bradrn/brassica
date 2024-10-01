@@ -347,7 +347,7 @@ deriving instance (forall a. Show (c a), Show decl) => Show (Statement c decl)
 deriving instance (forall a. NFData (c a), NFData decl) => NFData (Statement c decl)
 
 -- | A simple wrapper around 'plaintext' for 'Statement's. Returns
--- @"\<directive\>"@ for all 'DeclS' inputs.
+-- @"\<declaration\>"@ for all 'DeclS' inputs.
 plaintext' :: Statement c decl -> String
 plaintext' (RuleS r) = plaintext r
 plaintext' (FilterS (Filter p _)) = p
@@ -365,8 +365,8 @@ data CategoryModification
     | Subtract  -- ^ Written @[Category1 -Category2]@
     deriving (Show, Eq, Ord, Generic, NFData)
 
--- | A single element of a category: a sequence of 'Lexemes'. (Single
--- 'Grapheme's receive some special treatment, e.g. they can be
+-- | A single element of a category: a sequence of 'Lexeme's. (Single
+-- v'Grapheme's receive some special treatment, e.g. they can be
 -- written without surrounding braces in Brassica syntax.)
 type CategoryElement category a = [Lexeme category a]
 
