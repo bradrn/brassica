@@ -247,13 +247,11 @@ match out prev (Wildcard l) mz = matchWildcard out prev l mz
 match out prev (Kleene l) mz = matchKleene out prev l mz
 match out _ (Grapheme g) mz = (appendGrapheme out g,) <$> maybeToList (matchGrapheme g mz)
 match out prev (Category (FromElements gs)) mz =
-    concat $ zipWith' gs [0..] $ \e i ->
+    concat $ zipWith' gs [0..] $ \ls i ->
         -- make sure to insert new index BEFORE any new ones which
         -- might be added by the recursive call
         first (insertAtCat (length $ matchedCatIxs out) i) <$>
-            case e of
-                Left  g  -> match out prev (Grapheme g :: Lexeme Expanded a) mz
-                Right ls -> matchMany out prev ls mz
+            matchMany out prev ls mz
 match out prev (GreedyCategory c) mz =
     -- Take first match only
     case match out prev (Category c) mz of
@@ -266,18 +264,14 @@ match out prev (Backreference (Left ident) (FromElements gs)) mz
     | Nothing <- Map.lookup ident (matchedBackrefIds out) =
         -- first occurrence, set backref
         -- similar to Category case above
-        concat $ zipWith' gs [0..] $ \e i ->
+        concat $ zipWith' gs [0..] $ \ls i ->
             first (\o -> o { matchedBackrefIds = Map.insert ident i $ matchedBackrefIds o })
-                <$> case e of
-                    Left  g  -> match out prev (Grapheme g :: Lexeme Expanded a) mz
-                    Right ls -> matchMany out prev ls mz
+                <$> matchMany out prev ls mz
 match out prev (Backreference i (FromElements gs)) mz = do
-    e <- maybeToList $ case i of
+    ls <- maybeToList $ case i of
         Left i' -> (gs !?) =<< Map.lookup i' (matchedBackrefIds out)
         Right i' -> (gs !?) =<< matchedCatIxs out !? (i'-1)
-    case e of
-        Left  g  -> match out prev (Grapheme g :: Lexeme Expanded a) mz
-        Right ls -> matchMany out prev ls mz
+    matchMany out prev ls mz
 match out prev (Feature r _n (Just ident) kvs l) mz
     | Just fs <- Map.lookup ident (matchedFeatureIds out) = do
         -- similar to next case, but just check that features are the same
@@ -462,19 +456,19 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
                 case matchedCatIxs out !? ci of
                     Just i | Just g' <- gs !? i ->
                         case g' of
-                            Left g -> [(ixs', (insert g mz, Just g))]
-                            Right ls -> go ixs' ls (mz, prev)
+                            [Grapheme g] -> [(ixs', (insert g mz, Just g))]
+                            ls -> go ixs' ls (mz, prev)
                     _ -> [(ixs', (insert "\xfffd" mz, Nothing))]  -- Unicode replacement character
             (CategoryId ci, ixs') ->  -- as above
                 case Map.lookup ci (matchedBackrefIds out) of
                     Just i | Just g' <- gs !? i ->
                         case g' of
-                            Left g -> [(ixs', (insert g mz, Just g))]
-                            Right ls -> go ixs' ls (mz, prev)
+                            [Grapheme g] -> [(ixs', (insert g mz, Just g))]
+                            ls -> go ixs' ls (mz, prev)
                     _ -> [(ixs', (insert "\xfffd" mz, Nothing))]  -- Unicode replacement character
             (Nondeterministic, ixs') -> gs >>= \case
-                Left g -> [(ixs', (insert g mz, Just g))]
-                Right ls -> go ixs' ls (mz, prev)
+                [Grapheme g] -> [(ixs', (insert g mz, Just g))]
+                ls -> go ixs' ls (mz, prev)
     replaceLex ixs (Optional ls) mz prev =
         let (co, ixs') = advanceOptional ixs in
             case matchedOptionals out !? co of

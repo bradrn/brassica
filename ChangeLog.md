@@ -36,6 +36,8 @@
   - New backreference syntax `@#id` allows categories to be matched by ID rather than number
   - `extra` graphemes are now always taken into account for multigraph tokenisation
       (**technically a breaking change**, but unlikely in existing sound changes)
+  - Within a category, single graphemes inside braces are now treated the same as single graphemes outside braces
+      (**technically a breaking change**, but unlikely to change existing sound changes)
 - Changes to rule application algorithm:
   - **Sound change applications can now overlap,
       such that the replacement from one application can be used as the environment for the next**
@@ -102,6 +104,9 @@
 - Remove now-unnecessary pattern `Brassica.SoundChange.Types.Boundary`
 - In parsing modules, re-export whole module `Text.Megaparsec.Error`
     rather than only re-exporting the single function `errorBundlePretty`
+- Category elements are now represented as simply `[Lexeme category a]`
+    (synonym `Brassica.SoundChanges.Types.CategoryElement`),
+    without any special case for single-grapheme elements
 
 ## 0.3.0
 

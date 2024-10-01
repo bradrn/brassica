@@ -60,22 +60,24 @@ main = defaultMain
 
     complex = Rule
         { target =
-            [ Category $ FromElements $ Left <$> ["t", "d", "n"]
+            [ Category $ FromElements $ toElem <$> ["t", "d", "n"]
             , Optional [Grapheme "y"]
-            , Category $ FromElements $ Left <$> ["i", "e"]
+            , Category $ FromElements $ toElem <$> ["i", "e"]
             ]
         , replacement =
-            [ Category $ FromElements $ Left <$> ["c", "j", "nh"]
+            [ Category $ FromElements $ toElem <$> ["c", "j", "nh"]
             , Optional [Geminate]
             ]
         , environment = pure
-            ( [Category $ FromElements $ Left <$> ["#", "a", "e", "i"]]
-            , [Category $ FromElements $ Left <$> ["a", "e", "i", "o", "u"]]
+            ( [Category $ FromElements $ toElem <$> ["#", "a", "e", "i"]]
+            , [Category $ FromElements $ toElem <$> ["a", "e", "i", "o", "u"]]
             )
         , exception = Nothing
         , flags = defFlags
         , plaintext = "[t d n] (y) [i e] / [č j ñ] (>) / [# a e i] _ [a e i o u]"
         }
+
+    toElem g = [Grapheme g]
 
     benchChanges :: Rule Expanded -> PWord -> [Benchmark]
     benchChanges cs l =

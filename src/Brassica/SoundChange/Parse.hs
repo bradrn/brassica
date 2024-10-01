@@ -127,13 +127,13 @@ parseAuto = symbol "auto" *> parseGrapheme' False <* scn
 parseCategoryModification
     :: ParseLexeme a
     => Bool
-    -> Parser (CategoryModification, Either Grapheme [Lexeme CategorySpec a])
+    -> Parser (CategoryModification, [Lexeme CategorySpec a])
 parseCategoryModification forceUnion = (,)
     <$> (if forceUnion
            then Union <$ optional (char '&')
            else parsePrefix)
-    <*> ((Right <$> (symbol "{" *> manyTill parseLexeme (symbol "}")))
-        <|> (Left <$> parseGrapheme))
+    <*> (symbol "{" *> manyTill parseLexeme (symbol "}")
+        <|> (pure . Grapheme <$> parseGrapheme))
   where
     parsePrefix =
         (Intersect <$ char '+')

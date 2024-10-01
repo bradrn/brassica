@@ -228,7 +228,7 @@ generalise _ (Autosegment n kvs gs) = Autosegment n kvs gs
 -- | Generalise an 'Expanded' category to be used in any part of a
 -- sound change, similarly to 'generalise'.
 generaliseExpanded :: Expanded 'AnyPart -> Expanded a
-generaliseExpanded = FromElements . (fmap.fmap.fmap) (generalise generaliseExpanded) . elements
+generaliseExpanded = FromElements . (fmap.fmap) (generalise generaliseExpanded) . elements
 
 deriving instance (forall x. Show (c x)) => Show (Lexeme c a)
 deriving instance (forall x. Eq (c x)) => Eq (Lexeme c a)
@@ -366,9 +366,10 @@ data CategoryModification
     | Subtract  -- ^ Written @[Category1 -Category2]@
     deriving (Show, Eq, Ord, Generic, NFData)
 
--- | A single element of a category: either a single t'Grapheme', or a
--- sequence of 'Lexeme's (written within braces in Brassica syntax).
-type CategoryElement category a = Either Grapheme [Lexeme category a]
+-- | A single element of a category: a sequence of 'Lexemes'. (Single
+-- 'Grapheme's receive some special treatment, e.g. they can be
+-- written without surrounding braces in Brassica syntax.)
+type CategoryElement category a = [Lexeme category a]
 
 -- | The specification of a category in Brassica sound-change
 -- syntax. Usually this will be as a 'CategorySpec': a list of
