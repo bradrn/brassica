@@ -45,7 +45,6 @@ module Brassica.SoundChange.Types
        , concatWithBoundary
        -- * Lexemes
        , Lexeme(..)
-       , pattern Boundary
        , LexemeType(..)
        , generalise
        -- * Categories
@@ -231,10 +230,6 @@ generalise _ (Autosegment n kvs gs) = Autosegment n kvs gs
 -- sound change, similarly to 'generalise'.
 generaliseExpanded :: Expanded 'AnyPart -> Expanded a
 generaliseExpanded = FromElements . (fmap.fmap.fmap) (generalise generaliseExpanded) . elements
-
--- | A 'Lexeme' matching a single word boundary, specified as @#@ in Brassica syntax.
-pattern Boundary :: Lexeme c a
-pattern Boundary = Grapheme "#"
 
 deriving instance (forall x. Show (c x)) => Show (Lexeme c a)
 deriving instance (forall x. Eq (c x)) => Eq (Lexeme c a)

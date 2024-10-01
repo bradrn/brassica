@@ -99,6 +99,7 @@
 - Expansion now results in sound changes with declaration type `(Bool, [Grapheme])`
     rather than `[Grapheme]`
 - New constructor `WordsWithProtoOutputPreserve` for `Brassica.SoundChange.Frontend.Internal.OutputMode`
+- Remove now-unnecessary pattern `Brassica.SoundChange.Types.Boundary`
 
 ## 0.3.0
 
