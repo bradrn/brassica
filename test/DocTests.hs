@@ -66,7 +66,10 @@ instance IsTest DocTest where
                                             Left err -> Left $ errorBundlePretty err
                                             Right i' ->
                                                 let o' = applyChanges scs' i'
-                                                    o'' = intercalate "/" $ concatWithBoundary <$> o'
+                                                    o'' =
+                                                        if null o'
+                                                        then "(deleted)"
+                                                        else intercalate "/" $ concatWithBoundary <$> o'
                                                 in if o == o''
                                                       then Right ("" :: String)
                                                       else Left $

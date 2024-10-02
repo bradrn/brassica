@@ -866,6 +866,13 @@ A **filter** is a statement which deletes output words matching some criterion.
 A filter is defined by writing `filter`, followed by a sequence of lexemes as in the target of a rule.
 The filter will then remove from the output any words which match those lexemes.
 
+```brassica
+filter V V
+
+; kane → kane (no change)
+; kaene → (deleted)
+```
+
 ### Extra graphemes
 
 An **extra graphemes** declaration takes the form of `extra` followed by a list of graphemes.
