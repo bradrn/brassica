@@ -7,7 +7,7 @@ import Control.Exception (Exception)
 
 import Conduit
 import qualified Data.ByteString as B
-import Data.Text (pack, unpack, snoc, Text)
+import Data.Text (pack, unpack, snoc, unsnoc, Text)
 import Data.Text.Encoding (decodeUtf8)
 import Options.Applicative
 
@@ -116,7 +116,7 @@ processWords
 processWords incr rules wordsFormat outMode =
     decodeUtf8C
     .| (if incr then linesUnboundedC else mapC id)
-    .| mapC (processApplicationOutput . evolve . unpack . (`snoc` '\n'))
+    .| mapC (processApplicationOutput . evolve . unpack)
     .| throwOnLeft
     .| encodeUtf8C
   where
@@ -128,9 +128,13 @@ processWords incr rules wordsFormat outMode =
         Right r -> yield r
 
     processApplicationOutput :: ApplicationOutput PWord (Statement Expanded GraphemeList) -> Either ParseException Text
-    processApplicationOutput (HighlightedWords cs) = Right $ pack $ detokeniseWords' highlight cs
+    processApplicationOutput (HighlightedWords cs) = Right $ ensureNewline $ pack $ detokeniseWords' highlight cs
     processApplicationOutput (AppliedRulesTable is) = Right $ pack $ unlines $ reportAsText plaintext' <$> is
     processApplicationOutput (ParseError e) = Left $ ParseException $ errorBundlePretty e
+
+    ensureNewline t = case unsnoc t of
+        Just (_, '\n') -> t
+        _ -> snoc t '\n'
 
     highlight (w, False) = concatWithBoundary w
     highlight (w, True) = concatWithBoundary w ++ " [+]"
