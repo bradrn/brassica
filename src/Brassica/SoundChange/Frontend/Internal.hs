@@ -37,9 +37,7 @@ import Brassica.SFM.MDF
 import Brassica.SFM.SFM
 import Brassica.SoundChange.Apply
 import Brassica.SoundChange.Apply.Internal
-       ( toPWordLog
-       , applyChangesWithLog
-       , applyChangesWithReports
+       ( applyChangesWithReports
        , applyChangesWithChangesAndReports
        )
 import Brassica.SoundChange.Tokenise
@@ -178,8 +176,8 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
         Left e -> ParseError e
         Right toks -> case mode of
             ReportRulesApplied ->
-                AppliedRulesTable $ concatMap (mapMaybe toPWordLog) $
-                    getWords $ parFmap (applyChangesWithLog statements) toks
+                AppliedRulesTable $ concat $
+                    getWords $ parFmap (applyChangesWithLogs statements) toks
             ApplyRules DifferentToLastRun mdfout sep ->
                 let result = concatMap (splitMultipleResults sep) $
                         joinComponents' mdfout $ parFmap (doApply mdfout statements) toks

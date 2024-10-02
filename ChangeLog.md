@@ -103,6 +103,9 @@
     rather than `[Grapheme]`
 - API of `Brassica.SoundChanges.Apply` (and `Brassica.SoundChanges.Apply.Internal`) has been refactored:
   - `LogItem` no longer stores redundant information on input words
+  - `PWordLog` is now based on `LogItem`
+  - Application functions use `PWordLog` directly as an intermediate
+      rather than going through lists of `LogItem`s
   - `applyChangesWithChanges` no longer returns a `Maybe` result
 - New constructor `WordsWithProtoOutputPreserve` for `Brassica.SoundChange.Frontend.Internal.OutputMode`
 - Remove now-unnecessary pattern `Brassica.SoundChange.Types.Boundary`

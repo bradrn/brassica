@@ -80,11 +80,9 @@ module Brassica.SoundChange.Apply.Internal
        -- * Logging
        , LogItem(..)
        , PWordLog(..)
-       , toPWordLog
        , reportAsHtmlRows
        , reportAsText
        , applyStatementWithLog
-       , applyChangesWithLog
        , applyChangesWithLogs
        , applyChangesWithChanges
        , applyChangesWithReports
@@ -762,7 +760,7 @@ applyStatementStr st =
 -- sound change, specifies the action which was applied, as well as
 -- the state after it was applied.
 data LogItem r
-    = ActionApplied r (Maybe PWord)
+    = ActionApplied r (Maybe PWord)  -- ^ 'Nothing' if the word was deleted
     | ReportWord PWord
     deriving (Show, Functor, Generic, NFData)
 
@@ -780,22 +778,9 @@ logOutput (ReportWord o) = Just o
 data PWordLog r = PWordLog
     { initialWord :: PWord
     -- ^ The initial word, before any actions have been applied
-    , derivations :: [(Maybe PWord, r)]
-    -- ^ The state of the word after each action @r@, stored alongside
-    -- the action which was applied at each point; or 'Nothing' if the
-    -- word was deleted
+    , derivations :: [LogItem r]
+    -- ^ The state of the word after each action
     } deriving (Show, Functor, Generic, NFData)
-
--- | Convert a list of individual 'LogItem's for a single word to a
--- 'PWordLog' summarising the whole evolution of that word.
-toPWordLog :: [LogItem r] -> Maybe (PWordLog r)
-toPWordLog ls@(ReportWord w : _) = Just $ PWordLog
-    { initialWord = w
-    , derivations = flip mapMaybe ls $ \case
-            ActionApplied action output -> Just (output, action)
-            _ -> Nothing
-    }
-toPWordLog _ = Nothing  -- cannot convert malformed log
 
 -- | Pretty-print a single 'PWordLog' as rows of an HTML table. For
 -- instance, the example log given in the documentation for
@@ -817,10 +802,15 @@ reportAsHtmlRows
 reportAsHtmlRows render item = go (concatWithBoundary $ initialWord item) (derivations item)
   where
     go _ [] = ""
-    go cell1 ((output, action) : ds) =
+    go cell1 (ActionApplied action output : ds) =
         ("<tr><td>" ++ cell1 ++ "</td><td>&rarr;</td><td>"
          ++ maybe "<i>deleted</i>" concatWithBoundary output
          ++ "</td><td>(" ++ render action ++ ")</td></tr>")
+        ++ go "" ds
+    go cell1 (ReportWord w : ds) =
+        ("<tr><td>" ++ cell1 ++ "</td><td>&rarr;</td><td>"
+         ++ concatWithBoundary w
+         ++ "</td><td>(report)</td></tr>")
         ++ go "" ds
 
 -- | Pretty-print a 'PWordLog' as plain text. For instance, this log:
@@ -846,15 +836,17 @@ reportAsText
 reportAsText render item = unlines $
     concatWithBoundary (initialWord item) : fmap toLine (alignWithPadding $ derivations item)
   where
-    alignWithPadding :: [(Maybe PWord, b)] -> [([Char], b)]
     alignWithPadding ds =
-        let (rawOutputs, actions) = unzip ds
+        let (rawOutputs, actions) = unzip $ toPrintable <$> ds
             outputs = maybe "(deleted)" concatWithBoundary <$> rawOutputs
             maxlen = maximum $ length <$> outputs
             padded = outputs <&> \o -> o ++ replicate (maxlen - length o) ' '
         in zip padded actions
 
-    toLine (output, action) = "  -> " ++ output ++ "  (" ++ render action ++ ")"
+    toLine (output, action) = "  -> " ++ output ++ "  (" ++ action ++ ")"
+
+    toPrintable (ActionApplied a o) = (o, render a)
+    toPrintable (ReportWord w) = (Just w, "report")
 
 -- | Apply a single 'Statement' to a word. Returns a 'LogItem' for
 -- each possible result, or @[]@ if the rule does not apply and the
@@ -869,17 +861,18 @@ applyStatementWithLog st w = case applyStatementStr st w of
     [w'] | w' == w -> []
     r -> ActionApplied st . Just <$> r
 
--- | Apply 'SoundChanges' to a word. For each possible result, returns
--- a 'LogItem' for each 'Statement' which altered the input, plus a
--- 'ReportWord' for at least the input and output words.
-applyChangesWithLog
+-- | Apply a set of 'SoundChanges' to a word, returning a log of which
+-- sound changes applied to produce each output word.
+applyChangesWithLogs
     :: SoundChanges Expanded GraphemeList
     -> PWord
-    -> [[LogItem (Statement Expanded GraphemeList)]]
-applyChangesWithLog [] w = [[ReportWord w]]  -- always report the final result
-applyChangesWithLog scs w = (ReportWord w:) <$> go scs w
+    -> [PWordLog (Statement Expanded GraphemeList)]
+applyChangesWithLogs scs w = go scs w <&> \ls -> PWordLog
+    { initialWord = w
+    , derivations = ls
+    }
   where
-    go [] w' = [[ReportWord w']]  -- always report the final result
+    go [] _ = [[]]   -- one result, no changes applied
     go (st:sts) w' =
         case applyStatementWithLog st w' of
             [] -> go sts w'
@@ -890,28 +883,21 @@ applyChangesWithLog scs w = (ReportWord w:) <$> go scs w
                     -- apply no further changes to a deleted word
                     Nothing -> [[l]]
 
--- | Apply a set of 'SoundChanges' to a word, returning a log of which
--- sound changes applied to produce each output word.
-applyChangesWithLogs
-    :: SoundChanges Expanded GraphemeList
-    -> PWord
-    -> [PWordLog (Statement Expanded GraphemeList)]
-applyChangesWithLogs scs w = mapMaybe toPWordLog $ applyChangesWithLog  scs w
-
 -- | Apply a set of 'SoundChanges' to a word, returning the final
 -- output word(s).
 applyChanges :: SoundChanges Expanded GraphemeList -> PWord -> [PWord]
-applyChanges sts w =
-    mapMaybe lastOutput $ applyChangesWithLog sts w
+applyChanges sts w = mapMaybe lastOutput $ applyChangesWithLogs sts w
   where
-    -- If no changes were applied, output is same as input
-    lastOutput [] = Just w
-    lastOutput ls = logOutput $ last ls
+    lastOutput l = case derivations l of
+        d@(_:_) -> logOutput $ last d
+        [] -> Just w
 
--- | Apply a set of 'SoundChanges' to a word, returning the final
--- output word(s) as well as any intermediate results from 'ReportS'.
+-- | Apply a set of 'SoundChanges' to a word, returning the initial
+-- and final output word(s), as well as any intermediate results from
+-- 'ReportS'.
 applyChangesWithReports :: SoundChanges Expanded GraphemeList -> PWord -> [[PWord]]
-applyChangesWithReports sts w = getReports <$> applyChangesWithLog sts w
+applyChangesWithReports sts w = applyChangesWithLogs sts w <&> \l ->
+    initialWord l : getReports (derivations l)
   where
     getReports [] = []
     getReports [ActionApplied _ (Just w')] = [w']
@@ -923,9 +909,9 @@ applyChangesWithReports sts w = getReports <$> applyChangesWithLog sts w
 -- has been changed from the input (accounting for 'highlightChanges'
 -- flags).
 applyChangesWithChanges :: SoundChanges Expanded GraphemeList -> PWord -> [(PWord, Bool)]
-applyChangesWithChanges sts w = mapMaybe go $ applyChangesWithLog sts w
+applyChangesWithChanges sts w = mapMaybe go $ applyChangesWithLogs sts w
   where
-    go = \case
+    go l = case derivations l of
         [] -> Just (w, False)
         logs -> case logOutput (last logs) of
             Just out -> Just (out, hasChanged logs)
@@ -942,7 +928,8 @@ applyChangesWithChanges sts w = mapMaybe go $ applyChangesWithLog sts w
 -- output word(s) as well as any intermediate results from 'ReportS',
 -- each with a boolean marking changed results (as with 'applyChangesWithChanges').
 applyChangesWithChangesAndReports :: SoundChanges Expanded GraphemeList -> PWord -> [[(PWord, Bool)]]
-applyChangesWithChangesAndReports sts w = getReports <$> applyChangesWithLog sts w
+applyChangesWithChangesAndReports sts w = applyChangesWithLogs sts w <&> \l ->
+    (initialWord l, False) : getReports (derivations l)
   where
     getReports :: [LogItem (Statement Expanded GraphemeList)] -> [(PWord, Bool)]
     getReports [] = []
