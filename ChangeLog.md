@@ -100,8 +100,10 @@
 - Expansion now results in sound changes with declaration type `GraphemesList`
     rather than `[Grapheme]`
 - API of `Brassica.SoundChanges.Apply` (and `Brassica.SoundChanges.Apply.Internal`) has been refactored:
-  - `LogItem` no longer stores redundant information on input words
-  - `PWordLog` is now based on `LogItem`
+  - `LogItem` (now re-exported from `Brassica.SoundChanges.Apply`)
+      no longer stores redundant information on input words
+  - `PWordLog` is renamed `Log`, and is now based on `LogItem`
+  - `initialWord` is now renamed `inputWord`
   - Former functions `applyRule` and `applyStatement`
       have been renamed to `applyRuleMZ` and `applyStatementMZ`;
   - Former functions `applyRuleWithLogs` and `applyStatementWithLog`

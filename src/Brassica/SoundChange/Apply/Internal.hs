@@ -78,7 +78,7 @@ module Brassica.SoundChange.Apply.Internal
        , applyStatementStr
        -- * Logging
        , LogItem(..)
-       , PWordLog(..)
+       , Log(..)
        , reportAsHtmlRows
        , reportAsText
        , applyStatement
@@ -776,15 +776,15 @@ logOutput (ReportWord o) = Just o
 
 -- | Logs the evolution of a word as it undergoes sound changes and
 -- other actions.
-data PWordLog r = PWordLog
-    { initialWord :: PWord
-    -- ^ The initial word, before any actions have been applied
+data Log r = Log
+    { inputWord :: PWord
+    -- ^ The input word, before any actions have been applied
     , derivations :: [LogItem r]
     -- ^ All actions which were applied, with the state of the word at
     -- each point
     } deriving (Show, Functor, Generic, NFData)
 
--- | Pretty-print a single 'PWordLog' as rows of an HTML table. For
+-- | Pretty-print a single 'Log' as rows of an HTML table. For
 -- instance, the example log given in the documentation for
 -- 'reportAsText' would be converted to the following HTML:
 --
@@ -800,8 +800,8 @@ data PWordLog r = PWordLog
 
 reportAsHtmlRows
     :: (r -> String)  -- ^ Specifies how to pretty-print actions as text
-    -> PWordLog r -> String
-reportAsHtmlRows render item = go (concatWithBoundary $ initialWord item) (derivations item)
+    -> Log r -> String
+reportAsHtmlRows render item = go (concatWithBoundary $ inputWord item) (derivations item)
   where
     go _ [] = ""
     go cell1 (ActionApplied action output : ds) =
@@ -815,11 +815,11 @@ reportAsHtmlRows render item = go (concatWithBoundary $ initialWord item) (deriv
          ++ "</td><td>(report)</td></tr>")
         ++ go "" ds
 
--- | Pretty-print a 'PWordLog' as plain text. For instance, this log:
+-- | Pretty-print a 'Log' as plain text. For instance, this log:
 --
 -- @
--- 'PWordLog'
---   { 'initialWord' = ["t", "a", "r", "a"]
+-- 'Log'
+--   { 'inputWord' = ["t", "a", "r", "a"]
 --   , 'derivations' =
 --     [ ('Just' ["t", "a", "zh", "a"], "r \/ zh")
 --     , ('Just' ["t", "a", "zh"], "V \/ \/ _ #")
@@ -834,9 +834,9 @@ reportAsHtmlRows render item = go (concatWithBoundary $ initialWord item) (deriv
 -- >   -> tazh   (V / / _ #)
 reportAsText
     :: (r -> String)  -- ^ Specifies how to pretty-print actions as text
-    -> PWordLog r -> String
+    -> Log r -> String
 reportAsText render item = unlines $
-    concatWithBoundary (initialWord item) : fmap toLine (alignWithPadding $ derivations item)
+    concatWithBoundary (inputWord item) : fmap toLine (alignWithPadding $ derivations item)
   where
     alignWithPadding ds =
         let (rawOutputs, actions) = unzip $ toPrintable <$> ds
@@ -868,9 +868,9 @@ applyStatement st w = case applyStatementStr st w of
 applyChanges
     :: SoundChanges Expanded GraphemeList
     -> PWord
-    -> [PWordLog (Statement Expanded GraphemeList)]
-applyChanges scs w = go scs w <&> \ls -> PWordLog
-    { initialWord = w
+    -> [Log (Statement Expanded GraphemeList)]
+applyChanges scs w = go scs w <&> \ls -> Log
+    { inputWord = w
     , derivations = ls
     }
   where
@@ -886,15 +886,15 @@ applyChanges scs w = go scs w <&> \ls -> PWordLog
                     Nothing -> [[l]]
 
 -- | Returns the final output from a sound change log.
-getOutput :: PWordLog r -> Maybe PWord
+getOutput :: Log r -> Maybe PWord
 getOutput l = case derivations l of
     d@(_:_) -> logOutput $ last d
-    [] -> Just $ initialWord l
+    [] -> Just $ inputWord l
 
 -- | Returns, in order: the input word, any intermediate results from
 -- 'ReportS', and then the final output.
-getReports :: PWordLog r -> [PWord]
-getReports l = initialWord l : go (derivations l)
+getReports :: Log r -> [PWord]
+getReports l = inputWord l : go (derivations l)
   where
     go [] = []
     go [ActionApplied _ (Just w')] = [w']
@@ -904,9 +904,9 @@ getReports l = initialWord l : go (derivations l)
 -- | Returns the final output from a sound change log, as well as an
 -- indication of whether any sound changes have applied to it
 -- (accounting for 'highlightChanges' flags).
-getChangedOutputs :: PWordLog (Statement c d) -> Maybe (PWord, Bool)
+getChangedOutputs :: Log (Statement c d) -> Maybe (PWord, Bool)
 getChangedOutputs l = case derivations l of
-    [] -> Just (initialWord l, False)
+    [] -> Just (inputWord l, False)
     logs -> case logOutput (last logs) of
         Just out -> Just (out, hasChanged logs)
         Nothing -> Nothing
@@ -921,8 +921,8 @@ getChangedOutputs l = case derivations l of
 -- | A combination of 'getOutput' and 'getChangedOutputs': returns all
 -- intermediate results, as well as whether each has undergone any
 -- sound changes.
-getChangedReports :: PWordLog (Statement c d) -> [(PWord, Bool)]
-getChangedReports l = (initialWord l, False) : case derivations l of
+getChangedReports :: Log (Statement c d) -> [(PWord, Bool)]
+getChangedReports l = (inputWord l, False) : case derivations l of
     [] -> []
     ls -> go False ls
   where

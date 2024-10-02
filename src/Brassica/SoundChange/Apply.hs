@@ -20,7 +20,7 @@ module Brassica.SoundChange.Apply
        , applyStatementStr
        -- * Applying multiple sound changes
        , applyChanges
-       , PWordLog(..)
+       , Log(..)
        , LogItem(..)
        -- * Reporting results
        , getOutput

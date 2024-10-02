@@ -101,7 +101,7 @@ instance Enum OutputMode where
 -- parse error.
 data ApplicationOutput a r
     = HighlightedWords [Component (a, Bool)]
-    | AppliedRulesTable [PWordLog r]
+    | AppliedRulesTable [Log r]
     | ParseError (ParseErrorBundle String Void)
     deriving (Show, Generic, NFData)
 
