@@ -39,9 +39,9 @@
 --
 --     * Words are represented as 'MultiZipper's, with a cursor index
 --       and zero or more tagged indices. A sound change can then be
---       applied ('applyRule') by advancing through the word from left
---       to right. (Right-to-left application is achieved by reversing
---       both word and rule.)
+--       applied ('applyRuleMZ') by advancing through the word from
+--       left to right. (Right-to-left application is achieved by
+--       reversing both word and rule.)
 --
 --     * For each potential application site, 'applyOnce' checks the
 --       target, environments and exceptions. If they are all
@@ -71,22 +71,22 @@ module Brassica.SoundChange.Apply.Internal
        -- * Sound change application
        , applyOnce
        , setupForNextApplication
-       , applyRule
+       , applyRuleMZ
        , checkGraphemes
-       , applyStatement
+       , applyStatementMZ
        , applyRuleStr
        , applyStatementStr
-       , applyChanges
        -- * Logging
        , LogItem(..)
        , PWordLog(..)
        , reportAsHtmlRows
        , reportAsText
-       , applyStatementWithLog
-       , applyChangesWithLogs
-       , applyChangesWithChanges
-       , applyChangesWithReports
-       , applyChangesWithChangesAndReports
+       , applyStatement
+       , applyChanges
+       , getOutput
+       , getReports
+       , getChangedOutputs
+       , getChangedReports
        ) where
 
 import Control.Applicative ((<|>))
@@ -95,7 +95,7 @@ import Control.Monad ((>=>), (<=<), join)  -- needed for mtl>=2.3
 import Data.Containers.ListUtils (nubOrd)
 import Data.Functor ((<&>))
 import Data.List (elemIndex)
-import Data.Maybe (maybeToList, fromMaybe, listToMaybe, mapMaybe)
+import Data.Maybe (maybeToList, fromMaybe, listToMaybe)
 import GHC.Generics (Generic)
 
 import Control.DeepSeq (NFData)
@@ -671,8 +671,8 @@ setupForNextApplication status Rule{flags=Flags{nonOverlappingTarget}} =
 -- times as possible. Returns all valid results.
 --
 -- Note: unlike 'applyRuleStr', this can produce duplicate outputs.
-applyRule :: Rule Expanded -> MultiZipper RuleTag Grapheme -> [MultiZipper RuleTag Grapheme]
-applyRule r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
+applyRuleMZ :: Rule Expanded -> MultiZipper RuleTag Grapheme -> [MultiZipper RuleTag Grapheme]
+applyRuleMZ r = \mz ->    -- use a lambda so mz isn't shadowed in the where block
     let result = case applyDirection (flags r) of
             LTR -> repeatRule $ toBeginning mz
             -- Apply RTL by reversing both rule and word
@@ -722,16 +722,16 @@ checkGraphemes gs = fmap $ \case
 
 -- | Apply a 'Statement' to a 'MultiZipper', returning zero, one or
 -- more results.
-applyStatement
+applyStatementMZ
     :: Statement Expanded GraphemeList
     -> MultiZipper RuleTag Grapheme
     -> [MultiZipper RuleTag Grapheme]
-applyStatement (RuleS r) mz = applyRule r mz
-applyStatement (FilterS f) mz
+applyStatementMZ (RuleS r) mz = applyRuleMZ r mz
+applyStatementMZ (FilterS f) mz
     | filterMatches f mz = []
     | otherwise = [mz]
-applyStatement ReportS mz = [mz]
-applyStatement (DeclS (GraphemeList noreplace gs)) mz
+applyStatementMZ ReportS mz = [mz]
+applyStatementMZ (DeclS (GraphemeList noreplace gs)) mz
     | noreplace = [mz]
     | otherwise = [checkGraphemes gs mz]
 
@@ -741,7 +741,7 @@ applyRuleStr :: Rule Expanded -> PWord -> [PWord]
 applyRuleStr r =
     addBoundaries
     >>> fromListStart
-    >>> applyRule r
+    >>> applyRuleMZ r
     >>> fmap (toList >>> removeBoundaries)
     >>> nubOrd
 
@@ -752,7 +752,7 @@ applyStatementStr :: Statement Expanded GraphemeList -> PWord -> [PWord]
 applyStatementStr st =
     addBoundaries
     >>> fromListStart
-    >>> applyStatement st
+    >>> applyStatementMZ st
     >>> fmap (toList >>> removeBoundaries)
     >>> nubOrd
 
@@ -851,30 +851,30 @@ reportAsText render item = unlines $
 -- | Apply a single 'Statement' to a word. Returns a 'LogItem' for
 -- each possible result, or @[]@ if the rule does not apply and the
 -- input is returned unmodified.
-applyStatementWithLog
+applyStatement
     :: Statement Expanded GraphemeList
     -> PWord
     -> [LogItem (Statement Expanded GraphemeList)]
-applyStatementWithLog ReportS w = [ReportWord w]
-applyStatementWithLog st w = case applyStatementStr st w of
+applyStatement ReportS w = [ReportWord w]
+applyStatement st w = case applyStatementStr st w of
     [] -> [ActionApplied st Nothing]
     [w'] | w' == w -> []
     r -> ActionApplied st . Just <$> r
 
 -- | Apply a set of 'SoundChanges' to a word, returning a log of which
 -- sound changes applied to produce each output word.
-applyChangesWithLogs
+applyChanges
     :: SoundChanges Expanded GraphemeList
     -> PWord
     -> [PWordLog (Statement Expanded GraphemeList)]
-applyChangesWithLogs scs w = go scs w <&> \ls -> PWordLog
+applyChanges scs w = go scs w <&> \ls -> PWordLog
     { initialWord = w
     , derivations = ls
     }
   where
     go [] _ = [[]]   -- one result, no changes applied
     go (st:sts) w' =
-        case applyStatementWithLog st w' of
+        case applyStatement st w' of
             [] -> go sts w'
             outputActions -> outputActions >>= \case
                 l@(ReportWord w'') -> (l :) <$> go sts w''
@@ -883,40 +883,32 @@ applyChangesWithLogs scs w = go scs w <&> \ls -> PWordLog
                     -- apply no further changes to a deleted word
                     Nothing -> [[l]]
 
--- | Apply a set of 'SoundChanges' to a word, returning the final
--- output word(s).
-applyChanges :: SoundChanges Expanded GraphemeList -> PWord -> [PWord]
-applyChanges sts w = mapMaybe lastOutput $ applyChangesWithLogs sts w
-  where
-    lastOutput l = case derivations l of
-        d@(_:_) -> logOutput $ last d
-        [] -> Just w
+-- | Returns the final output from a sound change log.
+getOutput :: PWordLog r -> Maybe PWord
+getOutput l = case derivations l of
+    d@(_:_) -> logOutput $ last d
+    [] -> Just $ initialWord l
 
--- | Apply a set of 'SoundChanges' to a word, returning the initial
--- and final output word(s), as well as any intermediate results from
--- 'ReportS'.
-applyChangesWithReports :: SoundChanges Expanded GraphemeList -> PWord -> [[PWord]]
-applyChangesWithReports sts w = applyChangesWithLogs sts w <&> \l ->
-    initialWord l : getReports (derivations l)
+-- | Returns, in order: the input word, any intermediate results from
+-- 'ReportS', and then the final output.
+getReports :: PWordLog r -> [PWord]
+getReports l = initialWord l : go (derivations l)
   where
-    getReports [] = []
-    getReports [ActionApplied _ (Just w')] = [w']
-    getReports (ReportWord w':ls) = w' : getReports ls
-    getReports (_:ls) = getReports ls
+    go [] = []
+    go [ActionApplied _ (Just w')] = [w']
+    go (ReportWord w':ls) = w' : go ls
+    go (_:ls) = go ls
 
--- | Apply a set of 'SoundChanges' to a word returning the final
--- output word(s), as well as a boolean value indicating whether each
--- has been changed from the input (accounting for 'highlightChanges'
--- flags).
-applyChangesWithChanges :: SoundChanges Expanded GraphemeList -> PWord -> [(PWord, Bool)]
-applyChangesWithChanges sts w = mapMaybe go $ applyChangesWithLogs sts w
+-- | Returns the final output from a sound change log, as well as an
+-- indication of whether any sound changes have applied to it
+-- (accounting for 'highlightChanges' flags).
+getChangedOutputs :: PWordLog (Statement c d) -> Maybe (PWord, Bool)
+getChangedOutputs l = case derivations l of
+    [] -> Just (initialWord l, False)
+    logs -> case logOutput (last logs) of
+        Just out -> Just (out, hasChanged logs)
+        Nothing -> Nothing
   where
-    go l = case derivations l of
-        [] -> Just (w, False)
-        logs -> case logOutput (last logs) of
-            Just out -> Just (out, hasChanged logs)
-            Nothing -> Nothing
-
     hasChanged = any $ \case
         ActionApplied (RuleS rule) _ -> highlightChanges $ flags rule
         ActionApplied (FilterS _) _ -> False  -- cannot highlight nonexistent word
@@ -924,21 +916,22 @@ applyChangesWithChanges sts w = mapMaybe go $ applyChangesWithLogs sts w
         ActionApplied ReportS _ -> False  -- reporting a word yields no change
         ReportWord _ -> False
 
+-- | A combination of 'getOutput' and 'getChangedOutputs': returns all
+-- intermediate results, as well as whether each has undergone any
+-- sound changes.
+getChangedReports :: PWordLog (Statement c d) -> [(PWord, Bool)]
+getChangedReports l = (initialWord l, False) : case derivations l of
+    [] -> []
+    ls -> go False ls
+  where
+    go _ [] = []
+    go hasChanged (ActionApplied action _:ls) =
+        let hasChanged' = case action of
+                RuleS rule -> hasChanged || highlightChanges (flags rule)
+                _ -> hasChanged
+        in go hasChanged' ls
+    go hasChanged (ReportWord w':ls) = (w', hasChanged) : go hasChanged ls
+
 -- | Apply a set of 'SoundChanges' to a word, returning the final
 -- output word(s) as well as any intermediate results from 'ReportS',
 -- each with a boolean marking changed results (as with 'applyChangesWithChanges').
-applyChangesWithChangesAndReports :: SoundChanges Expanded GraphemeList -> PWord -> [[(PWord, Bool)]]
-applyChangesWithChangesAndReports sts w = applyChangesWithLogs sts w <&> \l ->
-    (initialWord l, False) : getReports (derivations l)
-  where
-    getReports :: [LogItem (Statement Expanded GraphemeList)] -> [(PWord, Bool)]
-    getReports [] = []
-    getReports l = go False l
-      where
-        go _ [] = []
-        go hasChanged (ActionApplied action _:ls) =
-            let hasChanged' = case action of
-                    RuleS rule -> hasChanged || highlightChanges (flags rule)
-                    _ -> hasChanged
-            in go hasChanged' ls
-        go hasChanged (ReportWord w':ls) = (w', hasChanged) : go hasChanged ls

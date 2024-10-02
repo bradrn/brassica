@@ -24,6 +24,7 @@
 -- file to a words file (without error-handling):
 --
 -- @
+-- import Data.Maybe (mapMaybe)
 -- import System.Environment (getArgs)
 -- import Brassica.SoundChange
 --
@@ -39,7 +40,7 @@
 --         Right wordsTokenised =
 --             'withFirstCategoriesDecl' 'tokeniseWords' changesExpanded words
 --
---         wordsOutput = fmap ('applyChanges' changesExpanded) <$> wordsTokenised
+--         wordsOutput = fmap (mapMaybe 'getOutput' . 'applyChanges' changesExpanded) <$> wordsTokenised
 --
 --     putStrLn $ 'detokeniseWords' $
 --         concatMap ('splitMultipleResults' "/") wordsOutput

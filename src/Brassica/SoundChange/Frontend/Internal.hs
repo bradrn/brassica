@@ -36,10 +36,6 @@ import Text.Megaparsec (ParseErrorBundle)
 import Brassica.SFM.MDF
 import Brassica.SFM.SFM
 import Brassica.SoundChange.Apply
-import Brassica.SoundChange.Apply.Internal
-       ( applyChangesWithReports
-       , applyChangesWithChangesAndReports
-       )
 import Brassica.SoundChange.Tokenise
 import Brassica.SoundChange.Types
 
@@ -177,7 +173,7 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
         Right toks -> case mode of
             ReportRulesApplied ->
                 AppliedRulesTable $ concat $
-                    getWords $ parFmap (applyChangesWithLogs statements) toks
+                    getWords $ parFmap (applyChanges statements) toks
             ApplyRules DifferentToLastRun mdfout sep ->
                 let result = concatMap (splitMultipleResults sep) $
                         joinComponents' mdfout $ parFmap (doApply mdfout statements) toks
@@ -208,21 +204,21 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
     doApply :: OutputMode -> SoundChanges Expanded GraphemeList -> PWord -> [Component [PWord]]
     doApply WordsWithProtoOutput scs w = doApplyWithProto scs w
     doApply WordsWithProtoOutputPreserve scs w = doApplyWithProto scs w
-    doApply _ scs w = [Word $ applyChanges scs w]
+    doApply _ scs w = [Word $ mapMaybe getOutput $ applyChanges scs w]
 
     doApplyWithProto scs w =
         let intermediates :: [[PWord]]
-            intermediates = fmap nubOrd $ transpose $ Brassica.SoundChange.Apply.Internal.applyChangesWithReports scs w
+            intermediates = fmap nubOrd $ transpose $ getReports <$> applyChanges scs w
         in intersperse (Separator " → ") (fmap Word intermediates)
 
     doApplyWithChanges :: OutputMode -> SoundChanges Expanded GraphemeList -> PWord -> [Component [(PWord, Bool)]]
     doApplyWithChanges WordsWithProtoOutput scs w = doApplyWithChangesWithProto scs w
     doApplyWithChanges WordsWithProtoOutputPreserve scs w = doApplyWithChangesWithProto scs w
-    doApplyWithChanges _ scs w = [Word $ applyChangesWithChanges scs w]
+    doApplyWithChanges _ scs w = [Word $ mapMaybe getChangedOutputs $ applyChanges scs w]
 
     doApplyWithChangesWithProto scs w =
         let intermediates :: [[(PWord, Bool)]]
-            intermediates = fmap nubOrd $ transpose $ Brassica.SoundChange.Apply.Internal.applyChangesWithChangesAndReports scs w
+            intermediates = fmap nubOrd $ transpose $ getChangedReports <$> applyChanges scs w
         in intersperse (Separator " → ") (fmap Word intermediates)
 
     joinComponents' WordsWithProtoOutput =

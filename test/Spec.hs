@@ -5,6 +5,7 @@ module Main where
 import Conduit
 import Control.Category ((>>>))
 import Control.Monad.Trans.Except (runExceptT, throwE)
+import Data.Maybe (mapMaybe)
 import System.IO (IOMode(..), withFile)
 import Test.Tasty ( defaultMain, testGroup, TestTree )
 import Test.Tasty.Golden (goldenVsFile)
@@ -13,7 +14,7 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.UTF8 as B8
 import qualified Data.Text as T
 
-import Brassica.SoundChange (applyChanges, splitMultipleResults, applyChangesWithLogs, reportAsText, GraphemeList)
+import Brassica.SoundChange (applyChanges, getOutput, splitMultipleResults, reportAsText, GraphemeList)
 import Brassica.SoundChange.Expand (expandSoundChanges)
 import Brassica.SoundChange.Parse (parseSoundChanges, errorBundlePretty)
 import Brassica.SoundChange.Tokenise (tokeniseWords, detokeniseWords, withFirstCategoriesDecl, Component, getWords)
@@ -21,8 +22,8 @@ import Brassica.SoundChange.Types (SoundChanges, PWord, plaintext', Expanded)
 
 main :: IO ()
 main = defaultMain $ testGroup "brassica-tests"
-    [ changesTest applyChanges showWord "changes golden test" "words.out" "words.golden"
-    , changesTest applyChangesWithLogs showLogs "changes golden test with log" "words-log.out" "words-log.golden"
+    [ changesTest ((mapMaybe getOutput .) . applyChanges) showWord "changes golden test" "words.out" "words.golden"
+    , changesTest                           applyChanges  showLogs "changes golden test with log" "words-log.out" "words-log.golden"
     ]
   where
     showWord = detokeniseWords . concatMap (splitMultipleResults " ")

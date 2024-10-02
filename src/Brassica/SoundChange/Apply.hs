@@ -13,12 +13,12 @@ module Brassica.SoundChange.Apply
        , applyStatementStr
        -- * Applying multiple sound changes
        , applyChanges
-       , applyChangesWithChanges
-       , applyChangesWithReports
-       , applyChangesWithChangesAndReports
-       , applyChangesWithLogs
-       -- * Logs
        , PWordLog(..)
+       -- * Summarising application results
+       , getOutput
+       , getReports
+       , getChangedOutputs
+       , getChangedReports
        , reportAsText
        , reportAsHtmlRows
        ) where

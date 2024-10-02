@@ -75,8 +75,6 @@
 - Renamed constructor `Brassica.SoundChange.Types.DirectiveS` to `Brassica.SoundChange.Types.DeclS` 
 - Changes resulting from addition of `report`:
   - New constructor `ReportS` added to `Brassica.SoundChange.Types.Statement`
-  - New functions `Brassica.SoundChange.Apply.Internal.applyChangesWithReports`,
-      `Brassica.SoundChange.Apply.Internal.applyChangesWithChangesWithReports`
   - A constructor `ReportWord` has been added to `Brassica.SoundChange.Apply.Internal.LogItem`,
       while its former record fields `input` and `output` have been replaced with functions
       `logInput` and `logOutput`.
@@ -104,9 +102,9 @@
 - API of `Brassica.SoundChanges.Apply` (and `Brassica.SoundChanges.Apply.Internal`) has been refactored:
   - `LogItem` no longer stores redundant information on input words
   - `PWordLog` is now based on `LogItem`
-  - Application functions use `PWordLog` directly as an intermediate
-      rather than going through lists of `LogItem`s
-  - `applyChangesWithChanges` no longer returns a `Maybe` result
+  - Set of sound change application functions `applyChanges*`
+      has been replaced with a single function `applyChanges` returning a `PWordLog`,
+      plus a set of functions to extract various outputs from it
 - New constructor `WordsWithProtoOutputPreserve` for `Brassica.SoundChange.Frontend.Internal.OutputMode`
 - Remove now-unnecessary pattern `Brassica.SoundChange.Types.Boundary`
 - In parsing modules, re-export whole module `Text.Megaparsec.Error`

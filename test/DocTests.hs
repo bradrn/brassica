@@ -14,7 +14,7 @@ import Test.Tasty.Providers
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 
-import Brassica.SoundChange (applyChanges, concatWithBoundary)
+import Brassica.SoundChange (applyChanges, concatWithBoundary, getOutput)
 import Brassica.SoundChange.Expand (expandSoundChanges)
 import Brassica.SoundChange.Parse (parseSoundChanges, errorBundlePretty)
 import Brassica.SoundChange.Tokenise (withFirstCategoriesDecl, tokeniseWord)
@@ -65,7 +65,7 @@ instance IsTest DocTest where
                                         case withFirstCategoriesDecl tokeniseWord scs' i of
                                             Left err -> Left $ errorBundlePretty err
                                             Right i' ->
-                                                let o' = applyChanges scs' i'
+                                                let o' = mapMaybe getOutput $ applyChanges scs' i'
                                                     o'' =
                                                         if null o'
                                                         then "(deleted)"
