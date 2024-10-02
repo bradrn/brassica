@@ -883,7 +883,7 @@ applyChangesWithLog
 applyChangesWithLog [] w = [[ReportWord w]]  -- always report the final result
 applyChangesWithLog scs w = (ReportWord w:) <$> go scs w
   where
-    go [] w' = [[ReportWord w']]  -- alw'ays report the final result
+    go [] w' = [[ReportWord w']]  -- always report the final result
     go (st:sts) w' =
         case applyStatementWithLog st w' of
             [] -> go sts w'
@@ -891,7 +891,7 @@ applyChangesWithLog scs w = (ReportWord w:) <$> go scs w
                 l@(ReportWord w'') -> (l :) <$> go sts w''
                 l@(ActionApplied _ _ output) -> case output of
                     Just w'' -> (l :) <$> go sts w''
-                    -- apply no further changes to a deleted w'ord
+                    -- apply no further changes to a deleted word
                     Nothing -> [[l]]
 
 -- | Apply a set of 'SoundChanges' to a word, returning a log of which
