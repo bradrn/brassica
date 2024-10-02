@@ -102,6 +102,11 @@
 - API of `Brassica.SoundChanges.Apply` (and `Brassica.SoundChanges.Apply.Internal`) has been refactored:
   - `LogItem` no longer stores redundant information on input words
   - `PWordLog` is now based on `LogItem`
+  - Former functions `applyRule` and `applyStatement`
+      have been renamed to `applyRuleMZ` and `applyStatementMZ`;
+  - Former functions `applyRuleWithLogs` and `applyStatementWithLog`
+      have been renamed to `applyRule` and `applyStatement`
+  - Function `applyRuleWithLog` has been removed
   - Set of sound change application functions `applyChanges*`
       has been replaced with a single function `applyChanges` returning a `PWordLog`,
       plus a set of functions to extract various outputs from it
