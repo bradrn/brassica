@@ -6,6 +6,13 @@
 --
 -- This module contains functions to apply one or more expanded sound
 -- changes to words.
+--
+-- The most important function is 'applyChanges', which applies a set
+-- of 'Brassica.SoudnChanges.Types.SoundChanges' to an input word. It
+-- returns a log of all sound changes and other actions which were
+-- applied to produce intermediate forms and the final result. The
+-- results can be summarised using the functions in
+-- [Reporting results](#g:3).
 module Brassica.SoundChange.Apply
        (
        -- * Applying single rules
@@ -14,7 +21,8 @@ module Brassica.SoundChange.Apply
        -- * Applying multiple sound changes
        , applyChanges
        , PWordLog(..)
-       -- * Summarising application results
+       , LogItem(..)
+       -- * Reporting results
        , getOutput
        , getReports
        , getChangedOutputs

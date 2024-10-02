@@ -756,12 +756,14 @@ applyStatementStr st =
     >>> fmap (toList >>> removeBoundaries)
     >>> nubOrd
 
--- | A log item representing a single action. When this action was a
--- sound change, specifies the action which was applied, as well as
--- the state after it was applied.
+-- | A log item representing a single action @r@ (usually a
+-- 'Statement'), and the result from that action.
 data LogItem r
-    = ActionApplied r (Maybe PWord)  -- ^ 'Nothing' if the word was deleted
+    = ActionApplied r (Maybe PWord)
+    -- ^ The word was modified: gives the output word, or 'Nothing' if
+    -- the wordwas deleted
     | ReportWord PWord
+    -- ^ Corresponds to 'ReportS', giving the intermediate form to report
     deriving (Show, Functor, Generic, NFData)
 
 -- action :: LogItem r -> Maybe r
@@ -773,13 +775,13 @@ logOutput (ActionApplied _ o) = o
 logOutput (ReportWord o) = Just o
 
 -- | Logs the evolution of a word as it undergoes sound changes and
--- other actions. The actions are of type @r@ (which will usually be
--- 'Statement').
+-- other actions.
 data PWordLog r = PWordLog
     { initialWord :: PWord
     -- ^ The initial word, before any actions have been applied
     , derivations :: [LogItem r]
-    -- ^ The state of the word after each action
+    -- ^ All actions which were applied, with the state of the word at
+    -- each point
     } deriving (Show, Functor, Generic, NFData)
 
 -- | Pretty-print a single 'PWordLog' as rows of an HTML table. For
