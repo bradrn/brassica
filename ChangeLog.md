@@ -101,7 +101,9 @@
     `Brassica.SoundChange.Types.Grapheme` is now a type synonym for `[Char]`
 - Expansion now results in sound changes with declaration type `GraphemesList`
     rather than `[Grapheme]`
-- `Brassica.SoundChanges.Apply.applyChangesWithChanges` no longer returns a `Maybe` result
+- API of `Brassica.SoundChanges.Apply` (and `Brassica.SoundChanges.Apply.Internal`) has been refactored:
+  - `LogItem` no longer stores redundant information on input words
+  - `applyChangesWithChanges` no longer returns a `Maybe` result
 - New constructor `WordsWithProtoOutputPreserve` for `Brassica.SoundChange.Frontend.Internal.OutputMode`
 - Remove now-unnecessary pattern `Brassica.SoundChange.Types.Boundary`
 - In parsing modules, re-export whole module `Text.Megaparsec.Error`

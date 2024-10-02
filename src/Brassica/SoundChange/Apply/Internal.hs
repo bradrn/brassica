@@ -759,10 +759,10 @@ applyStatementStr st =
     >>> nubOrd
 
 -- | A log item representing a single action. When this action was a
--- sound change, Specifies the action which was applied, as well as
--- the ‘before’ and ‘after’ states.
+-- sound change, specifies the action which was applied, as well as
+-- the state after it was applied.
 data LogItem r
-    = ActionApplied r PWord (Maybe PWord)
+    = ActionApplied r (Maybe PWord)
     | ReportWord PWord
     deriving (Show, Functor, Generic, NFData)
 
@@ -770,12 +770,8 @@ data LogItem r
 -- action (ActionApplied r _ _) = Just r
 -- action (ReportWord _) = Nothing
 
-logInput :: LogItem r -> PWord
-logInput (ActionApplied _ i _) = i
-logInput (ReportWord i) = i
-
 logOutput :: LogItem r -> Maybe PWord
-logOutput (ActionApplied _ _ o) = o
+logOutput (ActionApplied _ o) = o
 logOutput (ReportWord o) = Just o
 
 -- | Logs the evolution of a word as it undergoes sound changes and
@@ -793,13 +789,13 @@ data PWordLog r = PWordLog
 -- | Convert a list of individual 'LogItem's for a single word to a
 -- 'PWordLog' summarising the whole evolution of that word.
 toPWordLog :: [LogItem r] -> Maybe (PWordLog r)
-toPWordLog [] = Nothing
-toPWordLog ls@(l : _) = Just $ PWordLog
-    { initialWord = logInput l
+toPWordLog ls@(ReportWord w : _) = Just $ PWordLog
+    { initialWord = w
     , derivations = flip mapMaybe ls $ \case
-            ActionApplied action _ output -> Just (output, action)
+            ActionApplied action output -> Just (output, action)
             _ -> Nothing
     }
+toPWordLog _ = Nothing  -- cannot convert malformed log
 
 -- | Pretty-print a single 'PWordLog' as rows of an HTML table. For
 -- instance, the example log given in the documentation for
@@ -869,9 +865,9 @@ applyStatementWithLog
     -> [LogItem (Statement Expanded GraphemeList)]
 applyStatementWithLog ReportS w = [ReportWord w]
 applyStatementWithLog st w = case applyStatementStr st w of
-    [] -> [ActionApplied st w Nothing]
+    [] -> [ActionApplied st Nothing]
     [w'] | w' == w -> []
-    r -> ActionApplied st w . Just <$> r
+    r -> ActionApplied st . Just <$> r
 
 -- | Apply 'SoundChanges' to a word. For each possible result, returns
 -- a 'LogItem' for each 'Statement' which altered the input, plus a
@@ -889,7 +885,7 @@ applyChangesWithLog scs w = (ReportWord w:) <$> go scs w
             [] -> go sts w'
             outputActions -> outputActions >>= \case
                 l@(ReportWord w'') -> (l :) <$> go sts w''
-                l@(ActionApplied _ _ output) -> case output of
+                l@(ActionApplied _ output) -> case output of
                     Just w'' -> (l :) <$> go sts w''
                     -- apply no further changes to a deleted word
                     Nothing -> [[l]]
@@ -918,7 +914,7 @@ applyChangesWithReports :: SoundChanges Expanded GraphemeList -> PWord -> [[PWor
 applyChangesWithReports sts w = getReports <$> applyChangesWithLog sts w
   where
     getReports [] = []
-    getReports [ActionApplied _ _ (Just w')] = [w']
+    getReports [ActionApplied _ (Just w')] = [w']
     getReports (ReportWord w':ls) = w' : getReports ls
     getReports (_:ls) = getReports ls
 
@@ -936,10 +932,10 @@ applyChangesWithChanges sts w = mapMaybe go $ applyChangesWithLog sts w
             Nothing -> Nothing
 
     hasChanged = any $ \case
-        ActionApplied (RuleS rule) _ _ -> highlightChanges $ flags rule
-        ActionApplied (FilterS _) _ _ -> False  -- cannot highlight nonexistent word
-        ActionApplied (DeclS _) _ _ -> True
-        ActionApplied ReportS _ _ -> False  -- reporting a word yields no change
+        ActionApplied (RuleS rule) _ -> highlightChanges $ flags rule
+        ActionApplied (FilterS _) _ -> False  -- cannot highlight nonexistent word
+        ActionApplied (DeclS _) _ -> True
+        ActionApplied ReportS _ -> False  -- reporting a word yields no change
         ReportWord _ -> False
 
 -- | Apply a set of 'SoundChanges' to a word, returning the final
@@ -953,7 +949,7 @@ applyChangesWithChangesAndReports sts w = getReports <$> applyChangesWithLog sts
     getReports l = go False l
       where
         go _ [] = []
-        go hasChanged (ActionApplied action _ _:ls) =
+        go hasChanged (ActionApplied action _:ls) =
             let hasChanged' = case action of
                     RuleS rule -> hasChanged || highlightChanges (flags rule)
                     _ -> hasChanged
