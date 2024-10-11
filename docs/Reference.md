@@ -329,6 +329,9 @@ The **category operation** can be specified by placing a character before the ca
   The result contains every element of the preceding category, preserving their order,
     except for those which are present in `Category`.
 
+([Autosegments](#phonetic-features-and-autosegments) have somewhat special behaviour
+  with intersection and subtraction: see the relevant section for details.)
+
 If no character is present before the category name,
   the chosen operation depends on the category name:
 
@@ -657,9 +660,18 @@ Effectively, an autosegmental grapheme acts as a feature with a single correspon
 - In the replacement, it produces the element of its correspondence set
     which has the appropriate feature value.
 
+Autosegmental graphemes can be included in a category definition,
+  in which case they retain their autosegmental meaning as of the time of definition.
+
 When an autosegmental grapheme is within a category,
   the set of graphemes which it can match or produce
-  may additionally be affected by category operations.
+  can additionally be affected by category operations.
+If a grapheme is excluded by union or intersection when matching,
+  that grapeme cannot be matched.
+If a grapheme is similarly excluded in the replacement, the behaviour is more complex:
+  if a situation occurs in which that grapheme would otherwise be produced,
+  Brassica instead acts as if the feature were indeterminate,
+  producing one result for each non-excluded output grapheme subsumed under the autosegment.
 
 ```brassica
 C$Voice(p~b t~d k~g) C / C C$Voice(p~b t~d k~g)
@@ -684,6 +696,39 @@ a / e  ; note 'a' and 'e' are defined autosegmental with respect to $Stress
 ; tána → téne
 ; taná → tené
 ; táná → téné
+```
+
+```brassica
+; examples of autosegmental category operations:
+; note that ±Long contain autosegmental graphemes
+
+new categories noreplace
+C = m n p t ch k b d j g f s sh h v z r l w y
+
++Tone+Low  = à ì ù àà ìì ùù
++Tone+Mid  = a i u aa ii uu
++Tone+High = á í ú áá íí úú
+
+auto +Tone+Mid
+
+-Long = a i u
++Long = aa ii uu
+
+V = a i u aa ii uu
+end
+
+-x -Long > / +Long  ; fix multigraphs - automated test doesn't recognise these ones
+
+[+Tone+High +Long] / [+Tone+High -Long]
+[+Tone+Low -Long] / [+Tone+Low +Long]
+
+. / [+Tone+High +Long]  ; check category membership also
+, / [+Tone+High -Long]
+
+; . → áá/íí/úú
+; , → á/í/ú
+; táásìnu → tásììnu
+; tásììnuu → tásììnuu (no change)
 ```
 
 ```brassica

@@ -150,20 +150,27 @@ expand cs (CategorySpec spec) = FromElements <$> foldM go [] spec
       where
         go' g | g `elemAuto` new = Nothing
         go' [Autosegment n kvs gs] =
-            Just [Autosegment n kvs $ filter ((`notElem` new) . pure . Grapheme) gs]
+            Just [Autosegment n
+                  (filterkvs (`notElem` new) kvs)
+                  (filter ((`notElem` new) . pure . Grapheme) gs)]
         go' g = Just g
 
     intersectC es new = mapMaybe go' new
       where
         go' g | g `elemAuto` es = Just g
         go' [Autosegment n kvs gs] =
-            Just [Autosegment n kvs $ filter ((`elem` new) . pure . Grapheme) gs]
+            Just [Autosegment n
+                  (filterkvs (`elem` es) kvs)
+                  (filter ((`elem` es) . pure . Grapheme) gs)]
         go' _ = Nothing
 
     elemAuto :: [Lexeme Expanded a] -> [[Lexeme Expanded a]] -> Bool
     elemAuto _ [] = False
     elemAuto g'@[Grapheme gm] ([Autosegment _ _ gs]:ls) = (gm `elem` gs) || elemAuto g' ls
     elemAuto g' (g:ls) = (g' == g) || elemAuto g' ls
+
+    filterkvs :: ([Lexeme Expanded a] -> Bool) -> [[(Grapheme, Bool)]] -> [[(Grapheme, Bool)]]
+    filterkvs p = fmap . fmap $ \(g, b) -> (g, b && p [Grapheme g])
 
 expandLexeme :: Categories -> Lexeme CategorySpec a -> Either ExpandError (Lexeme Expanded a)
 expandLexeme cs (Grapheme g)
@@ -174,7 +181,7 @@ expandLexeme cs (Grapheme g)
             Just (Left c) -> Right $ Category c
             Just (Right a) -> do
                 kvs <- expandFeature cs (autoFeature a)
-                pure $ Autosegment (autoFeature a) kvs (autoGraphemes a)
+                pure $ Autosegment (autoFeature a) ((fmap.fmap) (,True) kvs) (autoGraphemes a)
             Nothing -> Right $ Grapheme g
 expandLexeme cs (Category c) = Category <$> expand cs c
 expandLexeme cs (GreedyCategory c) = GreedyCategory <$> expand cs c

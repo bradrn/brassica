@@ -1359,34 +1359,32 @@ Taking ⟨e⟩ as an example, those graphemes henceforth behave as follows:
 - In the replacement, it looks at the corresponding feature value for ‘Tone’ in the target
     (again behaving like `$Tone`).
   It then inserts the corresponding grapheme from ⟨e è é⟩ into the output word.
+- When included in a category (like `V`) they continue to behave in this way.
 
 Thus, in the sound change `e / i / V _`, the first `e` can match any of ⟨e è é⟩,
   and similarly with ⟨i ì í⟩.
 The correct output grapheme is determined by matching the feature ‘Tone’, as described above.
 The net effect is as if tone exists on its own tier, independent of the change in the vowel phoneme.
 
-As for `V`, it was defined as `[a e i o u]` *after* the autosegment declaration.
+Similarly, `V` was defined as `[a e i o u]` *after* the autosegment declaration.
 Thus, `V` includes ⟨à⟩, ⟨á⟩, ⟨è⟩, ⟨é⟩, etc., in the same way that `e` includes ⟨è⟩ and ⟨é⟩.
 And feature matching works here too:
   thus `V / a` would successfully convert ⟨tíkù⟩ to ⟨tákà⟩,
   neutralising the vowels while preserving the feature of ‘Tone’.
-
-(Note that declaring `V = &&Tone` as in previous examples would *not* have this effect.
-The various `+Tone` categories were declared before `auto +Tone+Mid` was specified,
-  so they do not have any autosegmental behaviour.
-`+Tone+Mid` contains only the five graphemes ⟨a e i o u⟩, and nothing more.)
+(See [below](#autosegments-and-categories) for more information on using autosegments in categories.)
 
 Some care is needed when using autosegmental graphemes in the replacement.
 If there is no corresponding feature in the target for them to use,
-  they will produce all possible results at once (as mentioned in the previous section).
+  they will produce all possible results at once (similarly to features).
 For instance, continuing the previous example,
-  `y / i / C _ #` applied to ⟨katy⟩ would produce the three results ⟨kati katì katí⟩,
-  because Brassica has no way to know what tone the output should be.
-To expliticly specify the grapheme itself, write it with a following tilde:
-  thus `y / i~ / C _ #` yields ⟨katy⟩→⟨kati⟩.
-(The other possibilities `y / í` and `y / ì` work as you would expect.)
+  `y / i / C _ #` applied to ⟨katy⟩ would produce the three results ⟨kati katì katí⟩.
+Brassica has no way to know what tone the output should be,
+  so it is forced to return all possible options.
+To expliticly specify the non-autosegmental grapheme itself, **follow it with a tilde**:
+  thus `y / i~ / C _ #` yields the single result ⟨katy⟩→⟨kati⟩.
+The other possibilities `y / í` and `y / ì` work as you would expect.
 
-Similar issues arise when using multiple autosegments in the target and replacement,
+Similar subtleties arise when using multiple autosegmental graphemes together,
   as in the following example:
 
 ```brassica
@@ -1408,7 +1406,7 @@ end
 ; piáb → pyeb
 ```
 
-Here, both `[i u]` and `a` are autosegmental graphemes with respect to ±High.
+Here, both `[i u]` and `a` are autosegmental with respect to ±High.
 However, in the replacement, only `e` behaves autosegmentally:
   `y` and `w` are both consonants, and as such cannot take tone.
 Since features are matched up from left to right,
@@ -1418,7 +1416,7 @@ If this behaviour is undesired, it can be changed in two ways.
 One way is to run the rule [right-to-left](#iterative-sound-changes),
   thereby causing features to be associated right-to-left as well.
 But a more flexible solution is to use explicit feature backreferences:
-  `[i u] a$High#a / [y w] e$High#a` (taking `a` as the identifier to use).
+  `[i u] a$High#second / [y w] e$High#second`.
 
 Of course, one might want the result to have high tone when *either* of the input graphemes have high tone.
 As of Brassica version 1.0.0, this is not possible in a single rule,
@@ -1444,7 +1442,110 @@ end
 ; piáb → pyéb
 ```
 
-A final note: **at most one feature** can be defined as autosegmental for any given grapheme.
+### Autosegments and categories
+
+Both autosegments and categories express a notion of ‘matching several related graphemes’.
+When they interact, the results can be unexpected,
+  but with care they can be used to write a variety of useful sound changes.
+
+The key principle is that **autosegments are ‘contagious’**.
+That is, once a grapheme is defined as autosegmental,
+  it remains autosegmental if included in any categories, and if those categories are combined into larger categories.
+Conversely, if a grapheme is not autosegmental at the point of use,
+  it remains non-autosegmental when used in categories.
+
+For example, consider again this example from above:
+
+```
+categories
++Tone+Low = à è ì ò ù
++Tone+Mid = a e i o u
++Tone+High = á é í ó ú
+
+auto +Tone+Mid
+
+V = a e i o u
+end
+```
+
+Here, it may appear that `V` and `+Tone+Mid` have the same definition of `a e i o u`.
+However, `V` was defined after the autosegment declaration, while `+Tone+Mid` was defined before it.
+Thus, `V` is autosegmental and includes vowels of all tones,
+  whereas `+Tone+Mid` only includes the five graphemes ⟨a e i o u⟩ and nothing more.
+
+This example demonstrates a guideline:
+  **don’t define categories after `auto` in terms of categories before `auto`**
+For an example of what can happen otherwise,
+  consider if `V` were instead defined as `V = +Tone+Low &+Tone+Mid &+Tone+High`
+  (or equivalently as `V = &&Tone`).
+The resulting category would still include all vowels,
+  but it would not have autosegmental properties with regards to ‘Tone’.
+This is because it would be built from categories which were defined before `auto +Tone+Mid` was specified.
+Being non-autosegmental, this `V` would no longer produce a ‘Tone’ feature for use in the replacement:
+  thus, for instance, the rule `V / a` would produce unexpected results,
+  as the input `V` could not produce any ‘Tone’ feature to determine the tone of the output `a`.
+
+However, autosegmental categories can be freely combined to form other categories.
+All the category options behave as expected, restricting or expanding the graphemes which can be matched.
+For instance:
+```brassica
+categories
+C = m n p t k f s b d g v z w y
+
++Tone+Low = à è ì ò ù àà èè ìì òò ùù
++Tone+Mid = a e i o u aa ee ii oo uu
++Tone+High = á é í ó ú áá éé íí óó úú
+
+auto +Tone+Mid
+
+; now after 'auto', the below categories are autosegmental
+
+-Long = a  e  i  o  u
++Long = aa ee ii oo uu
+
+V = &&Long
+end
+
+[+Long -+Tone+Low] / -Long
+
+; sìtáámé → sìtámé
+; baadáágemòò → badágemòò
+```
+This sound change shortens non-low vowels.
+The category `[+Long -+Tone+Low]` matches all elements of `+Long`, as long as they are not in `+Tone+Low`.
+Because the elements of `+Long` are autosegmental, the tone of the input vowel is transferred to the output vowel.
+
+These categories can also be placed in the replacement.
+In this position their behaviour is more complex:
+  if the usual rules for feature transfer would produce a grapheme which is not in the category,
+  they instead produce all possible corresponding graphemes which *are* in the category.
+Thus, the following rules force the first vowel in the word to have high tone,
+  and the last to have non-high tone:
+
+```brassica
+categories
+C = m n p t k f s b d g v z w y
+
++Tone+Low = à è ì ò ù
++Tone+Mid = a e i o u
++Tone+High = á é í ó ú
+
+auto +Tone+Mid
+
+V = a e i o u
+end
+
+-1 V / [V +Tone+High]
+-rtl -1 V / [V -+Tone+High]
+
+; sawete → sáwete
+; èzvaná → ézvanà/ézvana
+; gásunétò → gásunétò (no change)
+```
+
+A perhaps unexpected consequence of the above: `[V +Tone+High]` is not the same as `+Tone+High`!
+The former is a category containing autosegmental graphemes, but restricted to only producing or matching high tone.
+The latter is simply an ordinary category containing high-toned vowel graphemes.
 Thus, if a language has e.g. both stress and tone,
   they would need to be combined into a single feature to be treated as simultaneously autosegmental.
 Fortunately, such cases are rare.

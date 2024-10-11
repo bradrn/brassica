@@ -95,7 +95,7 @@ import Control.Monad ((>=>), (<=<), join)  -- needed for mtl>=2.3
 import Data.Containers.ListUtils (nubOrd)
 import Data.Functor ((<&>))
 import Data.List (elemIndex)
-import Data.Maybe (maybeToList, fromMaybe, listToMaybe)
+import Data.Maybe (maybeToList, fromMaybe, listToMaybe, mapMaybe)
 import GHC.Generics (Generic)
 
 import Control.DeepSeq (NFData)
@@ -302,7 +302,12 @@ match out prev (Feature _r n ident kvs l) mz = do
             )
 match out prev (Autosegment n kvs gs) mz =
     -- act as 'Category' + 'Feature', without capture
-    gs >>= \a -> match out prev (Feature False n Nothing kvs $ Grapheme a) mz
+    -- and accounting for unmatchable values
+    gs >>= \g -> do
+        let i = maybe 0 length $ Map.lookup n (matchedFeatures out)
+        (out', mz') <- match out prev (Grapheme g) mz
+        let fs = checkFeature kvs (g, True)
+        pure (appendFeatureAt i n fs out', mz')
 
 checkFeature :: Eq a => [[a]] -> a -> FeatureState
 checkFeature [] _ = Indeterminate
@@ -531,16 +536,54 @@ mkReplacement out = \ls -> fmap (fst . snd) . go startIxs ls . (,Nothing)
                 -- or if there are zero key-value pairs
                 _ -> pure (ixs'', (mz', prev'))
     replaceLex ixs (Autosegment _ _ []) mz prev = pure (ixs, (mz, prev))
-    replaceLex ixs (Autosegment n kvs (g:_)) mz prev =
+    replaceLex ixs (Autosegment n kvs (gBase:_)) mz prev =
         -- ignore other segments, just produce a single one
-        -- as modulated by a 'Feature'
-        replaceLex ixs (Feature False n Nothing kvs $ Grapheme g) mz prev
+        -- as if modulated by a 'Feature', but accounting for Nothing values
+        let (fs, ixs') = case advanceFeature n ixs of
+                Just (i, ixs_)
+                    | Just fss <- Map.lookup n (matchedFeatures out)
+                    , Just fs_ <- fss !? i
+                    -> (fs_, ixs_)
+                _ -> (Indeterminate, ixs)
+        in do
+            (ixs'', (mz', prev')) <- replaceLex ixs' (Grapheme gBase) mz prev
+            case prev' of
+                Just g | g /= "#" -> do
+                    g' <- case fs of
+                        Index i
+                            | Just g'' <- applyFeature' kvs g i
+                            -> pure g''
+                        _ -> applyFeatureInd' kvs g
+                    -- now overwrite previous grapheme
+                    let mz'' = zap (Just . const g') mz'
+                    pure (ixs'', (mz'', Just g'))
+                -- cannot modify nonexistent or boundary grapheme,
+                -- or if there are zero key-value pairs
+                _ -> pure (ixs'', (mz', prev'))
 
 applyFeature :: [[String]] -> String -> Int -> String
 applyFeature [] g _ = g
 applyFeature (gs:gss) g i
     | g `elem` gs = fromMaybe "\xfffd" $ gs !? i
     | otherwise = applyFeature gss g i
+
+applyFeature' :: [[(String, Bool)]] -> String -> Int -> Maybe String
+applyFeature' [] g _ = Just g
+applyFeature' (gs:gss) g i = case lookup g gs of
+    Just _ -> case gs !? i of
+        Just (g', True) -> Just g'
+        Just (_, False) -> Nothing  -- this grapheme was excluded, need to act as if Indeterminate
+        Nothing -> Just "\xfffd"
+    Nothing -> applyFeature' gss g i
+
+applyFeatureInd' :: [[(String, Bool)]] -> String -> [String]
+applyFeatureInd' [] g = [g]
+applyFeatureInd' (gs:gss) g = case lookup g gs of
+    Just _ -> mapMaybe note gs
+    Nothing -> applyFeatureInd' gss g
+  where
+    note (a, True) = Just a
+    note _ = Nothing
 
 -- | Given a 'Rule' and a 'MultiZipper', determines whether the
 -- 'exception' of that rule (if any) applies starting at the current

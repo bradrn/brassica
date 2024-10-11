@@ -155,9 +155,9 @@ data Lexeme category (a :: LexemeType) where
         -> Lexeme category a
     -- | Not directly available in Brassica syntax, inserted in expansion
     Autosegment
-        :: Grapheme            -- ^ Feature name
-        -> [[Grapheme]]        -- ^ List of correspondence sets
-        -> [Grapheme]          -- ^ Graphemes to be matched by this 'Autosegment'
+        :: Grapheme                -- ^ Feature name
+        -> [[(Grapheme, Bool)]]    -- ^ List of correspondence sets, with exclusion states
+        -> [Grapheme]              -- ^ Graphemes to be matched by this 'Autosegment'
         -> Lexeme category a
 
 -- | Map a function over any categories in the given 'Lexeme'.
