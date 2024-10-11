@@ -962,6 +962,8 @@ There are two ways to do this:
     write the word `report` on a line of its own (or multiple times at different points).
   Then, if you select the output format ‘Input→output’,
     the output word at each `report` point will be presented alongside the final output.
+  (Commenting out or removing all sound changes below that point can have a similar effect,
+    though it is not as convenient.)
 - To see the effect of all sound changes at once,
     select the button to ‘Report rules applied’.
   This will show the evolution of every word in the input as it evolves through every sound change.
@@ -980,6 +982,9 @@ However, there are some tricks you can use:
   The output for that word will be a list of results, one for each element of `Category` in order.
   This is useful for diagnosing problems with categories which have unexpected elements,
     or with elements in an unexpected order.
+- Similarly, you can write `Category / ANYTHING`
+    to see where elements of `Category` occur in input words.
+  `ANYTHING` can be any otherwise unused grapheme.
     
 (Of course, you can substitute any convenient grapheme for ⟨.⟩ above.)
 
