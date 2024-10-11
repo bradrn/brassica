@@ -43,7 +43,7 @@ main = execParser opts >>= \case
                             .| outC
 
   where
-    opts = info (args <**> helper <**> simpleVersioner "v0.3.0") fullDesc
+    opts = info (args <**> helper <**> simpleVersioner "v1.0.0") fullDesc
 
     args = batchArgs <|> serverArgs
     serverArgs = flag' Server (long "server" <> help "Run server (for internal use only)")
