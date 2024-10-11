@@ -1546,6 +1546,83 @@ end
 A perhaps unexpected consequence of the above: `[V +Tone+High]` is not the same as `+Tone+High`!
 The former is a category containing autosegmental graphemes, but restricted to only producing or matching high tone.
 The latter is simply an ordinary category containing high-toned vowel graphemes.
+
+### Switching between autosegments
+
+Key to Brassica’s `auto` system is that **at most one feature** can be defined as autosegmental for any given grapheme.
 Thus, if a language has e.g. both stress and tone,
   they would need to be combined into a single feature to be treated as simultaneously autosegmental.
 Fortunately, such cases are rare.
+
+What is more common is to need to switch from one autosegmental feature to another —
+  for instance, a change from one tonal system to another, or one stress system to another.
+This can be done by specifying different `auto` features as needed.
+
+The simplest case is when the same symbols are be used for both the ‘old’ and ‘new’ systems.
+When this happens, all that is needed is to redefine the autosegmental graphemes and any following categories.
+For instance:
+
+```brassica
+categories
+C = m n p t k f s b d g v z w y
+
+; define three levels of stress
++Str+None = a e i o u
++Str+Snd = à è ì ò ù
++Str+Pri = á é í ó ú
+
+auto +Str+None
+
+V = a e i o u
+end
+
+; simple sound change: note 'i' is autosegmental
+
+t / s / _ i
+
+; syncope, then destress secondarily-stressed vowels
+
++Str+None / / _
++Str+Snd / +Str+None
+
+categories
+; change to new stress system by redefining autosegmentals
+
+-Stress = a~ e~ i~ o~ u~
++Stress = á  é  í  ó  ú
+
+auto -Stress
+
+V = a e i o u
+end
+
+; another autosegmental sound change
+
+a / e / _ y
+
+; kamàyeníte → kmeynít
+; kamàyetíte → kmeysít
+; katìyetíti → ksiysís (note: ⟨t⟩ changes before all of ⟨i ì í⟩)
+; kamàyanáyo → kmeynéy (note: ⟨a⟩ and ⟨á⟩ both change before ⟨y⟩)
+```
+
+Two notes on this:
+- The elements of `-Stress` are specified to be non-autosegmental (by [following them with a tilde](#autosegmental-features)).
+  Otherwise, Brassica would interpret its elements as being autosegmental with regards to the former ‘Str’ feature,
+    and would give an error on encountering `auto -Stress`.
+- All categories defined after `auto +Str+None` declaration must be redefined after `auto -Stress`.
+  Otherwise, they would continue to refer to the old ‘Str’ feature.
+
+A more complicated situation is found in the [Thai example file](../examples/thai.bsc).
+The sound changes there need to simulate the shift
+  from the four tones of Proto-Tai to the five tones of modern Thai.
+These two tone systems are transcribed different symbols,
+  and both symbol sets need to be available to write down the tonal changes.
+Thus, this file must use a more complicated approach:
+
+- Both tone systems are defined at the beginning of the file, before any `auto` declarations are made.
+- Further categories are defined for use with both tone systems, by declaring each in turn as autosegmental.
+- Sound changes can then be written using all of these categories, with the Proto-Tai tone system declared as autosegmental.
+- Once the tone shift is completed, autosegmentality is switched to the Thai tone system, and categories are redefined as needed.
+
+For further details consult the comments in the file.

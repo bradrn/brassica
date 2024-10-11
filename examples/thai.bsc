@@ -1,0 +1,207 @@
+; This file gives the major sound changes from Proto-Tai
+; to modern Thai, as described in Li’s ‘A Handbook of
+; Comparative Tai’ (1977). Many thanks to Richard
+; Wordingham [https://wrdingham.co.uk/] and @quinterbeck
+; for their help in putting this together.
+
+categories
+StopU = p  t  č  k
+StopA = ph th čh kh
+StopV = b  d  ǰ  g
+Glot  = ʔb ʔd ʔ ʔj
+NaslV = m  n  ň  ŋ
+NaslU = hm hn hň hŋ
+FricU = f  s     x  h
+FricV = v  z     ɣ
+LiqV  = l r
+LiqU  = hl hr
+Aprx  = j w
+
+; Thai script divides consonants into so-called ‘high’,
+; ‘middle’ and ‘low’ classes. These determine the
+; evolution and of Proto-Tai tones.
+
+High = StopA FricU NaslU LiqU
+Mid  = StopU Glot
+Low  = StopV FricV NaslV LiqV Aprx
+
+C = High Mid Low
+
+; Proto-Tai permits /l r/ as the second element of consonant
+; clusters. ‘M’  (for ‘medial’) is a nice short name.
+
+M = l r
+
+; Li uses three phonemes written /i̯ ɩ̯̈ u̯/, presumably semivowels
+; (though their nature is never described). It is unclear how
+; /i̯ u̯/ differ from /j w/, but they are certainly different from
+; the full vowels /i ɩ̈ u/.
+
+Semi = i̯ ɩ̯̈ u̯
+
+; The vowel and tonal system. See the documentation at
+; https://github.com/bradrn/brassica/blob/v1.0.0/docs/Writing-Sound-Changes.md#switching-between-autosegments
+; for an overview of what’s happening here.
+
+; Proto-Tai had four tones. Tones A, B and C occur in syllables
+; not ending with a stop (‘live syllables’), while all
+; syllables ending with a stop (‘checked syllables’) take
+; tone D. Thai script leaves tones A and D unmarked, and so do we.
+
+; (Proto-Tai also has a number of diphthongs. These could be
+; defined as their own multigraphs, but for simplicity we treat
+; them as vowel sequences.)
+
++PTone+AD = i  ɩ̈  u  e  ə  o  ɛ  a  ɔ  ii  ɩ̈ɩ̈  uu  ee  əə  oo  ɛɛ  aa  ɔɔ
++PTone+B  = iᴮ ɩ̈ᴮ uᴮ eᴮ əᴮ oᴮ ɛᴮ aᴮ ɔᴮ iiᴮ ɩ̈ɩ̈ᴮ uuᴮ eeᴮ əəᴮ ooᴮ ɛɛᴮ aaᴮ ɔɔᴮ
++PTone+C  = iᶜ ɩ̈ᶜ uᶜ eᶜ əᶜ oᶜ ɛᶜ aᶜ ɔᶜ iiᶜ ɩ̈ɩ̈ᶜ uuᶜ eeᶜ əəᶜ ooᶜ ɛɛᶜ aaᶜ ɔɔᶜ
+
+; Modern Thai has five tones. We write each with a different
+; diacritic (plus defining an extra category for the base
+; grapheme). They are defined alongside the Proto-Tai tones
+; because both will be needed at the same time to implement
+; the tonal changes.
+
++TTone+Base = i ɩ̈ u e ə o ɛ a ɔ ii ɩ̈ɩ̈ uu ee əə oo ɛɛ aa ɔɔ
++TTone+33   = ī ɩ̄ ū ē ə̄ ō ɛ̄ ā ɔ̄ īi ɩ̄ɩ̈ ūu ēe ə̄ə ōo ɛ̄ɛ āa ɔ̄ɔ
++TTone+22   = ì ɩ̀ ù e ə̀ ò ɛ̀ à ɔ̀ ìi ɩ̀ɩ̈ ùu ee ə̀ə òo ɛ̀ɛ àa ɔ̀ɔ
++TTone+41   = î ɩ̂ û ê ə̂ ô ɛ̂ â ɔ̂ îi ɩ̂ɩ̈ ûu êe ə̂ə ôo ɛ̂ɛ âa ɔ̂ɔ
++TTone+55   = í ɩ́ ú é ə́ ó ɛ́ á ɔ́ íi ɩ́ɩ̈ úu ée ə́ə óo ɛ́ɛ áa ɔ́ɔ
++TTone+24   = ǐ ɩ̌ ǔ ě ə̌ ǒ ɛ̌ ǎ ɔ̌ ǐi ɩ̌ɩ̈ ǔu ěe ə̌ə ǒo ɛ̌ɛ ǎa ɔ̌ɔ
+
+; Make the Thai tones autosegmental, temporarily. This lets
+; us define categories for vowel length in modern Thai, which
+; will be necessary to implement the tone shifts.
+
+auto +TTone+Base
+
+-TLong = i  ɩ̈  u  e  ə  o  ɛ  a  ɔ
++TLong = ii ɩ̈ɩ̈ uu ee əə oo ɛɛ aa ɔɔ
+
+; Now, switch to the Proto-Tai tones for the following
+; sound changes.
+
+auto +PTone+AD
+
+-Long = i  ɩ̈  u  e  ə  o  ɛ  a  ɔ
++Long = ii ɩ̈ɩ̈ uu ee əə oo ɛɛ aa ɔɔ
+
+V = i ɩ̈ u e ə o ɛ a ɔ ii ɩ̈ɩ̈ uu ee əə oo ɛɛ aa ɔɔ
+end
+
+; It is convenient to write input words with the tone
+; specified once, at the end. But for the sound changes
+; it is more convenient to spread that tone over all the
+; vowels making up a diphthong.
+
+-x -rtl V / V$PTone#diphth / _ V$PTone#diphth
+
+; Li doesn’t give ordered sound changes, but it seems
+; easiest to do diphthong (and triphthong) simplification
+; first. This is formulated somewhat differently to Li’s rules:
+; e.g. Li gives ɩ̯̈ai→aai as a single step, but it seems
+; likely to me that it first underwent ɩ̯̈ai→ai, followed by a→aa.
+
+ɩ̯̈ / / _ a i
+ɩ̯̈ / / _ ə u
+[i i̯] / / _ ɛ
+[i̯ u̯] / / _ a
+[ɩ̈ ɩ̯̈ u] / / _ ɔ
+
+ɩ̈ [ə u] / ɩ̈ɩ̈
+u [ə o] / uu
+ɩ̯̈ u / uu
+ɩ̯̈ o / u
+i̯ / / _ e
+u̯ ɩ̈ / o
+u̯ / / _ o
+
+e i / ii
+e u / uu
+
+[a ɛ ɔ] / [aa ɛɛ ɔɔ]
+-Long / +Long / C _ #  ; assumes each input word is 1 syllable
+
+ə / a
+e / o / _ [m p]
+
+ɛ / a / _ i
+[e ɛ] ɩ̈ / a i
+o ɩ̈ / a i
+o u / a u
+e / a / [i ɩ̈] _
+o / a / ɩ̈ _
+[e ɩ̈] / a / u _
+
+; Now the tone shift. This is reasonably straightfoward,
+; though we must be careful to keep the Proto-Tai and Thai
+; systems separate. (In particular, ±Long can be used with
+; ‘PTone’ only, and ±TLong with ‘TTone’ only.)
+
+; Do the checked syllables first:
+
+[+PTone+AD -Long] / [+TTone+55 -TLong] / # Low (M) _ StopU  ; D2S
+[+PTone+AD +Long] / [+TTone+41 +TLong] / # Low (M) _ StopU  ; D2L
+ +PTone+AD        /  +TTone+22 / # [High Mid] (M) _ StopU   ; D1
+
+; Now that these are done, there’s no need to check that
+; the remaining syllables are followed by [# NaslV].
+
++PTone+AD / +TTone+24 / # High (M) _  ; A1 high
++PTone+AD / +TTone+33                 ; A1 mid, A2
+
++PTone+B / +TTone+22 / # [High Mid] (M) _  ; B1
++PTone+B / +TTone+41                       ; B2
+
++PTone+C / +TTone+41 / # [High Mid] (M) _  ; C1
++PTone+C / +TTone+55                       ; C2
+
+; Now that the tone shift is done, autosegmentality must
+; also shift to the graphemes for modern Thai. To keep things
+; consistent, all relevant categories must be redefined too.
+
+categories
+auto +TTone+Base
+
+-Long = i  ɩ̈  u  e  ə  o  ɛ  a  ɔ 
++Long = ii ɩ̈ɩ̈ uu ee əə oo ɛɛ aa ɔɔ
+
+V = i ɩ̈ u e ə o ɛ a ɔ ii ɩ̈ɩ̈ uu ee əə oo ɛɛ aa ɔɔ
+end
+
+; Now the consonant clusters can be simplified. As with the
+; diphthongs, the details differ somewhat from Li’s formulation.
+
+p r / t
+M / / ph _
+ʔb M / ʔd
+m l / [m l {m a l}]
+v / ph / _ r
+
+M / / [t ʔd n] _
+l / / th _
+th r / h
+d / / _ M
+
+-? r / l / k _
+M / / kh _
+g / kh / _ M
+x r / h
+ŋ w / [ŋ w]
+
+; Finally, the consonant changes. These are straightforward.
+
+[b d ǰ g] / [ph th čh kh]
+[x ɣ] / kh
+[ʔb ʔd ʔj] / [b d j]
+[hm hn hň hŋ] / [m n ň ŋ]
+[hl hr] / [l h]
+[v z] / [f s]
+ň / j
+
+; It’s annoying to see tone diacritics repeated on each
+; element of a diphthong. Thus, for ease of reading we
+; remove all diacritics after the first in a diphthong
+; (or triphthong).
+
+-x V / [V +TTone+Base] / V _
