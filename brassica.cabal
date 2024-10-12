@@ -5,7 +5,7 @@ synopsis:           Featureful sound change applier
 description:
   This is the Brassica library for the simulation of sound changes in historical linguistics and language construction.
   .
-  For an introduction to library usage, see the documentation @Brassica.SoundChange@.
+  For an introduction to library usage, see the documentation of [Brassica.SoundChange](https://hackage.haskell.org/package/brassica-1.0.0/candidate/docs/Brassica-SoundChange.html).
   .
   For further details on Brassica’s design and usage, please refer to the README below or at <https://github.com/bradrn/brassica/blob/v1.0.0#readme>.
 
