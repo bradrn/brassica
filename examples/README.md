@@ -12,3 +12,5 @@ These example sound change files and lexicons demonstrate different aspects of B
     and several stages of phoneme inventory evolution.
 - `thai.bsc` contains sound changes from Proto-Tai to modern Thai.
   These demonstrate phonetic features and the autosegmental treatment of tone.
+
+These examples are also available in the [online version](https://bradrn.com/brassica).
