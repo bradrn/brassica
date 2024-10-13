@@ -402,7 +402,7 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
         multiResultSep->text());
 
     blockScrollTrackingEvent = true;
-    outputEdit->setHtml("<pre>" + output + "</pre>");
+    outputEdit->setHtml("<pre style=\"font-family: inherit\">" + output + "</pre>");
 
     blockScrollTrackingEvent = false;
     updateOutputFromWordsSlider(wordsEditVScroll->value());
