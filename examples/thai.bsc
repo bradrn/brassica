@@ -56,11 +56,15 @@ Semi = i̯ ɩ̯̈ u̯
 +PTone+B  = iᴮ ɩ̈ᴮ uᴮ eᴮ əᴮ oᴮ ɛᴮ aᴮ ɔᴮ iiᴮ ɩ̈ɩ̈ᴮ uuᴮ eeᴮ əəᴮ ooᴮ ɛɛᴮ aaᴮ ɔɔᴮ
 +PTone+C  = iᶜ ɩ̈ᶜ uᶜ eᶜ əᶜ oᶜ ɛᶜ aᶜ ɔᶜ iiᶜ ɩ̈ɩ̈ᶜ uuᶜ eeᶜ əəᶜ ooᶜ ɛɛᶜ aaᶜ ɔɔᶜ
 
-; Modern Thai has five tones. We write each with a different
-; diacritic (plus defining an extra category for the base
-; grapheme). They are defined alongside the Proto-Tai tones
-; because both will be needed at the same time to implement
-; the tonal changes.
+; Modern Thai has the same number of vowels, but five tones.
+; We write each tone with a different diacritic (plus
+; defining an extra category for the base grapheme). They
+; are defined alongside the Proto-Tai tones because both
+; will be needed at the same time to implement the tonal changes.
+
+; (Note: The symbol ⟨ɩ̈⟩ is Li’s notation. Various sources seem to
+; transcribe it as /ɯ/ or /ʉ/. I have decided to leave it as is.
+; For simplicity the tonal diacritics replace the diaeresis.)
 
 +TTone+Base = i ɩ̈ u e ə o ɛ a ɔ ii ɩ̈ɩ̈ uu ee əə oo ɛɛ aa ɔɔ
 +TTone+33   = ī ɩ̄ ū ē ə̄ ō ɛ̄ ā ɔ̄ īi ɩ̄ɩ̈ ūu ēe ə̄ə ōo ɛ̄ɛ āa ɔ̄ɔ
