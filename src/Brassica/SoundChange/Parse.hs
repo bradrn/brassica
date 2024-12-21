@@ -110,7 +110,9 @@ parseCategoryStandalone
 parseCategoryStandalone = do
     g <- parseGrapheme' True
     _ <- symbol "="
-    mods <- some (parseCategoryModification False)
+    mods <- (:)
+        <$> parseCategoryModification True
+        <*> some (parseCategoryModification False)
     return (g, CategorySpec mods)
 
 parseFeature :: Parser FeatureSpec

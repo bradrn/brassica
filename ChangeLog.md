@@ -1,5 +1,13 @@
 # Brassica changelog
 
+## Unreleased changes
+
+### Behaviour
+
+- Bugfixes:
+  - The first element of categories is now treated consistently
+      accross both category blocks and inline categories.
+
 ## 1.0.0
 
 ### Behaviour
