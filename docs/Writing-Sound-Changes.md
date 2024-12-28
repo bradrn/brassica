@@ -1174,7 +1174,6 @@ C = m n p t k b d g f s v z r l y w
 +Str+Pri  = á é í ó ú ? ?
 
 V = +Str+None &+Str+Sec &+Str+Pri
-; or V = &&Str - see below
 end
 
 -rtl -1 [+Str+None -ə -ɨ] / +Str+Pri
