@@ -85,6 +85,7 @@ module Brassica.SoundChange.Apply.Internal
        , applyChanges
        , getOutput
        , getReports
+       , HighlightMode(..)
        , getChangedOutputs
        , getChangedReports
        ) where
@@ -944,18 +945,27 @@ getReports l = inputWord l : go (derivations l)
     go (ReportWord w':ls) = w' : go ls
     go (_:ls) = go ls
 
+data HighlightMode = AllChanged | SpecificRule
+    deriving (Show, Eq)
+
+-- | Based on its flags, should this rule be highlighted in the given 'HighlightMode'?
+needsHighlight :: HighlightMode -> Rule c -> Bool
+needsHighlight m rule = case m of
+    AllChanged -> highlightChanges $ flags rule
+    SpecificRule -> highlightSpecificRule $ flags rule
+
 -- | Returns the final output from a sound change log, as well as an
 -- indication of whether any sound changes have applied to it
--- (accounting for 'highlightChanges' flags).
-getChangedOutputs :: Log (Statement c d) -> Maybe (PWord, Bool)
-getChangedOutputs l = case derivations l of
+-- (accounting for highlighting flags).
+getChangedOutputs :: HighlightMode -> Log (Statement c d) -> Maybe (PWord, Bool)
+getChangedOutputs m l = case derivations l of
     [] -> Just (inputWord l, False)
     logs -> case logOutput (last logs) of
         Just out -> Just (out, hasChanged logs)
         Nothing -> Nothing
   where
     hasChanged = any $ \case
-        ActionApplied (RuleS rule) _ -> highlightChanges $ flags rule
+        ActionApplied (RuleS rule) _ -> needsHighlight m rule
         ActionApplied (FilterS _) _ -> False  -- cannot highlight nonexistent word
         ActionApplied (DeclS _) _ -> True
         ActionApplied ReportS _ -> False  -- reporting a word yields no change
@@ -964,19 +974,15 @@ getChangedOutputs l = case derivations l of
 -- | A combination of 'getOutput' and 'getChangedOutputs': returns all
 -- intermediate results, as well as whether each has undergone any
 -- sound changes.
-getChangedReports :: Log (Statement c d) -> [(PWord, Bool)]
-getChangedReports l = (inputWord l, False) : case derivations l of
+getChangedReports :: HighlightMode -> Log (Statement c d) -> [(PWord, Bool)]
+getChangedReports m l = (inputWord l, False) : case derivations l of
     [] -> []
     ls -> go False ls
   where
     go _ [] = []
     go hasChanged (ActionApplied action _:ls) =
         let hasChanged' = case action of
-                RuleS rule -> hasChanged || highlightChanges (flags rule)
+                RuleS rule -> hasChanged || needsHighlight m rule
                 _ -> hasChanged
         in go hasChanged' ls
     go hasChanged (ReportWord w':ls) = (w', hasChanged) : go hasChanged ls
-
--- | Apply a set of 'SoundChanges' to a word, returning the final
--- output word(s) as well as any intermediate results from 'ReportS',
--- each with a boolean marking changed results (as with 'applyChangesWithChanges').

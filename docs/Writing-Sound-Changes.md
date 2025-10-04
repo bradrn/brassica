@@ -1072,12 +1072,11 @@ More care would be needed if, say, `Stop` were to contain `[t k b d g]`:
   then the rule would become `[t k] / [b d g] / V _ V` and behave unexpectedly.
 ([Featural categories](#featural-categories) are designed to make such problems easier to avoid.)
 
-For another example, consider a rule of progressive nasal harmony
-  in which voiced stops become nasal following a nasal consonant,
-  until interrupted by ⟨h⟩.
+For another example, consider a rule of progressive nasal harmony in which
+  after a nasal, all following voiced stops are nasalised until an ⟨h⟩ is reached.
 This sound change can be implemented as follows:
 
-```brassca
+```brassica
 categories
 C = p t k b d g m n ŋ f s h
 Nasl = m n ŋ
@@ -1086,15 +1085,17 @@ VStp = b d g
 V = a e i o u
 end
 
-VStp / Nasl / Nasl [C V -h]* _
+VStp / Nasl / Nasl [C V -VStp -h]* _
 
 ; mate → mate (no change)
 ; matebede → matemene
-; matebehede → matenehede
+; matebehede → matemehede
 ```
 
-Here, `[C V -h]*` matches an indefinite number of consonants or vowels — except ⟨h⟩ —
-  between a nasal and a following voiced stop.
+Here, `Nasl [C V -VStp -h]*` matches an indefinite number of consonants or vowels after a nasal, up until a voiced stop or ⟨h⟩.
+If the target matches a following voiced stop, it is nasalised.
+Otherwise an ⟨h⟩ has been reached and the rule does not match.
+Either way, Brassica continues to repeat the rule afterwards (as described [above](#iterative-sound-changes)).
 Thus, the voiced stop is nasalised only when ⟨h⟩ does not intervene between it and the nasal,
   giving the desired behaviour.
 
@@ -1174,7 +1175,6 @@ C = m n p t k b d g f s v z r l y w
 +Str+Pri  = á é í ó ú ? ?
 
 V = +Str+None &+Str+Sec &+Str+Pri
-; or V = &&Str - see below
 end
 
 -rtl -1 [+Str+None -ə -ɨ] / +Str+Pri

@@ -33,6 +33,7 @@ private:
     QRadioButton *nohighlightBtn;
     QRadioButton *diffhighlightBtn;
     QRadioButton *inputhighlightBtn;
+    QRadioButton *specifichighlightBtn;
     QRadioButton *rawBtn;
     QRadioButton *mdfBtn;
     QRadioButton *mdfAltBtn;

@@ -26,7 +26,7 @@ import GHC.Generics (Generic)
 import System.IO (hSetBuffering, stdin, stdout, BufferMode(NoBuffering))
 import System.Timeout
 
-import Brassica.SoundChange
+import Brassica.SoundChange hiding (HighlightMode)
 import Brassica.SoundChange.Frontend.Internal
 import Brassica.Paradigm (applyParadigm, parseParadigm, formatNested, ResultsTree (..))
 
@@ -72,8 +72,21 @@ instance FromJSON InputLexiconFormat where
     parseJSON invalid = prependFailure "parsing InputLexiconFormat failed: " $
         typeMismatch "String" invalid
 
+instance FromJSON HighlightMode where
+    parseJSON (String "NoHighlight") = pure NoHighlight
+    parseJSON (String "DifferentToLastRun") = pure DifferentToLastRun
+    parseJSON (String "DifferentToInputAllChanged") = pure $ DifferentToInput AllChanged
+    parseJSON (String "DifferentToInputSpecificRule") = pure $ DifferentToInput SpecificRule
+    parseJSON invalid = prependFailure "parsing HighlightMode failed: " $
+        typeMismatch "String" invalid
+
+instance ToJSON HighlightMode where
+    toJSON NoHighlight = "NoHighlight"
+    toJSON DifferentToLastRun = "DifferentToLastRun"
+    toJSON (DifferentToInput AllChanged) = "DifferentToInputAllChanged"
+    toJSON (DifferentToInput SpecificRule) = "DifferentToInputSpecificRule"
+
 $(deriveJSON defaultOptions ''Component)
-$(deriveJSON defaultOptions ''HighlightMode)
 $(deriveJSON defaultOptions ''OutputMode)
 
 $(deriveJSON defaultOptions{constructorTagModifier=drop 3, sumEncoding=defaultTaggedObject{tagFieldName="method"}} ''Request)

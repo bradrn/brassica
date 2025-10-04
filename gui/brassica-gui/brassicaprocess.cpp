@@ -111,7 +111,8 @@ QString BrassicaProcess::toJson(HighlightMode val)
     switch(val) {
         case NoHighlight:        return "NoHighlight";
         case DifferentToLastRun: return "DifferentToLastRun";
-        case DifferentToInput:   return "DifferentToInput";
+        case DifferentToInputAllChanged:   return "DifferentToInputAllChanged";
+        case DifferentToInputSpecificRule: return "DifferentToInputSpecificRule";
     }
         return "internal error: BrassicaProcess::toJson(HighlightMode)";
 }

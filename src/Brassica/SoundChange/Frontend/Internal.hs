@@ -35,7 +35,8 @@ import Text.Megaparsec (ParseErrorBundle)
 
 import Brassica.SFM.MDF
 import Brassica.SFM.SFM
-import Brassica.SoundChange.Apply
+import Brassica.SoundChange.Apply hiding (HighlightMode)
+import qualified Brassica.SoundChange.Apply as A
 import Brassica.SoundChange.Tokenise
 import Brassica.SoundChange.Types
 
@@ -58,18 +59,20 @@ getOutputMode ReportRulesApplied = WordsOnlyOutput
 data HighlightMode
     = NoHighlight
     | DifferentToLastRun
-    | DifferentToInput
+    | DifferentToInput A.HighlightMode
     -- ^ NB. now labeled ‘any rule applied’ in GUI
     deriving (Show, Eq)
 instance Enum HighlightMode where
     -- used for conversion to and from C, so want control over values
     fromEnum NoHighlight = 0
     fromEnum DifferentToLastRun = 1
-    fromEnum DifferentToInput = 2
+    fromEnum (DifferentToInput AllChanged) = 2
+    fromEnum (DifferentToInput SpecificRule) = 3
 
     toEnum 0 = NoHighlight
     toEnum 1 = DifferentToLastRun
-    toEnum 2 = DifferentToInput
+    toEnum 2 = DifferentToInput AllChanged
+    toEnum 3 = DifferentToInput SpecificRule
     toEnum _ = undefined
 
 -- | Mode for reporting output words (and sometimes intermediate and
@@ -181,9 +184,9 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
                     mapMaybe polyDiffToHighlight $ getDiff (fromMaybe [] prev) result
                     -- zipWithComponents result (fromMaybe [] prev) [] $ \thisWord prevWord ->
                     --     (thisWord, thisWord /= prevWord)
-            ApplyRules DifferentToInput mdfout sep ->
+            ApplyRules (DifferentToInput m) mdfout sep ->
                 HighlightedWords $ concatMap (splitMultipleResults sep) $
-                        joinComponents' mdfout $ parFmap (doApplyWithChanges mdfout statements) toks
+                        joinComponents' mdfout $ parFmap (doApplyWithChanges m mdfout statements) toks
             ApplyRules NoHighlight mdfout sep ->
                 HighlightedWords $ (fmap.fmap) (,False) $ concatMap (splitMultipleResults sep) $
                     joinComponents' mdfout $ parFmap (doApply mdfout statements) toks
@@ -211,14 +214,14 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
             intermediates = fmap nubOrd $ transpose $ getReports <$> applyChanges scs w
         in intersperse (Separator " → ") (fmap Word intermediates)
 
-    doApplyWithChanges :: OutputMode -> SoundChanges Expanded GraphemeList -> PWord -> [Component [(PWord, Bool)]]
-    doApplyWithChanges WordsWithProtoOutput scs w = doApplyWithChangesWithProto scs w
-    doApplyWithChanges WordsWithProtoOutputPreserve scs w = doApplyWithChangesWithProto scs w
-    doApplyWithChanges _ scs w = [Word $ mapMaybe getChangedOutputs $ applyChanges scs w]
+    doApplyWithChanges :: A.HighlightMode -> OutputMode -> SoundChanges Expanded GraphemeList -> PWord -> [Component [(PWord, Bool)]]
+    doApplyWithChanges m WordsWithProtoOutput scs w = doApplyWithChangesWithProto m scs w
+    doApplyWithChanges m WordsWithProtoOutputPreserve scs w = doApplyWithChangesWithProto m scs w
+    doApplyWithChanges m _ scs w = [Word $ mapMaybe (getChangedOutputs m) $ applyChanges scs w]
 
-    doApplyWithChangesWithProto scs w =
+    doApplyWithChangesWithProto m scs w =
         let intermediates :: [[(PWord, Bool)]]
-            intermediates = fmap nubOrd $ transpose $ getChangedReports <$> applyChanges scs w
+            intermediates = fmap nubOrd $ transpose $ getChangedReports m <$> applyChanges scs w
         in intersperse (Separator " → ") (fmap Word intermediates)
 
     joinComponents' WordsWithProtoOutput =

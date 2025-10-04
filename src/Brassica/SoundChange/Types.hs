@@ -275,6 +275,7 @@ data Sporadicity
 -- change how it is applied.
 data Flags = Flags
   { highlightChanges :: Bool         -- ^ Whether results from this sound change can be highlighted in a GUI
+  , highlightSpecificRule :: Bool     -- ^ Whether to highlight words changed by this rule in particular (when the appropriate option is set)
   , applyDirection   :: Direction    -- ^ Direction in which to apply the rule
   , applyOnceOnly    :: Bool         -- ^ Whether to apply the rule only once to a word
   , sporadic         :: Sporadicity  -- ^ Whether the rule should be applied sporadically, and if so, how
@@ -299,6 +300,7 @@ data Flags = Flags
 defFlags :: Flags
 defFlags = Flags
     { highlightChanges = True
+    , highlightSpecificRule = False
     , applyDirection = LTR
     , applyOnceOnly = False
     , sporadic = ApplyAlways

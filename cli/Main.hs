@@ -69,8 +69,10 @@ main = execParser opts >>= \case
                     (long "etymons" <> help "With --mdf, output MDF dictionary with etymologies")
                 , flag' (ApplyRules NoHighlight WordsWithProtoOutput)
                     (long "show-input" <> help "Output an input→output wordlist")
-                , flag' (ApplyRules DifferentToInput WordsOnlyOutput)
+                , flag' (ApplyRules (DifferentToInput AllChanged) WordsOnlyOutput)
                     (long "show-changed" <> help "Add [+] after all words different to input")
+                , flag' (ApplyRules (DifferentToInput SpecificRule) WordsOnlyOutput)
+                    (long "show-changed-h" <> help "Add [+] after all words affected by rules with -h")
                 , flag
                     (ApplyRules NoHighlight WordsOnlyOutput)
                     (ApplyRules NoHighlight WordsOnlyOutput)
