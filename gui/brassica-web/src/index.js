@@ -36,6 +36,7 @@ function applyChanges(changes, words, sep, reportRules, inputMode, highlightMode
     switch (highlightMode) {
     case 'differentToLastRun': hlModeC = 1; break;
     case 'differentToInput':   hlModeC = 2; break;
+    case 'specificRule':       hlModeC = 3; break;
     }
 
     var outModeC = 0;

@@ -1,5 +1,17 @@
 # Brassica changelog
 
+## Unreleased changes
+
+### Behaviour
+
+- New option to highlight only words affected by specific rules, selected with new flag `-h`
+
+### Code
+
+- New flag `highlightSpecificRule` added to `Brassica.SoundChanges.Types.Flags`
+- `Brassica.SoundChanges.Apply.getChangedOutputs` and `Brassica.SoundChanges.Apply.getChangedReports`
+    now take an extra parameter of new type `Brassica.SoundChanges.Apply.HighlightMode`
+
 ## 1.0.0
 
 ### Behaviour

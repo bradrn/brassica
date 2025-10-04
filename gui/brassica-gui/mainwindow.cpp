@@ -135,6 +135,9 @@ void MainWindow::setupWidgets(QWidget *central)
     inputhighlightBtn = new QRadioButton("Any rule applied");
     highlightLayout->addWidget(inputhighlightBtn);
 
+    specifichighlightBtn = new QRadioButton("Specific rule (-h) applied");
+    highlightLayout->addWidget(specifichighlightBtn);
+
     QGroupBox *inputFormatBox = new QGroupBox("Input lexicon format");
     QVBoxLayout *inputFormatLayout = new QVBoxLayout(inputFormatBox);
     midLayout->addWidget(inputFormatBox);
@@ -383,7 +386,8 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
 
     BrassicaProcess::HighlightMode checkedHl = BrassicaProcess::NoHighlight;
     if (diffhighlightBtn->isChecked()) checkedHl = BrassicaProcess::DifferentToLastRun;
-    else if (inputhighlightBtn->isChecked()) checkedHl = BrassicaProcess::DifferentToInput;
+    else if (inputhighlightBtn->isChecked()) checkedHl = BrassicaProcess::DifferentToInputAllChanged;
+    else if (specifichighlightBtn->isChecked()) checkedHl = BrassicaProcess::DifferentToInputSpecificRule;
 
     BrassicaProcess::OutputMode outMode = BrassicaProcess::WordsOnlyOutput;
     if (mdfoutBtn->isChecked()) outMode = BrassicaProcess::MDFOutput;

@@ -130,6 +130,10 @@ The exception is sound changes which are flagged with `-x`:
 (This is useful for rules for romanisation and similar,
   which are not ‘meaningful’ sound changes but will often affect many words.)
   
+When **Specific rule (-h) applied** is selected,
+  Brassica expects some sound changes to be annotated with the flag `-h`.
+It will then highlight all words which were affected by those sound changes.
+  
 ## Input and output format
 
 Brassica can accept input in two formats.

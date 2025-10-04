@@ -21,11 +21,11 @@ public:
         MDFStandard,
         MDFAlternate
     };
-    enum HighlightMode
-    {
-        NoHighlight,
-        DifferentToLastRun,
-        DifferentToInput
+    enum HighlightMode {
+      NoHighlight,
+      DifferentToLastRun,
+      DifferentToInputAllChanged,
+      DifferentToInputSpecificRule
     };
     enum OutputMode
     {

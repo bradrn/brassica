@@ -84,6 +84,10 @@ This highlighting occurs for all words which satisfy one of the following condit
     and the sound change was not flagged with `-x`.
 - At least one grapheme in the word was replaced by a category definition block.
 
+There is also an option to highlight output words when ‘Specific rule (-h) applied’.
+This is similar to the previous option, but only considers sound changes flagged with `-h`:
+  any other sound changes are considered irrelevant for highlighting purposes.
+
 ## Sound changes
 
 ### Sound change syntax

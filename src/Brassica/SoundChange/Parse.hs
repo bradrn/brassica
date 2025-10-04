@@ -243,6 +243,7 @@ parseLexemes = many parseLexeme
 parseFlags :: Parser Flags
 parseFlags = runPermutation $ Flags
     <$> toPermutation (isNothing <$> optional (symbol "-x"))
+    <*> toPermutation (isJust <$> optional (symbol "-h"))
     <*> toPermutationWithDefault LTR ((LTR <$ symbol "-ltr") <|> (RTL <$ symbol "-rtl"))
     <*> toPermutation (isJust <$> optional (symbol "-1"))
     <*> toPermutationWithDefault ApplyAlways

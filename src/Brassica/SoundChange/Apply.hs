@@ -25,6 +25,7 @@ module Brassica.SoundChange.Apply
        -- * Reporting results
        , getOutput
        , getReports
+       , HighlightMode(..)
        , getChangedOutputs
        , getChangedReports
        , reportAsText
