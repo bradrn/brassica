@@ -976,7 +976,3 @@ getChangedReports l = (inputWord l, False) : case derivations l of
                 _ -> hasChanged
         in go hasChanged' ls
     go hasChanged (ReportWord w':ls) = (w', hasChanged) : go hasChanged ls
-
--- | Apply a set of 'SoundChanges' to a word, returning the final
--- output word(s) as well as any intermediate results from 'ReportS',
--- each with a boolean marking changed results (as with 'applyChangesWithChanges').
