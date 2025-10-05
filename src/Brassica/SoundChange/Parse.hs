@@ -112,7 +112,7 @@ parseCategoryStandalone = do
     _ <- symbol "="
     mods <- (:)
         <$> parseCategoryModification True
-        <*> some (parseCategoryModification False)
+        <*> many (parseCategoryModification False)
     return (g, CategorySpec mods)
 
 parseFeature :: Parser FeatureSpec
