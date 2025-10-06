@@ -14,7 +14,8 @@
 
 - New flag `highlightSpecificRule` added to `Brassica.SoundChanges.Types.Flags`
 - `Brassica.SoundChanges.Apply.getChangedOutputs` and `Brassica.SoundChanges.Apply.getChangedReports`
-    now take an extra parameter of new type `Brassica.SoundChanges.Apply.HighlightMode`
+    now take an extra parameter of new type `Brassica.SoundChanges.Apply.HighlightMode`,
+    as does the constructor `Brassica.SoundChange.Frontend.Internal.DifferentToInput`
 - New function `Brassica.SoundChanges.Apply.rulesNotApplied`
 - Method of reporting rules to frontend is now selected by new type `Brassica.SoundChange.Frontend.Internal.ReportMode`,
     with corresponding changes in `Brassica.SoundChange.Frontend.Internal.ApplicationMode`
