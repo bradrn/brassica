@@ -80,7 +80,7 @@ On the desktop version only, there are three menu items:
   A ‘Find’ dialog lets you search for text in any of the three textboxes.
 
 - The ‘Tools’ menu lets you open two tools:
-  - The **paradigm builder**, documented in a separate guide [TODO write this].
+  - The **paradigm builder**, documented in a [separate guide](Paradigm-Builder.md).
   - The options dialog, currently restricted to **setting the desired font** for each textbox.
   
 - The ‘Help’ menu contains help and information about Brassica.
@@ -88,7 +88,7 @@ On the desktop version only, there are three menu items:
 Also on desktop only, there are two keyboard shortcuts:
 
 - Ctrl+Tab switches focus between the rules textbox and the input lexicon textbox.
-- Ctrl+Enter applies the rules to the input lexicon, as if the ‘Apply’ were pressed.
+- Ctrl+Enter applies the rules to the input lexicon, as if ‘Apply’ were pressed.
 
 ## Rule application
 
