@@ -24,7 +24,11 @@ function applyChanges(changes, words, sep, reportRules, inputMode, highlightMode
     const inputWords = encoder.encode(words);
     const sepEncoded = encoder.encode(sep);
 
-    const reportRulesC = reportRules ? 1 : 0;
+    var reportRulesC = 0;
+    switch (reportRules) {
+    case 'report-btn':     reportRulesC = 1; break;
+    case 'report-not-btn': reportRulesC = 2; break;
+    }
 
     var inModeC = 0;
     switch (inputMode) {
@@ -56,7 +60,7 @@ function applyChanges(changes, words, sep, reportRules, inputMode, highlightMode
                         inputChangesPtr, inputChangesLen,
                         inputWordsPtr, inputWordsLen,
                         sepPtr, sepLen,
-                        reportRules, inModeC, hlModeC, outModeC, results);
+                        reportRulesC, inModeC, hlModeC, outModeC, results);
                     output = decodeStableCStringLen(outputStableCStringLen);
                 } catch (err) {
                     output = err;
@@ -220,8 +224,7 @@ function updateForm(reportRules, needsLive) {
 
 form.addEventListener("submit", (event) => {
     event.preventDefault();
-    const reportRules = event.submitter.id === "report-btn";
-    updateForm(reportRules, false);
+    updateForm(event.submitter.id, false);
 });
 
 // live highlight

@@ -39,7 +39,7 @@ parseTokeniseAndApplyRules_hs
     -> Int         -- ^ length of words
     -> CString     -- ^ separator
     -> Int         -- ^ length of separator
-    -> CBool       -- ^ report rules applied?
+    -> CInt        -- ^ report rules applied?
     -> CInt        -- ^ input format
     -> CInt        -- ^ highlighting mode
     -> CInt        -- ^ output mode
@@ -52,7 +52,7 @@ parseTokeniseAndApplyRules_hs
   wsRawLen
   sepRaw
   sepRawLen
-  (CBool report)
+  report
   infmtC
   hlModeC
   outModeC
@@ -68,10 +68,9 @@ parseTokeniseAndApplyRules_hs
     let hlMode = toEnum $ fromIntegral hlModeC
         infmt = toEnum $ fromIntegral infmtC
         outMode = toEnum $ fromIntegral outModeC
-        mode =
-            if report == 1
-            then ReportRulesApplied
-            else ApplyRules hlMode outMode sepText
+        mode = case report of
+            0 -> ApplyRules hlMode outMode sepText
+            n -> ReportRules $ toEnum $ fromIntegral n
 
     case parseSoundChanges changesText of
         Left e -> newStableCStringLen $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
@@ -93,6 +92,9 @@ parseTokeniseAndApplyRules_hs
                             writeIORef prevRef Nothing
                             newStableCStringLen $
                                 concatMap (surroundTable . reportAsHtmlRows plaintext') items
+                        NotAppliedRulesList is -> do
+                            writeIORef prevRef Nothing
+                            newStableCStringLen $ unlines $ plaintext' <$> is
   where
     highlightWord (s, False) = concatWithBoundary s
     highlightWord (s, True) = "<b>" ++ concatWithBoundary s ++ "</b>"
@@ -141,7 +143,7 @@ foreign export ccall parseTokeniseAndApplyRules_hs
     -> Int
     -> CString
     -> Int
-    -> CBool
+    -> CInt
     -> CInt
     -> CInt
     -> CInt

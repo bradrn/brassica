@@ -83,6 +83,7 @@ module Brassica.SoundChange.Apply.Internal
        , reportAsText
        , applyStatement
        , applyChanges
+       , rulesNotApplied
        , getOutput
        , getReports
        , HighlightMode(..)
@@ -95,7 +96,7 @@ import Control.Category ((>>>))
 import Control.Monad ((>=>), (<=<), join)  -- needed for mtl>=2.3
 import Data.Containers.ListUtils (nubOrd)
 import Data.Functor ((<&>))
-import Data.List (elemIndex)
+import Data.List (elemIndex, intersect)
 import Data.Maybe (maybeToList, fromMaybe, listToMaybe, mapMaybe)
 import GHC.Generics (Generic)
 
@@ -928,6 +929,30 @@ applyChanges scs w = go scs w <&> \ls -> Log
                     Just w'' -> (l :) <$> go sts w''
                     -- apply no further changes to a deleted word
                     Nothing -> [[l]]
+
+-- | Apply a set of 'SoundChanges' to a word, returning a list of
+-- /sound changes/ (not words!) which did /not/ apply to that
+-- word. Sound changes are returned as indices into the input
+-- 'SoundChanges' list in order to uniquely identify them, in
+-- ascending order.
+rulesNotApplied :: SoundChanges Expanded GraphemeList -> PWord -> [Int]
+rulesNotApplied scs w = foldr1 intersect $ go [] (zip [0..] scs) w
+    -- foldr1 above is safe as 'go' always returns at least one list
+  where
+    go is [] _ = [reverse is]
+    go is ((i,st):sts) w' =
+        case applyStatement st w' of
+            [] ->
+                let is' = case st of
+                        DeclS _ -> is  -- never report declarations
+                        _ -> i:is
+                in go is' sts w'
+            outputActions -> outputActions >>= \case
+                ReportWord w'' -> go is sts w''
+                ActionApplied _ output -> case output of
+                    Just w'' -> go is sts w''
+                    -- apply no further changes to a deleted word
+                    Nothing -> [reverse is]
 
 -- | Returns the final output from a sound change log.
 getOutput :: Log r -> Maybe PWord

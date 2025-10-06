@@ -39,7 +39,7 @@ main = execParser opts >>= \case
                         withSinkFileIf outWordsFile $ \outC ->
                         runConduit $
                             inC
-                            .| processWords (incrFor wordsFormat) rules' wordsFormat outMode
+                            .| processWords (incrFor wordsFormat outMode) rules' wordsFormat outMode
                             .| outC
 
   where
@@ -61,8 +61,10 @@ main = execParser opts >>= \case
                 (long "mdf-alt" <> help "Parse input words in MDF format (alternate hierarchy)")
             ]
         <*> (asum
-                [ flag' (const ReportRulesApplied)
+                [ flag' (const $ ReportRules ReportApplied)
                     (long "report" <> help "Report rules applied rather than outputting words")
+                , flag' (const $ ReportRules ReportNotApplied)
+                    (long "report-not" <> help "Report rules which didn't apply rather than outputting words")
                 , flag' (ApplyRules NoHighlight MDFOutput)
                     (long "mdf-out" <> help "With --mdf, output MDF dictionary")
                 , flag' (ApplyRules NoHighlight MDFOutputWithEtymons)
@@ -85,8 +87,9 @@ main = execParser opts >>= \case
         <*> optional (strOption
             (long "out" <> short 'o' <> help "File to which output words should be written (if not specified will write to stdout)"))
 
-    incrFor Raw = True
-    incrFor (MDF _) = False
+    incrFor (MDF _) _ = False
+    incrFor Raw (ReportRules ReportNotApplied) = False
+    incrFor Raw _ = True
 
     -- duplicated in paradigm builder CLI
     withSourceFileIf :: Maybe FilePath -> (ConduitM i B.ByteString IO () -> IO a) -> IO a
@@ -132,6 +135,7 @@ processWords incr rules wordsFormat outMode =
     processApplicationOutput :: ApplicationOutput PWord (Statement Expanded GraphemeList) -> Either ParseException Text
     processApplicationOutput (HighlightedWords cs) = Right $ ensureNewline $ pack $ detokeniseWords' highlight cs
     processApplicationOutput (AppliedRulesTable is) = Right $ pack $ unlines $ reportAsText plaintext' <$> is
+    processApplicationOutput (NotAppliedRulesList is) = Right $ pack $ unlines $ plaintext' <$> is
     processApplicationOutput (ParseError e) = Left $ ParseException $ errorBundlePretty e
 
     ensureNewline t = case unsnoc t of

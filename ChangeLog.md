@@ -8,12 +8,17 @@
   - The first element of categories is now treated consistently
       accross both category blocks and inline categories.
 - New option to highlight only words affected by specific rules, selected with new flag `-h`
+- New button / command-line option to ‘Report rules not applied’ by any input word
 
 ### Code
 
 - New flag `highlightSpecificRule` added to `Brassica.SoundChanges.Types.Flags`
 - `Brassica.SoundChanges.Apply.getChangedOutputs` and `Brassica.SoundChanges.Apply.getChangedReports`
     now take an extra parameter of new type `Brassica.SoundChanges.Apply.HighlightMode`
+- New function `Brassica.SoundChanges.Apply.rulesNotApplied`
+- Method of reporting rules to frontend is now selected by new type `Brassica.SoundChange.Frontend.Internal.ReportMode`,
+    with corresponding changes in `Brassica.SoundChange.Frontend.Internal.ApplicationMode`
+    and `Brassica.SoundChange.Frontend.Internal.ApplicationOutput`
 
 ## 1.0.0
 

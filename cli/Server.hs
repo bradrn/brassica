@@ -21,6 +21,7 @@ import Data.Aeson.Types (prependFailure, typeMismatch)
 import Data.ByteString (toStrict)
 import Data.Conduit.Attoparsec (conduitParser)
 import Data.Foldable (toList)
+import Data.List (intercalate)
 import Data.Text (unpack)
 import GHC.Generics (Generic)
 import System.IO (hSetBuffering, stdin, stdout, BufferMode(NoBuffering))
@@ -34,7 +35,7 @@ data Request
     = ReqRules
         { changes :: String
         , input :: String
-        , report :: Bool
+        , report :: Maybe ReportMode
         , inFmt :: InputLexiconFormat
         , hlMode :: HighlightMode
         , outMode :: OutputMode
@@ -88,6 +89,7 @@ instance ToJSON HighlightMode where
 
 $(deriveJSON defaultOptions ''Component)
 $(deriveJSON defaultOptions ''OutputMode)
+$(deriveJSON defaultOptions ''ReportMode)
 
 $(deriveJSON defaultOptions{constructorTagModifier=drop 3, sumEncoding=defaultTaggedObject{tagFieldName="method"}} ''Request)
 $(deriveJSON defaultOptions{constructorTagModifier=drop 4, sumEncoding=defaultTaggedObject{tagFieldName="method"}} ''Response)
@@ -122,10 +124,7 @@ parseTokeniseAndApplyRulesWrapper
     :: Request
     -> Response
 parseTokeniseAndApplyRulesWrapper ReqRules{..} =
-    let mode =
-            if report
-            then ReportRulesApplied
-            else ApplyRules hlMode outMode sep
+    let mode = maybe (ApplyRules hlMode outMode sep) ReportRules report
     in case parseSoundChanges changes of
         Left e -> RespError $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
         Right statements ->
@@ -145,6 +144,8 @@ parseTokeniseAndApplyRulesWrapper ReqRules{..} =
                             (escape $ detokeniseWords' highlightWord result)
                         AppliedRulesTable items -> RespRules Nothing $
                             concatMap (surroundTable . reportAsHtmlRows plaintext') items
+                        NotAppliedRulesList items -> RespRules Nothing $
+                            intercalate "<br/>" $ plaintext' <$> items
   where
     highlightWord (s, False) = concatWithBoundary s
     highlightWord (s, True) = "<b>" ++ concatWithBoundary s ++ "</b>"

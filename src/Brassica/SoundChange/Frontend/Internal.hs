@@ -24,7 +24,7 @@ module Brassica.SoundChange.Frontend.Internal where
 
 import Control.Monad ((<=<))
 import Data.Containers.ListUtils (nubOrd)
-import Data.List (transpose, intersperse)
+import Data.List (transpose, intersperse, intersect)
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Void (Void)
 import GHC.Generics (Generic)
@@ -45,15 +45,31 @@ data ApplicationMode
     = ApplyRules HighlightMode OutputMode String
     -- ^ Apply sound changes as normal, with the given modes and
     -- separator
-    | ReportRulesApplied
-    -- ^ Apply reporting the rules which were applied (as HTML)
+    | ReportRules ReportMode
+    -- ^ Apply reporting rules (as HTML)
     deriving (Show, Eq)
+
+data ReportMode
+    = ReportApplied
+    -- ^ Report the rules which were applied
+    | ReportNotApplied
+    -- ^ Report the rules which were not applied
+    deriving (Show, Eq)
+instance Enum ReportMode where
+    -- used for conversion to and from C, so want control over values
+    -- special-case for this type: reserve 0 for no reporting
+    fromEnum ReportApplied = 1
+    fromEnum ReportNotApplied = 2
+
+    toEnum 1 = ReportApplied
+    toEnum 2 = ReportNotApplied
+    toEnum _ = undefined
 
 -- | Get the 'OutputMode' if one is set, otherwise default to
 -- 'WordsOnlyOutput'.
 getOutputMode :: ApplicationMode -> OutputMode
 getOutputMode (ApplyRules _ o _) = o
-getOutputMode ReportRulesApplied = WordsOnlyOutput
+getOutputMode (ReportRules _) = WordsOnlyOutput
 
 -- | Mode for highlighting output words
 data HighlightMode
@@ -105,6 +121,7 @@ instance Enum OutputMode where
 data ApplicationOutput a r
     = HighlightedWords [Component (a, Bool)]
     | AppliedRulesTable [Log r]
+    | NotAppliedRulesList [r]
     | ParseError (ParseErrorBundle String Void)
     deriving (Show, Generic, NFData)
 
@@ -174,9 +191,12 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
     case tokeniseAccordingToInputFormat intype (getOutputMode mode) statements ws of
         Left e -> ParseError e
         Right toks -> case mode of
-            ReportRulesApplied ->
+            ReportRules ReportApplied ->
                 AppliedRulesTable $ concat $
                     getWords $ parFmap (applyChanges statements) toks
+            ReportRules ReportNotApplied ->
+                let is = intersect' $ getWords $ parFmap (rulesNotApplied statements) toks
+                in NotAppliedRulesList $ (statements !!) <$> is
             ApplyRules DifferentToLastRun mdfout sep ->
                 let result = concatMap (splitMultipleResults sep) $
                         joinComponents' mdfout $ parFmap (doApply mdfout statements) toks
@@ -203,6 +223,10 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
     unsafeCastComponent (Word _) = error "unsafeCastComponent: attempted to cast a word!"
     unsafeCastComponent (Separator s) = Separator s
     unsafeCastComponent (Gloss s) = Gloss s
+
+    intersect' :: Eq a => [[a]] -> [a]
+    intersect' [] = []
+    intersect' xs = foldr1 intersect xs
 
     doApply :: OutputMode -> SoundChanges Expanded GraphemeList -> PWord -> [Component [PWord]]
     doApply WordsWithProtoOutput scs w = doApplyWithProto scs w

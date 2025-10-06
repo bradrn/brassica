@@ -3,6 +3,7 @@
 #include <QCoreApplication>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <qjsonvalue.h>
 
 BrassicaProcess::BrassicaProcess(QObject *parent)
     : QObject(parent)
@@ -36,7 +37,7 @@ QProcess::ProcessError BrassicaProcess::errorState()
 QString BrassicaProcess::parseTokeniseAndApplyRules(
     QString rules,
     QString words,
-    bool reportRules,
+    ReportMode reportRules,
     InputLexiconFormat inFmt,
     HighlightMode hlMode,
     OutputMode outMode,
@@ -47,7 +48,7 @@ QString BrassicaProcess::parseTokeniseAndApplyRules(
     req.insert("method", "Rules");
     req.insert("changes", rules);
     req.insert("input", words);
-    req.insert("report", reportRules);
+    req.insert("report", toJson(reportRules));
     req.insert("inFmt", toJson(inFmt));
     req.insert("hlMode", toJson(hlMode));
     req.insert("outMode", toJson(outMode));
@@ -104,6 +105,16 @@ QString BrassicaProcess::toJson(InputLexiconFormat val)
         case MDFAlternate: return "MDFAlternate";
     }
     return "internal error: BrassicaProcess::toJson(InputLexiconFormat)";
+}
+
+QJsonValue BrassicaProcess::toJson(ReportMode val)
+{
+    switch (val) {
+        case NoReport: return QJsonValue();
+        case ReportApplied: return "ReportApplied";
+        case ReportNotApplied: return "ReportNotApplied";
+    }
+    return "internal error: BrassicaProcess::toJson(ReportMode)";
 }
 
 QString BrassicaProcess::toJson(HighlightMode val)

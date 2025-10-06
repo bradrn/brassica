@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "brassicaprocess.h"
 #include "finddialog.h"
 #include "paradigmwindow.h"
 #include "settingsdialog.h"
@@ -39,13 +40,14 @@ MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
     setupMenuBar();
     applySettings();
 
-    connect(applyBtn      , &QPushButton::clicked  , this, [this] { applySoundChanges(false, false); });
-    connect(reportRulesBtn, &QPushButton::clicked  , this, [this] { applySoundChanges(false, true); } );
+    connect(applyBtn      , &QPushButton::clicked  , this, [this] { applySoundChanges(false, BrassicaProcess::NoReport); });
+    connect(reportRulesBtn, &QPushButton::clicked  , this, [this] { applySoundChanges(false, BrassicaProcess::ReportApplied); } );
+    connect(reportRulesNotAppliedBtn, &QPushButton::clicked  , this, [this] { applySoundChanges(false, BrassicaProcess::ReportNotApplied); } );
 
     QShortcut *applyShortcut1 = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Return), this);
     QShortcut *applyShortcut2 = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Enter ), this);
-    connect(applyShortcut1, &QShortcut::activated, this, [this] { applySoundChanges(false, false); });
-    connect(applyShortcut2, &QShortcut::activated, this, [this] { applySoundChanges(false, false); });
+    connect(applyShortcut1, &QShortcut::activated, this, [this] { applySoundChanges(false, BrassicaProcess::NoReport); });
+    connect(applyShortcut2, &QShortcut::activated, this, [this] { applySoundChanges(false, BrassicaProcess::NoReport); });
 
     QShortcut *toggleShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Tab), this);
     connect(toggleShortcut, &QShortcut::activated, this, &MainWindow::toggleCursor);
@@ -65,21 +67,21 @@ MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
     connect(mdfAltBtn, &QRadioButton::toggled, this, &MainWindow::reselectCheckboxes);
 
     // live highlighting
-    connect(rulesEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
-    connect(wordsEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
-    connect(nohighlightBtn   , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
-    connect(diffhighlightBtn , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
-    connect(inputhighlightBtn, &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
-    connect(rawBtn           , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
-    connect(mdfBtn           , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
-    connect(mdfAltBtn        , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
-    connect(mdfoutBtn        , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
-    connect(mdfetymoutBtn    , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
-    connect(rawoutBtn        , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
-    connect(inoutBtn         , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
-    connect(inoutBtnPreserve , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(rulesEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(wordsEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(nohighlightBtn   , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(diffhighlightBtn , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(inputhighlightBtn, &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(rawBtn           , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(mdfBtn           , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(mdfAltBtn        , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(mdfoutBtn        , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(mdfetymoutBtn    , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(rawoutBtn        , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(inoutBtn         , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(inoutBtnPreserve , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
 
-    connect(viewLive, &QRadioButton::toggled, this, [this](bool checked) { if (checked) applySoundChanges(false, false); });
+    connect(viewLive, &QRadioButton::toggled, this, [this](bool checked) { if (checked) applySoundChanges(false, BrassicaProcess::NoReport); });
 }
 
 MainWindow::~MainWindow()
@@ -120,6 +122,9 @@ void MainWindow::setupWidgets(QWidget *central)
 
     reportRulesBtn = new QPushButton("Report rules applied");
     midLayout->addWidget(reportRulesBtn);
+
+    reportRulesNotAppliedBtn = new QPushButton("Report rules not applied");
+    midLayout->addWidget(reportRulesNotAppliedBtn);
 
     QGroupBox *highlightBox = new QGroupBox("Output highlighting");
     QVBoxLayout *highlightLayout = new QVBoxLayout(highlightBox);
@@ -371,7 +376,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     event->accept();
 }
 
-void MainWindow::applySoundChanges(bool live, bool reportRules)
+void MainWindow::applySoundChanges(bool live, BrassicaProcess::ReportMode reportRules)
 {
     if (live && !viewLive->isChecked()) return;
 

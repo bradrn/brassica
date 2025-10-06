@@ -47,8 +47,6 @@ For normal usage,
   enter your sound change rules in the leftmost textbox,
   and your input words in the textbox second from the left.
 Then press the ‘Apply’ button to view the result of applying your rules to your lexicon.
-Alternately, you can select ‘Report rules applied’:
-  this will display a table showing the evolution of each word as it was modified by the sound changes.
 
 In more detail, the four components of the main window are, from left to right:
 
@@ -92,14 +90,18 @@ Also on desktop only, there are two keyboard shortcuts:
 
 ## Rule application
 
-The most important elements of the control pane are the two buttons at the top.
+The most important elements of the control pane are the three buttons at the top.
 These cause the rules to be applied to the input, and place the results into the output box.
 The **Apply** button simply does the application,
   and displays the output words as specified by the other settings in the control pane.
 (As mentioned above, on desktop pressing Ctrl+Enter does the same thing.)
 By contrast, **Report rules applied** displays not only the input and output words,
-  but every sound change which applied to the input to produce the output,
+  but a table showing the evolution of each word,
+  including every sound change which applied to it and all the intermediate forms.
   alongside all the intermediate forms.
+**Report rules not applied** does the opposite:
+  it shows all sound changes which were *not* triggered by any of the input words
+  in the course of their evolution.
 
 Another way to apply rules is by selecting the **View results live** checkbox
   (near the bottom of the control pane).

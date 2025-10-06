@@ -44,6 +44,7 @@ private:
     QRadioButton *inoutBtn;
     QRadioButton *inoutBtnPreserve;
     QPushButton *reportRulesBtn;
+    QPushButton *reportRulesNotAppliedBtn;
     QCheckBox *viewLive;
     QCheckBox *synchroniseScrolls;
     QLineEdit *multiResultSep;
@@ -84,7 +85,7 @@ private:
     void closeEvent(QCloseEvent *event) override;
 
 private slots:
-    void applySoundChanges(bool live, bool reportRules);
+    void applySoundChanges(bool live, BrassicaProcess::ReportMode reportRules);
 
     void openRules();
     void saveRules();

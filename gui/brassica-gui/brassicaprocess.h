@@ -3,6 +3,7 @@
 
 #include <QJsonDocument>
 #include <QProcess>
+#include <qjsonvalue.h>
 
 class BrassicaProcess : public QObject
 {
@@ -21,6 +22,11 @@ public:
         MDFStandard,
         MDFAlternate
     };
+    enum ReportMode {
+        NoReport,
+        ReportApplied,
+        ReportNotApplied
+    };
     enum HighlightMode {
       NoHighlight,
       DifferentToLastRun,
@@ -38,7 +44,7 @@ public:
 
     QString parseTokeniseAndApplyRules(QString rules,
         QString words,
-        bool reportRules,
+        ReportMode reportRules,
         InputLexiconFormat inFmt,
         HighlightMode hlMode,
         OutputMode outMode,
@@ -53,6 +59,7 @@ private:
     QJsonDocument request(QJsonDocument req);
 
     QString toJson(InputLexiconFormat val);
+    QJsonValue toJson(ReportMode val);
     QString toJson(HighlightMode val);
     QString toJson(OutputMode val);
 };
