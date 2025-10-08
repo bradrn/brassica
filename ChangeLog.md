@@ -7,6 +7,7 @@
 - Bugfixes:
   - The first element of categories is now treated consistently
       accross both category blocks and inline categories.
+  - Combining optional elements with the Kleene star no longer causes an infinite loop
 - New option to highlight only words affected by specific rules, selected with new flag `-h`
 - New button / command-line option to ‘Report rules not applied’ by any input word
 - Allow specifying multiple exceptions in a single rule

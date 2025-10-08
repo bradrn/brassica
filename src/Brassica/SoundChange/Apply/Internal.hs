@@ -330,7 +330,14 @@ matchKleene origOut = go 0 origOut
             ( insertAtKleene (length $ matchedKleenes origOut) n out
             , mz
             ) ]
-        r -> r >>= \(out', mz') -> go (n+1) out' prev l mz'
+        r -> r >>= \case
+            (out', mz')
+                | curPos mz == curPos mz' ->
+                    -- cursor didn't advance, avoid infinite loop!
+                    [( insertAtKleene (length $ matchedKleenes origOut) n out
+                     , mz
+                    )]
+                | otherwise -> go (n+1) out' prev l mz'
 
 matchWildcard
     :: MatchOutput
