@@ -412,6 +412,42 @@ It is suggested to add `-x` before every romanisation rule,
 
 ## Advanced usage
 
+### Exceptions
+
+You can add an **exception** to a sound change by placing an environment after two slashes `//`.
+If a sound change contains an exception,
+  Brassica will *not* apply it in any position where the exception matches.
+
+For example, the following exceptionless rule replaces ⟨t⟩ with ⟨s⟩ before ⟨i⟩:
+```brassica
+t / s / _ i
+
+; lati → lasi
+; tisa → sisa
+; anti → ansi
+```
+The following rule adds an exception to specify that ⟨t⟩ should *not* change after ⟨n⟩:
+```brassica
+t / s / _ i // n _
+
+; lati → lasi
+; tisa → sisa
+; anti → anti
+```
+
+It is possible to add multiple exceptions simply by adding more environments separated by slashes.
+A rule with multiple exceptions will not be applied in any location where any of the exceptions match.
+Thus, the following rule does not apply after ⟨n⟩, or when the following ⟨i⟩ is followed by ⟨s⟩:
+```brassica
+t / s / _ i // n _ / _ i s
+
+; lati → lasi
+; tisa → tisa
+; anti → anti
+```
+```
+
+
 ### Multigraphs
 
 Often, two letters are used to represent a single sound, as in ⟨sh⟩ or ⟨ng⟩.

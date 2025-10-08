@@ -652,9 +652,9 @@ applyOnce Rule{..} =
         case result of
             Just out -> do
                 exs <- case exception of
-                    Nothing -> pure []
-                    Just ex -> gets $ join . toList .
-                        extend' (exceptionAppliesAtPoint target ex)
+                    [] -> pure []
+                    exEnvs -> gets $ \mz ->
+                        join . toList . flip extend' mz . exceptionAppliesAtPoint target =<< exEnvs
                 originalWord <- get
                 let pMay = locationOf TargetStart originalWord
                     pMay' = locationOf PrevEnd originalWord

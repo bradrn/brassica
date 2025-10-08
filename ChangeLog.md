@@ -9,6 +9,7 @@
       accross both category blocks and inline categories.
 - New option to highlight only words affected by specific rules, selected with new flag `-h`
 - New button / command-line option to ‘Report rules not applied’ by any input word
+- Allow specifying multiple exceptions in a single rule
 
 ### Code
 
@@ -20,6 +21,7 @@
 - Method of reporting rules to frontend is now selected by new type `Brassica.SoundChange.Frontend.Internal.ReportMode`,
     with corresponding changes in `Brassica.SoundChange.Frontend.Internal.ApplicationMode`
     and `Brassica.SoundChange.Frontend.Internal.ApplicationOutput`
+- Changed `Brassica.SoundChange.Types.Rule` to admit multiple exceptions
 
 ## 1.0.0
 

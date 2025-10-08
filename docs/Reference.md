@@ -95,7 +95,7 @@ This is similar to the previous option, but only considers sound changes flagged
 A sound change rule has the following syntax
   (using [EBNF as defined in the W3C XML standard](https://www.w3.org/TR/REC-xml/#sec-notation)):
 ```ebnf
-SoundChange ::= Flag* Lexeme* ("/" | "→" | "->") Lexeme* ("/" Environment)* ("//" Environment)?
+SoundChange ::= Flag* Lexeme* ("/" | "→" | "->") Lexeme* ("/" Environment)* ("//" Environment ("/" Environment)*)?
 Flag ::= "-ltr" | "-rtl" | "-1" | "-?" | "-??" | "-x" | "-no"
 Environment ::= Lexeme* "_" Lexeme*
 ```
@@ -175,7 +175,7 @@ Simplifying slightly, for the usual case of left-to-right application, rule appl
 
 1. Add word boundary graphemes `#` to the beginning and end of the word.
 2. Initialise the current position to the beginning of the word.
-3. If the sound change has an exception, and that exception matches the current position, go to the next position.
+3. If the sound change has any exception which matches the current position, go to the next position.
 4. For each environment in the sound change, or for the environment `_` if no environment is specified:
     1. Match each lexeme before the underscore to the input word in sequence, from left to right.
     2. Match each lexeme in the target to the input word, in the same manner.

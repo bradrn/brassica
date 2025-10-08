@@ -271,13 +271,12 @@ ruleParser = do
     envs' <- many $ do
         notFollowedBy $ symbol "//"  -- for exceptions
         _ <- symbol "/"
-        env1 <- parseLexemes
-        _ <- symbol "_"
-        env2 <- parseLexemes
-        return (env1, env2)
+        parseEnv
     let envs = if null envs' then [([], [])] else envs'
 
-    exception <- optional $ (,) <$> (symbol "//" *> parseLexemes) <* symbol "_" <*> parseLexemes
+    exception <-
+        (symbol "//" *> ((:) <$> parseEnv <*> many (symbol "/" *> parseEnv)))
+        <|> pure []
 
     o' <- getOffset
 
@@ -286,6 +285,12 @@ ruleParser = do
     let plaintext = dropWhile isSpace $ dropWhileEnd isSpace $
             (fst . fromJust) (takeN_ (o' - o) s)
     return Rule{environment=envs, ..}
+  where
+    parseEnv = do
+        env1 <- parseLexemes
+        _ <- symbol "_"
+        env2 <- parseLexemes
+        return (env1, env2)
 
 filterParser :: Parser (Filter CategorySpec)
 filterParser = fmap (uncurry Filter) $ match $ symbol "filter" *> parseLexemes <* optional scn
