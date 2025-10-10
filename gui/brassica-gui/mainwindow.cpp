@@ -378,7 +378,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::applySoundChanges(bool live, BrassicaProcess::ReportMode reportRules)
 {
-    if (live && !viewLive->isChecked()) return;
+    if ((live && !viewLive->isChecked()) || blockLiveUpdate) return;
 
     QString rules      = rulesEdit     ->toPlainText();
     QString words      = wordsEdit     ->toPlainText();
@@ -400,7 +400,7 @@ void MainWindow::applySoundChanges(bool live, BrassicaProcess::ReportMode report
     else if (inoutBtn->isChecked()) outMode = BrassicaProcess::WordsWithProtoOutput;
     else if (inoutBtnPreserve->isChecked()) outMode = BrassicaProcess::WordsWithProtoOutputPreserve;
 
-    QString output = proc->parseTokeniseAndApplyRules(
+    std::pair<QString, QList<int>> outputPair = proc->parseTokeniseAndApplyRules(
         rules,
         words,
         reportRules,
@@ -409,12 +409,18 @@ void MainWindow::applySoundChanges(bool live, BrassicaProcess::ReportMode report
         outMode,
         prev,
         multiResultSep->text());
+    QString output = outputPair.first;
+    QList<int> highlights = outputPair.second;
 
     blockScrollTrackingEvent = true;
     outputEdit->setHtml("<pre style=\"font-family: inherit\">" + output + "</pre>");
 
     blockScrollTrackingEvent = false;
     updateOutputFromWordsSlider(wordsEditVScroll->value());
+
+    blockLiveUpdate = true;
+    rulesHl->setHighlights(highlights);
+    blockLiveUpdate = false;
 }
 
 void MainWindow::openRules()

@@ -52,6 +52,7 @@ private:
     QScrollBar *outputEditVScroll;
 
     bool blockScrollTrackingEvent = false;
+    bool blockLiveUpdate = false;
 
     RulesHighlighter *rulesHl;
 

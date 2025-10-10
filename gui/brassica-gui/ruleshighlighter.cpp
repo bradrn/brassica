@@ -1,4 +1,6 @@
 #include "ruleshighlighter.h"
+#include <iostream>
+#include <qtextformat.h>
 
 RulesHighlighter::RulesHighlighter(QTextDocument *parent)
     : QSyntaxHighlighter(parent)
@@ -29,6 +31,10 @@ RulesHighlighter::RulesHighlighter(QTextDocument *parent)
     formats.append(commentFormat);
     patterns.append(QRegularExpression(R"(;.*)"));
 
+    highlightFormat = QTextCharFormat();
+    highlightFormat.setFontUnderline(true);
+    highlightFormat.setUnderlineStyle(QTextCharFormat::SpellCheckUnderline);
+
     categoryFormat = QTextCharFormat();
     categoryFormat.setBackground(QColor(245, 245, 220));
     setCategories(QStringList(), true);
@@ -52,6 +58,12 @@ void RulesHighlighter::setCategories(QStringList categories, bool forceUpdate /*
     }
 }
 
+void RulesHighlighter::setHighlights(QList<int> highlights)
+{
+    this->highlights = highlights;
+    rehighlight();
+}
+
 void RulesHighlighter::highlightBlock(const QString &text)
 {
     {
@@ -70,6 +82,13 @@ void RulesHighlighter::highlightBlock(const QString &text)
         {
             QRegularExpressionMatch m = itr.next();
             setFormat(m.capturedStart(), m.capturedLength(), formats[i]);
+        }
+    }
+    for (int i = 0; i < highlights.length(); i+=2) {
+        if (highlights[i] >= text.length()) {
+            setFormat(text.length()-1, 1, highlightFormat);
+        } else {
+            setFormat(highlights[i], highlights[i+1], highlightFormat);
         }
     }
 }

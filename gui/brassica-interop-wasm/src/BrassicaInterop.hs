@@ -17,8 +17,16 @@ import Brassica.Paradigm
 import Brassica.SoundChange
 import Brassica.SoundChange.Frontend.Internal
 
+type Output = (CStringLen, [Int])
+
 newStableCStringLen :: String -> IO (StablePtr CStringLen)
 newStableCStringLen = newStablePtr <=< GHC.newCStringLen utf8
+
+newStableCStringLen' :: [(Int, Int)] -> String -> IO (StablePtr Output)
+newStableCStringLen' highlights str = do
+    cstr <- GHC.newCStringLen utf8 str
+    let highlights' = highlights >>= \(o, r) -> [o, r]
+    newStablePtr (cstr, highlights')
 
 getString :: StablePtr CStringLen -> IO CString
 getString = fmap fst . deRefStablePtr
@@ -29,6 +37,24 @@ getStringLen = fmap snd . deRefStablePtr
 freeStableCStringLen :: StablePtr CStringLen -> IO ()
 freeStableCStringLen ptr = do
     (cstr, _) <- deRefStablePtr ptr
+    Foreign.free cstr
+    freeStablePtr ptr
+
+getString_ :: StablePtr Output -> IO CString
+getString_ = fmap (fst . fst) . deRefStablePtr
+
+getStringLen_ :: StablePtr Output -> IO Int
+getStringLen_ = fmap (snd . fst) . deRefStablePtr
+
+getHighlight :: Int -> StablePtr Output -> IO Int
+getHighlight i = fmap ((!! i) . snd) . deRefStablePtr
+
+getHighlightsLen :: StablePtr Output -> IO Int
+getHighlightsLen = fmap (length . snd) . deRefStablePtr
+
+freeStableCStringLen_ :: StablePtr Output -> IO ()
+freeStableCStringLen_ ptr = do
+    ((cstr, _), _) <- deRefStablePtr ptr
     Foreign.free cstr
     freeStablePtr ptr
 
@@ -44,7 +70,7 @@ parseTokeniseAndApplyRules_hs
     -> CInt        -- ^ highlighting mode
     -> CInt        -- ^ output mode
     -> StablePtr (IORef (Maybe [Component PWord]))  -- ^ previous results
-    -> IO (StablePtr CStringLen)  -- ^ output (either wordlist or parse error)
+    -> IO (StablePtr Output)  -- ^ output (either wordlist or parse error)
 parseTokeniseAndApplyRules_hs
   changesRaw
   changesRawLen
@@ -73,28 +99,28 @@ parseTokeniseAndApplyRules_hs
             n -> ReportRules $ toEnum $ fromIntegral n
 
     case parseSoundChanges changesText of
-        Left e -> newStableCStringLen $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
+        Left e -> newStableCStringLen' (getErrorLocs e) $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
         Right statements ->
             case expandSoundChanges statements of
                 Left err ->
-                    newStableCStringLen $ ("<pre>"++) $ (++"</pre>") $ case err of
+                    newStableCStringLen' [] $ ("<pre>"++) $ (++"</pre>") $ case err of
                         (NotFound s) -> "Could not find category: " ++ s
                         InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
                         MismatchedLengths -> "Mismatched lengths in feature definition"
                         InvalidDerivedValue -> "Invalid value used as derived grapheme in autosegment"
                 Right statements' ->
                     case parseTokeniseAndApplyRules (fmap.fmap) statements' wsText infmt mode prev of
-                        ParseError e -> newStableCStringLen $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
+                        ParseError e -> newStableCStringLen' [] $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
                         HighlightedWords result -> do
                             writeIORef prevRef $ Just $ (fmap.fmap) fst result
-                            newStableCStringLen $ escape $ detokeniseWords' highlightWord result
+                            newStableCStringLen' [] $ escape $ detokeniseWords' highlightWord result
                         AppliedRulesTable items -> do
                             writeIORef prevRef Nothing
-                            newStableCStringLen $
+                            newStableCStringLen' [] $
                                 concatMap (surroundTable . reportAsHtmlRows plaintext') items
                         NotAppliedRulesList is -> do
                             writeIORef prevRef Nothing
-                            newStableCStringLen $ unlines $ plaintext' <$> is
+                            newStableCStringLen' [] $ unlines $ plaintext' <$> is
   where
     highlightWord (s, False) = concatWithBoundary s
     highlightWord (s, True) = "<b>" ++ concatWithBoundary s ++ "</b>"
@@ -148,7 +174,7 @@ foreign export ccall parseTokeniseAndApplyRules_hs
     -> CInt
     -> CInt
     -> StablePtr (IORef (Maybe [Component PWord]))
-    -> IO (StablePtr CStringLen)
+    -> IO (StablePtr Output)
 
 foreign export ccall parseAndBuildParadigm_hs
     :: CString
@@ -162,3 +188,8 @@ foreign export ccall initResults :: IO (StablePtr (IORef (Maybe [Component PWord
 foreign export ccall getString :: StablePtr CStringLen -> IO CString
 foreign export ccall getStringLen :: StablePtr CStringLen -> IO Int
 foreign export ccall freeStableCStringLen :: StablePtr CStringLen -> IO ()
+foreign export ccall getString_ :: StablePtr Output -> IO CString
+foreign export ccall getStringLen_ :: StablePtr Output -> IO Int
+foreign export ccall getHighlight :: Int -> StablePtr Output -> IO Int
+foreign export ccall getHighlightsLen :: StablePtr Output -> IO Int
+foreign export ccall freeStableCStringLen_ :: StablePtr Output -> IO ()

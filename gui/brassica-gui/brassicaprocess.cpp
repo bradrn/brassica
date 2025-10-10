@@ -1,6 +1,7 @@
 #include "brassicaprocess.h"
 
 #include <QCoreApplication>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <qjsonvalue.h>
@@ -34,7 +35,7 @@ QProcess::ProcessError BrassicaProcess::errorState()
     return _errorState;
 }
 
-QString BrassicaProcess::parseTokeniseAndApplyRules(
+std::pair<QString, QList<int>> BrassicaProcess::parseTokeniseAndApplyRules(
     QString rules,
     QString words,
     ReportMode reportRules,
@@ -58,13 +59,22 @@ QString BrassicaProcess::parseTokeniseAndApplyRules(
     QJsonObject obj = request(QJsonDocument(req)).object();
     QString method = obj.value("method").toString();
     if (method == "Error") {
-        return obj.value("contents").toString();
+        QJsonArray highlightsArr = obj.value("highlights").toArray();
+        auto highlights = QList<int>();
+        for (auto i = highlightsArr.cbegin(), end = highlightsArr.cend(); i != end; ++i) {
+            QJsonArray highlight = (*i).toArray();
+            highlights.append(highlight[0].toInt());
+            highlights.append(highlight[1].toInt());
+        }
+        return { obj.value("message").toString(), highlights };
     } else if (method == "Rules") {
+        // This should be safe as long as prev is ONLY passed back into this
+        // function! Which in normal use it should.
         delete prev;
         prev = new QJsonValue(obj.value("prev"));
-        return obj.value("output").toString();
+        return { obj.value("output").toString(), QList<int>() };
     }
-    return "internal error: BrassicaProcess::parseTokeniseAndApplyRules";
+    return { "internal error: BrassicaProcess::parseTokeniseAndApplyRules", QList<int>() };
 }
 
 QString BrassicaProcess::parseAndBuildParadigm(QString paradigm, QString roots, bool separateLines)

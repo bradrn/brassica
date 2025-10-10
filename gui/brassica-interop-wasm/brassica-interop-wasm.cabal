@@ -21,6 +21,11 @@ executable brassica-interop-wasm
                        \,--export=getString\
                        \,--export=getStringLen\
                        \,--export=freeStableCStringLen\
+                       \,--export=getString_\
+                       \,--export=getStringLen_\
+                       \,--export=getHighlight\
+                       \,--export=getHighlightsLen\
+                       \,--export=freeStableCStringLen_\
                        \,--export=malloc\
                        \,--export=free\
                        \"

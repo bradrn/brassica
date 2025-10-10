@@ -32,5 +32,25 @@ export function decodeStableCStringLen(stableCStringLen) {
     return output;
 };
 
+export function decodeStableCStringLen_(stableCStringLen) {
+    try {
+        const cstringptr = hs.getString_(stableCStringLen);
+        const cstringlen = hs.getStringLen_(stableCStringLen);
+        const outputBytes = new Uint8Array(hs.memory.buffer, cstringptr, cstringlen);
+        var output = decoder.decode(outputBytes);
+
+        const highlightslen = hs.getHighlightsLen(stableCStringLen);
+        var highlights = [];
+        for (let i = 0; i < highlightslen; ++i) {
+            highlights.push(hs.getHighlight(i, stableCStringLen));
+        }
+
+        var retval = {output: output, highlights: highlights};
+    } finally {
+        hs.freeStableCStringLen_(stableCStringLen);
+    }
+    return retval;
+};
+
 export const encoder = new TextEncoder();
 export const decoder = new TextDecoder();

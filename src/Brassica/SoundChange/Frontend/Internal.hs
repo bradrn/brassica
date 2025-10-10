@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE LambdaCase      #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RankNTypes      #-}
 {-# LANGUAGE TupleSections   #-}
 
@@ -25,13 +26,15 @@ module Brassica.SoundChange.Frontend.Internal where
 import Control.Monad ((<=<))
 import Data.Containers.ListUtils (nubOrd)
 import Data.List (transpose, intersperse, intersect)
+import qualified Data.List.NonEmpty as NE
+import Data.Functor ((<&>))
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Void (Void)
 import GHC.Generics (Generic)
 import Myers.Diff (getDiff, PolyDiff(..))
 
 import Control.DeepSeq (NFData)
-import Text.Megaparsec (ParseErrorBundle)
+import Text.Megaparsec.Error (ParseErrorBundle(..), ErrorItem (Tokens), ParseError (..))
 
 import Brassica.SFM.MDF
 import Brassica.SFM.SFM
@@ -261,3 +264,13 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
     linespace (c:cs@(Separator _:_)) = c : linespace cs
     linespace (c:cs) = c : Separator "\n" : linespace cs
     linespace [] = []
+
+getErrorLocs :: ParseErrorBundle String Void -> [(Int, Int)]
+getErrorLocs ParseErrorBundle { bundleErrors } =
+    NE.toList bundleErrors <&> \case
+        FancyError _ _ -> error "getErrorLocs: unexpected FancyError"
+        TrivialError offset toks _ ->
+            let len = case toks of
+                    Just (Tokens ts) -> NE.length ts
+                    _ -> 1
+            in (offset, len)

@@ -11,6 +11,7 @@
 - New option to highlight only words affected by specific rules, selected with new flag `-h`
 - New button / command-line option to ‘Report rules not applied’ by any input word
 - Allow specifying multiple exceptions in a single rule
+- Syntax errors are now highlighted in the rules editor
 
 ### Code
 

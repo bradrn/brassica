@@ -57,7 +57,10 @@ data Response
     | RespParadigm
         { output :: String
         }
-    | RespError String
+    | RespError
+        { highlights :: [(Int, Int)]  -- (offset, length)
+        , message :: String
+        }
     deriving (Show, Generic, NFData)
 
 instance ToJSON InputLexiconFormat where
@@ -106,14 +109,14 @@ serve = do
   where
     action req' = fmap ((<> "\ETB") . toStrict . encode) $
         case fromJSON req' of
-            Error e -> pure $ RespError e
+            Error e -> pure $ RespError [] e
             Success req -> do
                 result <-
                     timeout 5000000 $  -- 5 s
                     evaluate $ force $
                     dispatch req
                 pure $ case result of
-                    Nothing -> RespError "&lt;timeout&gt;"
+                    Nothing -> RespError [] "&lt;timeout&gt;"
                     Just resp -> resp
 
 dispatch :: Request -> Response
@@ -126,10 +129,10 @@ parseTokeniseAndApplyRulesWrapper
 parseTokeniseAndApplyRulesWrapper ReqRules{..} =
     let mode = maybe (ApplyRules hlMode outMode sep) ReportRules report
     in case parseSoundChanges changes of
-        Left e -> RespError $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
+        Left e -> RespError (getErrorLocs e) $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
         Right statements ->
             case expandSoundChanges statements of
-                Left err -> RespError $ ("<pre>"++) $ (++"</pre>") $ case err of
+                Left err -> RespError [] $ ("<pre>"++) $ (++"</pre>") $ case err of
                     (NotFound s) -> "Could not find category: " ++ s
                     InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
                     InvalidDerivedValue -> "Invalid value used as derived grapheme in autosegment"
@@ -137,7 +140,7 @@ parseTokeniseAndApplyRulesWrapper ReqRules{..} =
                 Right statements' ->
                     let result' = parseTokeniseAndApplyRules parFmap statements' input inFmt mode prev
                     in case result' of
-                        ParseError e -> RespError $
+                        ParseError e -> RespError [] $
                             "<pre>" ++ errorBundlePretty e ++ "</pre>"
                         HighlightedWords result -> RespRules
                             (Just $ (fmap.fmap) fst result)
@@ -160,7 +163,7 @@ parFmap f = withStrategy (parTraversable rseq) . fmap (fmap f)
 parseAndBuildParadigmWrapper :: Request -> Response
 parseAndBuildParadigmWrapper ReqParadigm{..} =
     case parseParadigm pText of
-        Left e -> RespError $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
+        Left e -> RespError [] $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
         Right p -> RespParadigm $ escape $
             (if separateLines
                 then unlines . toList

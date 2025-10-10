@@ -42,7 +42,7 @@ public:
         WordsWithProtoOutputPreserve
     };
 
-    QString parseTokeniseAndApplyRules(QString rules,
+    std::pair<QString, QList<int>> parseTokeniseAndApplyRules(QString rules,
         QString words,
         ReportMode reportRules,
         InputLexiconFormat inFmt,

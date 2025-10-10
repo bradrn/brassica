@@ -9,8 +9,9 @@ import {tags} from "@lezer/highlight"
 import {defaultKeymap, history, historyKeymap} from "@codemirror/commands"
 import {searchKeymap, highlightSelectionMatches} from "@codemirror/search"
 import {closeBrackets, closeBracketsKeymap} from "@codemirror/autocomplete"
+import {linter, Diagnostic} from "@codemirror/lint"
 
-import {hs, withBytesPtr, decodeStableCStringLen, encoder, decoder} from "./interop.js";
+import {hs, withBytesPtr, decodeStableCStringLen_, encoder, decoder} from "./interop.js";
 
 
 /***********************
@@ -18,6 +19,7 @@ import {hs, withBytesPtr, decodeStableCStringLen, encoder, decoder} from "./inte
  ***********************/
 
 const results = hs.initResults();  // NB: not const on Haskell side!
+var highlights = [];
 
 function applyChanges(changes, words, sep, reportRules, inputMode, highlightMode, outputMode) {
     const inputChanges = encoder.encode(changes);
@@ -61,9 +63,12 @@ function applyChanges(changes, words, sep, reportRules, inputMode, highlightMode
                         inputWordsPtr, inputWordsLen,
                         sepPtr, sepLen,
                         reportRulesC, inModeC, hlModeC, outModeC, results);
-                    output = decodeStableCStringLen(outputStableCStringLen);
+                    var outputobj = decodeStableCStringLen_(outputStableCStringLen);
+                    output = outputobj.output;
+                    highlights = outputobj.highlights;
                 } catch (err) {
                     output = err;
+                    highlights = [];
                 }
             });
         });
@@ -149,6 +154,19 @@ const brassicaHighlightStyle = HighlightStyle.define([
     {tag: tags.comment, "color": "rgb(0,128,0)"}
 ]);
 
+const brassicaLinter = linter(view => {
+    let diagnostics = [];
+    for (let i = 0; i < highlights.length; i+=2) {
+        diagnostics.push({
+            from: highlights[i],
+            to: highlights[i],
+            severity: "error",
+            message: ""
+        })
+    }
+    return diagnostics;
+});
+
 
 /***********************
  * Set up content      *
@@ -179,6 +197,7 @@ let rulesEditor = new EditorView({
         crosshairCursor(),
         highlightSelectionMatches(),
         new LanguageSupport(brassicaLang),
+        brassicaLinter,
         keymap.of([
             ...closeBracketsKeymap,
             ...defaultKeymap,
