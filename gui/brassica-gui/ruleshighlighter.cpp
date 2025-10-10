@@ -23,7 +23,7 @@ RulesHighlighter::RulesHighlighter(QTextDocument *parent)
     QTextCharFormat flagFormat;
     flagFormat.setForeground(QColor(0, 128, 128));
     formats.append(flagFormat);
-    patterns.append(QRegularExpression(R"(^-(x|1|ltr|rtl|\?\?|\?))"));
+    patterns.append(QRegularExpression(R"(^-(x|h|1|ltr|rtl|\?\?|\?))"));
 
     QTextCharFormat commentFormat;
     commentFormat.setForeground(QColor(0, 128, 0));

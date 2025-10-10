@@ -92,7 +92,7 @@ const brassicaMainRules = [
       regex: /\$[^\s#[\](){}>\\→/_^%~*@$]+(#[^\s#[\](){}>\\→/_^%~*@$]+)?/
     },
     { token: "meta",
-      regex: /^-(x|1|ltr|rtl|\?\?|\?)/
+      regex: /^-(x|h|1|ltr|rtl|\?\?|\?)/
     },
     { token: "variableName",  // categories - there's no closer tag type
       regex: /\[.*?\]/
