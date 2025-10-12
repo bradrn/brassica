@@ -72,6 +72,7 @@ MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
     connect(nohighlightBtn   , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
     connect(diffhighlightBtn , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
     connect(inputhighlightBtn, &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(specifichighlightBtn, &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
     connect(rawBtn           , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
     connect(mdfBtn           , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
     connect(mdfAltBtn        , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });

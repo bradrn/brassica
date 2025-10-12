@@ -232,6 +232,7 @@ let rulesEditor = new EditorView({
 const hlNoneRadio = document.getElementById("hl-none");
 const hlLastRadio = document.getElementById("hl-last");
 const hlInputRadio = document.getElementById("hl-input");
+const hlSpecificRadio = document.getElementById("hl-specific");
 
 const inWordlistRadio = document.getElementById("in-wordlist");
 const inMdfStandardRadio = document.getElementById("in-mdfstandard");
@@ -281,6 +282,7 @@ wordsArea          .addEventListener("input", (event) => updateForm(false, true)
 hlNoneRadio        .addEventListener("input", (event) => updateForm(false, true));
 hlLastRadio        .addEventListener("input", (event) => updateForm(false, true));
 hlInputRadio       .addEventListener("input", (event) => updateForm(false, true));
+hlSpecificRadio    .addEventListener("input", (event) => updateForm(false, true));
 inWordlistRadio    .addEventListener("input", (event) => updateForm(false, true));
 inMdfStandardRadio .addEventListener("input", (event) => updateForm(false, true));
 inMdfAlternateRadio.addEventListener("input", (event) => updateForm(false, true));
