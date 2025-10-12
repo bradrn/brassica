@@ -25,16 +25,16 @@ module Brassica.SoundChange.Frontend.Internal where
 
 import Control.Monad ((<=<))
 import Data.Containers.ListUtils (nubOrd)
-import Data.List (transpose, intersperse, intersect)
+import Data.List (transpose, intersperse, intersectBy)
 import qualified Data.List.NonEmpty as NE
-import Data.Functor ((<&>))
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Void (Void)
 import GHC.Generics (Generic)
 import Myers.Diff (getDiff, PolyDiff(..))
 
 import Control.DeepSeq (NFData)
-import Text.Megaparsec.Error (ParseErrorBundle(..), ErrorItem (Tokens), ParseError (..))
+import Text.Megaparsec (reachOffsetNoLine, errorOffset, PosState (..), SourcePos (..), unPos)
+import Text.Megaparsec.Error (ParseErrorBundle(..))
 
 import Brassica.SFM.MDF
 import Brassica.SFM.SFM
@@ -124,7 +124,7 @@ instance Enum OutputMode where
 data ApplicationOutput a r
     = HighlightedWords [Component (a, Bool)]
     | AppliedRulesTable [Log r]
-    | NotAppliedRulesList [r]
+    | NotAppliedRulesList [Rule Expanded]
     | ParseError (ParseErrorBundle String Void)
     deriving (Show, Generic, NFData)
 
@@ -198,8 +198,10 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
                 AppliedRulesTable $ concat $
                     getWords $ parFmap (applyChanges statements) toks
             ReportRules ReportNotApplied ->
-                let is = intersect' $ getWords $ parFmap (rulesNotApplied statements) toks
-                in NotAppliedRulesList $ (statements !!) <$> is
+                let ws' = getWords $ parFmap (applyChanges statements) toks
+                    na = mapMaybe tagLOC . rulesNotApplied <$> concat ws'
+                in NotAppliedRulesList $ intersectByTag na
+                -- let is = intersect' $ getWords $ parFmap (rulesNotApplied statements) toks
             ApplyRules DifferentToLastRun mdfout sep ->
                 let result = concatMap (splitMultipleResults sep) $
                         joinComponents' mdfout $ parFmap (doApply mdfout statements) toks
@@ -227,9 +229,13 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
     unsafeCastComponent (Separator s) = Separator s
     unsafeCastComponent (Gloss s) = Gloss s
 
-    intersect' :: Eq a => [[a]] -> [a]
-    intersect' [] = []
-    intersect' xs = foldr1 intersect xs
+    intersectByTag :: Eq a => [[(a, b)]] -> [b]
+    intersectByTag [] = []
+    intersectByTag xs = snd <$> foldr1 (intersectBy (\x y -> fst x == fst y)) xs
+
+    tagLOC :: Statement Expanded GraphemeList -> Maybe (Int, Rule Expanded)
+    tagLOC (RuleS r) = Just (loc r, r)
+    tagLOC _ = Nothing
 
     doApply :: OutputMode -> SoundChanges Expanded GraphemeList -> PWord -> [Component [PWord]]
     doApply WordsWithProtoOutput scs w = doApplyWithProto scs w
@@ -265,12 +271,13 @@ parseTokeniseAndApplyRules parFmap statements ws intype mode prev =
     linespace (c:cs) = c : Separator "\n" : linespace cs
     linespace [] = []
 
-getErrorLocs :: ParseErrorBundle String Void -> [(Int, Int)]
-getErrorLocs ParseErrorBundle { bundleErrors } =
-    NE.toList bundleErrors <&> \case
-        FancyError _ _ -> error "getErrorLocs: unexpected FancyError"
-        TrivialError offset toks _ ->
-            let len = case toks of
-                    Just (Tokens ts) -> NE.length ts
-                    _ -> 1
-            in (offset, len)
+getErrorLocs :: ParseErrorBundle String Void -> [Int]
+getErrorLocs ParseErrorBundle { bundleErrors, bundlePosState } =
+    go (NE.toList bundleErrors) bundlePosState
+  where
+    -- based on Text.Megaparsec.Error.errorBundlePrettyWith
+    go (e:es) pst =
+        let pst' = reachOffsetNoLine (errorOffset e) pst
+            l = unPos $ sourceLine $ pstateSourcePos pst'
+        in l : go es pst'
+    go [] _ = []

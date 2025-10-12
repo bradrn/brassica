@@ -21,7 +21,6 @@ import Data.Aeson.Types (prependFailure, typeMismatch)
 import Data.ByteString (toStrict)
 import Data.Conduit.Attoparsec (conduitParser)
 import Data.Foldable (toList)
-import Data.List (intercalate)
 import Data.Text (unpack)
 import GHC.Generics (Generic)
 import System.IO (hSetBuffering, stdin, stdout, BufferMode(NoBuffering))
@@ -57,8 +56,11 @@ data Response
     | RespParadigm
         { output :: String
         }
+    | RespNotApplied
+        { highlights :: [Int]
+        }
     | RespError
-        { highlights :: [(Int, Int)]  -- (offset, length)
+        { highlights :: [Int]
         , message :: String
         }
     deriving (Show, Generic, NFData)
@@ -147,8 +149,7 @@ parseTokeniseAndApplyRulesWrapper ReqRules{..} =
                             (escape $ detokeniseWords' highlightWord result)
                         AppliedRulesTable items -> RespRules Nothing $
                             concatMap (surroundTable . reportAsHtmlRows plaintext') items
-                        NotAppliedRulesList items -> RespRules Nothing $
-                            intercalate "<br/>" $ plaintext' <$> items
+                        NotAppliedRulesList items -> RespNotApplied $ loc <$> items
   where
     highlightWord (s, False) = concatWithBoundary s
     highlightWord (s, True) = "<b>" ++ concatWithBoundary s ++ "</b>"

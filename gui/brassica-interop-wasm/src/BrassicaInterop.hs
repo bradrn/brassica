@@ -22,11 +22,10 @@ type Output = (CStringLen, [Int])
 newStableCStringLen :: String -> IO (StablePtr CStringLen)
 newStableCStringLen = newStablePtr <=< GHC.newCStringLen utf8
 
-newStableCStringLen' :: [(Int, Int)] -> String -> IO (StablePtr Output)
+newStableCStringLen' :: [Int] -> String -> IO (StablePtr Output)
 newStableCStringLen' highlights str = do
     cstr <- GHC.newCStringLen utf8 str
-    let highlights' = highlights >>= \(o, r) -> [o, r]
-    newStablePtr (cstr, highlights')
+    newStablePtr (cstr, highlights)
 
 getString :: StablePtr CStringLen -> IO CString
 getString = fmap fst . deRefStablePtr
@@ -118,9 +117,8 @@ parseTokeniseAndApplyRules_hs
                             writeIORef prevRef Nothing
                             newStableCStringLen' [] $
                                 concatMap (surroundTable . reportAsHtmlRows plaintext') items
-                        NotAppliedRulesList is -> do
-                            writeIORef prevRef Nothing
-                            newStableCStringLen' [] $ unlines $ plaintext' <$> is
+                        NotAppliedRulesList items -> do
+                            newStableCStringLen' (loc <$> items) ""
   where
     highlightWord (s, False) = concatWithBoundary s
     highlightWord (s, True) = "<b>" ++ concatWithBoundary s ++ "</b>"

@@ -42,7 +42,6 @@ MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
 
     connect(applyBtn      , &QPushButton::clicked  , this, [this] { applySoundChanges(false, BrassicaProcess::NoReport); });
     connect(reportRulesBtn, &QPushButton::clicked  , this, [this] { applySoundChanges(false, BrassicaProcess::ReportApplied); } );
-    connect(reportRulesNotAppliedBtn, &QPushButton::clicked  , this, [this] { applySoundChanges(false, BrassicaProcess::ReportNotApplied); } );
 
     QShortcut *applyShortcut1 = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Return), this);
     QShortcut *applyShortcut2 = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Enter ), this);
@@ -62,6 +61,7 @@ MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
     connect(synchroniseScrolls, &QCheckBox::toggled, this, [this](bool checked) {
         if (checked) updateOutputFromWordsSlider(wordsEditVScroll->value());
     });
+    connect(reportRulesNotApplied, &QCheckBox::toggled, this, &MainWindow::highlightUnusedRules);
 
     connect(mdfBtn   , &QRadioButton::toggled, this, &MainWindow::reselectCheckboxes);
     connect(mdfAltBtn, &QRadioButton::toggled, this, &MainWindow::reselectCheckboxes);
@@ -123,9 +123,6 @@ void MainWindow::setupWidgets(QWidget *central)
     reportRulesBtn = new QPushButton("Report rules applied");
     midLayout->addWidget(reportRulesBtn);
 
-    reportRulesNotAppliedBtn = new QPushButton("Report rules not applied");
-    midLayout->addWidget(reportRulesNotAppliedBtn);
-
     QGroupBox *highlightBox = new QGroupBox("Output highlighting");
     QVBoxLayout *highlightLayout = new QVBoxLayout(highlightBox);
     midLayout->addWidget(highlightBox);
@@ -181,6 +178,9 @@ void MainWindow::setupWidgets(QWidget *central)
 
     viewLive = new QCheckBox("View results live");
     midLayout->addWidget(viewLive);
+
+    reportRulesNotApplied = new QCheckBox("Highlight unused rules");
+    midLayout->addWidget(reportRulesNotApplied);
 
     synchroniseScrolls = new QCheckBox("Synchronise scroll positions");
     synchroniseScrolls->setChecked(true);
@@ -410,7 +410,7 @@ void MainWindow::applySoundChanges(bool live, BrassicaProcess::ReportMode report
         prev,
         multiResultSep->text());
     QString output = outputPair.first;
-    QList<int> highlights = outputPair.second;
+    QList<int> errors = outputPair.second;
 
     blockScrollTrackingEvent = true;
     outputEdit->setHtml("<pre style=\"font-family: inherit\">" + output + "</pre>");
@@ -419,7 +419,9 @@ void MainWindow::applySoundChanges(bool live, BrassicaProcess::ReportMode report
     updateOutputFromWordsSlider(wordsEditVScroll->value());
 
     blockLiveUpdate = true;
-    rulesHl->setHighlights(highlights);
+    rulesHl->setErrors(errors);
+    highlightUnusedRules(reportRulesNotApplied->isChecked());
+    rulesHl->rehighlight();
     blockLiveUpdate = false;
 }
 
@@ -540,6 +542,32 @@ void MainWindow::updateWordsFromOutputSlider(int value)
             (ratio * (wordsMax - wordsMin)) + wordsMin);
     }
 }
+
+
+void MainWindow::highlightUnusedRules(bool enable)
+{
+    QString rules      = rulesEdit     ->toPlainText();
+    QString words      = wordsEdit     ->toPlainText();
+
+    //QString output = proc->applyRules(categories, rules, words);
+
+    BrassicaProcess::InputLexiconFormat infmt = BrassicaProcess::Raw;
+    if (mdfBtn->isChecked()) infmt = BrassicaProcess::MDFStandard;
+    else if (mdfAltBtn->isChecked()) infmt = BrassicaProcess::MDFAlternate;
+
+    std::pair<QString, QList<int>> outputPair = proc->parseTokeniseAndApplyRules(
+        rules,
+        words,
+        BrassicaProcess::ReportNotApplied,
+        infmt,
+        BrassicaProcess::NoHighlight,
+        BrassicaProcess::WordsOnlyOutput,
+        prev,
+        multiResultSep->text());
+    QList<int> highlights = outputPair.second;
+    rulesHl->setHighlights(highlights);
+}
+
 
 void MainWindow::reselectCheckboxes()
 {

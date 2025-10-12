@@ -318,6 +318,7 @@ data Rule c = Rule
   , exception   :: [Environment c]
   , flags       :: Flags
   , plaintext   :: String  -- ^ Rule text before parsing (displayed e.g. for debugging purposes)
+  , loc         :: Int     -- ^ Line number of rule in original source file (1-indexed!)
   } deriving (Generic)
 
 deriving instance (forall a. Show (c a)) => Show (Rule c)

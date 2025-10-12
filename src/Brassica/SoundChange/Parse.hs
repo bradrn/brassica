@@ -259,6 +259,7 @@ ruleParser = do
     -- to wrap multiple parsers rather than just one
     o <- getOffset
     s <- getInput
+    loc <- unPos . sourceLine <$> getSourcePos
 
     flags <- parseFlags
     target <- manyTill parseLexeme $ lexeme $ choice

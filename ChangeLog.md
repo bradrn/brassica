@@ -9,8 +9,8 @@
       accross both category blocks and inline categories.
   - Combining optional elements with the Kleene star no longer causes an infinite loop
 - New option to highlight only words affected by specific rules, selected with new flag `-h`
-- New button / command-line option to ‘Report rules not applied’ by any input word
 - Allow specifying multiple exceptions in a single rule
+- New checkbox / command-line option to highlight unused rules in the rules editor
 - Syntax errors are now highlighted in the rules editor
 
 ### Code
@@ -24,6 +24,7 @@
     with corresponding changes in `Brassica.SoundChange.Frontend.Internal.ApplicationMode`
     and `Brassica.SoundChange.Frontend.Internal.ApplicationOutput`
 - Changed `Brassica.SoundChange.Types.Rule` to admit multiple exceptions
+- New field for line number in `Brassica.SoundChange.Types.Rule`
 
 ## 1.0.0
 

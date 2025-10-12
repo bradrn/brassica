@@ -9,7 +9,7 @@ import {tags} from "@lezer/highlight"
 import {defaultKeymap, history, historyKeymap} from "@codemirror/commands"
 import {searchKeymap, highlightSelectionMatches} from "@codemirror/search"
 import {closeBrackets, closeBracketsKeymap} from "@codemirror/autocomplete"
-import {linter, Diagnostic} from "@codemirror/lint"
+import {linter, Diagnostic, forceLinting} from "@codemirror/lint"
 
 import {hs, withBytesPtr, decodeStableCStringLen_, encoder, decoder} from "./interop.js";
 
@@ -19,6 +19,7 @@ import {hs, withBytesPtr, decodeStableCStringLen_, encoder, decoder} from "./int
  ***********************/
 
 const results = hs.initResults();  // NB: not const on Haskell side!
+var errors = [];
 var highlights = [];
 
 function applyChanges(changes, words, sep, reportRules, inputMode, highlightMode, outputMode) {
@@ -28,8 +29,8 @@ function applyChanges(changes, words, sep, reportRules, inputMode, highlightMode
 
     var reportRulesC = 0;
     switch (reportRules) {
-    case 'report-btn':     reportRulesC = 1; break;
-    case 'report-not-btn': reportRulesC = 2; break;
+    case true:     reportRulesC = 1; break;
+    case 'unused': reportRulesC = 2; break;
     }
 
     var inModeC = 0;
@@ -65,9 +66,15 @@ function applyChanges(changes, words, sep, reportRules, inputMode, highlightMode
                         reportRulesC, inModeC, hlModeC, outModeC, results);
                     var outputobj = decodeStableCStringLen_(outputStableCStringLen);
                     output = outputobj.output;
-                    highlights = outputobj.highlights;
+                    if (reportRules == 'unused') {
+                        highlights = outputobj.highlights;
+                    } else {
+                        errors = outputobj.highlights;
+                        highlights = [];
+                    }
                 } catch (err) {
                     output = err;
+                    errors = [];
                     highlights = [];
                 }
             });
@@ -156,12 +163,21 @@ const brassicaHighlightStyle = HighlightStyle.define([
 
 const brassicaLinter = linter(view => {
     let diagnostics = [];
-    for (let i = 0; i < highlights.length; i+=2) {
+    let doc = view.state.doc;
+    for (let i = 0; i < errors.length; ++i) {
         diagnostics.push({
-            from: highlights[i],
-            to: highlights[i],
+            from: doc.line(errors[i]).from,
+            to: doc.line(errors[i]).to,
             severity: "error",
-            message: ""
+            message: "Syntax error"
+        })
+    }
+    for (let i = 0; i < highlights.length; ++i) {
+        diagnostics.push({
+            from: doc.line(highlights[i]).from,
+            to: doc.line(highlights[i]).to,
+            severity: "info",
+            message: "Unused rule"
         })
     }
     return diagnostics;
@@ -176,6 +192,7 @@ Split(["#rules-div", "#words-div", "#results-div"]);
 
 const form = document.getElementById("brassica-form");
 const viewLive = document.getElementById("view-live");
+const highlightUnused = document.getElementById("highlight-unused");
 const wordsArea = document.getElementById("words");
 const resultsDiv = document.getElementById("results");
 
@@ -207,7 +224,7 @@ let rulesEditor = new EditorView({
     ],
     dispatchTransactions: function (trs, view) {
         view.update(trs);
-        updateForm(false, true);
+        updateForm(false, true, true);
     },
     parent: document.getElementById("rules"),
 })
@@ -226,7 +243,7 @@ const fmtInoutPreserveRadio = document.getElementById("fmt-inoutpreserve");
 const fmtMdfRadio = document.getElementById("fmt-mdf");
 const fmtMdfEtymRadio = document.getElementById("fmt-mdfetym");
 
-function updateForm(reportRules, needsLive) {
+function updateForm(reportRules, needsLive, fromEditor = false) {
     if (needsLive && !viewLive.checked) return;
 
     const data = new FormData(form);
@@ -239,11 +256,24 @@ function updateForm(reportRules, needsLive) {
 
     const output = applyChanges(rules, words, sep, reportRules, inputFormat, highlightMode, outputFormat);
     resultsDiv.innerHTML = "<pre>" + output + "</pre>";
+
+    if (highlightUnused.checked && (errors.length == 0)) {
+        applyChanges(rules, words, sep, 'unused', inputFormat, 'noHighlight', 'rawout');
+    }
+
+    if (!(needsLive && fromEditor)) {
+        // force linter update, except when a live update from the
+        // editor itself already forces it (which would cause an infinite loop)
+        // see https://discuss.codemirror.net/t/3570/16
+        let plugin = rulesEditor.plugin(brassicaLinter[1]);
+        plugin.set = true;
+        plugin.force();
+    }
 }
 
 form.addEventListener("submit", (event) => {
     event.preventDefault();
-    updateForm(event.submitter.id, false);
+    updateForm(event.submitter.id == "report-btn", false);
 });
 
 // live highlight
@@ -260,6 +290,24 @@ fmtInoutPreserveRadio.addEventListener("input", (event) => updateForm(false, tru
 fmtMdfRadio        .addEventListener("input", (event) => updateForm(false, true));
 fmtMdfEtymRadio    .addEventListener("input", (event) => updateForm(false, true));
 
+highlightUnused.addEventListener("click", () => {
+    if (highlightUnused.checked) {
+        const rules = rulesEditor.state.doc.toString();
+        const words = wordsArea.value;
+        const sep = '/';  // irrelevant here, really
+        const inputFormat = form.elements['inputFormat'].value;
+        applyChanges(rules, words, sep, 'unused', inputFormat, 'noHighlight', 'rawout');
+    } else {
+        highlights = [];
+    }
+    // as above
+    let plugin = rulesEditor.plugin(brassicaLinter[1]);
+    plugin.set = true;
+    plugin.force();
+});
+
+
+
 const exampleSelect = document.getElementById("examples");
 const exampleMsg = "This will overwrite your current rules and lexicon. Are you sure you want to proceed?";
 exampleSelect.addEventListener("change", async (event) => {
@@ -273,6 +321,8 @@ exampleSelect.addEventListener("change", async (event) => {
 
     const bsc = await fetch(bscFile).then((response) => response.text());
     const lex = await fetch(lexFile).then((response) => response.text());
+
+    errors = []; highlights = [];
 
     let spec = {from: 0, to: rulesEditor.state.doc.length, insert: bsc};
     rulesEditor.dispatch(rulesEditor.state.update({changes: spec}))

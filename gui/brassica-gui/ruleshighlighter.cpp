@@ -1,5 +1,4 @@
 #include "ruleshighlighter.h"
-#include <iostream>
 #include <qtextformat.h>
 
 RulesHighlighter::RulesHighlighter(QTextDocument *parent)
@@ -32,8 +31,11 @@ RulesHighlighter::RulesHighlighter(QTextDocument *parent)
     patterns.append(QRegularExpression(R"(;.*)"));
 
     highlightFormat = QTextCharFormat();
-    highlightFormat.setFontUnderline(true);
-    highlightFormat.setUnderlineStyle(QTextCharFormat::SpellCheckUnderline);
+    highlightFormat.setBackground(QColor(200, 200, 200));
+
+    errorFormat = QTextCharFormat();
+    errorFormat.setFontUnderline(true);
+    errorFormat.setUnderlineStyle(QTextCharFormat::SpellCheckUnderline);
 
     categoryFormat = QTextCharFormat();
     categoryFormat.setBackground(QColor(245, 245, 220));
@@ -61,7 +63,11 @@ void RulesHighlighter::setCategories(QStringList categories, bool forceUpdate /*
 void RulesHighlighter::setHighlights(QList<int> highlights)
 {
     this->highlights = highlights;
-    rehighlight();
+}
+
+void RulesHighlighter::setErrors(QList<int> errors)
+{
+    this->errors = errors;
 }
 
 void RulesHighlighter::highlightBlock(const QString &text)
@@ -84,11 +90,12 @@ void RulesHighlighter::highlightBlock(const QString &text)
             setFormat(m.capturedStart(), m.capturedLength(), formats[i]);
         }
     }
-    for (int i = 0; i < highlights.length(); i+=2) {
-        if (highlights[i] >= text.length()) {
-            setFormat(text.length()-1, 1, highlightFormat);
-        } else {
-            setFormat(highlights[i], highlights[i+1], highlightFormat);
-        }
+
+    QTextBlock block = currentBlock();
+    if (highlights.contains(block.firstLineNumber()+1)) {
+        setFormat(0, text.length(), highlightFormat);
+    }
+    if (errors.contains(block.firstLineNumber()+1)) {
+        setFormat(0, text.length(), errorFormat);
     }
 }

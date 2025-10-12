@@ -135,7 +135,7 @@ processWords incr rules wordsFormat outMode =
     processApplicationOutput :: ApplicationOutput PWord (Statement Expanded GraphemeList) -> Either ParseException Text
     processApplicationOutput (HighlightedWords cs) = Right $ ensureNewline $ pack $ detokeniseWords' highlight cs
     processApplicationOutput (AppliedRulesTable is) = Right $ pack $ unlines $ reportAsText plaintext' <$> is
-    processApplicationOutput (NotAppliedRulesList is) = Right $ pack $ unlines $ plaintext' <$> is
+    processApplicationOutput (NotAppliedRulesList is) = Right $ pack $ unlines $ plaintext <$> is
     processApplicationOutput (ParseError e) = Left $ ParseException $ errorBundlePretty e
 
     ensureNewline t = case unsnoc t of

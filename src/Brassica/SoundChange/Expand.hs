@@ -259,6 +259,7 @@ expandRule cs r = Rule
     <*> traverse expandEnvironment (exception r)
     <*> pure (flags r)
     <*> pure (plaintext r)
+    <*> pure (loc r)
   where
     expandEnvironment (e1, e2) = (,)
         <$> traverse (expandLexeme cs) e1

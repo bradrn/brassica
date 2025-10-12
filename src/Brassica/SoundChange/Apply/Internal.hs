@@ -83,12 +83,12 @@ module Brassica.SoundChange.Apply.Internal
        , reportAsText
        , applyStatement
        , applyChanges
-       , rulesNotApplied
        , getOutput
        , getReports
        , HighlightMode(..)
        , getChangedOutputs
        , getChangedReports
+       , rulesNotApplied
        ) where
 
 import Control.Applicative ((<|>))
@@ -742,6 +742,7 @@ applyRuleMZ r = \mz ->    -- use a lambda so mz isn't shadowed in the where bloc
             , exception = reverseEnv <$> exception r
             , flags = flags r
             , plaintext = plaintext r
+            , loc = loc r
             }
 
     reverseEnv (e1, e2) = (reverse e2, reverse e1)
@@ -814,6 +815,8 @@ data LogItem r
     = ActionApplied r (Maybe PWord)
     -- ^ The word was modified: gives the output word, or 'Nothing' if
     -- the wordwas deleted
+    | ActionNotApplied r PWord
+    -- ^ The word was not modified by the given rule
     | ReportWord PWord
     -- ^ Corresponds to 'ReportS', giving the intermediate form to report
     deriving (Show, Functor, Generic, NFData)
@@ -824,6 +827,7 @@ data LogItem r
 
 logOutput :: LogItem r -> Maybe PWord
 logOutput (ActionApplied _ o) = o
+logOutput (ActionNotApplied _ o) = Just o
 logOutput (ReportWord o) = Just o
 
 -- | Logs the evolution of a word as it undergoes sound changes and
@@ -861,6 +865,7 @@ reportAsHtmlRows render item = go (concatWithBoundary $ inputWord item) (derivat
          ++ maybe "<i>deleted</i>" concatWithBoundary output
          ++ "</td><td>(" ++ render action ++ ")</td></tr>")
         ++ go "" ds
+    go cell1 (ActionNotApplied _ _ : ds) = go cell1 ds
     go cell1 (ReportWord w : ds) =
         ("<tr><td>" ++ cell1 ++ "</td><td>&rarr;</td><td>"
          ++ concatWithBoundary w
@@ -891,7 +896,7 @@ reportAsText render item = unlines $
     concatWithBoundary (inputWord item) : fmap toLine (alignWithPadding $ derivations item)
   where
     alignWithPadding ds =
-        let (rawOutputs, actions) = unzip $ toPrintable <$> ds
+        let (rawOutputs, actions) = unzip $ mapMaybe toPrintable ds
             outputs = maybe "(deleted)" concatWithBoundary <$> rawOutputs
             maxlen = maximum $ length <$> outputs
             padded = outputs <&> \o -> o ++ replicate (maxlen - length o) ' '
@@ -899,8 +904,9 @@ reportAsText render item = unlines $
 
     toLine (output, action) = "  -> " ++ output ++ "  (" ++ action ++ ")"
 
-    toPrintable (ActionApplied a o) = (o, render a)
-    toPrintable (ReportWord w) = (Just w, "report")
+    toPrintable (ActionApplied a o) = Just (o, render a)
+    toPrintable (ActionNotApplied _ _) = Nothing
+    toPrintable (ReportWord w) = Just (Just w, "report")
 
 -- | Apply a single 'Statement' to a word. Returns a 'LogItem' for
 -- each possible result, or @[]@ if the rule does not apply and the
@@ -912,7 +918,7 @@ applyStatement
 applyStatement ReportS w = [ReportWord w]
 applyStatement st w = case applyStatementStr st w of
     [] -> [ActionApplied st Nothing]
-    [w'] | w' == w -> []
+    [w'] | w' == w -> [ActionNotApplied st w']
     r -> ActionApplied st . Just <$> r
 
 -- | Apply a set of 'SoundChanges' to a word, returning a log of which
@@ -936,30 +942,14 @@ applyChanges scs w = go scs w <&> \ls -> Log
                     Just w'' -> (l :) <$> go sts w''
                     -- apply no further changes to a deleted word
                     Nothing -> [[l]]
+                l@(ActionNotApplied _ w'') -> (l :) <$> go sts w''
 
--- | Apply a set of 'SoundChanges' to a word, returning a list of
--- /sound changes/ (not words!) which did /not/ apply to that
--- word. Sound changes are returned as indices into the input
--- 'SoundChanges' list in order to uniquely identify them, in
--- ascending order.
-rulesNotApplied :: SoundChanges Expanded GraphemeList -> PWord -> [Int]
-rulesNotApplied scs w = foldr1 intersect $ go [] (zip [0..] scs) w
-    -- foldr1 above is safe as 'go' always returns at least one list
-  where
-    go is [] _ = [reverse is]
-    go is ((i,st):sts) w' =
-        case applyStatement st w' of
-            [] ->
-                let is' = case st of
-                        DeclS _ -> is  -- never report declarations
-                        _ -> i:is
-                in go is' sts w'
-            outputActions -> outputActions >>= \case
-                ReportWord w'' -> go is sts w''
-                ActionApplied _ output -> case output of
-                    Just w'' -> go is sts w''
-                    -- apply no further changes to a deleted word
-                    Nothing -> [reverse is]
+-- | Returns the list of sound changes which did /not/ apply in the
+-- given sound change log.
+rulesNotApplied :: Log r -> [r]
+rulesNotApplied =
+    mapMaybe (\case ActionNotApplied r _ -> Just r; _ -> Nothing)
+    . derivations
 
 -- | Returns the final output from a sound change log.
 getOutput :: Log r -> Maybe PWord
@@ -1001,6 +991,7 @@ getChangedOutputs m l = case derivations l of
         ActionApplied (FilterS _) _ -> False  -- cannot highlight nonexistent word
         ActionApplied (DeclS _) _ -> True
         ActionApplied ReportS _ -> False  -- reporting a word yields no change
+        ActionNotApplied _ _ -> False
         ReportWord _ -> False
 
 -- | A combination of 'getOutput' and 'getChangedOutputs': returns all
@@ -1017,4 +1008,5 @@ getChangedReports m l = (inputWord l, False) : case derivations l of
                 RuleS rule -> hasChanged || needsHighlight m rule
                 _ -> hasChanged
         in go hasChanged' ls
+    go hasChanged (ActionNotApplied _ _:ls) = go hasChanged ls
     go hasChanged (ReportWord w':ls) = (w', hasChanged) : go hasChanged ls

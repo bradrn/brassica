@@ -62,9 +62,7 @@ std::pair<QString, QList<int>> BrassicaProcess::parseTokeniseAndApplyRules(
         QJsonArray highlightsArr = obj.value("highlights").toArray();
         auto highlights = QList<int>();
         for (auto i = highlightsArr.cbegin(), end = highlightsArr.cend(); i != end; ++i) {
-            QJsonArray highlight = (*i).toArray();
-            highlights.append(highlight[0].toInt());
-            highlights.append(highlight[1].toInt());
+            highlights.append((*i).toInt());
         }
         return { obj.value("message").toString(), highlights };
     } else if (method == "Rules") {
@@ -73,6 +71,13 @@ std::pair<QString, QList<int>> BrassicaProcess::parseTokeniseAndApplyRules(
         delete prev;
         prev = new QJsonValue(obj.value("prev"));
         return { obj.value("output").toString(), QList<int>() };
+    } else if (method == "NotApplied") {
+        QJsonArray highlightsArr = obj.value("highlights").toArray();
+        auto highlights = QList<int>();
+        for (auto i = highlightsArr.cbegin(), end = highlightsArr.cend(); i != end; ++i) {
+            highlights.append((*i).toInt());
+        }
+        return { "", highlights };
     }
     return { "internal error: BrassicaProcess::parseTokeniseAndApplyRules", QList<int>() };
 }

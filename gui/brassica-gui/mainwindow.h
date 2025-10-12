@@ -44,9 +44,9 @@ private:
     QRadioButton *inoutBtn;
     QRadioButton *inoutBtnPreserve;
     QPushButton *reportRulesBtn;
-    QPushButton *reportRulesNotAppliedBtn;
     QCheckBox *viewLive;
     QCheckBox *synchroniseScrolls;
+    QCheckBox *reportRulesNotApplied;
     QLineEdit *multiResultSep;
     QTextEdit *outputEdit;
     QScrollBar *outputEditVScroll;
@@ -102,6 +102,8 @@ private slots:
 
     void updateOutputFromWordsSlider(int value);
     void updateWordsFromOutputSlider(int value);
+
+    void highlightUnusedRules(bool enable);
 
     void reselectCheckboxes();
 
