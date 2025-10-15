@@ -98,10 +98,6 @@ The **Apply** button simply does the application,
 By contrast, **Report rules applied** displays not only the input and output words,
   but a table showing the evolution of each word,
   including every sound change which applied to it and all the intermediate forms.
-  alongside all the intermediate forms.
-**Report rules not applied** does the opposite:
-  it shows all sound changes which were *not* triggered by any of the input words
-  in the course of their evolution.
 
 Another way to apply rules is by selecting the **View results live** checkbox
   (near the bottom of the control pane).
@@ -109,6 +105,18 @@ When this is selected, the rules will be re-applied to the input lexicon
   whenever either textbox is modified,
   and whenever any controls are changed.
 This can sometimes be slow so this checkbox is disabled by default.
+
+Below ‘View results live’, there is another checkbox labelled **Highlight unused rules**.
+When this is selected, the editor will highlight
+  all sound changes which were *not* triggered by any of the input words
+  in the course of their evolution.
+On the desktop the highlight is a grey background;
+  on the web it is a grey underline.
+
+Sometimes rule application can result in an error.
+In this case the error will be shown in the output box.
+Additionally, if the problem was a syntax error in the rules themselves,
+  the offending rule will be underlined in red.
 
 ## Output highlighting
 
