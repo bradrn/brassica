@@ -960,12 +960,12 @@ getOutput l = case derivations l of
 -- | Returns, in order: the input word, any intermediate results from
 -- 'ReportS', and then the final output.
 getReports :: Log r -> [PWord]
-getReports l = inputWord l : go (derivations l)
+getReports l = inputWord l : go Nothing (derivations l)
   where
-    go [] = []
-    go [ActionApplied _ (Just w')] = [w']
-    go (ReportWord w':ls) = w' : go ls
-    go (_:ls) = go ls
+    go w [] = maybeToList w
+    go _ (ActionApplied _ (Just w') : ls) = go (Just w') ls
+    go w (ReportWord w':ls) = w' : go w ls
+    go w (_:ls) = go w ls
 
 data HighlightMode = AllChanged | SpecificRule
     deriving (Show, Eq)
