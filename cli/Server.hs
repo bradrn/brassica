@@ -21,6 +21,7 @@ import Data.Aeson.Types (prependFailure, typeMismatch)
 import Data.ByteString (toStrict)
 import Data.Conduit.Attoparsec (conduitParser)
 import Data.Foldable (toList)
+import Data.Maybe (maybeToList)
 import Data.Text (unpack)
 import GHC.Generics (Generic)
 import System.IO (hSetBuffering, stdin, stdout, BufferMode(NoBuffering))
@@ -134,7 +135,7 @@ parseTokeniseAndApplyRulesWrapper ReqRules{..} =
         Left e -> RespError (getErrorLocs e) $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
         Right statements ->
             case expandSoundChanges statements of
-                Left err -> RespError [] $ ("<pre>"++) $ (++"</pre>") $ case err of
+                Left (loc, err) -> RespError (maybeToList loc) $ ("<pre>"++) $ (++"</pre>") $ case err of
                     (NotFound s) -> "Could not find category: " ++ s
                     InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
                     InvalidDerivedValue -> "Invalid value used as derived grapheme in autosegment"

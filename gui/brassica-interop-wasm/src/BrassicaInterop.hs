@@ -7,6 +7,7 @@ module BrassicaInterop where
 import Control.Monad ((<=<))
 import Data.IORef
 import Data.Foldable (toList)
+import Data.Maybe (maybeToList)
 import qualified Foreign
 import Foreign.C hiding (newCString, peekCString) -- hide these so we don't accidentally use them
 import Foreign.StablePtr
@@ -101,8 +102,8 @@ parseTokeniseAndApplyRules_hs
         Left e -> newStableCStringLen' (getErrorLocs e) $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
         Right statements ->
             case expandSoundChanges statements of
-                Left err ->
-                    newStableCStringLen' [] $ ("<pre>"++) $ (++"</pre>") $ case err of
+                Left (l, err) ->
+                    newStableCStringLen' (maybeToList l) $ ("<pre>"++) $ (++"</pre>") $ case err of
                         (NotFound s) -> "Could not find category: " ++ s
                         InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
                         MismatchedLengths -> "Mismatched lengths in feature definition"

@@ -150,6 +150,7 @@ parseDirective = parseCategoriesDirective <|> parseExtraDirective
         symbol "extra" *> many (parseGrapheme' False) <* scn
 
     parseCategoriesDirective = do
+        loc <- unPos . sourceLine <$> getSourcePos
         overwrite <- isJust <$> optional (symbol "new")
         _ <- symbol "categories"
         noreplace <- isJust <$> optional (symbol "noreplace")
@@ -159,7 +160,7 @@ parseDirective = parseCategoriesDirective <|> parseExtraDirective
             DefineAuto <$> parseAuto <|>
             uncurry DefineCategory <$> (try parseCategoryStandalone <* scn)
         _ <- symbol "end" <* scn
-        pure $ Categories overwrite noreplace cs
+        pure $ Categories loc overwrite noreplace cs
 
 parseOptional :: ParseLexeme a => Parser (Lexeme CategorySpec a)
 parseOptional = Optional <$> between (symbol "(") (symbol ")") (some parseLexeme)
@@ -294,7 +295,10 @@ ruleParser = do
         return (env1, env2)
 
 filterParser :: Parser (Filter CategorySpec)
-filterParser = fmap (uncurry Filter) $ match $ symbol "filter" *> parseLexemes <* optional scn
+filterParser = do
+    loc <- unPos . sourceLine <$> getSourcePos
+    (p, f) <- match $ symbol "filter" *> parseLexemes <* optional scn
+    pure $ Filter p loc f
 
 -- Space handline is a little complex here: we want to make sure that
 -- 'report' is always on its own line, but can have as much or as

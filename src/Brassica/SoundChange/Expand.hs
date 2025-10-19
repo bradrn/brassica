@@ -266,7 +266,7 @@ expandRule cs r = Rule
         <*> traverse (expandLexeme cs) e2
 
 expandFilter :: Categories -> Filter CategorySpec -> Either ExpandError (Filter Expanded)
-expandFilter cs (Filter p f) = Filter p <$> traverse (expandLexeme cs) f
+expandFilter cs (Filter p l f) = Filter p l <$> traverse (expandLexeme cs) f
 
 -- | Extend a set of previously defined t'Categories' to give the
 -- resulting state after a v'Categories' directive.
@@ -338,9 +338,12 @@ extendCategories cs' (overwrite, defs) =
 --       currently defined graphemes. They are replaced with a
 --       'GraphemeList' only if no categories are defined in the
 --       'SoundChanges'.
+--
+-- On an error, returns the appropriate 'ExpandError' together with
+-- the line number of the offending statement (if it has one).
 expandSoundChanges
     :: SoundChanges CategorySpec Directive
-    -> Either ExpandError (SoundChanges Expanded GraphemeList)
+    -> Either (Maybe Int, ExpandError) (SoundChanges Expanded GraphemeList)
 expandSoundChanges scs = fmap catMaybes $ flip evalStateT (M.empty, []) $ traverse go scs
   where
     noCategories = any (\case DeclS (Categories {}) -> True; _ -> False) scs
@@ -348,14 +351,14 @@ expandSoundChanges scs = fmap catMaybes $ flip evalStateT (M.empty, []) $ traver
     go  :: Statement CategorySpec Directive
         -> StateT
             (Categories, [String])
-            (Either ExpandError)
+            (Either (Maybe Int, ExpandError))
             (Maybe (Statement Expanded GraphemeList))
     go (RuleS r) = do
         cs <- gets fst
-        lift $ Just . RuleS <$> expandRule cs r
-    go (FilterS f) = do
+        lift $ Just . RuleS <$> first (Just $ loc r,) (expandRule cs r)
+    go (FilterS f@(Filter _ l _)) = do
         cs <- gets fst
-        lift $ Just . FilterS <$> expandFilter cs f
+        lift $ Just . FilterS <$> first (Just l,) (expandFilter cs f)
     go ReportS = pure (Just ReportS)
     go (DeclS (ExtraGraphemes extra)) = do
         (cs, _) <- get
@@ -364,9 +367,9 @@ expandSoundChanges scs = fmap catMaybes $ flip evalStateT (M.empty, []) $ traver
             if noCategories
             then Just $ DeclS $ GraphemeList True extra
             else Nothing
-    go (DeclS (Categories overwrite noreplace defs)) = do
+    go (DeclS (Categories l overwrite noreplace defs)) = do
         (cs, extra) <- get
-        cs' <- lift $ extendCategories cs (overwrite, defs)
+        cs' <- lift $ first (Just l,) (extendCategories cs (overwrite, defs))
         put (cs', extra)
         pure $ Just $ DeclS $ GraphemeList noreplace $ extra ++ mapMaybe grapheme (values cs')
 

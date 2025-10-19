@@ -757,7 +757,7 @@ applyRuleMZ r = \mz ->    -- use a lambda so mz isn't shadowed in the where bloc
 
 -- | Check if a 'MultiZipper' matches a 'Filter'.
 filterMatches :: Filter Expanded -> MultiZipper RuleTag Grapheme -> Bool
-filterMatches (Filter _ ls) = go . toBeginning
+filterMatches (Filter _ _ ls) = go . toBeginning
   where
     go mz =
         let mzs = matchMany initialOutput Nothing ls mz

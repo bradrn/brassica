@@ -25,7 +25,8 @@
     with corresponding changes in `Brassica.SoundChange.Frontend.Internal.ApplicationMode`
     and `Brassica.SoundChange.Frontend.Internal.ApplicationOutput`
 - Changed `Brassica.SoundChange.Types.Rule` to admit multiple exceptions
-- New field for line number in `Brassica.SoundChange.Types.Rule`
+- New field for line number in `Brassica.SoundChange.Types.Rule`,
+    `Brassica.SoundChange.Types.Filter`, `Brassica.SoundChanges.Types.Directive`
 
 ## 1.0.0
 

@@ -29,7 +29,7 @@ main = execParser opts >>= \case
                 putStrLn $ errorBundlePretty err
             Right scs ->
                 case expandSoundChanges scs of
-                    Left err -> putStrLn $ case err of
+                    Left (_, err) -> putStrLn $ case err of
                         (NotFound s) -> "Could not find category: " ++ s
                         InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
                         InvalidDerivedValue -> "Invalid value used as derived grapheme in autosegment"

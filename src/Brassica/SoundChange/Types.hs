@@ -324,9 +324,10 @@ data Rule c = Rule
 deriving instance (forall a. Show (c a)) => Show (Rule c)
 deriving instance (forall a. NFData (c a)) => NFData (Rule c)
 
--- | A filter, constraining the output to not match the given elements.
--- (The 'String' is the plaintext, as with 'Rule'.)
-data Filter c = Filter String [Lexeme c 'Matched]
+-- | A filter, constraining the output to not match the given
+-- elements.  (The 'String' is the plaintext and the 'Int' is the line
+-- number, as with 'Rule'.)
+data Filter c = Filter String Int [Lexeme c 'Matched]
     deriving (Generic)
 
 deriving instance (forall a. Show (c a)) => Show (Filter c)
@@ -353,7 +354,7 @@ deriving instance (forall a. NFData (c a), NFData decl) => NFData (Statement c d
 -- @"\<declaration\>"@ for all 'DeclS' inputs.
 plaintext' :: Statement c decl -> String
 plaintext' (RuleS r) = plaintext r
-plaintext' (FilterS (Filter p _)) = p
+plaintext' (FilterS (Filter p _ _)) = p
 plaintext' ReportS = "intermediate result"
 plaintext' (DeclS _) = "<declaration>"
 
@@ -415,6 +416,7 @@ data CategoryDefinition
 -- something for later use.
 data Directive
     = Categories  -- ^ Category definition block
+        Int   -- ^ Line number
         Bool  -- ^ Whether category was introduced with @new@
         Bool  -- ^ Whether category was introduced with @noreplace@
         [CategoryDefinition]
