@@ -30,13 +30,6 @@ RulesHighlighter::RulesHighlighter(QTextDocument *parent)
     formats.append(commentFormat);
     patterns.append(QRegularExpression(R"(;.*)"));
 
-    highlightFormat = QTextCharFormat();
-    highlightFormat.setBackground(QColor(200, 200, 200));
-
-    errorFormat = QTextCharFormat();
-    errorFormat.setFontUnderline(true);
-    errorFormat.setUnderlineStyle(QTextCharFormat::SpellCheckUnderline);
-
     categoryFormat = QTextCharFormat();
     categoryFormat.setBackground(QColor(245, 245, 220));
     setCategories(QStringList(), true);
@@ -60,16 +53,6 @@ void RulesHighlighter::setCategories(QStringList categories, bool forceUpdate /*
     }
 }
 
-void RulesHighlighter::setHighlights(QList<int> highlights)
-{
-    this->highlights = highlights;
-}
-
-void RulesHighlighter::setErrors(QList<int> errors)
-{
-    this->errors = errors;
-}
-
 void RulesHighlighter::highlightBlock(const QString &text)
 {
     {
@@ -89,13 +72,5 @@ void RulesHighlighter::highlightBlock(const QString &text)
             QRegularExpressionMatch m = itr.next();
             setFormat(m.capturedStart(), m.capturedLength(), formats[i]);
         }
-    }
-
-    QTextBlock block = currentBlock();
-    if (highlights.contains(block.firstLineNumber()+1)) {
-        setFormat(0, text.length(), highlightFormat);
-    }
-    if (errors.contains(block.firstLineNumber()+1)) {
-        setFormat(0, text.length(), errorFormat);
     }
 }

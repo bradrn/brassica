@@ -85,6 +85,16 @@ private:
 
     void closeEvent(QCloseEvent *event) override;
 
+    void setHighlights(QList<int> highlights);
+    void setErrors(QList<int> errors);
+    void repopulateExtraSelections();
+
+    QList<int> m_highlights;
+    QList<int> m_errors;
+
+    QTextCharFormat highlightFormat;
+    QTextCharFormat errorFormat;
+
 private slots:
     void applySoundChanges(bool live, BrassicaProcess::ReportMode reportRules);
 

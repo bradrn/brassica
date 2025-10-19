@@ -23,6 +23,7 @@
 #include <qmessagebox.h>
 #include <qnamespace.h>
 #include <qradiobutton.h>
+#include <qtextcursor.h>
 
 MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
     : QMainWindow(parent)
@@ -110,6 +111,13 @@ void MainWindow::setupWidgets(QWidget *central)
     rulesHl = new RulesHighlighter(rulesEdit->document());
     rulesLayout->addWidget(rulesLbl);
     rulesLayout->addWidget(rulesEdit);
+
+    highlightFormat = QTextCharFormat();
+    highlightFormat.setBackground(QColor(200, 200, 200));
+
+    errorFormat = QTextCharFormat();
+    errorFormat.setFontUnderline(true);
+    errorFormat.setUnderlineStyle(QTextCharFormat::SpellCheckUnderline);
 
     QLabel *wordsLbl = new QLabel("Input lexicon:");
     wordsEdit = new QPlainTextEdit;
@@ -420,10 +428,73 @@ void MainWindow::applySoundChanges(bool live, BrassicaProcess::ReportMode report
     updateOutputFromWordsSlider(wordsEditVScroll->value());
 
     blockLiveUpdate = true;
-    rulesHl->setErrors(errors);
-    highlightUnusedRules(reportRulesNotApplied->isChecked());
-    rulesHl->rehighlight();
+    setErrors(errors);
+    if (errors.length() == 0) {
+        highlightUnusedRules(reportRulesNotApplied->isChecked());
+    }
     blockLiveUpdate = false;
+}
+
+void MainWindow::setErrors(QList<int> errors) {
+    if (m_errors != errors) {
+        this->m_errors = errors;
+        repopulateExtraSelections();
+    }
+}
+
+void MainWindow::setHighlights(QList<int> highlights) {
+    if (m_highlights != highlights) {
+        this->m_highlights = highlights;
+        repopulateExtraSelections();
+    }
+}
+
+void MainWindow::repopulateExtraSelections() {
+    auto extraSelections = QList<QTextEdit::ExtraSelection>();
+
+    auto h = m_highlights.cbegin();
+    auto hend = m_highlights.cend();
+    auto e = m_errors.cbegin();
+    auto eend = m_errors.cend();
+
+    // note 1-based line indexing!
+    int lastline = 1;
+    int nextline = 1;
+    int pos = 0;  // position of the beginning of the current line
+
+    QTextCharFormat curFormat;
+
+    QString rules = rulesEdit->toPlainText();
+    QTextCursor cursor = QTextCursor(rulesEdit->document());
+
+    while (true) {
+        // get next line to highlight and its format
+        if ((h != hend) && ((e == eend) || ((*h) < (*e)))) {
+            nextline = *h; ++h; curFormat = highlightFormat;
+        } else if (e != eend) {
+            nextline = *e; ++e; curFormat = errorFormat;
+        } else {
+            break;
+        }
+
+        // seek to the position of that line
+        while (lastline < nextline) {
+            pos = rules.indexOf('\n', pos)+1;
+            if (pos == -1) goto endloop;
+            ++lastline;
+        }
+
+        // create cursor selecting that line
+        QTextCursor thisCursor = cursor;
+        thisCursor.setPosition(pos);
+        thisCursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+
+        // add it to the extraSelections with the correct format
+        extraSelections.append({thisCursor, curFormat});
+    }
+
+endloop:
+    rulesEdit->setExtraSelections(extraSelections);
 }
 
 void MainWindow::openRules()
@@ -547,6 +618,11 @@ void MainWindow::updateWordsFromOutputSlider(int value)
 
 void MainWindow::highlightUnusedRules(bool enable)
 {
+    if (!enable) {
+        setHighlights(QList<int>());
+        return;
+    }
+
     QString rules      = rulesEdit     ->toPlainText();
     QString words      = wordsEdit     ->toPlainText();
 
@@ -566,7 +642,7 @@ void MainWindow::highlightUnusedRules(bool enable)
         prev,
         multiResultSep->text());
     QList<int> highlights = outputPair.second;
-    rulesHl->setHighlights(highlights);
+    setHighlights(highlights);
 }
 
 
