@@ -104,6 +104,9 @@ div.input-box:not(.lib-config) {
     overflow: scroll;
     background-color: #fff;
 }
+div.disabled-error {
+    background-color: #ddd !important;
+}
 textarea.input-box:not(.lib-config) {
     box-sizing: border-box;
     border: none;

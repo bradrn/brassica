@@ -1,4 +1,3 @@
-<!-- -*-GFM-*- -->
 
 # Using Brassica
 
@@ -114,9 +113,10 @@ On the desktop the highlight is a grey background;
   on the web it is a grey underline.
 
 Sometimes rule application can result in an error.
-In this case the error will be shown in the output box.
-Additionally, if the problem was a syntax error in the rules themselves,
-  the offending rule will be underlined in red.
+In this case the error message will be shown in the output box,
+  and the offending rule will be underlined in red.
+In live mode, the output box will be greyed out rather than the error message interrupting; 
+  if you wish to see the error message you can still do that by pressing ‘Apply’.
 
 ## Output highlighting
 

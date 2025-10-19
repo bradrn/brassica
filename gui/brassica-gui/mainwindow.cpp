@@ -421,11 +421,16 @@ void MainWindow::applySoundChanges(bool live, BrassicaProcess::ReportMode report
     QString output = outputPair.first;
     QList<int> errors = outputPair.second;
 
-    blockScrollTrackingEvent = true;
-    outputEdit->setHtml("<pre style=\"font-family: inherit\">" + output + "</pre>");
+    if ((errors.length() > 0) && live) {
+        outputEdit->setEnabled(false);
+    } else {
+        outputEdit->setEnabled(true);
+        blockScrollTrackingEvent = true;
+        outputEdit->setHtml("<pre style=\"font-family: inherit\">" + output + "</pre>");
 
-    blockScrollTrackingEvent = false;
-    updateOutputFromWordsSlider(wordsEditVScroll->value());
+        blockScrollTrackingEvent = false;
+        updateOutputFromWordsSlider(wordsEditVScroll->value());
+    }
 
     blockLiveUpdate = true;
     setErrors(errors);

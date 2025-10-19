@@ -224,7 +224,9 @@ let rulesEditor = new EditorView({
     ],
     dispatchTransactions: function (trs, view) {
         view.update(trs);
-        updateForm(false, true, true);
+        if (trs.some((t) => t.docChanged)) {
+            updateForm(false, true, true);
+        }
     },
     parent: document.getElementById("rules"),
 })
@@ -256,7 +258,13 @@ function updateForm(reportRules, needsLive, fromEditor = false) {
     const outputFormat = data.get("outputFormat");
 
     const output = applyChanges(rules, words, sep, reportRules, inputFormat, highlightMode, outputFormat);
-    resultsDiv.innerHTML = "<pre>" + output + "</pre>";
+
+    if ((errors.length > 0) && needsLive) {
+        resultsDiv.classList.add("disabled-error");
+    } else {
+        resultsDiv.classList.remove("disabled-error");
+        resultsDiv.innerHTML = "<pre>" + output + "</pre>";
+    }
 
     if (highlightUnused.checked && (errors.length == 0)) {
         applyChanges(rules, words, sep, 'unused', inputFormat, 'noHighlight', 'rawout');
