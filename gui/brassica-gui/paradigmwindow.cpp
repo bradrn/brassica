@@ -9,11 +9,19 @@
 #include <QMenuBar>
 #include <QFileDialog>
 #include <QCheckBox>
+#include <qnamespace.h>
 
-ParadigmWindow::ParadigmWindow(BrassicaProcess *proc, QWidget *parent)
+ParadigmWindow::ParadigmWindow(QWidget *parent)
     : QMainWindow(parent)
-    , proc(proc)
 {
+    setAttribute(Qt::WA_DeleteOnClose);
+
+    proc = new BrassicaProcess(this);
+    if (!proc->startupCorrect()) {
+        qFatal("ParadigmWindow: cannot create Brassica child process! error code %d",
+               proc->errorState());
+    }
+
     setWindowTitle("Brassica Paradigm Builder");
 
     QWidget *window = new QWidget;
@@ -67,6 +75,13 @@ ParadigmWindow::ParadigmWindow(BrassicaProcess *proc, QWidget *parent)
     connect(paradigmEdit, &QPlainTextEdit::textChanged, this, &ParadigmWindow::paradigmModified);
     connect(rootsEdit, &QPlainTextEdit::textChanged, this, &ParadigmWindow::lexiconModified);
 
+    connect(proc, &BrassicaProcess::paradigmResult, this, [this](QString output) {
+        outputEdit->setHtml(output);
+    });
+    connect(proc, &BrassicaProcess::errorResult, this, [this](QString output, QList<int> errors) {
+        outputEdit->setHtml(output);
+    });
+
     // previous code for live previewing (turned out to be too slow):
     //connect(paradigmEdit, &QPlainTextEdit::textChanged, this, &ParadigmWindow::rebuildResult);
     //connect(rootsEdit, &QPlainTextEdit::textChanged, this, &ParadigmWindow::rebuildResult);
@@ -77,10 +92,7 @@ void ParadigmWindow::rebuildResult()
     QString paradigm = paradigmEdit->toPlainText();
     QString roots = rootsEdit->toPlainText();
 
-    QString output = proc->parseAndBuildParadigm(
-        paradigm, roots, separateLinesBox->isChecked());
-
-    outputEdit->setHtml(output);
+    proc->parseAndBuildParadigm(paradigm, roots, separateLinesBox->isChecked());
 }
 
 void ParadigmWindow::openParadigm()

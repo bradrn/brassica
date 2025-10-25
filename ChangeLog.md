@@ -13,6 +13,7 @@
 - New checkbox / command-line option to highlight unused rules in the rules editor
 - Syntax errors are now highlighted in the rules editor
 - In live mode, output box is greyed out rather than being interrupted with error messages
+- On desktop, results are now computed asynchronously (i.e. without causing the UI to freeze)
 
 ### Code
 

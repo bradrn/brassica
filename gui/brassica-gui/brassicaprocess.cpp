@@ -12,17 +12,11 @@ BrassicaProcess::BrassicaProcess(QObject *parent)
     QString location = QCoreApplication::applicationDirPath() + "/brassica";
     QStringList args("--server");
 
-    proc = new QProcess;
+    proc = new QProcess(this);
     connect(proc, &QProcess::errorOccurred, this, [this](QProcess::ProcessError e){_errorState=e;});
+    connect(proc, &QProcess::readyReadStandardOutput, this, &BrassicaProcess::procReadyRead);
     proc->start(location, args);
     valid = proc->waitForStarted();
-}
-
-BrassicaProcess::~BrassicaProcess()
-{
-    proc->kill();
-    proc->waitForFinished();
-    delete proc;
 }
 
 bool BrassicaProcess::startupCorrect()
@@ -35,14 +29,13 @@ QProcess::ProcessError BrassicaProcess::errorState()
     return _errorState;
 }
 
-std::pair<QString, QList<int>> BrassicaProcess::parseTokeniseAndApplyRules(
+void BrassicaProcess::parseTokeniseAndApplyRules(
     QString rules,
     QString words,
     ReportMode reportRules,
     InputLexiconFormat inFmt,
     HighlightMode hlMode,
     OutputMode outMode,
-    QJsonValue *&prev,
     QString sep)
 {
     QJsonObject req = QJsonObject();
@@ -53,36 +46,13 @@ std::pair<QString, QList<int>> BrassicaProcess::parseTokeniseAndApplyRules(
     req.insert("inFmt", toJson(inFmt));
     req.insert("hlMode", toJson(hlMode));
     req.insert("outMode", toJson(outMode));
-    req.insert("prev", *prev);
+    req.insert("prev", prev);
     req.insert("sep", sep);
 
-    QJsonObject obj = request(QJsonDocument(req)).object();
-    QString method = obj.value("method").toString();
-    if (method == "Error") {
-        QJsonArray highlightsArr = obj.value("highlights").toArray();
-        auto highlights = QList<int>();
-        for (auto i = highlightsArr.cbegin(), end = highlightsArr.cend(); i != end; ++i) {
-            highlights.append((*i).toInt());
-        }
-        return { obj.value("message").toString(), highlights };
-    } else if (method == "Rules") {
-        // This should be safe as long as prev is ONLY passed back into this
-        // function! Which in normal use it should.
-        delete prev;
-        prev = new QJsonValue(obj.value("prev"));
-        return { obj.value("output").toString(), QList<int>() };
-    } else if (method == "NotApplied") {
-        QJsonArray highlightsArr = obj.value("highlights").toArray();
-        auto highlights = QList<int>();
-        for (auto i = highlightsArr.cbegin(), end = highlightsArr.cend(); i != end; ++i) {
-            highlights.append((*i).toInt());
-        }
-        return { "", highlights };
-    }
-    return { "internal error: BrassicaProcess::parseTokeniseAndApplyRules", QList<int>() };
+    request(QJsonDocument(req));
 }
 
-QString BrassicaProcess::parseAndBuildParadigm(QString paradigm, QString roots, bool separateLines)
+void BrassicaProcess::parseAndBuildParadigm(QString paradigm, QString roots, bool separateLines)
 {
     QJsonObject req = QJsonObject();
     req.insert("method", "Paradigm");
@@ -90,26 +60,48 @@ QString BrassicaProcess::parseAndBuildParadigm(QString paradigm, QString roots, 
     req.insert("input", roots);
     req.insert("separateLines", separateLines);
 
-    QJsonObject obj = request(QJsonDocument(req)).object();
-    QString method = obj.value("method").toString();
-    if (method == "Error") {
-        return obj.value("contents").toString();
-    } else if (method == "Paradigm") {
-        return obj.value("output").toString();
-    }
-    return "internal error: BrassicaProcess::parseAndBuildParadigm";
+    request(QJsonDocument(req));
 }
 
-QJsonDocument BrassicaProcess::request(QJsonDocument req)
+void BrassicaProcess::request(QJsonDocument req)
 {
     proc->write(req.toJson(QJsonDocument::Compact));
-    QByteArray resp;
-    do {
-        proc->waitForReadyRead();
-        resp.append(proc->readAll());
-    } while (!resp.endsWith('\027'));
-    resp.chop(1);
-    return QJsonDocument::fromJson(resp);
+}
+
+void BrassicaProcess::procReadyRead()
+{
+    currentResponse.append(proc->readAll());
+    if (currentResponse.endsWith('\027')) {
+        currentResponse.chop(1);
+        QJsonObject obj = QJsonDocument::fromJson(currentResponse).object();
+        currentResponse = QByteArray();
+
+        QString method = obj.value("method").toString();
+        if (method == "Error") {
+            QJsonArray errorsArr = obj.value("highlights").toArray();
+            auto errors = QList<int>();
+            for (auto i = errorsArr.cbegin(), end = errorsArr.cend(); i != end; ++i) {
+                errors.append((*i).toInt());
+            }
+            emit errorResult(obj.value("message").toString(), errors);
+        } else if (method == "Rules") {
+            prev = QJsonValue(obj.value("prev"));
+            emit rulesResult(obj.value("output").toString());
+        } else if (method == "NotApplied") {
+            QJsonArray highlightsArr = obj.value("highlights").toArray();
+            auto highlights = QList<int>();
+            for (auto i = highlightsArr.cbegin(), end = highlightsArr.cend(); i != end; ++i) {
+                highlights.append((*i).toInt());
+            }
+            emit notAppliedResult(highlights);
+        } else if (method == "Paradigm") {
+            emit paradigmResult(obj.value("output").toString());
+        } else {
+            emit errorResult(
+                "internal error: BrassicaProcess::procReadyRead",
+                QList<int>());
+        }
+    }
 }
 
 QString BrassicaProcess::toJson(InputLexiconFormat val)

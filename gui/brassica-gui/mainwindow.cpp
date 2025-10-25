@@ -25,12 +25,16 @@
 #include <qradiobutton.h>
 #include <qtextcursor.h>
 
-MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
+MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , settings()
-    , proc(proc)
+    , m_live(false)
 {
-    prev = new QJsonValue(QJsonValue::Null);
+    proc = new BrassicaProcess(this);
+    if (!proc->startupCorrect()) {
+        qFatal("MainWindow: cannot create Brassica child process! error code %d",
+               proc->errorState());
+    }
 
     setWindowTitle("Brassica");
 
@@ -48,6 +52,10 @@ MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
     QShortcut *applyShortcut2 = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Enter ), this);
     connect(applyShortcut1, &QShortcut::activated, this, [this] { applySoundChanges(false, BrassicaProcess::NoReport); });
     connect(applyShortcut2, &QShortcut::activated, this, [this] { applySoundChanges(false, BrassicaProcess::NoReport); });
+
+    connect(proc, &BrassicaProcess::rulesResult, this, &MainWindow::rulesResult);
+    connect(proc, &BrassicaProcess::notAppliedResult, this, &MainWindow::setHighlights);
+    connect(proc, &BrassicaProcess::errorResult, this, &MainWindow::errorResult);
 
     QShortcut *toggleShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Tab), this);
     connect(toggleShortcut, &QShortcut::activated, this, &MainWindow::toggleCursor);
@@ -84,12 +92,6 @@ MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
     connect(inoutBtnPreserve , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
 
     connect(viewLive, &QRadioButton::toggled, this, [this](bool checked) { if (checked) applySoundChanges(false, BrassicaProcess::NoReport); });
-}
-
-MainWindow::~MainWindow()
-{
-    delete prev;
-    // proc is deleted in main()
 }
 
 void MainWindow::setupWidgets(QWidget *central)
@@ -388,6 +390,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::applySoundChanges(bool live, BrassicaProcess::ReportMode reportRules)
 {
     if ((live && !viewLive->isChecked()) || blockLiveUpdate) return;
+    m_live = live;
 
     QString rules      = rulesEdit     ->toPlainText();
     QString words      = wordsEdit     ->toPlainText();
@@ -409,42 +412,49 @@ void MainWindow::applySoundChanges(bool live, BrassicaProcess::ReportMode report
     else if (inoutBtn->isChecked()) outMode = BrassicaProcess::WordsWithProtoOutput;
     else if (inoutBtnPreserve->isChecked()) outMode = BrassicaProcess::WordsWithProtoOutputPreserve;
 
-    std::pair<QString, QList<int>> outputPair = proc->parseTokeniseAndApplyRules(
+    proc->parseTokeniseAndApplyRules(
         rules,
         words,
         reportRules,
         infmt,
         checkedHl,
         outMode,
-        prev,
         multiResultSep->text());
-    QString output = outputPair.first;
-    QList<int> errors = outputPair.second;
+}
 
-    if ((errors.length() > 0) && live) {
-        outputEdit->setEnabled(false);
-    } else {
-        outputEdit->setEnabled(true);
-        blockScrollTrackingEvent = true;
-        outputEdit->setHtml("<pre style=\"font-family: inherit\">" + output + "</pre>");
 
-        blockScrollTrackingEvent = false;
-        updateOutputFromWordsSlider(wordsEditVScroll->value());
-    }
+void MainWindow::rulesResult(QString output)
+{
+    outputEdit->setEnabled(true);
+    blockScrollTrackingEvent = true;
+    outputEdit->setHtml("<pre style=\"font-family: inherit\">" + output + "</pre>");
+
+    blockScrollTrackingEvent = false;
+    updateOutputFromWordsSlider(wordsEditVScroll->value());
+
+    this->m_errors = QList<int>();
+    repopulateExtraSelections();
 
     blockLiveUpdate = true;
-    setErrors(errors);
-    if (errors.length() == 0) {
-        highlightUnusedRules(reportRulesNotApplied->isChecked());
-    }
+    highlightUnusedRules(reportRulesNotApplied->isChecked());
     blockLiveUpdate = false;
 }
 
-void MainWindow::setErrors(QList<int> errors) {
+void MainWindow::errorResult(QString output, QList<int> errors)
+{
+    if (m_live) {
+        outputEdit->setEnabled(false);
+    } else {
+        outputEdit->setEnabled(true);
+        outputEdit->setHtml("<pre style=\"font-family: inherit\">" + output + "</pre>");
+    }
+
+    blockLiveUpdate = true;
     if (m_errors != errors) {
         this->m_errors = errors;
         repopulateExtraSelections();
     }
+    blockLiveUpdate = false;
 }
 
 void MainWindow::setHighlights(QList<int> highlights) {
@@ -637,19 +647,15 @@ void MainWindow::highlightUnusedRules(bool enable)
     if (mdfBtn->isChecked()) infmt = BrassicaProcess::MDFStandard;
     else if (mdfAltBtn->isChecked()) infmt = BrassicaProcess::MDFAlternate;
 
-    std::pair<QString, QList<int>> outputPair = proc->parseTokeniseAndApplyRules(
+    proc->parseTokeniseAndApplyRules(
         rules,
         words,
         BrassicaProcess::ReportNotApplied,
         infmt,
         BrassicaProcess::NoHighlight,
         BrassicaProcess::WordsOnlyOutput,
-        prev,
         multiResultSep->text());
-    QList<int> highlights = outputPair.second;
-    setHighlights(highlights);
 }
-
 
 void MainWindow::reselectCheckboxes()
 {
@@ -704,7 +710,7 @@ void MainWindow::findNext(QString substring,
 
 void MainWindow::showParadigmBuilder()
 {
-    ParadigmWindow *pw = new ParadigmWindow(proc, this);
+    ParadigmWindow *pw = new ParadigmWindow(this);
     pw->show();
 }
 

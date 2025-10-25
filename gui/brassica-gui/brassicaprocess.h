@@ -11,7 +11,6 @@ class BrassicaProcess : public QObject
 
 public:
     BrassicaProcess(QObject *parent = nullptr);
-    ~BrassicaProcess();
 
     bool startupCorrect();
     QProcess::ProcessError errorState();
@@ -42,26 +41,39 @@ public:
         WordsWithProtoOutputPreserve
     };
 
-    std::pair<QString, QList<int>> parseTokeniseAndApplyRules(QString rules,
+    void parseTokeniseAndApplyRules(QString rules,
         QString words,
         ReportMode reportRules,
         InputLexiconFormat inFmt,
         HighlightMode hlMode,
         OutputMode outMode,
-        QJsonValue *&prev, QString sep);
-    QString parseAndBuildParadigm(QString paradigm, QString roots, bool separateLines);
+        QString sep);
+    void parseAndBuildParadigm(QString paradigm, QString roots, bool separateLines);
 
 private:
     QProcess *proc;
     bool valid;
     QProcess::ProcessError _errorState;  // if any
 
-    QJsonDocument request(QJsonDocument req);
+    void request(QJsonDocument req);
 
     QString toJson(InputLexiconFormat val);
     QJsonValue toJson(ReportMode val);
     QString toJson(HighlightMode val);
     QString toJson(OutputMode val);
+
+    QByteArray currentResponse;
+
+    QJsonValue prev;
+
+private slots:
+    void procReadyRead();
+
+signals:
+    void rulesResult(QString output);
+    void paradigmResult(QString output);
+    void notAppliedResult(QList<int> highlights);
+    void errorResult(QString output, QList<int> errors);
 };
 
 #endif // BRASSICAPROCESS_H

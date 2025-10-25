@@ -12,7 +12,7 @@ class ParadigmWindow : public QMainWindow
 {
     Q_OBJECT
 public:
-    ParadigmWindow(BrassicaProcess *proc, QWidget *parent = nullptr);
+    ParadigmWindow(QWidget *parent = nullptr);
 
 private slots:
     void rebuildResult();
