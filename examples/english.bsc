@@ -38,7 +38,7 @@ end
 [Vs -u -uː -ə] w / Du
 [Vl -u -uː -ə] w / Du
 
-oŭ / ɔŭ
+[o oŭ] / [ɔ ɔŭ]
 
 [e eː ɛː] / [eĭ eĭ ɛĭ] / _ h
 [o oː ɔː a aː] / [oŭ oŭ ɔŭ aŭ aŭ] / _ h
@@ -80,8 +80,8 @@ h / / V _
 
 ; various consonant changes
 
-w / / s _ [a aː ɔː ɔ o oː u uː]  ; unsure about the vowels here
-m b / m
+-? w / / s _ [a aː ɔː ɔ o oː u uː]  ; unsure about the vowels here
+m b / m / _ #
 
 ; al, ɔl mutations
 [a ɔ] / [aŭ ɔŭ] / _ l [t d tʃ dʒ θ ð s z ʃ r #]
@@ -118,7 +118,7 @@ w / / # _ r
 C / / _ >
 
 ; more diphthong loss
-[ɛĭ ɔŭ ɛŭ eŭ iŭ ɔĭ uĭ] / [eː oː ɪʊ̆ ɪʊ̆ ɪʊ̆ oĭ oĭ]
+[ɛĭ ɛ ɔŭ ɔ ɛŭ eŭ iŭ ɔĭ uĭ] / [eː e oː o ɪʊ̆ ɪʊ̆ ɪʊ̆ oĭ oĭ]
 
 ɪʊ̆ / j uː
 
@@ -142,7 +142,7 @@ C / / _ >
 w oː / uː
 
 ; FOOT-STRUT split
--? ʊ / ʌ / _ // [m p b f v] _ [l ʃ tʃ]
+-? ʊ / ʌ / _ // C _ [l ʃ]
 
 ; ng-coalescence
 
@@ -151,14 +151,14 @@ w oː / uː
 ; alternative is to treat it as a sporadic rule
 ; before vowels
 
--? n g / ŋ / _ V
-n g / ŋ / _ [C #]
+n / ŋ / _ [g k]
+g / / ŋ _ [C ə #]
 
 ; yod-coalescence
 -? [t s d z] j / [tʃ ʃ dʒ ʒ]
 
-; ɔ lowering
-ɔ / ɒ
+; o and ɔ lowering
+[o ɔ] / ɒ
 
 ; eː, uː shortening
 -? [eː uː] / [e ʊ]
@@ -166,12 +166,12 @@ n g / ŋ / _ [C #]
 ; MEET-MEAT merger
 -? eː / iː
 
-; short vowel changes
-[a ɔ] / [aː ɔː]
+; rhotic vowel changes
+[a ɔ] / [aː ɔː] / _ r
 [ɛ ɪ ʌ ʊ] / ə / _ r
 
-; a-fronting
-a / æ
+; modern vowels laxing
+-x [a e] / [æ ɛ]
 
 ; eː, oː breaking
 [eː oː] / [eĭ oŭ]
@@ -179,14 +179,14 @@ a / æ
 new categories
 Nasl = m n ŋ
 Stop = p b t d tʃ dʒ k g
-Fric = f v θ ð s z ʃ h
+Fric = f v θ ð s z ʃ ʒ h
 Aprx = r j w
 Latr = l
 C = Nasl Stop Fric Aprx Latr
 
-Vs = i u e o a ɪ ʊ ʌ ɒ ə
+Vs = ɛ æ ɪ ʊ ʌ ɒ ə
 Vl = iː uː aː ɔː ɑː
-Di = aĭ
+Di = aĭ eĭ oĭ
 Du = aŭ oŭ
 V = Vs Vl Di Du
 end
