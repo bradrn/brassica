@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE ViewPatterns      #-}
 
@@ -34,6 +35,7 @@ module Brassica.SoundChange.Tokenise
        , sortByDescendingLength
        ) where
 
+import Data.Aeson.TH (deriveJSON, defaultOptions)
 import Data.Char (isSpace)
 import Data.Function (on)
 import Data.Functor.Identity
@@ -56,6 +58,8 @@ data Component a
     | Separator String  -- ^ A separator, e.g. whitespace
     | Gloss String      -- ^ A gloss (in Brassica syntax, between square brackets)
     deriving (Eq, Show, Functor, Foldable, Traversable, Generic, NFData)
+
+$(deriveJSON defaultOptions ''Component)
 
 -- | Flatten a nested list of 'Component's.
 joinComponents :: [Component [Component a]] -> [Component a]

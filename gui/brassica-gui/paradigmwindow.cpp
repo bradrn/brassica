@@ -92,7 +92,7 @@ void ParadigmWindow::rebuildResult()
     QString paradigm = paradigmEdit->toPlainText();
     QString roots = rootsEdit->toPlainText();
 
-    proc->parseAndBuildParadigm(paradigm, roots, separateLinesBox->isChecked());
+    proc->parseAndBuildParadigm(paradigm, roots, separateLinesBox->isChecked(), 3000000);
 }
 
 void ParadigmWindow::openParadigm()

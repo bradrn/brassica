@@ -16,6 +16,10 @@ const baseConfig = {
     filename: '[name].js',
     path: path.resolve(__dirname, 'dist'),
   },
+  performance: {
+    maxAssetSize: 500000,
+    maxEntrypointSize: 500000,
+  },
 };
 
 export default function (env, argv) {

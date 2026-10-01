@@ -419,12 +419,15 @@ void MainWindow::applySoundChanges(bool live, BrassicaProcess::ReportMode report
         infmt,
         checkedHl,
         outMode,
-        multiResultSep->text());
+        multiResultSep->text(),
+        // Timeout of 3 s
+        3000000);
 }
 
 
 void MainWindow::rulesResult(QString output)
 {
+    applyProgress->setRange(0,100);
     outputEdit->setEnabled(true);
     blockScrollTrackingEvent = true;
     outputEdit->setHtml("<pre style=\"font-family: inherit\">" + output + "</pre>");
@@ -654,7 +657,8 @@ void MainWindow::highlightUnusedRules(bool enable)
         infmt,
         BrassicaProcess::NoHighlight,
         BrassicaProcess::WordsOnlyOutput,
-        multiResultSep->text());
+        multiResultSep->text(),
+        3000000);
 }
 
 void MainWindow::reselectCheckboxes()

@@ -7,7 +7,7 @@
   "author": "",
   "license": "BSD-3-Clause",
   "dependencies": {
-    "@bjorn3/browser_wasi_shim": "^0.2.14",
+    "@bjorn3/browser_wasi_shim": "^0.4.2",
     "@codemirror/autocomplete": "^6.18.0",
     "@codemirror/commands": "^6.6.1",
     "@codemirror/language": "^6.10.2",

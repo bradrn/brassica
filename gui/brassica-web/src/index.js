@@ -9,79 +9,56 @@ import {tags} from "@lezer/highlight"
 import {defaultKeymap, history, historyKeymap} from "@codemirror/commands"
 import {searchKeymap, highlightSelectionMatches} from "@codemirror/search"
 import {closeBrackets, closeBracketsKeymap} from "@codemirror/autocomplete"
-import {linter, Diagnostic, forceLinting} from "@codemirror/lint"
-
-import {hs, withBytesPtr, decodeStableCStringLen_, encoder, decoder} from "./interop.js";
+import {linter, Diagnostic} from "@codemirror/lint"
 
 
 /***********************
  * Haskell interop     *
  ***********************/
 
-const results = hs.initResults();  // NB: not const on Haskell side!
-var errors = [];
-var highlights = [];
+const worker = new Worker(new URL("interop.js", import.meta.url));
 
-function applyChanges(changes, words, sep, reportRules, inputMode, highlightMode, outputMode) {
-    const inputChanges = encoder.encode(changes);
-    const inputWords = encoder.encode(words);
-    const sepEncoded = encoder.encode(sep);
+var prevResults = null;
 
-    var reportRulesC = 0;
-    switch (reportRules) {
-    case true:     reportRulesC = 1; break;
-    case 'unused': reportRulesC = 2; break;
+document.getElementById("results").innerHTML = "<i>Initialising...</i>"
+
+worker.onmessage = (e) => {
+    const data = e.data;
+    if (data.method === "_init") {
+        document.getElementById("results").innerHTML = "";
+    } else if (data.method === "Error") {
+        errorResult(data.message, data.highlights);
+    } else if (data.method === "Rules") {
+        prevResults = data.prev;
+        rulesResult(data.output);
+    } else if (data.method === "NotApplied") {
+        highlightResult(data.highlights);
+    } else {
+        console.error(data);
     }
+    endApply();
+};
 
-    var inModeC = 0;
-    switch (inputMode) {
-    case 'mdfStandard':  inModeC = 1; break;
-    case 'mdfAlternate': inModeC = 1; break;
-    }
 
-    var hlModeC = 0;
-    switch (highlightMode) {
-    case 'differentToLastRun': hlModeC = 1; break;
-    case 'differentToInput':   hlModeC = 2; break;
-    case 'specificRule':       hlModeC = 3; break;
-    }
+worker.postMessage({type: "init"});
 
-    var outModeC = 0;
-    switch (outputMode) {
-    case 'mdf':     outModeC = 1; break;
-    case 'mdfetym': outModeC = 2; break;
-    case 'inout':   outModeC = 3; break;
-    case 'inoutpreserve': outModeC = 4; break;
-    }
-
-    var output = "";
-    withBytesPtr(inputChanges, (inputChangesPtr, inputChangesLen) => {
-        withBytesPtr(inputWords, (inputWordsPtr, inputWordsLen) => {
-            withBytesPtr(sepEncoded, (sepPtr, sepLen) => {
-                try {
-                    const outputStableCStringLen = hs.parseTokeniseAndApplyRules_hs(
-                        inputChangesPtr, inputChangesLen,
-                        inputWordsPtr, inputWordsLen,
-                        sepPtr, sepLen,
-                        reportRulesC, inModeC, hlModeC, outModeC, results);
-                    var outputobj = decodeStableCStringLen_(outputStableCStringLen);
-                    output = outputobj.output;
-                    if (reportRules == 'unused') {
-                        highlights = outputobj.highlights;
-                    } else {
-                        errors = outputobj.highlights;
-                        highlights = [];
-                    }
-                } catch (err) {
-                    output = err;
-                    errors = [];
-                    highlights = [];
-                }
-            });
-        });
-    });
-    return output;
+function applyChanges(changes, words, sep, reportRules, inputMode, highlightMode, outputMode, timeout) {
+    const req = {
+        method: "Rules",
+        changes: changes,
+        input: words,
+        report: reportRules,
+        inFmt: inputMode,
+        hlMode: highlightMode,
+        outMode: outputMode,
+        prev: prevResults,
+        sep: sep,
+        reqTimeout: timeout
+    };
+    beginApply();
+    worker.postMessage({type: "dispatch", json: req});
 }
+
 
 
 /***********************
@@ -161,6 +138,9 @@ const brassicaHighlightStyle = HighlightStyle.define([
     {tag: tags.comment, "color": "rgb(0,128,0)"}
 ]);
 
+var errors = [];
+var highlights = [];
+
 const brassicaLinter = linter(view => {
     let diagnostics = [];
     let doc = view.state.doc;
@@ -225,11 +205,18 @@ let rulesEditor = new EditorView({
     dispatchTransactions: function (trs, view) {
         view.update(trs);
         if (trs.some((t) => t.docChanged)) {
-            updateForm(false, true, true);
+            updateForm(null, true);
         }
     },
     parent: document.getElementById("rules"),
 })
+
+function forceLinterUpdate() {
+    // see https://discuss.codemirror.net/t/3570/16
+    let plugin = rulesEditor.plugin(brassicaLinter[1]);
+    plugin.set = true;
+    plugin.force();
+}
 
 const hlNoneRadio = document.getElementById("hl-none");
 const hlLastRadio = document.getElementById("hl-last");
@@ -246,8 +233,30 @@ const fmtInoutPreserveRadio = document.getElementById("fmt-inoutpreserve");
 const fmtMdfRadio = document.getElementById("fmt-mdf");
 const fmtMdfEtymRadio = document.getElementById("fmt-mdfetym");
 
-function updateForm(reportRules, needsLive, fromEditor = false) {
-    if (needsLive && !viewLive.checked) return;
+var wasLive = false;
+var inprogress = false;
+
+const timeout = 10000000;  // microseconds (10 s)
+
+function beginApply() {
+    inprogress = true;
+    document.getElementById("apply-btn").disabled = true;
+    document.getElementById("report-btn").disabled = true;
+    document.getElementById("progress-bar").removeAttribute("value");
+}
+
+function endApply() {
+    inprogress = false;
+    document.getElementById("apply-btn").disabled = false;
+    document.getElementById("report-btn").disabled = false;
+    document.getElementById("progress-bar").value = 1;
+}
+
+function updateForm(reportRules, needsLive) {
+    if (needsLive && !viewLive.checked && !inprogress)
+        return;
+
+    wasLive = needsLive;
 
     const data = new FormData(form);
     const rules = rulesEditor.state.doc.toString();
@@ -257,48 +266,58 @@ function updateForm(reportRules, needsLive, fromEditor = false) {
     const inputFormat = data.get("inputFormat");
     const outputFormat = data.get("outputFormat");
 
-    const output = applyChanges(rules, words, sep, reportRules, inputFormat, highlightMode, outputFormat);
+    applyChanges(rules, words, sep, reportRules, inputFormat, highlightMode, outputFormat, timeout);
+}
 
-    if ((errors.length > 0) && needsLive) {
+function rulesResult(output) {
+    resultsDiv.classList.remove("disabled-error");
+    resultsDiv.innerHTML = "<pre>" + output + "</pre>";
+
+    errors = [];
+
+    if (highlightUnused.checked) {
+        const data = new FormData(form);
+        const rules = rulesEditor.state.doc.toString();
+        const words = data.get("words");
+        const sep = data.get("sep");
+        const inputFormat = data.get("inputFormat");
+        applyChanges(rules, words, sep, 'ReportNotApplied', inputFormat, 'NoHighlight', 'WordsOnlyOutput', timeout);
+    }
+}
+
+function errorResult(message, newErrors) {
+    if (wasLive) {
         resultsDiv.classList.add("disabled-error");
     } else {
         resultsDiv.classList.remove("disabled-error");
-        resultsDiv.innerHTML = "<pre>" + output + "</pre>";
+        resultsDiv.innerHTML = "<pre>" + message + "</pre>";
     }
 
-    if (highlightUnused.checked && (errors.length == 0)) {
-        applyChanges(rules, words, sep, 'unused', inputFormat, 'noHighlight', 'rawout');
-    }
-
-    if (!(needsLive && fromEditor)) {
-        // force linter update, except when a live update from the
-        // editor itself already forces it (which would cause an infinite loop)
-        // see https://discuss.codemirror.net/t/3570/16
-        let plugin = rulesEditor.plugin(brassicaLinter[1]);
-        plugin.set = true;
-        plugin.force();
-    }
+    errors = newErrors;
+    forceLinterUpdate();
 }
 
 form.addEventListener("submit", (event) => {
     event.preventDefault();
-    updateForm(event.submitter.id == "report-btn", false);
+    const reportRules =
+          (event.submitter.id == "report-btn") ? "ReportApplied" : null;
+    updateForm(reportRules, false);
 });
 
 // live highlight
-wordsArea          .addEventListener("input", (event) => updateForm(false, true));
-hlNoneRadio        .addEventListener("input", (event) => updateForm(false, true));
-hlLastRadio        .addEventListener("input", (event) => updateForm(false, true));
-hlInputRadio       .addEventListener("input", (event) => updateForm(false, true));
-hlSpecificRadio    .addEventListener("input", (event) => updateForm(false, true));
-inWordlistRadio    .addEventListener("input", (event) => updateForm(false, true));
-inMdfStandardRadio .addEventListener("input", (event) => updateForm(false, true));
-inMdfAlternateRadio.addEventListener("input", (event) => updateForm(false, true));
-fmtWordlistRadio   .addEventListener("input", (event) => updateForm(false, true));
-fmtInoutRadio      .addEventListener("input", (event) => updateForm(false, true));
-fmtInoutPreserveRadio.addEventListener("input", (event) => updateForm(false, true));
-fmtMdfRadio        .addEventListener("input", (event) => updateForm(false, true));
-fmtMdfEtymRadio    .addEventListener("input", (event) => updateForm(false, true));
+wordsArea          .addEventListener("input", (event) => updateForm(null, true));
+hlNoneRadio        .addEventListener("input", (event) => updateForm(null, true));
+hlLastRadio        .addEventListener("input", (event) => updateForm(null, true));
+hlInputRadio       .addEventListener("input", (event) => updateForm(null, true));
+hlSpecificRadio    .addEventListener("input", (event) => updateForm(null, true));
+inWordlistRadio    .addEventListener("input", (event) => updateForm(null, true));
+inMdfStandardRadio .addEventListener("input", (event) => updateForm(null, true));
+inMdfAlternateRadio.addEventListener("input", (event) => updateForm(null, true));
+fmtWordlistRadio   .addEventListener("input", (event) => updateForm(null, true));
+fmtInoutRadio      .addEventListener("input", (event) => updateForm(null, true));
+fmtInoutPreserveRadio.addEventListener("input", (event) => updateForm(null, true));
+fmtMdfRadio        .addEventListener("input", (event) => updateForm(null, true));
+fmtMdfEtymRadio    .addEventListener("input", (event) => updateForm(null, true));
 
 highlightUnused.addEventListener("click", () => {
     if (highlightUnused.checked) {
@@ -306,16 +325,17 @@ highlightUnused.addEventListener("click", () => {
         const words = wordsArea.value;
         const sep = '/';  // irrelevant here, really
         const inputFormat = form.elements['inputFormat'].value;
-        applyChanges(rules, words, sep, 'unused', inputFormat, 'noHighlight', 'rawout');
+        applyChanges(rules, words, sep, 'ReportNotApplied', inputFormat, 'NoHighlight', 'WordsOnlyOutput', timeout);
     } else {
         highlights = [];
     }
-    // as above
-    let plugin = rulesEditor.plugin(brassicaLinter[1]);
-    plugin.set = true;
-    plugin.force();
 });
 
+
+function highlightResult(newHighlights) {
+    highlights = newHighlights;
+    forceLinterUpdate();
+}
 
 
 const exampleSelect = document.getElementById("examples");

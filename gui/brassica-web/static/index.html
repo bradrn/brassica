@@ -62,60 +62,61 @@
       <div id="controls">
         <input type="submit" id="apply-btn" value="Apply" />
         <input type="submit" id="report-btn" value="Report rules applied" />
+        <progress id="progress-bar" value="1"></progress>
         <fieldset>
           <legend>Output highlighting</legend>
           <div>
-            <input type="radio" id="hl-none" name="highlightMode" value="noHighlight" checked />
+            <input type="radio" id="hl-none" name="highlightMode" value="NoHighlight" checked />
             <label for="hl-none">No highlighting</label>
           </div>
           <div>
-            <input type="radio" id="hl-last" name="highlightMode" value="differentToLastRun" />
+            <input type="radio" id="hl-last" name="highlightMode" value="DifferentToLastRun" />
             <label for="hl-last">Different to last run</label>
           </div>
           <div>
-            <input type="radio" id="hl-input" name="highlightMode" value="differentToInput" />
+            <input type="radio" id="hl-input" name="highlightMode" value="DifferentToInputAllChanged" />
             <label for="hl-input">Any rule applied</label>
           </div>
           <div>
-            <input type="radio" id="hl-specific" name="highlightMode" value="specificRule" />
+            <input type="radio" id="hl-specific" name="highlightMode" value="DifferentToInputSpecificRule" />
             <label for="hl-specific">Specific rule (-h) applied</label>
           </div>
         </fieldset>
         <fieldset>
           <legend>Input lexicon format</legend>
           <div>
-            <input type="radio" id="in-wordlist" name="inputFormat" value="wordlist" checked />
+            <input type="radio" id="in-wordlist" name="inputFormat" value="Raw" checked />
             <label for="in-wordlist">Wordlist + glosses</label>
           </div>
           <div>
-            <input type="radio" id="in-mdfstandard" name="inputFormat" value="mdfStandard" />
+            <input type="radio" id="in-mdfstandard" name="inputFormat" value="MDFStandard" />
             <label for="in-mdfstandard">MDF file (standard hierarchy)</label>
           </div>
           <div>
-            <input type="radio" id="in-mdfalternate" name="inputFormat" value="mdfAlternate" />
+            <input type="radio" id="in-mdfalternate" name="inputFormat" value="MDFAlternate" />
             <label for="in-mdfalternate">MDF file (alternate hierarchy)</label>
           </div>
         </fieldset>
         <fieldset>
           <legend>Output format</legend>
           <div>
-            <input type="radio" id="fmt-wordlist" name="outputFormat" value="rawout" checked />
+            <input type="radio" id="fmt-wordlist" name="outputFormat" value="WordsOnlyOutput" checked />
             <label for="fmt-wordlist">Wordlist + glosses</label>
           </div>
           <div>
-            <input type="radio" id="fmt-inout" name="outputFormat" value="inout" />
+            <input type="radio" id="fmt-inout" name="outputFormat" value="WordsWithProtoOutput" />
             <label for="fmt-inout">Input&rarr;output</label>
           </div>
           <div>
-            <input type="radio" id="fmt-inoutpreserve" name="outputFormat" value="inoutpreserve" />
+            <input type="radio" id="fmt-inoutpreserve" name="outputFormat" value="WordsWithProtoOutputPreserve" />
             <label for="fmt-inoutpreserve">Input&rarr;output + glosses</label>
           </div>
           <div>
-            <input type="radio" id="fmt-mdf" name="outputFormat" value="mdf" disabled />
+            <input type="radio" id="fmt-mdf" name="outputFormat" value="MDFOutput" disabled />
             <label for="fmt-mdf">MDF output</label>
           </div>
           <div>
-            <input type="radio" id="fmt-mdfetym" name="outputFormat" value="mdfetym" disabled />
+            <input type="radio" id="fmt-mdfetym" name="outputFormat" value="MDFOutputWithEtymons" disabled />
             <label for="fmt-mdfetym">MDF output with etymologies</label>
           </div>
         </fieldset>

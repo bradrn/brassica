@@ -1,33 +1,39 @@
 import Split from "split.js";
 
-import {hs, withBytesPtr, decodeStableCStringLen, encoder, decoder} from "./interop.js";
-
 /***********************
  * Haskell interop     *
  ***********************/
 
-function buildParadigm(paradigm, words, separateLines) {
-    const inputParadigm = encoder.encode(paradigm);
-    const inputWords = encoder.encode(words);
+const worker = new Worker(new URL("interop.js", import.meta.url));
 
-    const separateLinesC = separateLines ? 1 : 0;
+const outputDiv = document.getElementById("output");
+outputDiv.innerHTML = "<i>Initialising...</i>"
 
-    var output = "";
-    withBytesPtr(inputParadigm, (inputParadigmPtr, inputParadigmLen) => {
-        withBytesPtr(inputWords, (inputWordsPtr, inputWordsLen) => {
-            try {
-                const outputStableCStringLen = hs.parseAndBuildParadigm_hs(
-                    inputParadigmPtr, inputParadigmLen,
-                    inputWordsPtr, inputWordsLen,
-                    separateLinesC);
-                output = decodeStableCStringLen(outputStableCStringLen);
-            } catch (err) {
-                console.error(err);
-                output = err;
-            }
-        });
-    });
-    return output;
+worker.onmessage = (e) => {
+    const data = e.data;
+    if (data.method === "_init") {
+        outputDiv.innerHTML = "";
+    } else if (data.method === "Error") {
+        outputDiv.innerHTML = data.message;
+    } else if (data.method === "Paradigm") {
+        outputDiv.innerHTML = data.output;
+    } else {
+        console.error(data);
+    }
+};
+
+
+worker.postMessage({type: "init"});
+
+function buildParadigm(paradigm, words, separateLines, timeout) {
+    const req = {
+        method: "Paradigm",
+        pText: paradigm,
+        input: words,
+        separateLines: Boolean(separateLines),
+        reqTimeout: timeout
+    }
+    worker.postMessage({type: "dispatch", json: req})
 }
 
 /***********************
@@ -37,7 +43,8 @@ function buildParadigm(paradigm, words, separateLines) {
 Split(["#paradigm-div", "#roots-div", "#output-div"]);
 
 const form = document.getElementById("brassica-form");
-const outputDiv = document.getElementById("output");
+
+const timeout = 10000000;  // microseconds (10 s)
 
 form.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -47,9 +54,7 @@ form.addEventListener("submit", (event) => {
     const roots = data.get("roots");
     const separateLines = data.get("separateLines");
 
-    const output = buildParadigm(paradigm, roots, separateLines);
-    console.log(output);
-    outputDiv.innerHTML = output;
+    const output = buildParadigm(paradigm, roots, separateLines, timeout);
 });
 
 const blurb = document.getElementById("blurb");

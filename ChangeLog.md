@@ -13,7 +13,7 @@
 - New checkbox / command-line option to highlight unused rules in the rules editor
 - Syntax errors are now highlighted in the rules editor
 - In live mode, output box is greyed out rather than being interrupted with error messages
-- On desktop, results are now computed asynchronously (i.e. without causing the UI to freeze)
+- On desktop and web, results are now computed asynchronously (i.e. without causing the UI to freeze)
 
 ### Code
 
@@ -28,6 +28,12 @@
 - Changed `Brassica.SoundChange.Types.Rule` to admit multiple exceptions
 - New field for line number in `Brassica.SoundChange.Types.Rule`,
     `Brassica.SoundChange.Types.Filter`, `Brassica.SoundChanges.Types.Directive`
+- Web communication protocol now uses JSON as with desktop:
+  - `ToJSON` and `FromJSON` instances added for `Brassica.SoundChange.Tokenise.Component`
+  - `Enum` instances removed from types in `Brassica.SoundChange.Frontend.Internal` as now unnecessary
+  - JSON server implementation moved from CLI to `Brassica.SoundChange.Frontend.Internal`;
+      CLI `Server` and web `BrassicaInterop` modules are both now just a thin wrapper over this module
+
 
 ## 1.0.0
 

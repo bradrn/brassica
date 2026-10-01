@@ -47,8 +47,9 @@ public:
         InputLexiconFormat inFmt,
         HighlightMode hlMode,
         OutputMode outMode,
-        QString sep);
-    void parseAndBuildParadigm(QString paradigm, QString roots, bool separateLines);
+        QString sep,
+        int timeout /* microseconds */);
+    void parseAndBuildParadigm(QString paradigm, QString roots, bool separateLines, int timeout);
 
 private:
     QProcess *proc;

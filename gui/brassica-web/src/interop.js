@@ -1,15 +1,13 @@
 import { WASI } from "@bjorn3/browser_wasi_shim";
 
-const wasi = new WASI([], [], []);
-const wasm = await WebAssembly.instantiateStreaming(
-    fetch("brassica-interop-wasm.wasm"),
-    {"wasi_snapshot_preview1": wasi.wasiImport}
-);
-wasi.inst = wasm.instance;
-export const hs = wasm.instance.exports;
+let wasmResolve;
+let wasmReady = new Promise((r) => { wasmResolve = r; });
+
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
 
 // adapted from https://github.com/fourmolu/fourmolu/blob/main/web/worker/index.js
-export function withBytesPtr(bytes, callback) {
+function withBytesPtr(hs, bytes, callback) {
     const len = bytes.byteLength;
     const ptr = hs.malloc(len);
     try {
@@ -20,7 +18,7 @@ export function withBytesPtr(bytes, callback) {
     }
 };
 
-export function decodeStableCStringLen(stableCStringLen) {
+function decodeStableCStringLen(hs, stableCStringLen) {
     try {
         const cstringptr = hs.getString(stableCStringLen);
         const cstringlen = hs.getStringLen(stableCStringLen);
@@ -32,25 +30,29 @@ export function decodeStableCStringLen(stableCStringLen) {
     return output;
 };
 
-export function decodeStableCStringLen_(stableCStringLen) {
-    try {
-        const cstringptr = hs.getString_(stableCStringLen);
-        const cstringlen = hs.getStringLen_(stableCStringLen);
-        const outputBytes = new Uint8Array(hs.memory.buffer, cstringptr, cstringlen);
-        var output = decoder.decode(outputBytes);
-
-        const highlightslen = hs.getHighlightsLen(stableCStringLen);
-        var highlights = [];
-        for (let i = 0; i < highlightslen; ++i) {
-            highlights.push(hs.getHighlight(i, stableCStringLen));
-        }
-
-        var retval = {output: output, highlights: highlights};
-    } finally {
-        hs.freeStableCStringLen_(stableCStringLen);
+// based on https://www.sitepen.com/blog/using-webassembly-with-web-workers
+onmessage = function(e) {
+    const data = e.data;
+    if (data.type === "init") {
+        const wasi = new WASI([], [], []);
+        WebAssembly.instantiateStreaming(
+            fetch("brassica-interop-wasm.wasm"),
+            {"wasi_snapshot_preview1": wasi.wasiImport}
+        ).then((wasm) => {
+            wasi.inst = wasm.instance;
+            const hs = wasm.instance.exports;
+            wasmResolve(hs);
+            postMessage({method: "_init"});
+        });
+    } else if (data.type === "dispatch") {
+        wasmReady.then((hs) => {
+            const req = encoder.encode(JSON.stringify(data.json));
+            let resp;
+            withBytesPtr(hs, req, (reqPtr, reqLen) => {
+                const respHs = hs.dispatch_hs(reqPtr, reqLen);
+                resp = JSON.parse(decodeStableCStringLen(hs, respHs));
+            });
+            postMessage(resp);
+        });
     }
-    return retval;
 };
-
-export const encoder = new TextEncoder();
-export const decoder = new TextDecoder();

@@ -36,7 +36,8 @@ void BrassicaProcess::parseTokeniseAndApplyRules(
     InputLexiconFormat inFmt,
     HighlightMode hlMode,
     OutputMode outMode,
-    QString sep)
+    QString sep,
+    int timeout)
 {
     QJsonObject req = QJsonObject();
     req.insert("method", "Rules");
@@ -48,17 +49,19 @@ void BrassicaProcess::parseTokeniseAndApplyRules(
     req.insert("outMode", toJson(outMode));
     req.insert("prev", prev);
     req.insert("sep", sep);
+    req.insert("reqTimeout", timeout);
 
     request(QJsonDocument(req));
 }
 
-void BrassicaProcess::parseAndBuildParadigm(QString paradigm, QString roots, bool separateLines)
+void BrassicaProcess::parseAndBuildParadigm(QString paradigm, QString roots, bool separateLines, int timeout)
 {
     QJsonObject req = QJsonObject();
     req.insert("method", "Paradigm");
     req.insert("pText", paradigm);
     req.insert("input", roots);
     req.insert("separateLines", separateLines);
+    req.insert("reqTimeout", timeout);
 
     request(QJsonDocument(req));
 }

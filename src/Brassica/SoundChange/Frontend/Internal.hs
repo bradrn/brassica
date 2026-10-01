@@ -1,10 +1,15 @@
 {-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes      #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TupleSections   #-}
+{-# OPTIONS_GHC -Wno-incomplete-record-updates #-}
 
 -- |
 -- Module      : Brassica.SoundChange.Frontend.Internal
@@ -24,11 +29,17 @@
 module Brassica.SoundChange.Frontend.Internal where
 
 import Control.Monad ((<=<))
+import Control.Parallel.Strategies (withStrategy, parTraversable, rseq)
+import Data.Aeson (FromJSON(..), ToJSON(..), Value (..))
+import Data.Aeson.TH (deriveJSON, defaultOptions, defaultTaggedObject, constructorTagModifier, sumEncoding, tagFieldName)
+import Data.Aeson.Types (prependFailure, typeMismatch)
 import Data.Containers.ListUtils (nubOrd)
+import Data.Foldable (toList)
 import Data.List (transpose, intersperse, intersectBy)
 import qualified Data.List.NonEmpty as NE
-import Data.Maybe (fromMaybe, mapMaybe)
+import Data.Maybe (fromMaybe, mapMaybe, maybeToList)
 import Data.Void (Void)
+import Data.Text (unpack)
 import GHC.Generics (Generic)
 import Myers.Diff (getDiff, PolyDiff(..))
 
@@ -38,10 +49,12 @@ import Text.Megaparsec.Error (ParseErrorBundle(..))
 
 import Brassica.SFM.MDF
 import Brassica.SFM.SFM
+import Brassica.SoundChange (ExpandError(..), parseSoundChanges, errorBundlePretty, expandSoundChanges)
 import Brassica.SoundChange.Apply hiding (HighlightMode)
 import qualified Brassica.SoundChange.Apply as A
 import Brassica.SoundChange.Tokenise
 import Brassica.SoundChange.Types
+import Brassica.Paradigm (parseParadigm, formatNested, ResultsTree (..), applyParadigm)
 
 -- | Rule application mode of the SCA.
 data ApplicationMode
@@ -58,15 +71,6 @@ data ReportMode
     | ReportNotApplied
     -- ^ Report the rules which were not applied
     deriving (Show, Eq)
-instance Enum ReportMode where
-    -- used for conversion to and from C, so want control over values
-    -- special-case for this type: reserve 0 for no reporting
-    fromEnum ReportApplied = 1
-    fromEnum ReportNotApplied = 2
-
-    toEnum 1 = ReportApplied
-    toEnum 2 = ReportNotApplied
-    toEnum _ = undefined
 
 -- | Get the 'OutputMode' if one is set, otherwise default to
 -- 'WordsOnlyOutput'.
@@ -81,18 +85,6 @@ data HighlightMode
     | DifferentToInput A.HighlightMode
     -- ^ NB. now labeled ‘any rule applied’ in GUI
     deriving (Show, Eq)
-instance Enum HighlightMode where
-    -- used for conversion to and from C, so want control over values
-    fromEnum NoHighlight = 0
-    fromEnum DifferentToLastRun = 1
-    fromEnum (DifferentToInput AllChanged) = 2
-    fromEnum (DifferentToInput SpecificRule) = 3
-
-    toEnum 0 = NoHighlight
-    toEnum 1 = DifferentToLastRun
-    toEnum 2 = DifferentToInput AllChanged
-    toEnum 3 = DifferentToInput SpecificRule
-    toEnum _ = undefined
 
 -- | Mode for reporting output words (and sometimes intermediate and
 -- input words too)
@@ -103,20 +95,6 @@ data OutputMode
     | WordsWithProtoOutput
     | WordsWithProtoOutputPreserve
     deriving (Show, Eq)
-instance Enum OutputMode where
-    -- used for conversion to and from C, so want control over values
-    fromEnum MDFOutput = 0
-    fromEnum WordsOnlyOutput = 1
-    fromEnum MDFOutputWithEtymons = 2
-    fromEnum WordsWithProtoOutput = 3
-    fromEnum WordsWithProtoOutputPreserve = 4
-
-    toEnum 0 = MDFOutput
-    toEnum 1 = WordsOnlyOutput
-    toEnum 2 = MDFOutputWithEtymons
-    toEnum 3 = WordsWithProtoOutput
-    toEnum 4 = WordsWithProtoOutputPreserve
-    toEnum _ = undefined
 
 -- | Output of a single application of rules to a wordlist: either a
 -- list of possibly highlighted words, an applied rules table, or a
@@ -135,16 +113,6 @@ data MDFHierarchy = Standard | Alternate
 -- | Kind of input: either a raw wordlist, or an MDF file.
 data InputLexiconFormat = Raw | MDF MDFHierarchy
     deriving (Show, Eq)
-instance Enum InputLexiconFormat where
-    -- used for conversion to and from C, so want control over values
-    fromEnum Raw = 0
-    fromEnum (MDF Standard) = 1
-    fromEnum (MDF Alternate) = 2
-
-    toEnum 0 = Raw
-    toEnum 1 = MDF Standard
-    toEnum 2 = MDF Alternate
-    toEnum _ = undefined
 
 -- | Either a list of 'Component's for a Brassica wordlist file, or a
 -- list of 'SFM' fields for an MDF file
@@ -281,3 +249,139 @@ getErrorLocs ParseErrorBundle { bundleErrors, bundlePosState } =
             l = unPos $ sourceLine $ pstateSourcePos pst'
         in l : go es pst'
     go [] _ = []
+
+x :: Int
+x = length []
+
+
+-------- JSON server
+
+
+data Request
+    = ReqRules
+        { changes :: String
+        , input :: String
+        , report :: Maybe ReportMode
+        , inFmt :: InputLexiconFormat
+        , hlMode :: HighlightMode
+        , outMode :: OutputMode
+        , prev :: Maybe [Component PWord]
+        , sep :: String
+        , reqTimeout :: Int   -- ^ microseconds
+        }
+    | ReqParadigm
+        { pText :: String
+        , input :: String
+        , separateLines :: Bool
+        , reqTimeout :: Int  -- ^ microseconds
+        }
+    deriving (Show)
+
+data Response
+    = RespRules
+        { prev :: Maybe [Component PWord]
+        , output :: String
+        }
+    | RespParadigm
+        { output :: String
+        }
+    | RespNotApplied
+        { highlights :: [Int]
+        }
+    | RespError
+        { highlights :: [Int]
+        , message :: String
+        }
+    deriving (Show, Generic, NFData)
+
+instance ToJSON InputLexiconFormat where
+    toJSON Raw = "Raw"
+    toJSON (MDF Standard) = "MDFStandard"
+    toJSON (MDF Alternate) = "MDFAlternate"
+
+instance FromJSON InputLexiconFormat where
+    parseJSON (String "Raw") = pure Raw
+    parseJSON (String "MDFStandard") = pure $ MDF Standard
+    parseJSON (String "MDFAlternate") = pure $ MDF Alternate
+    parseJSON (String s) = fail $ "Unknown InputLexiconFormat: " ++ unpack s
+    parseJSON invalid = prependFailure "parsing InputLexiconFormat failed: " $
+        typeMismatch "String" invalid
+
+instance FromJSON HighlightMode where
+    parseJSON (String "NoHighlight") = pure NoHighlight
+    parseJSON (String "DifferentToLastRun") = pure DifferentToLastRun
+    parseJSON (String "DifferentToInputAllChanged") = pure $ DifferentToInput AllChanged
+    parseJSON (String "DifferentToInputSpecificRule") = pure $ DifferentToInput SpecificRule
+    parseJSON invalid = prependFailure "parsing HighlightMode failed: " $
+        typeMismatch "String" invalid
+
+instance ToJSON HighlightMode where
+    toJSON NoHighlight = "NoHighlight"
+    toJSON DifferentToLastRun = "DifferentToLastRun"
+    toJSON (DifferentToInput AllChanged) = "DifferentToInputAllChanged"
+    toJSON (DifferentToInput SpecificRule) = "DifferentToInputSpecificRule"
+
+$(deriveJSON defaultOptions ''OutputMode)
+$(deriveJSON defaultOptions ''ReportMode)
+
+$(deriveJSON defaultOptions{constructorTagModifier=drop 3, sumEncoding=defaultTaggedObject{tagFieldName="method"}} ''Request)
+$(deriveJSON defaultOptions{constructorTagModifier=drop 4, sumEncoding=defaultTaggedObject{tagFieldName="method"}} ''Response)
+
+
+dispatch :: Request -> Response
+dispatch r = case r of
+    ReqRules{} -> parseTokeniseAndApplyRulesWrapper r
+    ReqParadigm{} -> parseAndBuildParadigmWrapper r
+  where
+    parseTokeniseAndApplyRulesWrapper
+        :: Request
+        -> Response
+    parseTokeniseAndApplyRulesWrapper ReqRules{..} =
+        let mode = maybe (ApplyRules hlMode outMode sep) ReportRules report
+        in case parseSoundChanges changes of
+            Left e -> RespError (getErrorLocs e) $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
+            Right statements ->
+                case expandSoundChanges statements of
+                    Left (loc, err) -> RespError (maybeToList loc) $ ("<pre>"++) $ (++"</pre>") $ case err of
+                        (NotFound s) -> "Could not find category: " ++ s
+                        InvalidBaseValue -> "Invalid value used as base grapheme in feature definition"
+                        InvalidDerivedValue -> "Invalid value used as derived grapheme in autosegment"
+                        MismatchedLengths -> "Mismatched lengths in feature definition"
+                    Right statements' ->
+                        let result' = parseTokeniseAndApplyRules parFmap statements' input inFmt mode prev
+                        in case result' of
+                            ParseError e -> RespError [] $
+                                "<pre>" ++ errorBundlePretty e ++ "</pre>"
+                            HighlightedWords result -> RespRules
+                                (Just $ (fmap.fmap) fst result)
+                                (escape $ detokeniseWords' highlightWord result)
+                            AppliedRulesTable items -> RespRules Nothing $
+                                concatMap (surroundTable . reportAsHtmlRows plaintext') items
+                            NotAppliedRulesList items -> RespNotApplied $ loc <$> items
+      where
+        highlightWord (s, False) = concatWithBoundary s
+        highlightWord (s, True) = "<b>" ++ concatWithBoundary s ++ "</b>"
+
+        surroundTable :: String -> String
+        surroundTable s = "<table>" ++ s ++ "</table>"
+    parseTokeniseAndApplyRulesWrapper _ = error "parseTokeniseAndApplyRulesWrapper: unexpected request!"
+
+    parseAndBuildParadigmWrapper :: Request -> Response
+    parseAndBuildParadigmWrapper ReqParadigm{..} =
+        case parseParadigm pText of
+            Left e -> RespError [] $ "<pre>" ++ errorBundlePretty e ++ "</pre>"
+            Right p -> RespParadigm $ escape $
+                (if separateLines
+                    then unlines . toList
+                    else formatNested id)
+                $ Node $ applyParadigm p <$> lines input
+    parseAndBuildParadigmWrapper _ = error "parseAndBuildParadigmWrapper: unexpected request!"
+
+    escape :: String -> String
+    escape = concatMap $ \case
+        '\n' -> "<br/>"
+        -- '\t' -> "&#9;"  -- this doesn't seem to do anything - keeping it here in case I eventually figure out how to do tabs in Qt
+        c    -> pure c
+
+parFmap :: (a -> b) -> [Component a] -> [Component b]
+parFmap f = withStrategy (parTraversable rseq) . fmap (fmap f)

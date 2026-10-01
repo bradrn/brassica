@@ -15,17 +15,10 @@ executable brassica-interop-wasm
   c-sources:           wasm-init.c
   ghc-options:         -Wall -no-hs-main -optl-mexec-model=reactor -stubdir stub
                        "-optl-Wl\
-                       \,--export=parseTokeniseAndApplyRules_hs\
-                       \,--export=parseAndBuildParadigm_hs\
-                       \,--export=initResults\
+                       \,--export=dispatch_hs\
                        \,--export=getString\
                        \,--export=getStringLen\
                        \,--export=freeStableCStringLen\
-                       \,--export=getString_\
-                       \,--export=getStringLen_\
-                       \,--export=getHighlight\
-                       \,--export=getHighlightsLen\
-                       \,--export=freeStableCStringLen_\
                        \,--export=malloc\
                        \,--export=free\
                        \"
@@ -33,6 +26,7 @@ executable brassica-interop-wasm
   main-is:             BrassicaInterop.hs
   build-depends:       base >= 4.7 && < 5
                      , brassica
+                     , aeson
                      , bytestring
                      , deepseq
                      , utf8-string >= 1.0 && < 1.1
