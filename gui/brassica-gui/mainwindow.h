@@ -13,6 +13,7 @@
 #include <QPlainTextEdit>
 #include <QProcess>
 #include <QPushButton>
+#include <QProgressBar>
 #include <QRadioButton>
 #include <QSplitter>
 #include <QVBoxLayout>
@@ -29,6 +30,7 @@ private:
     QPlainTextEdit *wordsEdit;
     QScrollBar *wordsEditVScroll;
     QPushButton *applyBtn;
+    QProgressBar *applyProgress;
     QRadioButton *nohighlightBtn;
     QRadioButton *diffhighlightBtn;
     QRadioButton *inputhighlightBtn;
@@ -67,6 +69,9 @@ private:
 
     bool checkRulesDirty();
     bool checkLexiconDirty();
+
+    bool requeueLive = true;
+    void runQueued();
 
     QString currentRulesFile;
     QString currentLexiconFile;

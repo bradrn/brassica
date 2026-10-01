@@ -41,7 +41,7 @@ public:
         WordsWithProtoOutputPreserve
     };
 
-    void parseTokeniseAndApplyRules(QString rules,
+    bool parseTokeniseAndApplyRules(QString rules,
         QString words,
         ReportMode reportRules,
         InputLexiconFormat inFmt,
@@ -49,14 +49,16 @@ public:
         OutputMode outMode,
         QString sep,
         int timeout /* microseconds */);
-    void parseAndBuildParadigm(QString paradigm, QString roots, bool separateLines, int timeout);
+    bool parseAndBuildParadigm(QString paradigm, QString roots, bool separateLines, int timeout);
 
 private:
     QProcess *proc;
     bool valid;
     QProcess::ProcessError _errorState;  // if any
 
-    void request(QJsonDocument req);
+    bool reqInProgress = false;
+
+    bool request(QJsonDocument req);
 
     QString toJson(InputLexiconFormat val);
     QJsonValue toJson(ReportMode val);

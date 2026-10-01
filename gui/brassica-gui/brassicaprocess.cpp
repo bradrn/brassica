@@ -29,7 +29,7 @@ QProcess::ProcessError BrassicaProcess::errorState()
     return _errorState;
 }
 
-void BrassicaProcess::parseTokeniseAndApplyRules(
+bool BrassicaProcess::parseTokeniseAndApplyRules(
     QString rules,
     QString words,
     ReportMode reportRules,
@@ -51,10 +51,10 @@ void BrassicaProcess::parseTokeniseAndApplyRules(
     req.insert("sep", sep);
     req.insert("reqTimeout", timeout);
 
-    request(QJsonDocument(req));
+    return request(QJsonDocument(req));
 }
 
-void BrassicaProcess::parseAndBuildParadigm(QString paradigm, QString roots, bool separateLines, int timeout)
+bool BrassicaProcess::parseAndBuildParadigm(QString paradigm, QString roots, bool separateLines, int timeout)
 {
     QJsonObject req = QJsonObject();
     req.insert("method", "Paradigm");
@@ -63,12 +63,15 @@ void BrassicaProcess::parseAndBuildParadigm(QString paradigm, QString roots, boo
     req.insert("separateLines", separateLines);
     req.insert("reqTimeout", timeout);
 
-    request(QJsonDocument(req));
+    return request(QJsonDocument(req));
 }
 
-void BrassicaProcess::request(QJsonDocument req)
+bool BrassicaProcess::request(QJsonDocument req)
 {
+    if (reqInProgress) return false;
+    reqInProgress = true;
     proc->write(req.toJson(QJsonDocument::Compact));
+    return true;
 }
 
 void BrassicaProcess::procReadyRead()
@@ -78,6 +81,7 @@ void BrassicaProcess::procReadyRead()
         currentResponse.chop(1);
         QJsonObject obj = QJsonDocument::fromJson(currentResponse).object();
         currentResponse = QByteArray();
+        reqInProgress = false;
 
         QString method = obj.value("method").toString();
         if (method == "Error") {

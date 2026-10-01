@@ -134,6 +134,9 @@ void MainWindow::setupWidgets(QWidget *central)
     reportRulesBtn = new QPushButton("Report rules applied");
     midLayout->addWidget(reportRulesBtn);
 
+    applyProgress = new QProgressBar();
+    midLayout->addWidget(applyProgress);
+
     QGroupBox *highlightBox = new QGroupBox("Output highlighting");
     QVBoxLayout *highlightLayout = new QVBoxLayout(highlightBox);
     midLayout->addWidget(highlightBox);
@@ -412,7 +415,8 @@ void MainWindow::applySoundChanges(bool live, BrassicaProcess::ReportMode report
     else if (inoutBtn->isChecked()) outMode = BrassicaProcess::WordsWithProtoOutput;
     else if (inoutBtnPreserve->isChecked()) outMode = BrassicaProcess::WordsWithProtoOutputPreserve;
 
-    proc->parseTokeniseAndApplyRules(
+    applyProgress->setRange(0,0);
+    bool posted = proc->parseTokeniseAndApplyRules(
         rules,
         words,
         reportRules,
@@ -422,6 +426,7 @@ void MainWindow::applySoundChanges(bool live, BrassicaProcess::ReportMode report
         multiResultSep->text(),
         // Timeout of 3 s
         3000000);
+    if (live && !posted) requeueLive = true;
 }
 
 
@@ -441,10 +446,13 @@ void MainWindow::rulesResult(QString output)
     blockLiveUpdate = true;
     highlightUnusedRules(reportRulesNotApplied->isChecked());
     blockLiveUpdate = false;
+
+    runQueued();
 }
 
 void MainWindow::errorResult(QString output, QList<int> errors)
 {
+    applyProgress->setRange(0,100);
     if (m_live) {
         outputEdit->setEnabled(false);
     } else {
@@ -458,6 +466,16 @@ void MainWindow::errorResult(QString output, QList<int> errors)
         repopulateExtraSelections();
     }
     blockLiveUpdate = false;
+
+    runQueued();
+}
+
+void MainWindow::runQueued()
+{
+    if (viewLive->isChecked() && requeueLive) {
+        requeueLive = false;
+        applySoundChanges(true, BrassicaProcess::NoReport);
+    }
 }
 
 void MainWindow::setHighlights(QList<int> highlights) {

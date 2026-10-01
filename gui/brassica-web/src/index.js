@@ -24,6 +24,7 @@ document.getElementById("results").innerHTML = "<i>Initialising...</i>"
 
 worker.onmessage = (e) => {
     const data = e.data;
+    endApply();
     if (data.method === "_init") {
         document.getElementById("results").innerHTML = "";
     } else if (data.method === "Error") {
@@ -36,7 +37,6 @@ worker.onmessage = (e) => {
     } else {
         console.error(data);
     }
-    endApply();
 };
 
 
@@ -235,6 +235,7 @@ const fmtMdfEtymRadio = document.getElementById("fmt-mdfetym");
 
 var wasLive = false;
 var inprogress = false;
+var requeueLive = false;
 
 const timeout = 10000000;  // microseconds (10 s)
 
@@ -253,8 +254,12 @@ function endApply() {
 }
 
 function updateForm(reportRules, needsLive) {
-    if (needsLive && !viewLive.checked && !inprogress)
+    if (needsLive && !viewLive.checked)
         return;
+    if (needsLive && inprogress) {
+        requeueLive = true;
+        return;
+    }
 
     wasLive = needsLive;
 
@@ -283,6 +288,8 @@ function rulesResult(output) {
         const inputFormat = data.get("inputFormat");
         applyChanges(rules, words, sep, 'ReportNotApplied', inputFormat, 'NoHighlight', 'WordsOnlyOutput', timeout);
     }
+
+    runQueued();
 }
 
 function errorResult(message, newErrors) {
@@ -295,6 +302,15 @@ function errorResult(message, newErrors) {
 
     errors = newErrors;
     forceLinterUpdate();
+
+    runQueued();
+}
+
+function runQueued() {
+    if (viewLive.checked && requeueLive) {
+        requeueLive = false;
+        updateForm(null, true);
+    }
 }
 
 form.addEventListener("submit", (event) => {
