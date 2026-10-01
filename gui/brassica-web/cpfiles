@@ -2,5 +2,5 @@
 
 cp static/* dist/
 cp ../brassica-interop-wasm/dist/* dist/
-mkdir dist/examples
+mkdir -p dist/examples
 cp -r ../../examples/*.bsc ../../examples/*.lex dist/examples
