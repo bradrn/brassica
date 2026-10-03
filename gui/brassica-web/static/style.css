@@ -20,8 +20,17 @@
     src: url(/fonts/SourceSans3-Bold.otf.woff2) format('woff2');
 }
 
+@font-face {
+    font-family: 'Source Code Pro';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url(/fonts/SourceCodePro-Regular.otf.woff2) format('woff2');
+}
+
 html {
     font-family: "Source Sans", sans-serif;
+    font-family: "Source Code Pro", monospace;
 }
 body {
     margin: 0px;
