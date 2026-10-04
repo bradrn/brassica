@@ -539,8 +539,8 @@ Each wildcard `^l` in the replacement
   followed by producing the graphemes which result from `l`.
   
 A **Kleene star** lexeme takes the form `l*`, where `l` is again any lexeme.
-This matches zero or more repetitions of `l`.
-As many repetititions as possible are matched.
+This matches zero or more repetitions of `l`,
+  returning multiple results unless further lexemes prevent some from matching.
 This lexeme never fails to match.
 
 A **list of matched Kleene stars** is maintained by the target.
@@ -563,6 +563,23 @@ Note that the wildcard and Kleene star are opposites in important ways:
 ; eta → etá
 ; etap → etáp
 ; etaymbs → etáymbs
+```
+
+```brassica
+[e o] / [i u] / _ [C V]* i
+
+; meka → meka (no change)
+; mei → mii
+; meki → miki
+; moski → muski
+; moaki → muaki
+```
+
+```brassica
+-rtl -Stress / +Stress / _ C C* -Stress C C* +Stress
+
+; anstarchatapé → ánstarchátapé
+; anstarchatápe → anstárchatápe
 ```
 
 ```brassica

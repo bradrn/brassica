@@ -325,11 +325,11 @@ matchKleene
     -> [(MatchOutput, MultiZipper t Grapheme)]
 matchKleene origOut = go 0 origOut
   where
-    go !n out prev l mz = case match out prev l mz of
-        [] -> [
-            ( insertAtKleene (length $ matchedKleenes origOut) n out
-            , mz
-            ) ]
+    go !n out prev l mz =
+        ( insertAtKleene (length $ matchedKleenes origOut) n out
+        , mz
+        ) : case match out prev l mz of
+        [] -> []
         r -> r >>= \case
             (out', mz')
                 | curPos mz == curPos mz' ->
