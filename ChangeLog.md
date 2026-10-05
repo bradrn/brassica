@@ -8,10 +8,12 @@
   - The first element of categories is now treated consistently
       accross both category blocks and inline categories.
   - Combining optional elements with the Kleene star no longer causes an infinite loop
+  - Highlighting ‘any rule applied’ with ‘input→output’ format now works correctly
 - Kleene star can now produce multiple results, no longer restricted to greedy matching (resolving https://github.com/bradrn/brassica/issues/7)
 - New option to highlight only words affected by specific rules, selected with new flag `-h`
 - Allow specifying multiple exceptions in a single rule
 - New checkbox / command-line option to highlight unused rules in the rules editor
+- ‘Input→output’ format and ‘Report rules applied’ both now show unchanged words explicitly
 - Syntax errors are now highlighted in the rules editor
 - In live mode, output box is greyed out rather than being interrupted with error messages
 - On desktop and web, results are now computed asynchronously (i.e. without causing the UI to freeze)

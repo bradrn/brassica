@@ -825,6 +825,10 @@ data LogItem r
 -- action (ActionApplied r _ _) = Just r
 -- action (ReportWord _) = Nothing
 
+noApplication :: LogItem r -> Bool
+noApplication (ActionNotApplied _ _) = True
+noApplication _ = False
+
 logOutput :: LogItem r -> Maybe PWord
 logOutput (ActionApplied _ o) = o
 logOutput (ActionNotApplied _ o) = Just o
@@ -857,8 +861,13 @@ data Log r = Log
 reportAsHtmlRows
     :: (r -> String)  -- ^ Specifies how to pretty-print actions as text
     -> Log r -> String
-reportAsHtmlRows render item = go (concatWithBoundary $ inputWord item) (derivations item)
+reportAsHtmlRows render item
+    | all noApplication (derivations item) =
+        "<tr><td>" ++ input ++ "</td><td></td><td></td><td>(no change)</td>"
+    | otherwise = go input (derivations item)
   where
+    input = concatWithBoundary $ inputWord item
+
     go _ [] = ""
     go cell1 (ActionApplied action output : ds) =
         ("<tr><td>" ++ cell1 ++ "</td><td>&rarr;</td><td>"
@@ -892,9 +901,12 @@ reportAsHtmlRows render item = go (concatWithBoundary $ inputWord item) (derivat
 reportAsText
     :: (r -> String)  -- ^ Specifies how to pretty-print actions as text
     -> Log r -> String
-reportAsText render item = unlines $
-    concatWithBoundary (inputWord item) : fmap toLine (alignWithPadding $ derivations item)
+reportAsText render item
+    | all noApplication (derivations item) = input ++ " (no change)"
+    | otherwise = unlines $ input : fmap toLine (alignWithPadding $ derivations item)
   where
+    input = concatWithBoundary (inputWord item)
+
     alignWithPadding ds =
         let (rawOutputs, actions) = unzip $ mapMaybe toPrintable ds
             outputs = maybe "(deleted)" concatWithBoundary <$> rawOutputs
@@ -963,9 +975,9 @@ getReports :: Log r -> [PWord]
 getReports l = inputWord l : go Nothing (derivations l)
   where
     go w [] = maybeToList w
-    go _ (ActionApplied _ (Just w') : ls) = go (Just w') ls
-    go w (ReportWord w':ls) = w' : go w ls
-    go w (_:ls) = go w ls
+    go _ (ActionApplied    _ w' : ls) = go w' ls
+    go _ (ActionNotApplied _ w' : ls) = go (Just w') ls
+    go _ (ReportWord w':ls) = w' : go (Just w') ls
 
 data HighlightMode = AllChanged | SpecificRule
     deriving (Show, Eq)
@@ -994,19 +1006,17 @@ getChangedOutputs m l = case derivations l of
         ActionNotApplied _ _ -> False
         ReportWord _ -> False
 
--- | A combination of 'getOutput' and 'getChangedOutputs': returns all
+-- | A combination of 'getReports' and 'getChangedOutputs': returns all
 -- intermediate results, as well as whether each has undergone any
 -- sound changes.
 getChangedReports :: HighlightMode -> Log (Statement c d) -> [(PWord, Bool)]
-getChangedReports m l = (inputWord l, False) : case derivations l of
-    [] -> []
-    ls -> go False ls
+getChangedReports m l = (inputWord l, False) : go False Nothing (derivations l)
   where
-    go _ [] = []
-    go hasChanged (ActionApplied action _:ls) =
+    go hasChanged w [] = maybeToList $ w <&> (,hasChanged)
+    go hasChanged _ (ActionApplied action w':ls) =
         let hasChanged' = case action of
                 RuleS rule -> hasChanged || needsHighlight m rule
                 _ -> hasChanged
-        in go hasChanged' ls
-    go hasChanged (ActionNotApplied _ _:ls) = go hasChanged ls
-    go hasChanged (ReportWord w':ls) = (w', hasChanged) : go hasChanged ls
+        in go hasChanged' w' ls
+    go hasChanged _ (ActionNotApplied _ w':ls) = go hasChanged (Just w') ls
+    go hasChanged _ (ReportWord w':ls) = (w', hasChanged) : go hasChanged (Just w') ls
