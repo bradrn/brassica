@@ -250,9 +250,6 @@ getErrorLocs ParseErrorBundle { bundleErrors, bundlePosState } =
         in l : go es pst'
     go [] _ = []
 
-x :: Int
-x = length []
-
 
 -------- JSON server
 
