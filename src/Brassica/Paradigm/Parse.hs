@@ -21,6 +21,9 @@ space1' = void $ takeWhile1P (Just "whitespace") ((&&) <$> isSpace <*> (/='\n'))
 sc :: Parser ()
 sc = L.space space1' (L.skipLineComment "*") empty
 
+eolf :: Parser ()
+eolf = void eol <|> eof
+
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
 
@@ -67,16 +70,16 @@ feature = do
         Nothing -> do
             n <- optional $ try $ name <* symbol "="
             gs <- some grammeme
-            _ <- optional eol
+            eolf
             return $ Feature c (FeatureName <$> n) gs
         Just globalSlot' -> do
             n <- optional $ try $ name <* symbol "="
             gs <- some $ oneOrMany $ process <|> (globalSlot' <$> morphValue)
-            _ <- optional eol
+            eolf
             return $ Feature c (FeatureName <$> n) (Concrete <$> gs)
 
 mapping :: Parser ([AbstractGrammeme], Affix)
-mapping = (,) <$> manyTill (AbstractGrammeme <$> name) (symbol ">") <*> affix <* optional eol
+mapping = (,) <$> manyTill (AbstractGrammeme <$> name) (symbol ">") <*> some process <* eolf
 
 statement :: Parser Statement
 statement = sc *>
