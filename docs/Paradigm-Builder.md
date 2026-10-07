@@ -22,7 +22,7 @@ When the **Build** button is pressed,
   which can then be copied and pasted into another window or application.
 A menu at the top of the window provides options to open and save the paradigm and the lexicon.
 
-## Paradigm definitions
+## Basic Paradigm definitions
 
 A basic paradigm definition is fairly simple.
 An example is as follows:
@@ -43,12 +43,10 @@ Thus each affix can be:
 
 - A **prefix** in slot *n*, specified as `-n.prefix`;
 - A **suffix** in slot *n*, specified as `n.suffix`;
+- A **combination** of other affixes, specified as `(affix1 affix2 ...)`; or
 - A **zero affix**, specified as `()`.
 
-Two further options are available:
-
-- A **combination** of other affixes, specified as `(affix1 affix2 ...)`; or
-- An **abstract feature**, specified simply as `featurename` (more on this below).
+(There are some more advanced options which will be described later.)
 
 The output will then iterate through all valid combinations of these affixes,
   formatted with spaces and newlines between them.
@@ -132,8 +130,9 @@ when (ANTIP not 1.el) -2 ABS = zhaa woo yaa
 -1 ERG = zh w y
 ```
 
+# Abstract features
 
-Earlier, brief reference was made to **abstract features**.
+Besides concrete affixes, a grammatical feature can also take on an **abstract feature** as its value.
 These are similar to affixes, but are not associated with any one slot.
 Instead, one or more abstract features can be **mapped** to an affix,
   by writing on a separate line:
