@@ -371,7 +371,7 @@ dispatch r = case r of
                 (if separateLines
                     then unlines . toList
                     else formatNested id)
-                $ Node $ applyParadigm p <$> lines input
+                $ Node $ applyParadigm p . words <$> lines input
     parseAndBuildParadigmWrapper _ = error "parseAndBuildParadigmWrapper: unexpected request!"
 
     escape :: String -> String

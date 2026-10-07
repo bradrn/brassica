@@ -5,12 +5,11 @@ module Brassica.Paradigm.Types where
 
 import Data.String (IsString)
 
--- | Represents a single morphophonological process: currently, either
--- prefixation or suffixation of a 'String'. The 'Int' gives the
--- distance of the affix from the root.
+-- | Represents a single morphophonological process.
 data Process
-    = Prefix Int String
-    | Suffix Int String
+    = Prefix Int String  -- ^ Prefixation at some distance from the root
+    | Suffix Int String  -- ^ Suffixation at some distance from the root
+    | Stem Int           -- ^ Select stem by number
     deriving (Show, Eq)
 
 -- | A single affix (using the term in a wide sense) can be thought of

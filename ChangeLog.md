@@ -9,9 +9,11 @@
       accross both category blocks and inline categories.
   - Combining optional elements with the Kleene star no longer causes an infinite loop
   - Highlighting ‘any rule applied’ with ‘input→output’ format now works correctly
+- Improvements to paradigm builder:
+  - Stem alternations are now supported with new `~n` syntax
 - Kleene star can now produce multiple results, no longer restricted to greedy matching (resolving https://github.com/bradrn/brassica/issues/7)
 - New option to highlight only words affected by specific rules, selected with new flag `-h`
-- Allow specifying multiple exceptions in a single rule
+  - Allow specifying multiple exceptions in a single rule
 - New checkbox / command-line option to highlight unused rules in the rules editor
 - ‘Input→output’ format and ‘Report rules applied’ both now show unchanged words explicitly
 - Syntax errors are now highlighted in the rules editor
@@ -31,6 +33,9 @@
 - Changed `Brassica.SoundChange.Types.Rule` to admit multiple exceptions
 - New field for line number in `Brassica.SoundChange.Types.Rule`,
     `Brassica.SoundChange.Types.Filter`, `Brassica.SoundChanges.Types.Directive`
+- Changes to paradigm builder:
+  - New constructor `Brassica.Paradigm.Types.Stem`
+  - Functions in `Brassica.Paradigm.Apply` now take list of stems rather than single root
 - Web communication protocol now uses JSON as with desktop:
   - `ToJSON` and `FromJSON` instances added for `Brassica.SoundChange.Tokenise.Component`
   - `Enum` instances removed from types in `Brassica.SoundChange.Frontend.Internal` as now unnecessary

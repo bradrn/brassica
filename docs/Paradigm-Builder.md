@@ -170,3 +170,55 @@ puellae puellārum
 puellae puellīs
 puellā puellīs
 ```
+
+## Stem alternations
+
+Instead of a single root,
+  it is possible to specify multiple space-separated **stems** of a single lexeme.
+In a paradigm, these may be selected similarly to affixes,
+  using the syntax `~1` for the first stem, `~2` for the second stem, etc.
+(If you try to select a nonexistent stem or multiple stems at once, or do not select one at all,
+  Brassica will replace the stem with square brackets containing the numbers of the requested stem(s).)
+
+For instance, the following paradigm describes the inflection of French irregular verbs
+  in the present, imperfect and future tenses,
+  which are formed using four different stems depending on person and number,
+  alongside suffixes also depending on person and number:
+```
+T = PRES IMP FUT
+PERS = 1 2 3
+NUM = s p
+s PRES > ~1
+1 s PRES > 1.s
+2 s PRES > 1.s
+3 s PRES > 1.t
+1 p PRES > 1.ons ~2
+2 p PRES > 1.ez ~2
+3 p PRES > 1.ent ~3
+IMP > ~2
+1 s IMP > 1.ais
+2 s IMP > 1.ais
+3 s IMP > 1.ait
+1 p IMP > 1.ions
+2 p IMP > 1.iez
+3 p IMP > 1.aient
+FUT > ~4
+1 s FUT > 1.ai
+2 s FUT > 1.a
+3 s FUT > 1.a
+1 p FUT > 1.ons
+2 p FUT > 1.ez
+3 p FUT > 1.ont
+```
+Applied to the stems `voi voy voi verr`, this produces:
+
+```
+vois vois voit
+voyons voyez voient
+
+voyais voyais voyait
+voyions voyiez voyaient
+
+verrai verra verra
+verrons verrez verront
+```

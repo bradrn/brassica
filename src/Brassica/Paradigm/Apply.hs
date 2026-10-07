@@ -12,7 +12,7 @@ module Brassica.Paradigm.Apply
 import Brassica.Paradigm.Types
 
 import Data.Functor ((<&>))
-import Data.List (sortOn, foldl', intercalate)
+import Data.List (sortOn, foldl', intercalate, nub)
 import Data.Maybe (mapMaybe)
 import Data.Ord (Down(Down))
 
@@ -21,8 +21,11 @@ import Data.Ord (Down(Down))
 data ResultsTree a = Node [ResultsTree a] | Result a
     deriving (Show, Functor, Foldable)
 
-addLevel :: (a -> [a]) -> ResultsTree a -> ResultsTree a
-addLevel f (Result r) = Node $ Result <$> f r
+addLevel :: (a -> [b]) -> ResultsTree a -> ResultsTree b
+addLevel f (Result r) =
+    case f r of
+        [r'] -> Result r'
+        r' -> Node $ Result <$> r'
 addLevel f (Node rs) = Node $ addLevel f <$> rs
 
 -- | Depth of a 'ResultsTree': i.e. how many levels of 'Node's it
@@ -50,11 +53,11 @@ formatNested f = snd . go
 
 -- | Apply the given 'Paradigm' to a root, to produce all possible
 -- derived forms.
-applyParadigm :: Paradigm -> String -> ResultsTree String
-applyParadigm p w =
+applyParadigm :: Paradigm -> [String] -> ResultsTree String
+applyParadigm p ws =
     let fs = mapMaybe getFeature p
         ms = mapMaybe getMapping p
-    in applyTo w . expand ms <$> combinations fs
+    in addLevel (applyTo ws . expand ms) $ combinations fs
   where
     getFeature (NewFeature f) = Just f
     getFeature _ = Nothing
@@ -115,14 +118,21 @@ expand ms = concat . ((++) <$> concretes <*> (replace . filterAbstract))
 
     xs `subsetOf` ys = all (`elem` ys) xs
 
-applyTo :: String -> [Process] -> String
-applyTo w is =
+applyTo :: [String] -> [Process] -> [String]
+applyTo ws is =
     let ps = concatMap snd $ sortOn (Down . fst) $ mapMaybe getPrefix is
         ss = concatMap snd $ sortOn         fst  $ mapMaybe getSuffix is
-    in ps ++ w ++ ss
+        stems = case nub (mapMaybe getStem is) of
+            [] | [_] <- ws -> ws
+            [s] | s >= 1 && s <= length ws -> [ws !! (s-1)]
+            s -> [show s]
+    in stems <&> \stem -> ps ++ stem ++ ss
   where
     getPrefix (Prefix s i) = Just (s,i)
     getPrefix _ = Nothing
 
     getSuffix (Suffix s i) = Just (s,i)
     getSuffix _ = Nothing
+
+    getStem (Stem i) = Just i
+    getStem _ = Nothing

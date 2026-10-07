@@ -42,7 +42,9 @@ morphValue :: Parser String
 morphValue = lexeme (takeWhile1P (Just "letter") $ (&&) <$> (not.isSpace) <*> (/=')'))
 
 process :: Parser Process
-process = slot <* char '.' <*> morphValue
+process =
+    Stem <$> lexeme (char '~' *> L.decimal)
+    <|> (try (slot <* char '.') <*> morphValue)
 
 oneOrMany :: Parser p -> Parser [p]
 oneOrMany p = between (symbol "(") (symbol ")") (many p) <|> fmap pure p
