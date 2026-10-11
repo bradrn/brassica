@@ -53,11 +53,11 @@ formatNested f = snd . go
 
 -- | Apply the given 'Paradigm' to a root, to produce all possible
 -- derived forms.
-applyParadigm :: Paradigm -> [String] -> ResultsTree String
-applyParadigm p ws =
+applyParadigm :: Paradigm -> Maybe String -> [String] -> ResultsTree String
+applyParadigm p pclass ws =
     let fs = mapMaybe getFeature p
         ms = mapMaybe getMapping p
-    in addLevel (applyTo ws . expand ms) $ combinations fs
+    in addLevel (applyTo ws . expand ms) $ combinations pclass fs
   where
     getFeature (NewFeature f) = Just f
     getFeature _ = Nothing
@@ -65,9 +65,12 @@ applyParadigm p ws =
     getMapping (NewMapping k v) = Just (k,v)
     getMapping _ = Nothing
 
-combinations :: [Feature] -> ResultsTree [Grammeme]
-combinations =
-    (fmap.fmap) snd . foldl' go (Result [])
+combinations :: Maybe String -> [Feature] -> ResultsTree [Grammeme]
+combinations pclass =
+    let initGrammemes = case pclass of
+            Just p -> [(Just Class, Abstract (AbstractGrammeme p))]
+            _ -> []
+    in (fmap.fmap) snd . foldl' go (Result initGrammemes)
   where
     addFeature
         :: Feature
@@ -75,7 +78,7 @@ combinations =
         -> [[(Maybe FeatureName, Grammeme)]]
     addFeature (Feature c n gs) acc
         | satisfied (flip lookup acc . Just) c
-        = gs <&> \g -> (n, g):acc
+        = gs <&> \g -> (FeatureName <$> n, g):acc
         | otherwise
         = [acc]
 

@@ -54,7 +54,7 @@ import Brassica.SoundChange.Apply hiding (HighlightMode)
 import qualified Brassica.SoundChange.Apply as A
 import Brassica.SoundChange.Tokenise
 import Brassica.SoundChange.Types
-import Brassica.Paradigm (parseParadigm, formatNested, ResultsTree (..), applyParadigm)
+import Brassica.Paradigm (parseParadigm, parseStems, formatNested, ResultsTree (..), applyParadigm)
 
 -- | Rule application mode of the SCA.
 data ApplicationMode
@@ -371,7 +371,7 @@ dispatch r = case r of
                 (if separateLines
                     then unlines . toList
                     else formatNested id)
-                $ Node $ applyParadigm p . words <$> lines input
+                $ Node $ uncurry (applyParadigm p) . parseStems <$> lines input
     parseAndBuildParadigmWrapper _ = error "parseAndBuildParadigmWrapper: unexpected request!"
 
     escape :: String -> String

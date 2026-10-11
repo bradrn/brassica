@@ -222,3 +222,52 @@ voyions voyiez voyaient
 verrai verra verra
 verrons verrez verront
 ```
+
+## Paradigm classes
+
+In many languages parts of speech are subdivided into multiple **paradigm classes**,
+  each with a different pattern of conjugation or declension.
+These can be specified for individual roots by preceding them with a declaration of the form `#paradigm`;
+  this acts as if a line `# = paradigm` had been added before all other declarations,
+  so that you can test the paradigm with `when (# is/not paradigm) …`, or use `paradigm` in featue mappings.
+
+For instance, the following implements the Latin first and second declensions
+  (for space, only the nominative and vocative cases are shown):
+
+```
+NOM VOC
+SG PL
+I NOM SG > 1.a
+I NOM PL > 1.ae
+I VOC SG > 1.a
+I VOC PL > 1.ae
+IIM NOM SG > 1.us
+IIM NOM PL > 1.ī
+IIM VOC SG > 1.e
+IIM VOC PL > 1.ī
+IIN NOM SG > 1.um
+IIN NOM PL > 1.a
+IIN VOC SG > 1.um
+IIN VOC PL > 1.a
+```
+
+Here, `I` is used for the first declension,
+  `IIM` for second-declension masculine nouns,
+  and `IIN` for second-declension neuter nouns.
+Thus the following input words:
+```
+#I mēns
+#IIM equ
+#IIN castell
+```
+Yield the following output:
+```
+mēnsa mēnsae
+mēnsa mēnsae
+
+equus equī
+eque equī
+
+castellum castella
+castellum castella
+```

@@ -20,6 +20,7 @@ module Brassica.Paradigm
        , Paradigm
        -- * Parsing and pretty-printing
        , parseParadigm
+       , parseStems
        , formatNested
        -- * Paradigm application
        , applyParadigm

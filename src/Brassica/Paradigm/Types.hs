@@ -50,13 +50,12 @@ data Condition
 -- selection of 'Grammeme's. A feature may be given a descriptive
 -- name, as well as a condition which must be satisfied for the
 -- 'Feature' to be included in a word.
-data Feature = Feature Condition (Maybe FeatureName) [Grammeme]
+data Feature = Feature Condition (Maybe String) [Grammeme]
     deriving (Show, Eq)
 
--- | Name to identify a specific 'Feature'.
-newtype FeatureName = FeatureName String
+-- | Name to identify a specific 'Feature', or the paradigm 'Class'.
+data FeatureName = FeatureName String | Class
     deriving stock (Show, Eq)
-    deriving newtype (IsString)
 
 -- | Each statement in a paradigm description specifies either a new
 -- 'Feature', or a new mapping from a set of abstract grammemes to

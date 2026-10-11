@@ -1,5 +1,8 @@
-module Brassica.Paradigm.Parse (parseParadigm) where
+{-# LANGUAGE LambdaCase #-}
+module Brassica.Paradigm.Parse (parseParadigm, parseStems) where
 
+import Control.Category ((>>>))
+import Data.Maybe (fromMaybe)
 import Control.Monad (void)
 import Data.Char (isSpace)
 import Data.Void (Void)
@@ -9,7 +12,6 @@ import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
 import Brassica.Paradigm.Types
-import Data.Maybe (fromMaybe)
 
 type Parser = Parsec Void String
 
@@ -61,8 +63,10 @@ condition :: Parser Condition
 condition = do
     _ <- symbol "when"
     between (symbol "(") (symbol ")") $
-        try (Is . FeatureName <$> name <* symbol "is" <*> grammeme)
-        <|> Not . FeatureName <$> name <* symbol "not" <*> grammeme
+        try (Is <$> featureName <* symbol "is" <*> grammeme)
+        <|> Not <$> featureName <* symbol "not" <*> grammeme
+  where
+    featureName = (Class <$ lexeme (char '#')) <|> (FeatureName <$> name)
 
 feature :: Parser Feature
 feature = do
@@ -73,12 +77,12 @@ feature = do
             n <- optional $ try $ name <* symbol "="
             gs <- some grammeme
             eolf
-            return $ Feature c (FeatureName <$> n) gs
+            return $ Feature c n gs
         Just globalSlot' -> do
             n <- optional $ try $ name <* symbol "="
             gs <- some $ oneOrMany $ process <|> (globalSlot' <$> morphValue)
             eolf
-            return $ Feature c (FeatureName <$> n) (Concrete <$> gs)
+            return $ Feature c n (Concrete <$> gs)
 
 mapping :: Parser ([AbstractGrammeme], Affix)
 mapping = (,) <$> manyTill (AbstractGrammeme <$> name) (symbol ">") <*> some process <* eolf
@@ -94,3 +98,8 @@ statement = sc *>
 -- For details on the syntax, refer to <https://github.com/bradrn/brassica/blob/v1.0.0/docs/Paradigm-Builder.md>.
 parseParadigm :: String -> Either (ParseErrorBundle String Void) Paradigm
 parseParadigm = runParser (many statement) ""
+
+parseStems :: String -> (Maybe String, [String])
+parseStems = words >>> \case
+    ('#':p):ws -> (Just p, ws)
+    ws -> (Nothing, ws)

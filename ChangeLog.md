@@ -11,6 +11,7 @@
   - Highlighting ‘any rule applied’ with ‘input→output’ format now works correctly
 - Improvements to paradigm builder:
   - Stem alternations are now supported with new `~n` syntax
+  - Paradigm classes can be specified for individual words with new `#paradigm` syntax
 - Kleene star can now produce multiple results, no longer restricted to greedy matching (resolving https://github.com/bradrn/brassica/issues/7)
 - New option to highlight only words affected by specific rules, selected with new flag `-h`
   - Allow specifying multiple exceptions in a single rule
@@ -34,8 +35,11 @@
 - New field for line number in `Brassica.SoundChange.Types.Rule`,
     `Brassica.SoundChange.Types.Filter`, `Brassica.SoundChanges.Types.Directive`
 - Changes to paradigm builder:
-  - New constructor `Brassica.Paradigm.Types.Stem`
-  - Functions in `Brassica.Paradigm.Apply` now take list of stems rather than single root
+  - New constructors `Stem` and `Class` in `Brassica.Paradigm.Types`
+  - `Brassica.Paradigm.Feature` now takes a `String` rather than a `FeatureName`
+  - `Brassica.Paradigm.applyParadigm` now takes a list of stems with paradigm specification
+      rather than a single root
+  - New function `Brassica.Paradgm.parseStems` to parse stems with paradigm specifications
 - Web communication protocol now uses JSON as with desktop:
   - `ToJSON` and `FromJSON` instances added for `Brassica.SoundChange.Tokenise.Component`
   - `Enum` instances removed from types in `Brassica.SoundChange.Frontend.Internal` as now unnecessary
