@@ -13,6 +13,7 @@
   - Stem alternations are now supported with new `~n` syntax
   - Paradigm classes can be specified for individual words with new `#paradigm` syntax
   - Feature mappings and `when` conditions can now include multiple alternatives
+  - Blank lines are now allowed in paradigm specifications
 - Kleene star can now produce multiple results, no longer restricted to greedy matching (resolving https://github.com/bradrn/brassica/issues/7)
 - New option to highlight only words affected by specific rules, selected with new flag `-h`
   - Allow specifying multiple exceptions in a single rule

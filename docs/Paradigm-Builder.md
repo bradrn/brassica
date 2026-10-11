@@ -209,18 +209,21 @@ For instance, the following paradigm describes the inflection of French irregula
 T = PRES IMP FUT
 NUM = s p
 PERS = 1 2 3
+
 s PRES > ~1
 (1/2) s PRES > 1.s
 3 s PRES > 1.t
 1 p PRES > 1.ons ~2
 2 p PRES > 1.ez ~2
 3 p PRES > 1.ent ~3
+
 IMP > ~2
 (1/2) s IMP > 1.ais
 3 s IMP > 1.ait
 1 p IMP > 1.ions
 2 p IMP > 1.iez
 3 p IMP > 1.aient
+
 FUT > ~4
 1 s FUT > 1.ai
 (2/3) s FUT > 1.a
@@ -255,15 +258,18 @@ For instance, the following implements the Latin first and second declensions
 ```
 NOM VOC ACC
 SG PL
+
 I (NOM/VOC) SG > 1.a
 I (NOM/VOC) PL > 1.ae
 I ACC SG > 1.am
 I ACC PL > 1.ās
+
 IIM NOM SG > 1.us
 IIM (NOM/VOC) PL > 1.ī
 IIM VOC SG > 1.e
 IIM ACC SG > 1.um
 IIM ACC PL > 1.ōs
+
 IIN (NOM/VOC/ACC) SG > 1.um
 IIN (NOM/VOC/ACC) PL > 1.a
 ```
