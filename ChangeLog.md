@@ -12,6 +12,7 @@
 - Improvements to paradigm builder:
   - Stem alternations are now supported with new `~n` syntax
   - Paradigm classes can be specified for individual words with new `#paradigm` syntax
+  - Feature mappings and `when` conditions can now include multiple alternatives
 - Kleene star can now produce multiple results, no longer restricted to greedy matching (resolving https://github.com/bradrn/brassica/issues/7)
 - New option to highlight only words affected by specific rules, selected with new flag `-h`
   - Allow specifying multiple exceptions in a single rule
@@ -36,6 +37,8 @@
     `Brassica.SoundChange.Types.Filter`, `Brassica.SoundChanges.Types.Directive`
 - Changes to paradigm builder:
   - New constructors `Stem` and `Class` in `Brassica.Paradigm.Types`
+  - New type `Brassica.Paradigm.Expr`, now used in `Statement` and `Feature` in the same module
+  - Constructor `Brassica.Paradigm.Always` removed (it can be replaced by `All []`)
   - `Brassica.Paradigm.Feature` now takes a `String` rather than a `FeatureName`
   - `Brassica.Paradigm.applyParadigm` now takes a list of stems with paradigm specification
       rather than a single root

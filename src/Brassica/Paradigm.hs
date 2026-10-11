@@ -14,6 +14,7 @@ module Brassica.Paradigm
        , Grammeme(..)
        , AbstractGrammeme(..)
        , Condition(..)
+       , Expr(..)
        , Feature(..)
        , FeatureName(..)
        , Statement(..)

@@ -36,9 +36,7 @@ newtype AbstractGrammeme = AbstractGrammeme String
 -- | A condition which must be satisfied for a 'Feature' to be
 -- included in a word.
 data Condition
-    = Always
-    -- ^ Condition which is always satisfied
-    | Is FeatureName Grammeme
+    = Is FeatureName Grammeme
     -- ^ Satisfied when the specified feature has been assigned to the
     -- specified 'Grammeme'
     | Not FeatureName Grammeme
@@ -46,11 +44,16 @@ data Condition
     -- to the specified 'Grammeme'
     deriving (Show, Eq)
 
+-- | An expression built up from 'Pred'icates, combined with logical
+-- and ('All') or logical or ('Any').
+data Expr a = Any [Expr a] | All [Expr a] | Pred a
+    deriving (Show, Eq)
+
 -- | A grammatical feature, which may be realised by one of a
 -- selection of 'Grammeme's. A feature may be given a descriptive
 -- name, as well as a condition which must be satisfied for the
 -- 'Feature' to be included in a word.
-data Feature = Feature Condition (Maybe String) [Grammeme]
+data Feature = Feature (Expr Condition) (Maybe String) [Grammeme]
     deriving (Show, Eq)
 
 -- | Name to identify a specific 'Feature', or the paradigm 'Class'.
@@ -60,7 +63,7 @@ data FeatureName = FeatureName String | Class
 -- | Each statement in a paradigm description specifies either a new
 -- 'Feature', or a new mapping from a set of abstract grammemes to
 -- their realisation.
-data Statement = NewFeature Feature | NewMapping [AbstractGrammeme] Affix
+data Statement = NewFeature Feature | NewMapping (Expr AbstractGrammeme) Affix
     deriving (Show, Eq)
 
 -- | A paradigm is specified as a list of 'Statement's. The order is

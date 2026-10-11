@@ -59,10 +59,16 @@ grammeme =
     Concrete <$> affix
     <|> Abstract . AbstractGrammeme <$> name
 
-condition :: Parser Condition
+parseExpr :: Parser a -> Parser (Expr a)
+parseExpr p = Any <$> ((All <$> some atom) `sepBy1` symbol "/")
+  where
+    atom = (Pred <$> p)
+        <|> between (symbol "(") (symbol ")") (parseExpr p)
+
+condition :: Parser (Expr Condition)
 condition = do
     _ <- symbol "when"
-    between (symbol "(") (symbol ")") $
+    parseExpr $ between (symbol "(") (symbol ")") $
         try (Is <$> featureName <* symbol "is" <*> grammeme)
         <|> Not <$> featureName <* symbol "not" <*> grammeme
   where
@@ -70,7 +76,7 @@ condition = do
 
 feature :: Parser Feature
 feature = do
-    c <- fromMaybe Always <$> optional condition
+    c <- fromMaybe (All []) <$> optional condition
     globalSlot <- optional $ try $ slot <* space1'
     case globalSlot of
         Nothing -> do
@@ -84,8 +90,8 @@ feature = do
             eolf
             return $ Feature c n (Concrete <$> gs)
 
-mapping :: Parser ([AbstractGrammeme], Affix)
-mapping = (,) <$> manyTill (AbstractGrammeme <$> name) (symbol ">") <*> some process <* eolf
+mapping :: Parser (Expr AbstractGrammeme, Affix)
+mapping = (,) <$> parseExpr (AbstractGrammeme <$> name) <* symbol ">" <*> some process <* eolf
 
 statement :: Parser Statement
 statement = sc *>

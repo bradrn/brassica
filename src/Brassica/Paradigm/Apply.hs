@@ -65,6 +65,11 @@ applyParadigm p pclass ws =
     getMapping (NewMapping k v) = Just (k,v)
     getMapping _ = Nothing
 
+evalExpr :: (a -> Bool) -> Expr a -> Bool
+evalExpr p (Any xs) = any (evalExpr p) xs
+evalExpr p (All xs) = all (evalExpr p) xs
+evalExpr p (Pred a) = p a
+
 combinations :: Maybe String -> [Feature] -> ResultsTree [Grammeme]
 combinations pclass =
     let initGrammemes = case pclass of
@@ -77,7 +82,7 @@ combinations pclass =
         -> [(Maybe FeatureName, Grammeme)]
         -> [[(Maybe FeatureName, Grammeme)]]
     addFeature (Feature c n gs) acc
-        | satisfied (flip lookup acc . Just) c
+        | evalExpr (satisfied (flip lookup acc . Just)) c
         = gs <&> \g -> (FeatureName <$> n, g):acc
         | otherwise
         = [acc]
@@ -91,7 +96,6 @@ combinations pclass =
         :: (FeatureName -> Maybe Grammeme)
         -> Condition
         -> Bool
-    satisfied _ Always = True
     satisfied l (Is n g) = case l n of
         Just g' -> g == g'
         Nothing -> False
@@ -99,7 +103,7 @@ combinations pclass =
         Just g' -> g /= g'
         Nothing -> True
 
-expand :: [([AbstractGrammeme], Affix)] -> [Grammeme] -> [Process]
+expand :: [(Expr AbstractGrammeme, Affix)] -> [Grammeme] -> [Process]
 expand ms = concat . ((++) <$> concretes <*> (replace . filterAbstract))
   where
     concretes :: [Grammeme] -> [Affix]
@@ -115,11 +119,9 @@ expand ms = concat . ((++) <$> concretes <*> (replace . filterAbstract))
     replace :: [AbstractGrammeme] -> [Affix]
     replace gs = do
         (condition, replacement) <- ms
-        if condition `subsetOf` gs
+        if evalExpr (`elem` gs) condition
            then return replacement
            else []
-
-    xs `subsetOf` ys = all (`elem` ys) xs
 
 applyTo :: [String] -> [Process] -> [String]
 applyTo ws is =

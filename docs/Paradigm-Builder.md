@@ -171,6 +171,27 @@ puellae puellīs
 puellā puellīs
 ```
 
+The previous example has quite a bit of repetition (i.e. syncretism).
+Two mappings with the same output can be merged by separating them with a slash:
+  e.g. `NOM SG / VOC SG > 1.a`.
+Brackets can be used to simplify it even further to `(NOM / VOC) SG > 1.a`.
+(The brackets cannot be omitted: `NOM / VOC SG` means ‘all nominatives, and vocative singular’.)
+Continuing to combine mappings in this way, the previous example may be rewritten:
+```
+NOM VOC ACC GEN DAT ABL
+SG PL
+(NOM/VOC) SG > 1.a
+(NOM/VOC) PL / (GEN/DAT) SG > 1.ae
+ACC SG > 1.am
+ACC PL > 1.ās
+GEN PL > 1.ārum
+ABL SG > 1.ā
+(DAT/ABL) PL > 1.īs
+```
+
+(As an aside, you can also use `/` and grouping like this after `when`.
+But I’m not sure how useful that will be.)
+
 ## Stem alternations
 
 Instead of a single root,
@@ -186,26 +207,23 @@ For instance, the following paradigm describes the inflection of French irregula
   alongside suffixes also depending on person and number:
 ```
 T = PRES IMP FUT
-PERS = 1 2 3
 NUM = s p
+PERS = 1 2 3
 s PRES > ~1
-1 s PRES > 1.s
-2 s PRES > 1.s
+(1/2) s PRES > 1.s
 3 s PRES > 1.t
 1 p PRES > 1.ons ~2
 2 p PRES > 1.ez ~2
 3 p PRES > 1.ent ~3
 IMP > ~2
-1 s IMP > 1.ais
-2 s IMP > 1.ais
+(1/2) s IMP > 1.ais
 3 s IMP > 1.ait
 1 p IMP > 1.ions
 2 p IMP > 1.iez
 3 p IMP > 1.aient
 FUT > ~4
 1 s FUT > 1.ai
-2 s FUT > 1.a
-3 s FUT > 1.a
+(2/3) s FUT > 1.a
 1 p FUT > 1.ons
 2 p FUT > 1.ez
 3 p FUT > 1.ont
@@ -232,23 +250,22 @@ These can be specified for individual roots by preceding them with a declaration
   so that you can test the paradigm with `when (# is/not paradigm) …`, or use `paradigm` in featue mappings.
 
 For instance, the following implements the Latin first and second declensions
-  (for space, only the nominative and vocative cases are shown):
+  (for space, only the nominative, vocative and accusative cases are given):
 
 ```
-NOM VOC
+NOM VOC ACC
 SG PL
-I NOM SG > 1.a
-I NOM PL > 1.ae
-I VOC SG > 1.a
-I VOC PL > 1.ae
+I (NOM/VOC) SG > 1.a
+I (NOM/VOC) PL > 1.ae
+I ACC SG > 1.am
+I ACC PL > 1.ās
 IIM NOM SG > 1.us
-IIM NOM PL > 1.ī
+IIM (NOM/VOC) PL > 1.ī
 IIM VOC SG > 1.e
-IIM VOC PL > 1.ī
-IIN NOM SG > 1.um
-IIN NOM PL > 1.a
-IIN VOC SG > 1.um
-IIN VOC PL > 1.a
+IIM ACC SG > 1.um
+IIM ACC PL > 1.ōs
+IIN (NOM/VOC/ACC) SG > 1.um
+IIN (NOM/VOC/ACC) PL > 1.a
 ```
 
 Here, `I` is used for the first declension,
@@ -264,10 +281,13 @@ Yield the following output:
 ```
 mēnsa mēnsae
 mēnsa mēnsae
+mēnsam mēnsās
 
 equus equī
 eque equī
+equum equōs
 
+castellum castella
 castellum castella
 castellum castella
 ```
