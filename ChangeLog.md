@@ -16,7 +16,7 @@
   - Blank lines are now allowed in paradigm specifications
 - Kleene star can now produce multiple results, no longer restricted to greedy matching (resolving https://github.com/bradrn/brassica/issues/7)
 - New option to highlight only words affected by specific rules, selected with new flag `-h`
-  - Allow specifying multiple exceptions in a single rule
+- Allow specifying multiple exceptions in a single rule
 - New checkbox / command-line option to highlight unused rules in the rules editor
 - ‘Input→output’ format and ‘Report rules applied’ both now show unchanged words explicitly
 - Syntax errors are now highlighted in the rules editor
