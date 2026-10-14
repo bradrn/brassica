@@ -16,6 +16,7 @@
   - Blank lines are now allowed in paradigm specifications
 - Kleene star can now produce multiple results, no longer restricted to greedy matching (resolving https://github.com/bradrn/brassica/issues/7)
 - New option to highlight only words affected by specific rules, selected with new flag `-h`
+- New flag `-pstart <name>` to create persistent rules, disabled with new directive `pstop <name>`
 - Allow specifying multiple exceptions in a single rule
 - New checkbox / command-line option to highlight unused rules in the rules editor
 - ‘Input→output’ format and ‘Report rules applied’ both now show unchanged words explicitly
@@ -36,6 +37,9 @@
 - Changed `Brassica.SoundChange.Types.Rule` to admit multiple exceptions
 - New field for line number in `Brassica.SoundChange.Types.Rule`,
     `Brassica.SoundChange.Types.Filter`, `Brassica.SoundChanges.Types.Directive`
+- Persistent rules:
+  new flag `persistent` in `Brassica.SoundChange.Types.Flags`,
+  and new directive `DisablePersistent` in same module
 - Changes to paradigm builder:
   - New constructors `Stem` and `Class` in `Brassica.Paradigm.Types`
   - New type `Brassica.Paradigm.Expr`, now used in `Statement` and `Feature` in the same module

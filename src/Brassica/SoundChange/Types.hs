@@ -280,6 +280,7 @@ data Flags = Flags
   , applyOnceOnly    :: Bool         -- ^ Whether to apply the rule only once to a word
   , sporadic         :: Sporadicity  -- ^ Whether the rule should be applied sporadically, and if so, how
   , nonOverlappingTarget :: Bool     -- ^ Whether the rule should apply non-iteratively (avoiding environments which overlap with targets)
+  , persistent       :: Maybe String -- ^ Whether to continue applying the rule persistently (with a label to disable the rule eventually)
   } deriving (Show, Generic, NFData)
 
 -- | A default selection of flags which are appropriate for most
@@ -305,6 +306,7 @@ defFlags = Flags
     , applyOnceOnly = False
     , sporadic = ApplyAlways
     , nonOverlappingTarget = False
+    , persistent = Nothing
     }
 
 -- | A single sound change rule.
@@ -422,6 +424,7 @@ data Directive
         [CategoryDefinition]
     | ExtraGraphemes [String]
       -- ^ Extra graphemes declaration: @extra …@
+    | DisablePersistent String
     deriving (Show, Eq, Ord, Generic, NFData)
 
 -- | A list of graphemes, replacing v'Categories' in expanded sound

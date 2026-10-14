@@ -34,8 +34,9 @@ Each statement can be:
 - a [sound change](#sound-change-rules);
 - a [category definition block](#category-definition-block);
 - a [filter](#filters);
-- an [extra graphemes declaration](#extra-graphemes); or
-- a [report instruction](#reporting).
+- an [extra graphemes declaration](#extra-graphemes);
+- a [report instruction](#reporting); or
+- a [persistent rule end](#persistent-rules).
 
 Additionally, **comments** may be specified as text after a semicolon.
 Commented text is ignored when processing sound changes.
@@ -96,7 +97,7 @@ A sound change rule has the following syntax
   (using [EBNF as defined in the W3C XML standard](https://www.w3.org/TR/REC-xml/#sec-notation)):
 ```ebnf
 SoundChange ::= Flag* Lexeme* ("/" | "→" | "->") Lexeme* ("/" Environment)* ("//" Environment ("/" Environment)*)?
-Flag ::= "-ltr" | "-rtl" | "-1" | "-?" | "-??" | "-x" | "-no"
+Flag ::= "-ltr" | "-rtl" | "-1" | "-?" | "-??" | "-x" | "-no" | "-pstart" [a-zA-Z0-9]+
 Environment ::= Lexeme* "_" Lexeme*
 ```
 The components of a sound change are named as follows:
@@ -956,3 +957,32 @@ This will cause Brassica to record all output words at that point in the rules f
 These intermediate results will be displayed
   if selecting ‘Input→output’ format in a graphical interface,
   or `--show-input` in the CLI.
+
+### Persistent rules
+
+A sound change can be made **persistent** by prefixing it with the special flag `-pstart <name>`,
+  where the `<name>` consists of one or more alphanumeric characters.
+A persistent rule will be re-applied after every subsequent rule,
+  until a category block or the special declaration `pstop <name>` is encountered.
+
+Multiple persistent rules can be defined at the same time.
+After each subsequent sound change they will be re-applied in the same order that they were defined.
+A `pstop <name>` declaration disables only those persistent rule(s) which were defined with that name.
+
+```brassica
+-pstart glide i / y / _ V
+-pstart hiatus V / / V _
+
+h / / V _ V
+sh / s i~
+
+pstop glide
+
+y / / [e i] _
+
+; kiha → kya
+; keha → ke
+; kiya → ki
+; keya → ke
+; kesha → kesya
+```

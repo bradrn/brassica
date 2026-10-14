@@ -4,6 +4,7 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
 
 -- |
@@ -43,11 +44,11 @@ module Brassica.SoundChange.Expand
 import Prelude hiding (lookup)
 import Control.DeepSeq (NFData)
 import Control.Monad (foldM, unless)
-import Control.Monad.State.Strict (StateT, evalStateT, lift, get, put, gets)
+import Control.Monad.State.Strict (StateT, evalStateT, lift, get, gets, modify)
 import Data.Bifunctor (first, second)
 import Data.Containers.ListUtils (nubOrd)
 import Data.List (transpose, foldl', stripPrefix)
-import Data.Maybe (mapMaybe, catMaybes)
+import Data.Maybe (mapMaybe)
 import Data.Traversable (for)
 import GHC.Generics (Generic)
 
@@ -322,6 +323,12 @@ extendCategories cs' (overwrite, defs) =
     mkAuto :: String -> String -> [String] -> (String, Either (Expanded 'AnyPart) AutosegmentDef)
     mkAuto f g gs = (g, Right $ AutosegmentDef f gs)
 
+data ExpansionState = ExpansionState
+    { categories :: Categories
+    , extras :: [String]
+    , persistents :: [(String, Rule Expanded)]
+    } deriving (Show)
+
 -- | Expand a set of 'SoundChanges'. Expansion proceeds from beginning
 -- to end as follows:
 --
@@ -344,34 +351,49 @@ extendCategories cs' (overwrite, defs) =
 expandSoundChanges
     :: SoundChanges CategorySpec Directive
     -> Either (Maybe Int, ExpandError) (SoundChanges Expanded GraphemeList)
-expandSoundChanges scs = fmap catMaybes $ flip evalStateT (M.empty, []) $ traverse go scs
+expandSoundChanges scs = fmap concat $ flip evalStateT initState $ traverse go scs
   where
     noCategories = any (\case DeclS (Categories {}) -> True; _ -> False) scs
 
+    initState = ExpansionState M.empty [] []
+
     go  :: Statement CategorySpec Directive
         -> StateT
-            (Categories, [String])
+            ExpansionState
             (Either (Maybe Int, ExpandError))
-            (Maybe (Statement Expanded GraphemeList))
+            [Statement Expanded GraphemeList]
     go (RuleS r) = do
-        cs <- gets fst
-        lift $ Just . RuleS <$> first (Just $ loc r,) (expandRule cs r)
+        ExpansionState{..} <- get
+        st <- lift $ first (Just $ loc r,) (expandRule categories r)
+        case persistent (flags st) of
+            Nothing -> pure ()
+            Just label ->
+                modify $ \s -> s
+                    { persistents = (label, st) : persistents
+                    }
+        -- NB. 'persistents' here doesn't contain current rule
+        pure $ RuleS <$> (st : reverse (snd <$> persistents))
     go (FilterS f@(Filter _ l _)) = do
-        cs <- gets fst
-        lift $ Just . FilterS <$> first (Just l,) (expandFilter cs f)
-    go ReportS = pure (Just ReportS)
+        cs <- gets categories
+        lift $ pure . FilterS <$> first (Just l,) (expandFilter cs f)
+    go ReportS = pure [ReportS]
     go (DeclS (ExtraGraphemes extra)) = do
-        (cs, _) <- get
-        put (cs, extra)
+        modify $ \s -> s { extras = extra }
         pure $
             if noCategories
-            then Just $ DeclS $ GraphemeList True extra
-            else Nothing
+            then [DeclS $ GraphemeList True extra]
+            else []
     go (DeclS (Categories l overwrite noreplace defs)) = do
-        (cs, extra) <- get
-        cs' <- lift $ first (Just l,) (extendCategories cs (overwrite, defs))
-        put (cs', extra)
-        pure $ Just $ DeclS $ GraphemeList noreplace $ extra ++ mapMaybe grapheme (values cs')
+        ExpansionState{..} <- get
+        cs' <- lift $ first (Just l,) (extendCategories categories (overwrite, defs))
+        modify $ \s -> s
+            { categories = cs'
+            , persistents = []  -- invalidate persistent rules if categories change
+            }
+        pure $ pure $ DeclS $ GraphemeList noreplace $ extras ++ mapMaybe grapheme (values cs')
+    go (DeclS (DisablePersistent label)) = do
+        modify $ \s -> s { persistents = filter ((/=label) . fst) (persistents s) }
+        pure []
 
     grapheme [Grapheme g] = Just g
     grapheme _ = Nothing

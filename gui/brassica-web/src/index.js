@@ -67,7 +67,7 @@ function applyChanges(changes, words, sep, reportRules, inputMode, highlightMode
 
 const brassicaMainRules = [
     { token: "keyword",
-      regex: />|#|\(|\)|{|}|\\|\^|%|~|\*|nohighlight|extra|filter|report|@[0-9]+|@\?/
+      regex: />|#|\(|\)|{|}|\\|\^|%|~|\*|nohighlight|extra|pstart|pstop|filter|report|@[0-9]+|@\?/
     },
     { token: "separator",
       regex: /\/|_|→|->/

@@ -21,10 +21,10 @@ module Brassica.SoundChange.Parse
     , module Text.Megaparsec.Error
     ) where
 
-import Data.Char (isSpace)
+import Data.Char (isSpace, isAlphaNum)
 import Data.Foldable (asum)
 import Data.List (dropWhileEnd)
-import Data.Maybe (isNothing, isJust, fromJust, fromMaybe)
+import Data.Maybe (isJust, fromJust, fromMaybe)
 import Data.Void (Void)
 
 import Control.Applicative.Permutations
@@ -144,7 +144,7 @@ parseCategoryModification forceUnion = (,)
         <|> pure Union
 
 parseDirective :: Parser Directive
-parseDirective = parseCategoriesDirective <|> parseExtraDirective
+parseDirective = parseCategoriesDirective <|> parseExtraDirective <|> parsePStop
   where
     parseExtraDirective = fmap ExtraGraphemes $
         symbol "extra" *> many (parseGrapheme' False) <* scn
@@ -161,6 +161,9 @@ parseDirective = parseCategoriesDirective <|> parseExtraDirective
             uncurry DefineCategory <$> (try parseCategoryStandalone <* scn)
         _ <- symbol "end" <* scn
         pure $ Categories loc overwrite noreplace cs
+
+    parsePStop = fmap DisablePersistent $
+        symbol "pstop" *> takeWhile1P (Just "alphanumeric character") isAlphaNum <* scn
 
 parseOptional :: ParseLexeme a => Parser (Lexeme CategorySpec a)
 parseOptional = Optional <$> between (symbol "(") (symbol ")") (some parseLexeme)
@@ -252,6 +255,8 @@ parseFlags = runPermutation $ Flags
     <*> toPermutationWithDefault ApplyAlways
         ((PerApplication <$ symbol "-??") <|> (PerWord <$ symbol "-?"))
     <*> toPermutationWithDefault False (True <$ symbol "-no")
+    <*> toPermutationWithDefault Nothing
+        (fmap Just $ symbol "-pstart" *> lexeme (takeWhile1P (Just "alphanumeric character") isAlphaNum))
 
 ruleParser :: Parser (Rule CategorySpec)
 ruleParser = do
