@@ -15,6 +15,7 @@
   - Feature mappings and `when` conditions can now include multiple alternatives
   - Blank lines are now allowed in paradigm specifications
 - Kleene star can now produce multiple results, no longer restricted to greedy matching (resolving https://github.com/bradrn/brassica/issues/7)
+- Epenthesis rules with environments matching replacements no longer yield an infinite loop (resolving https://github.com/bradrn/brassica/issues/10)
 - New option to highlight only words affected by specific rules, selected with new flag `-h`
 - New flag `-pstart <name>` to create persistent rules, disabled with new directive `pstop <name>`
 - Allow specifying multiple exceptions in a single rule
@@ -48,6 +49,7 @@
   - `Brassica.Paradigm.applyParadigm` now takes a list of stems with paradigm specification
       rather than a single root
   - New function `Brassica.Paradgm.parseStems` to parse stems with paradigm specifications
+- New field in constructor `Brassica.SoundChange.Apply.Internal.SuccessEpenthesis`
 - Web communication protocol now uses JSON as with desktop:
   - `ToJSON` and `FromJSON` instances added for `Brassica.SoundChange.Tokenise.Component`
   - `Enum` instances removed from types in `Brassica.SoundChange.Frontend.Internal` as now unnecessary

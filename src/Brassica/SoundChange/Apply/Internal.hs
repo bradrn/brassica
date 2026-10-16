@@ -96,7 +96,7 @@ import Control.Category ((>>>))
 import Control.Monad ((>=>), (<=<), join)  -- needed for mtl>=2.3
 import Data.Containers.ListUtils (nubOrd)
 import Data.Functor ((<&>))
-import Data.List (elemIndex, intersect)
+import Data.List (elemIndex)
 import Data.Maybe (maybeToList, fromMaybe, listToMaybe, mapMaybe)
 import GHC.Generics (Generic)
 
@@ -643,7 +643,9 @@ matchRuleAtPoint target (env1,env2) mz = flip runRuleAp mz $ do
 -- | Status of a rule application at a single location.
 data RuleStatus
     = SuccessNormal      -- ^ Rule was successful, with no need for special handling
-    | SuccessEpenthesis  -- ^ Rule was successful, but cursor was not advanced (need to avoid infinite loop)
+    | SuccessEpenthesis Bool
+    -- ^ Rule was successful, but cursor was not advanced (need to avoid infinite loop);
+    -- also report whether any graphemes were matched before the replacement
     | Failure            -- ^ Rule failed
     deriving (Eq, Show)
 
@@ -665,6 +667,7 @@ applyOnce Rule{..} =
                 originalWord <- get
                 let pMay = locationOf TargetStart originalWord
                     pMay' = locationOf PrevEnd originalWord
+                    noneMatchedBeforeReplacement = pMay == locationOf AppStart originalWord
                 case pMay of
                     Nothing -> error "applyOnce: start of target was not tagged"
                     Just p
@@ -685,10 +688,8 @@ applyOnce Rule{..} =
                         -- but not TargetStart, so restore its old position
                         modifyMay $ tagAt TargetStart p
                         return $
-                            -- An epenthesis rule will cause an infinite loop
-                            -- if it matched no graphemes before the replacement
-                            if null (matchedGraphemes out) && null (fst env)
-                                then SuccessEpenthesis
+                            if null (matchedGraphemes out)
+                                then SuccessEpenthesis noneMatchedBeforeReplacement
                                 else SuccessNormal
             Nothing -> modifyMay (seek AppStart) >> go envs
 
@@ -703,8 +704,13 @@ setupForNextApplication status Rule{flags=Flags{nonOverlappingTarget}} =
     resetTags <=< case status of
         SuccessNormal ->
             seek (if nonOverlappingTarget then TargetEnd else TargetStart)
-        SuccessEpenthesis ->
-            -- need to move forward if applying an epenthesis rule to avoid an infinite loop
+        SuccessEpenthesis False ->
+            -- treat as 'nonOverlappingTarget' to avoid possible infinite loops
+            -- (when the replacement would also match the first part of the target)
+            seek TargetEnd
+        SuccessEpenthesis True ->
+            -- matched no graphemes before replacement, so environment still matches:
+            -- move forward to avoid infinite loop
             seek TargetEnd >=> fwd
         Failure -> seek AppStart >=> fwd
   where
