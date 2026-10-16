@@ -48,7 +48,7 @@
   - `Brassica.Paradigm.Feature` now takes a `String` rather than a `FeatureName`
   - `Brassica.Paradigm.applyParadigm` now takes a list of stems with paradigm specification
       rather than a single root
-  - New function `Brassica.Paradgm.parseStems` to parse stems with paradigm specifications
+  - New function `Brassica.Paradigm.parseStems` to parse stems with paradigm specifications
 - New field in constructor `Brassica.SoundChange.Apply.Internal.SuccessEpenthesis`
 - Web communication protocol now uses JSON as with desktop:
   - `ToJSON` and `FromJSON` instances added for `Brassica.SoundChange.Tokenise.Component`
