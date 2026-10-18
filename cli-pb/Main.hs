@@ -58,7 +58,7 @@ main = execParser opts >>= \Options{..} -> do
 
     processRoot :: Bool -> Paradigm -> Text -> Text
     processRoot nestedOutput p r =
-        let output = applyParadigm p $ words $ unpack r
+        let output = uncurry (applyParadigm p) $ parseStems $ unpack r
         in if nestedOutput
             then addSpaces output $ pack $ formatNested id output
             else T.unlines $ pack <$> toList output
