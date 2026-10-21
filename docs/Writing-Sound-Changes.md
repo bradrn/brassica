@@ -445,7 +445,6 @@ t / s / _ i // n _ / _ i s
 ; tisa → tisa
 ; anti → anti
 ```
-```
 
 
 ### Multigraphs
