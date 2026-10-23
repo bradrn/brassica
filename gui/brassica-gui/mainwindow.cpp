@@ -263,7 +263,7 @@ void MainWindow::setupMenuBar()
         QMessageBox::about(
             this,
             "About Brassica",
-            "Brassica 1.0.0.\nCopyright Brad Neimann © 2020-2024\nWebsite: https://bradrn.com/brassica"
+            "Brassica 1.0.0.\nCopyright Brad Neimann © 2020-2026\nWebsite: https://bradrn.com/brassica"
             );
     });
     helpMenu->addAction("About Qt", this, [this] { QMessageBox::aboutQt(this); });
