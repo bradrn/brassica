@@ -9,7 +9,7 @@ import {tags} from "@lezer/highlight"
 import {defaultKeymap, history, historyKeymap} from "@codemirror/commands"
 import {searchKeymap, highlightSelectionMatches} from "@codemirror/search"
 import {closeBrackets, closeBracketsKeymap} from "@codemirror/autocomplete"
-import {linter, Diagnostic} from "@codemirror/lint"
+import {linter} from "@codemirror/lint"
 
 
 /***********************
