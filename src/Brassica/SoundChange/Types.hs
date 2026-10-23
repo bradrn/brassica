@@ -33,7 +33,7 @@
 --     * Each word is a sequence of t'Grapheme's
 --
 -- For more details on the syntax and semantics of sound changes,
--- refer to the [reference guide](https://github.com/bradrn/brassica/blob/v1.0.0/docs/Reference.md).
+-- refer to the [reference guide](https://github.com/bradrn/brassica/blob/v1.1.0/docs/Reference.md).
 module Brassica.SoundChange.Types
        (
        -- * Words and graphemes
@@ -121,7 +121,7 @@ data LexemeType
 -- to 'Matched' or 'Replacement' positions respectively.
 --
 -- For details on the syntax and semantics of each kind of lexeme,
--- refer to the [reference guide](https://github.com/bradrn/brassica/blob/v1.0.0/docs/Reference.md).
+-- refer to the [reference guide](https://github.com/bradrn/brassica/blob/v1.1.0/docs/Reference.md).
 data Lexeme category (a :: LexemeType) where
     Grapheme :: Grapheme -> Lexeme category a
     Category :: category a -> Lexeme category a

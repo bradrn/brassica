@@ -40,7 +40,7 @@ M = l r
 Semi = i̯ ɩ̯̈ u̯
 
 ; The vowel and tonal system. See the documentation at
-; https://github.com/bradrn/brassica/blob/v1.0.0/docs/Writing-Sound-Changes.md#switching-between-autosegments
+; https://github.com/bradrn/brassica/blob/v1.1.0/docs/Writing-Sound-Changes.md#switching-between-autosegments
 ; for an overview of what’s happening here.
 
 ; Proto-Tai had four tones. Tones A, B and C occur in syllables

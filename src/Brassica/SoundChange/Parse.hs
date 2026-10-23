@@ -13,7 +13,7 @@
 --
 -- Functions to parse sound changes in Brassica syntax. (For details
 -- on the syntax, refer to the
--- [reference guide](https://github.com/bradrn/brassica/blob/v1.0.0/docs/Reference.md).)
+-- [reference guide](https://github.com/bradrn/brassica/blob/v1.1.0/docs/Reference.md).)
 module Brassica.SoundChange.Parse
     ( parseRule
     , parseSoundChanges

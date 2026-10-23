@@ -624,7 +624,7 @@ Instead, the feature values are taken from predefined categories, as follows:
     the first elements of all these categories, then their second elements, and so on.
   The order of graphemes within a correspondence set is not explicitly specified,
     but is guaranteed to be consistent both within a feature and across features.
-  (As of Brassica 1.0.0 they are arranged in ascending alphabetical order of the category names.)
+  (As of Brassica 1.1.0 they are arranged in ascending alphabetical order of the category names.)
 
 The **values** of a feature are taken to cross-cut their correspondence sets.
 A feature has two values if it has two elements in each correspondence,
@@ -867,7 +867,7 @@ The correspondence set of that autosegmental grapheme contains
 
 Note that, as with other kinds of definitions,
   no more than one autosegmental definition can be given for any given grapheme.
-An attempt to create nested autosegmental definitions will cause an error, as of Brassica 1.0.0.
+An attempt to create nested autosegmental definitions will cause an error, as of Brassica 1.1.0.
 
 For a concrete example, consider:
 ```

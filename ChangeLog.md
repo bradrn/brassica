@@ -1,6 +1,6 @@
 # Brassica changelog
 
-## Unreleased changes
+## 1.1.0
 
 ### Behaviour
 

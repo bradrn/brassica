@@ -101,7 +101,7 @@ statement = sc *>
 -- | Parse a 'String' in Brassica paradigm syntax into a 'Paradigm'.
 -- Returns 'Left' if the input string is malformed.
 --
--- For details on the syntax, refer to <https://github.com/bradrn/brassica/blob/v1.0.0/docs/Paradigm-Builder.md>.
+-- For details on the syntax, refer to <https://github.com/bradrn/brassica/blob/v1.1.0/docs/Paradigm-Builder.md>.
 parseParadigm :: String -> Either (ParseErrorBundle String Void) Paradigm
 parseParadigm = runParser (many statement) ""
 

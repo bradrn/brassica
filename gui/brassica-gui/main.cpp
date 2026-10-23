@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("bradrn");
     QCoreApplication::setOrganizationDomain("bradrn.com");
     QCoreApplication::setApplicationName("Brassica");
-    QCoreApplication::setApplicationVersion("1.0.0");
+    QCoreApplication::setApplicationVersion("1.1.0");
 
     MainWindow w;
     w.show();

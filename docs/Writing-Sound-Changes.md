@@ -706,7 +706,7 @@ Here, the wildcard expresses the desired sound change:
 Note that the target `_` does not qualify as something that can be modified by wildcards or stars!
 That is, you cannot write `_*` or `^_`.
 Of course, the former makes no sense, since it would imply matching the target multiple times in an environment.
-The latter is easier to imagine, but as of Brassica version 1.0.0, it too is disallowed.
+The latter is easier to imagine, but as of Brassica version 1.1.0, it too is disallowed.
 
 ### Multiple results
 
@@ -1454,7 +1454,7 @@ But a more flexible solution is to use explicit feature backreferences:
   `[i u] a$High#second / [y w] e$High#second`.
 
 Of course, one might want the result to have high tone when *either* of the input graphemes have high tone.
-As of Brassica version 1.0.0, this is not possible in a single rule,
+As of Brassica version 1.1.0, this is not possible in a single rule,
   but it can be accomplished by transfering high tone to the first vowel beforehand:
 
 ```brassica

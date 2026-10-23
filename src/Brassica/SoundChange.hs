@@ -6,7 +6,7 @@
 --
 -- The modules below provide Brassica’s support for sound changes.
 -- For further details on their syntax and processing, refer to the
--- [reference guide](https://github.com/bradrn/brassica/blob/v1.0.0/docs/Reference.md),
+-- [reference guide](https://github.com/bradrn/brassica/blob/v1.1.0/docs/Reference.md),
 -- and the documentation of individual modules.
 --
 -- In brief, a sound changes file passes through the following phases:
