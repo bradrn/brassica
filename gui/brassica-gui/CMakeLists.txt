@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.5...4.4.4)
 
 project(brassica-gui LANGUAGES CXX)
 
@@ -36,7 +36,9 @@ add_executable(brassica-gui WIN32
 target_link_libraries(brassica-gui
     PRIVATE Qt::Widgets Qt::Core5Compat)
 
-if(WIN32)
+if(FLATPAK)
+    # brassica will be copied separately
+elseif(WIN32)
     execute_process(COMMAND cabal exec -- where brassica OUTPUT_VARIABLE BRASSICA_CLI OUTPUT_STRIP_TRAILING_WHITESPACE)
     cmake_path(NATIVE_PATH CMAKE_CURRENT_BINARY_DIR CMAKE_CURRENT_BINARY_DIR_WIN)
     add_custom_command(

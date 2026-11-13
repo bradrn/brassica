@@ -27,6 +27,10 @@ The command-line interface is best suited for batch processing of large wordlist
 Invoke it with the `--help` argument to see documentation.
 Most options have counterparts in the graphical interface, to which they behave similarly.
 
+(Note: if you have installed the Flatpak distribution for Linux,
+  you will need to explicitly pass `--command brassica` to `flatpak run`
+  if you want to run the command-line interface.)
+
 A Haskell library is provided to allow for embedding into other programs.
 It is documented at the Hackage link above.
 The library allows sound changes to be written as Haskell programs,
