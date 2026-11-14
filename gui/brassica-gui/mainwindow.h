@@ -13,6 +13,7 @@
 #include <QPlainTextEdit>
 #include <QProcess>
 #include <QPushButton>
+#include <QProgressBar>
 #include <QRadioButton>
 #include <QSplitter>
 #include <QVBoxLayout>
@@ -22,17 +23,18 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(BrassicaProcess *proc, QWidget *parent = nullptr);
-    ~MainWindow();
+    MainWindow(QWidget *parent = nullptr);
 
 private:
     QPlainTextEdit *rulesEdit;
     QPlainTextEdit *wordsEdit;
     QScrollBar *wordsEditVScroll;
     QPushButton *applyBtn;
+    QProgressBar *applyProgress;
     QRadioButton *nohighlightBtn;
     QRadioButton *diffhighlightBtn;
     QRadioButton *inputhighlightBtn;
+    QRadioButton *specifichighlightBtn;
     QRadioButton *rawBtn;
     QRadioButton *mdfBtn;
     QRadioButton *mdfAltBtn;
@@ -45,16 +47,17 @@ private:
     QPushButton *reportRulesBtn;
     QCheckBox *viewLive;
     QCheckBox *synchroniseScrolls;
+    QCheckBox *reportRulesNotApplied;
     QLineEdit *multiResultSep;
     QTextEdit *outputEdit;
     QScrollBar *outputEditVScroll;
 
     bool blockScrollTrackingEvent = false;
+    bool blockLiveUpdate = false;
 
     RulesHighlighter *rulesHl;
 
     BrassicaProcess *proc;
-    QJsonValue *prev;
 
     void setupWidgets(QWidget *centralWidget);
     void setupMenuBar();
@@ -66,6 +69,9 @@ private:
 
     bool checkRulesDirty();
     bool checkLexiconDirty();
+
+    bool requeueLive = true;
+    void runQueued();
 
     QString currentRulesFile;
     QString currentLexiconFile;
@@ -82,8 +88,21 @@ private:
 
     void closeEvent(QCloseEvent *event) override;
 
+    void repopulateExtraSelections();
+
+    QList<int> m_highlights;
+    QList<int> m_errors;
+    bool m_live;
+
+    QTextCharFormat highlightFormat;
+    QTextCharFormat errorFormat;
+
 private slots:
-    void applySoundChanges(bool live, bool reportRules);
+    void applySoundChanges(bool live, BrassicaProcess::ReportMode reportRules);
+
+    void rulesResult(QString output);
+    void setHighlights(QList<int> highlights);
+    void errorResult(QString output, QList<int> errors);
 
     void openRules();
     void saveRules();
@@ -99,6 +118,8 @@ private slots:
 
     void updateOutputFromWordsSlider(int value);
     void updateWordsFromOutputSlider(int value);
+
+    void highlightUnusedRules(bool enable);
 
     void reselectCheckboxes();
 

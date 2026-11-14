@@ -1,5 +1,5 @@
 name:                brassica-interop-wasm
-version:             1.0.0
+version:             1.1.0
 -- synopsis:
 -- description:
 license:             BSD3
@@ -15,9 +15,7 @@ executable brassica-interop-wasm
   c-sources:           wasm-init.c
   ghc-options:         -Wall -no-hs-main -optl-mexec-model=reactor -stubdir stub
                        "-optl-Wl\
-                       \,--export=parseTokeniseAndApplyRules_hs\
-                       \,--export=parseAndBuildParadigm_hs\
-                       \,--export=initResults\
+                       \,--export=dispatch_hs\
                        \,--export=getString\
                        \,--export=getStringLen\
                        \,--export=freeStableCStringLen\
@@ -28,6 +26,7 @@ executable brassica-interop-wasm
   main-is:             BrassicaInterop.hs
   build-depends:       base >= 4.7 && < 5
                      , brassica
+                     , aeson
                      , bytestring
                      , deepseq
                      , utf8-string >= 1.0 && < 1.1

@@ -13,7 +13,7 @@
 --
 -- Functions to parse sound changes in Brassica syntax. (For details
 -- on the syntax, refer to the
--- [reference guide](https://github.com/bradrn/brassica/blob/v1.0.0/docs/Reference.md).)
+-- [reference guide](https://github.com/bradrn/brassica/blob/v1.1.0/docs/Reference.md).)
 module Brassica.SoundChange.Parse
     ( parseRule
     , parseSoundChanges
@@ -21,10 +21,10 @@ module Brassica.SoundChange.Parse
     , module Text.Megaparsec.Error
     ) where
 
-import Data.Char (isSpace)
+import Data.Char (isSpace, isAlphaNum)
 import Data.Foldable (asum)
 import Data.List (dropWhileEnd)
-import Data.Maybe (isNothing, isJust, fromJust, fromMaybe)
+import Data.Maybe (isJust, fromJust, fromMaybe)
 import Data.Void (Void)
 
 import Control.Applicative.Permutations
@@ -110,7 +110,9 @@ parseCategoryStandalone
 parseCategoryStandalone = do
     g <- parseGrapheme' True
     _ <- symbol "="
-    mods <- some (parseCategoryModification False)
+    mods <- (:)
+        <$> parseCategoryModification True
+        <*> many (parseCategoryModification False)
     return (g, CategorySpec mods)
 
 parseFeature :: Parser FeatureSpec
@@ -142,12 +144,13 @@ parseCategoryModification forceUnion = (,)
         <|> pure Union
 
 parseDirective :: Parser Directive
-parseDirective = parseCategoriesDirective <|> parseExtraDirective
+parseDirective = parseCategoriesDirective <|> parseExtraDirective <|> parsePStop
   where
     parseExtraDirective = fmap ExtraGraphemes $
         symbol "extra" *> many (parseGrapheme' False) <* scn
 
     parseCategoriesDirective = do
+        loc <- unPos . sourceLine <$> getSourcePos
         overwrite <- isJust <$> optional (symbol "new")
         _ <- symbol "categories"
         noreplace <- isJust <$> optional (symbol "noreplace")
@@ -157,7 +160,10 @@ parseDirective = parseCategoriesDirective <|> parseExtraDirective
             DefineAuto <$> parseAuto <|>
             uncurry DefineCategory <$> (try parseCategoryStandalone <* scn)
         _ <- symbol "end" <* scn
-        pure $ Categories overwrite noreplace cs
+        pure $ Categories loc overwrite noreplace cs
+
+    parsePStop = fmap DisablePersistent $
+        symbol "pstop" *> takeWhile1P (Just "alphanumeric character") isAlphaNum <* scn
 
 parseOptional :: ParseLexeme a => Parser (Lexeme CategorySpec a)
 parseOptional = Optional <$> between (symbol "(") (symbol ")") (some parseLexeme)
@@ -242,12 +248,15 @@ parseLexemes = many parseLexeme
 
 parseFlags :: Parser Flags
 parseFlags = runPermutation $ Flags
-    <$> toPermutation (isNothing <$> optional (symbol "-x"))
+    <$> toPermutationWithDefault True (False <$ symbol "-x")
+    <*> toPermutationWithDefault False (True <$ symbol "-h")
     <*> toPermutationWithDefault LTR ((LTR <$ symbol "-ltr") <|> (RTL <$ symbol "-rtl"))
-    <*> toPermutation (isJust <$> optional (symbol "-1"))
+    <*> toPermutationWithDefault False (True <$ symbol "-1")
     <*> toPermutationWithDefault ApplyAlways
         ((PerApplication <$ symbol "-??") <|> (PerWord <$ symbol "-?"))
-    <*> toPermutation (isJust <$> optional (symbol "-no"))
+    <*> toPermutationWithDefault False (True <$ symbol "-no")
+    <*> toPermutationWithDefault Nothing
+        (fmap Just $ symbol "-pstart" *> lexeme (takeWhile1P (Just "alphanumeric character") isAlphaNum))
 
 ruleParser :: Parser (Rule CategorySpec)
 ruleParser = do
@@ -256,6 +265,7 @@ ruleParser = do
     -- to wrap multiple parsers rather than just one
     o <- getOffset
     s <- getInput
+    loc <- unPos . sourceLine <$> getSourcePos
 
     flags <- parseFlags
     target <- manyTill parseLexeme $ lexeme $ choice
@@ -268,13 +278,12 @@ ruleParser = do
     envs' <- many $ do
         notFollowedBy $ symbol "//"  -- for exceptions
         _ <- symbol "/"
-        env1 <- parseLexemes
-        _ <- symbol "_"
-        env2 <- parseLexemes
-        return (env1, env2)
+        parseEnv
     let envs = if null envs' then [([], [])] else envs'
 
-    exception <- optional $ (,) <$> (symbol "//" *> parseLexemes) <* symbol "_" <*> parseLexemes
+    exception <-
+        (symbol "//" *> ((:) <$> parseEnv <*> many (symbol "/" *> parseEnv)))
+        <|> pure []
 
     o' <- getOffset
 
@@ -283,9 +292,18 @@ ruleParser = do
     let plaintext = dropWhile isSpace $ dropWhileEnd isSpace $
             (fst . fromJust) (takeN_ (o' - o) s)
     return Rule{environment=envs, ..}
+  where
+    parseEnv = do
+        env1 <- parseLexemes
+        _ <- symbol "_"
+        env2 <- parseLexemes
+        return (env1, env2)
 
 filterParser :: Parser (Filter CategorySpec)
-filterParser = fmap (uncurry Filter) $ match $ symbol "filter" *> parseLexemes <* optional scn
+filterParser = do
+    loc <- unPos . sourceLine <$> getSourcePos
+    (p, f) <- match $ symbol "filter" *> parseLexemes <* optional scn
+    pure $ Filter p loc f
 
 -- Space handline is a little complex here: we want to make sure that
 -- 'report' is always on its own line, but can have as much or as

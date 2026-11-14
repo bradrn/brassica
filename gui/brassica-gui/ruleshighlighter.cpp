@@ -1,4 +1,5 @@
 #include "ruleshighlighter.h"
+#include <qtextformat.h>
 
 RulesHighlighter::RulesHighlighter(QTextDocument *parent)
     : QSyntaxHighlighter(parent)
@@ -6,7 +7,7 @@ RulesHighlighter::RulesHighlighter(QTextDocument *parent)
     QTextCharFormat specialCharsFormat;
     specialCharsFormat.setForeground(QColor(0, 0, 255));
     formats.append(specialCharsFormat);
-    patterns.append(QRegularExpression(R"(>|#|\(|\)|{|}|\\|\^|%|~|\*|categories|end|new|noreplace|feature|auto|extra|filter|report|@[0-9]+|@\?)"));
+    patterns.append(QRegularExpression(R"(>|#|\(|\)|{|}|\\|\^|%|~|\*|categories|end|new|noreplace|feature|auto|extra|pstart|pstop|filter|report|@[0-9]+|@\?)"));
 
     QTextCharFormat separatorFormat;
     separatorFormat.setFontWeight(QFont::Bold);
@@ -21,7 +22,7 @@ RulesHighlighter::RulesHighlighter(QTextDocument *parent)
     QTextCharFormat flagFormat;
     flagFormat.setForeground(QColor(0, 128, 128));
     formats.append(flagFormat);
-    patterns.append(QRegularExpression(R"(^-(x|1|ltr|rtl|\?\?|\?))"));
+    patterns.append(QRegularExpression(R"(^-(x|h|1|ltr|rtl|\?\?|\?))"));
 
     QTextCharFormat commentFormat;
     commentFormat.setForeground(QColor(0, 128, 0));

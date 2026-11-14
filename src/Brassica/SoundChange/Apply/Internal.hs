@@ -85,8 +85,10 @@ module Brassica.SoundChange.Apply.Internal
        , applyChanges
        , getOutput
        , getReports
+       , HighlightMode(..)
        , getChangedOutputs
        , getChangedReports
+       , rulesNotApplied
        ) where
 
 import Control.Applicative ((<|>))
@@ -323,12 +325,19 @@ matchKleene
     -> [(MatchOutput, MultiZipper t Grapheme)]
 matchKleene origOut = go 0 origOut
   where
-    go !n out prev l mz = case match out prev l mz of
-        [] -> [
-            ( insertAtKleene (length $ matchedKleenes origOut) n out
-            , mz
-            ) ]
-        r -> r >>= \(out', mz') -> go (n+1) out' prev l mz'
+    go !n out prev l mz =
+        ( insertAtKleene (length $ matchedKleenes origOut) n out
+        , mz
+        ) : case match out prev l mz of
+        [] -> []
+        r -> r >>= \case
+            (out', mz')
+                | curPos mz == curPos mz' ->
+                    -- cursor didn't advance, avoid infinite loop!
+                    [( insertAtKleene (length $ matchedKleenes origOut) n out
+                     , mz
+                    )]
+                | otherwise -> go (n+1) out' prev l mz'
 
 matchWildcard
     :: MatchOutput
@@ -634,7 +643,9 @@ matchRuleAtPoint target (env1,env2) mz = flip runRuleAp mz $ do
 -- | Status of a rule application at a single location.
 data RuleStatus
     = SuccessNormal      -- ^ Rule was successful, with no need for special handling
-    | SuccessEpenthesis  -- ^ Rule was successful, but cursor was not advanced (need to avoid infinite loop)
+    | SuccessEpenthesis Bool
+    -- ^ Rule was successful, but cursor was not advanced (need to avoid infinite loop);
+    -- also report whether any graphemes were matched before the replacement
     | Failure            -- ^ Rule failed
     deriving (Eq, Show)
 
@@ -650,12 +661,13 @@ applyOnce Rule{..} =
         case result of
             Just out -> do
                 exs <- case exception of
-                    Nothing -> pure []
-                    Just ex -> gets $ join . toList .
-                        extend' (exceptionAppliesAtPoint target ex)
+                    [] -> pure []
+                    exEnvs -> gets $ \mz ->
+                        join . toList . flip extend' mz . exceptionAppliesAtPoint target =<< exEnvs
                 originalWord <- get
                 let pMay = locationOf TargetStart originalWord
                     pMay' = locationOf PrevEnd originalWord
+                    noneMatchedBeforeReplacement = pMay == locationOf AppStart originalWord
                 case pMay of
                     Nothing -> error "applyOnce: start of target was not tagged"
                     Just p
@@ -676,10 +688,8 @@ applyOnce Rule{..} =
                         -- but not TargetStart, so restore its old position
                         modifyMay $ tagAt TargetStart p
                         return $
-                            -- An epenthesis rule will cause an infinite loop
-                            -- if it matched no graphemes before the replacement
-                            if null (matchedGraphemes out) && null (fst env)
-                                then SuccessEpenthesis
+                            if null (matchedGraphemes out)
+                                then SuccessEpenthesis noneMatchedBeforeReplacement
                                 else SuccessNormal
             Nothing -> modifyMay (seek AppStart) >> go envs
 
@@ -694,8 +704,13 @@ setupForNextApplication status Rule{flags=Flags{nonOverlappingTarget}} =
     resetTags <=< case status of
         SuccessNormal ->
             seek (if nonOverlappingTarget then TargetEnd else TargetStart)
-        SuccessEpenthesis ->
-            -- need to move forward if applying an epenthesis rule to avoid an infinite loop
+        SuccessEpenthesis False ->
+            -- treat as 'nonOverlappingTarget' to avoid possible infinite loops
+            -- (when the replacement would also match the first part of the target)
+            seek TargetEnd
+        SuccessEpenthesis True ->
+            -- matched no graphemes before replacement, so environment still matches:
+            -- move forward to avoid infinite loop
             seek TargetEnd >=> fwd
         Failure -> seek AppStart >=> fwd
   where
@@ -733,6 +748,7 @@ applyRuleMZ r = \mz ->    -- use a lambda so mz isn't shadowed in the where bloc
             , exception = reverseEnv <$> exception r
             , flags = flags r
             , plaintext = plaintext r
+            , loc = loc r
             }
 
     reverseEnv (e1, e2) = (reverse e2, reverse e1)
@@ -747,7 +763,7 @@ applyRuleMZ r = \mz ->    -- use a lambda so mz isn't shadowed in the where bloc
 
 -- | Check if a 'MultiZipper' matches a 'Filter'.
 filterMatches :: Filter Expanded -> MultiZipper RuleTag Grapheme -> Bool
-filterMatches (Filter _ ls) = go . toBeginning
+filterMatches (Filter _ _ ls) = go . toBeginning
   where
     go mz =
         let mzs = matchMany initialOutput Nothing ls mz
@@ -805,6 +821,8 @@ data LogItem r
     = ActionApplied r (Maybe PWord)
     -- ^ The word was modified: gives the output word, or 'Nothing' if
     -- the wordwas deleted
+    | ActionNotApplied r PWord
+    -- ^ The word was not modified by the given rule
     | ReportWord PWord
     -- ^ Corresponds to 'ReportS', giving the intermediate form to report
     deriving (Show, Functor, Generic, NFData)
@@ -813,8 +831,13 @@ data LogItem r
 -- action (ActionApplied r _ _) = Just r
 -- action (ReportWord _) = Nothing
 
+noApplication :: LogItem r -> Bool
+noApplication (ActionNotApplied _ _) = True
+noApplication _ = False
+
 logOutput :: LogItem r -> Maybe PWord
 logOutput (ActionApplied _ o) = o
+logOutput (ActionNotApplied _ o) = Just o
 logOutput (ReportWord o) = Just o
 
 -- | Logs the evolution of a word as it undergoes sound changes and
@@ -844,14 +867,20 @@ data Log r = Log
 reportAsHtmlRows
     :: (r -> String)  -- ^ Specifies how to pretty-print actions as text
     -> Log r -> String
-reportAsHtmlRows render item = go (concatWithBoundary $ inputWord item) (derivations item)
+reportAsHtmlRows render item
+    | all noApplication (derivations item) =
+        "<tr><td>" ++ input ++ "</td><td></td><td></td><td>(no change)</td>"
+    | otherwise = go input (derivations item)
   where
+    input = concatWithBoundary $ inputWord item
+
     go _ [] = ""
     go cell1 (ActionApplied action output : ds) =
         ("<tr><td>" ++ cell1 ++ "</td><td>&rarr;</td><td>"
          ++ maybe "<i>deleted</i>" concatWithBoundary output
          ++ "</td><td>(" ++ render action ++ ")</td></tr>")
         ++ go "" ds
+    go cell1 (ActionNotApplied _ _ : ds) = go cell1 ds
     go cell1 (ReportWord w : ds) =
         ("<tr><td>" ++ cell1 ++ "</td><td>&rarr;</td><td>"
          ++ concatWithBoundary w
@@ -878,11 +907,14 @@ reportAsHtmlRows render item = go (concatWithBoundary $ inputWord item) (derivat
 reportAsText
     :: (r -> String)  -- ^ Specifies how to pretty-print actions as text
     -> Log r -> String
-reportAsText render item = unlines $
-    concatWithBoundary (inputWord item) : fmap toLine (alignWithPadding $ derivations item)
+reportAsText render item
+    | all noApplication (derivations item) = input ++ " (no change)"
+    | otherwise = unlines $ input : fmap toLine (alignWithPadding $ derivations item)
   where
+    input = concatWithBoundary (inputWord item)
+
     alignWithPadding ds =
-        let (rawOutputs, actions) = unzip $ toPrintable <$> ds
+        let (rawOutputs, actions) = unzip $ mapMaybe toPrintable ds
             outputs = maybe "(deleted)" concatWithBoundary <$> rawOutputs
             maxlen = maximum $ length <$> outputs
             padded = outputs <&> \o -> o ++ replicate (maxlen - length o) ' '
@@ -890,8 +922,9 @@ reportAsText render item = unlines $
 
     toLine (output, action) = "  -> " ++ output ++ "  (" ++ action ++ ")"
 
-    toPrintable (ActionApplied a o) = (o, render a)
-    toPrintable (ReportWord w) = (Just w, "report")
+    toPrintable (ActionApplied a o) = Just (o, render a)
+    toPrintable (ActionNotApplied _ _) = Nothing
+    toPrintable (ReportWord w) = Just (Just w, "report")
 
 -- | Apply a single 'Statement' to a word. Returns a 'LogItem' for
 -- each possible result, or @[]@ if the rule does not apply and the
@@ -903,7 +936,7 @@ applyStatement
 applyStatement ReportS w = [ReportWord w]
 applyStatement st w = case applyStatementStr st w of
     [] -> [ActionApplied st Nothing]
-    [w'] | w' == w -> []
+    [w'] | w' == w -> [ActionNotApplied st w']
     r -> ActionApplied st . Just <$> r
 
 -- | Apply a set of 'SoundChanges' to a word, returning a log of which
@@ -927,6 +960,14 @@ applyChanges scs w = go scs w <&> \ls -> Log
                     Just w'' -> (l :) <$> go sts w''
                     -- apply no further changes to a deleted word
                     Nothing -> [[l]]
+                l@(ActionNotApplied _ w'') -> (l :) <$> go sts w''
+
+-- | Returns the list of sound changes which did /not/ apply in the
+-- given sound change log.
+rulesNotApplied :: Log r -> [r]
+rulesNotApplied =
+    mapMaybe (\case ActionNotApplied r _ -> Just r; _ -> Nothing)
+    . derivations
 
 -- | Returns the final output from a sound change log.
 getOutput :: Log r -> Maybe PWord
@@ -937,46 +978,51 @@ getOutput l = case derivations l of
 -- | Returns, in order: the input word, any intermediate results from
 -- 'ReportS', and then the final output.
 getReports :: Log r -> [PWord]
-getReports l = inputWord l : go (derivations l)
+getReports l = inputWord l : go Nothing (derivations l)
   where
-    go [] = []
-    go [ActionApplied _ (Just w')] = [w']
-    go (ReportWord w':ls) = w' : go ls
-    go (_:ls) = go ls
+    go w [] = maybeToList w
+    go _ (ActionApplied    _ w' : ls) = go w' ls
+    go _ (ActionNotApplied _ w' : ls) = go (Just w') ls
+    go _ (ReportWord w':ls) = w' : go (Just w') ls
+
+data HighlightMode = AllChanged | SpecificRule
+    deriving (Show, Eq)
+
+-- | Based on its flags, should this rule be highlighted in the given 'HighlightMode'?
+needsHighlight :: HighlightMode -> Rule c -> Bool
+needsHighlight m rule = case m of
+    AllChanged -> highlightChanges $ flags rule
+    SpecificRule -> highlightSpecificRule $ flags rule
 
 -- | Returns the final output from a sound change log, as well as an
 -- indication of whether any sound changes have applied to it
--- (accounting for 'highlightChanges' flags).
-getChangedOutputs :: Log (Statement c d) -> Maybe (PWord, Bool)
-getChangedOutputs l = case derivations l of
+-- (accounting for highlighting flags).
+getChangedOutputs :: HighlightMode -> Log (Statement c d) -> Maybe (PWord, Bool)
+getChangedOutputs m l = case derivations l of
     [] -> Just (inputWord l, False)
     logs -> case logOutput (last logs) of
         Just out -> Just (out, hasChanged logs)
         Nothing -> Nothing
   where
     hasChanged = any $ \case
-        ActionApplied (RuleS rule) _ -> highlightChanges $ flags rule
+        ActionApplied (RuleS rule) _ -> needsHighlight m rule
         ActionApplied (FilterS _) _ -> False  -- cannot highlight nonexistent word
         ActionApplied (DeclS _) _ -> True
         ActionApplied ReportS _ -> False  -- reporting a word yields no change
+        ActionNotApplied _ _ -> False
         ReportWord _ -> False
 
--- | A combination of 'getOutput' and 'getChangedOutputs': returns all
+-- | A combination of 'getReports' and 'getChangedOutputs': returns all
 -- intermediate results, as well as whether each has undergone any
 -- sound changes.
-getChangedReports :: Log (Statement c d) -> [(PWord, Bool)]
-getChangedReports l = (inputWord l, False) : case derivations l of
-    [] -> []
-    ls -> go False ls
+getChangedReports :: HighlightMode -> Log (Statement c d) -> [(PWord, Bool)]
+getChangedReports m l = (inputWord l, False) : go False Nothing (derivations l)
   where
-    go _ [] = []
-    go hasChanged (ActionApplied action _:ls) =
+    go hasChanged w [] = maybeToList $ w <&> (,hasChanged)
+    go hasChanged _ (ActionApplied action w':ls) =
         let hasChanged' = case action of
-                RuleS rule -> hasChanged || highlightChanges (flags rule)
+                RuleS rule -> hasChanged || needsHighlight m rule
                 _ -> hasChanged
-        in go hasChanged' ls
-    go hasChanged (ReportWord w':ls) = (w', hasChanged) : go hasChanged ls
-
--- | Apply a set of 'SoundChanges' to a word, returning the final
--- output word(s) as well as any intermediate results from 'ReportS',
--- each with a boolean marking changed results (as with 'applyChangesWithChanges').
+        in go hasChanged' w' ls
+    go hasChanged _ (ActionNotApplied _ w':ls) = go hasChanged (Just w') ls
+    go hasChanged _ (ReportWord w':ls) = (w', hasChanged) : go hasChanged (Just w') ls

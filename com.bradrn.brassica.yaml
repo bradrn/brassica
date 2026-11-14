@@ -1,0 +1,46 @@
+id: com.bradrn.brassica
+runtime: org.kde.Platform
+runtime-version: '6.10'
+sdk: org.kde.Sdk
+command: brassica-gui
+finish-args:
+- --socket=wayland
+- --socket=fallback-x11
+- --share=ipc
+- --device=dri
+cleanup:
+- /lib/haskell-repo
+- /lib/cabal-store/*/package.db
+- /lib/cabal-store/*/*/lib
+- /lib/cabal-store/*/*/bin
+modules:
+- haskell-sources.yaml
+- name: brassica
+  buildsystem: simple
+  build-commands:
+  - cabal --config-file=/app/lib/haskell-repo/cabal.config --project-file=flatpak.project install exe:brassica --installdir=/app/bin --install-method=copy -j$FLATPAK_BUILDER_N_JOBS
+  - install -Dm644 com.bradrn.brassica.metainfo.xml /app/share/metainfo/com.bradrn.brassica.metainfo.xml
+  - install -Dm644 gui/brassica-gui/brassica.desktop /app/share/applications/com.bradrn.brassica.desktop
+  - install -Dm644 gui/brassica-gui/brassica.png /app/share/icons/hicolor/256x256/apps/brassica.png
+  sources:
+  - type: dir
+    path: .
+    skip:
+    - .git
+    - .flatpak-builder
+    - build
+    - dist-newstyle
+    - dist-package
+  - type: inline
+    dest-filename: flatpak.project
+    contents: |
+      packages: ./
+      import: /app/lib/haskell-repo/freeze.project
+- name: brassica-gui
+  buildsystem: cmake-ninja
+  config-opts:
+  - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+  - -DFLATPAK=1
+  sources:
+  - type: dir
+    path: gui/brassica-gui 

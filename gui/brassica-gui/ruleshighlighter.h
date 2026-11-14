@@ -16,11 +16,11 @@ protected:
     void highlightBlock(const QString &text) override;
 
 private:
+    QTextCharFormat categoryFormat;
+
     // NB. these two shouldn't get out of sync!
     QStringList m_categories;
     QRegularExpression categoriesPattern;
-
-    QTextCharFormat categoryFormat;
 
     // and neither should these
     QVector<QTextCharFormat> formats;

@@ -12,7 +12,7 @@ module Brassica.Paradigm.Apply
 import Brassica.Paradigm.Types
 
 import Data.Functor ((<&>))
-import Data.List (sortOn, foldl', intercalate)
+import Data.List (sortOn, foldl', intercalate, nub)
 import Data.Maybe (mapMaybe)
 import Data.Ord (Down(Down))
 
@@ -21,8 +21,11 @@ import Data.Ord (Down(Down))
 data ResultsTree a = Node [ResultsTree a] | Result a
     deriving (Show, Functor, Foldable)
 
-addLevel :: (a -> [a]) -> ResultsTree a -> ResultsTree a
-addLevel f (Result r) = Node $ Result <$> f r
+addLevel :: (a -> [b]) -> ResultsTree a -> ResultsTree b
+addLevel f (Result r) =
+    case f r of
+        [r'] -> Result r'
+        r' -> Node $ Result <$> r'
 addLevel f (Node rs) = Node $ addLevel f <$> rs
 
 -- | Depth of a 'ResultsTree': i.e. how many levels of 'Node's it
@@ -50,11 +53,11 @@ formatNested f = snd . go
 
 -- | Apply the given 'Paradigm' to a root, to produce all possible
 -- derived forms.
-applyParadigm :: Paradigm -> String -> ResultsTree String
-applyParadigm p w =
+applyParadigm :: Paradigm -> Maybe String -> [String] -> ResultsTree String
+applyParadigm p pclass ws =
     let fs = mapMaybe getFeature p
         ms = mapMaybe getMapping p
-    in applyTo w . expand ms <$> combinations fs
+    in addLevel (applyTo ws . expand ms) $ combinations pclass fs
   where
     getFeature (NewFeature f) = Just f
     getFeature _ = Nothing
@@ -62,17 +65,25 @@ applyParadigm p w =
     getMapping (NewMapping k v) = Just (k,v)
     getMapping _ = Nothing
 
-combinations :: [Feature] -> ResultsTree [Grammeme]
-combinations =
-    (fmap.fmap) snd . foldl' go (Result [])
+evalExpr :: (a -> Bool) -> Expr a -> Bool
+evalExpr p (Any xs) = any (evalExpr p) xs
+evalExpr p (All xs) = all (evalExpr p) xs
+evalExpr p (Pred a) = p a
+
+combinations :: Maybe String -> [Feature] -> ResultsTree [Grammeme]
+combinations pclass =
+    let initGrammemes = case pclass of
+            Just p -> [(Just Class, Abstract (AbstractGrammeme p))]
+            _ -> []
+    in (fmap.fmap) snd . foldl' go (Result initGrammemes)
   where
     addFeature
         :: Feature
         -> [(Maybe FeatureName, Grammeme)]
         -> [[(Maybe FeatureName, Grammeme)]]
     addFeature (Feature c n gs) acc
-        | satisfied (flip lookup acc . Just) c
-        = gs <&> \g -> (n, g):acc
+        | evalExpr (satisfied (flip lookup acc . Just)) c
+        = gs <&> \g -> (FeatureName <$> n, g):acc
         | otherwise
         = [acc]
 
@@ -85,7 +96,6 @@ combinations =
         :: (FeatureName -> Maybe Grammeme)
         -> Condition
         -> Bool
-    satisfied _ Always = True
     satisfied l (Is n g) = case l n of
         Just g' -> g == g'
         Nothing -> False
@@ -93,7 +103,7 @@ combinations =
         Just g' -> g /= g'
         Nothing -> True
 
-expand :: [([AbstractGrammeme], Affix)] -> [Grammeme] -> [Process]
+expand :: [(Expr AbstractGrammeme, Affix)] -> [Grammeme] -> [Process]
 expand ms = concat . ((++) <$> concretes <*> (replace . filterAbstract))
   where
     concretes :: [Grammeme] -> [Affix]
@@ -109,20 +119,25 @@ expand ms = concat . ((++) <$> concretes <*> (replace . filterAbstract))
     replace :: [AbstractGrammeme] -> [Affix]
     replace gs = do
         (condition, replacement) <- ms
-        if condition `subsetOf` gs
+        if evalExpr (`elem` gs) condition
            then return replacement
            else []
 
-    xs `subsetOf` ys = all (`elem` ys) xs
-
-applyTo :: String -> [Process] -> String
-applyTo w is =
+applyTo :: [String] -> [Process] -> [String]
+applyTo ws is =
     let ps = concatMap snd $ sortOn (Down . fst) $ mapMaybe getPrefix is
         ss = concatMap snd $ sortOn         fst  $ mapMaybe getSuffix is
-    in ps ++ w ++ ss
+        stems = case nub (mapMaybe getStem is) of
+            [] | [_] <- ws -> ws
+            [s] | s >= 1 && s <= length ws -> [ws !! (s-1)]
+            s -> [show s]
+    in stems <&> \stem -> ps ++ stem ++ ss
   where
     getPrefix (Prefix s i) = Just (s,i)
     getPrefix _ = Nothing
 
     getSuffix (Suffix s i) = Just (s,i)
     getSuffix _ = Nothing
+
+    getStem (Stem i) = Just i
+    getStem _ = Nothing

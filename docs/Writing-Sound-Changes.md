@@ -412,6 +412,41 @@ It is suggested to add `-x` before every romanisation rule,
 
 ## Advanced usage
 
+### Exceptions
+
+You can add an **exception** to a sound change by placing an environment after two slashes `//`.
+If a sound change contains an exception,
+  Brassica will *not* apply it in any position where the exception matches.
+
+For example, the following exceptionless rule replaces ⟨t⟩ with ⟨s⟩ before ⟨i⟩:
+```brassica
+t / s / _ i
+
+; lati → lasi
+; tisa → sisa
+; anti → ansi
+```
+The following rule adds an exception to specify that ⟨t⟩ should *not* change after ⟨n⟩:
+```brassica
+t / s / _ i // n _
+
+; lati → lasi
+; tisa → sisa
+; anti → anti
+```
+
+It is possible to add multiple exceptions simply by adding more environments separated by slashes.
+A rule with multiple exceptions will not be applied in any location where any of the exceptions match.
+Thus, the following rule does not apply after ⟨n⟩, or when the following ⟨i⟩ is followed by ⟨s⟩:
+```brassica
+t / s / _ i // n _ / _ i s
+
+; lati → lasi
+; tisa → tisa
+; anti → anti
+```
+
+
 ### Multigraphs
 
 Often, two letters are used to represent a single sound, as in ⟨sh⟩ or ⟨ng⟩.
@@ -671,7 +706,7 @@ Here, the wildcard expresses the desired sound change:
 Note that the target `_` does not qualify as something that can be modified by wildcards or stars!
 That is, you cannot write `_*` or `^_`.
 Of course, the former makes no sense, since it would imply matching the target multiple times in an environment.
-The latter is easier to imagine, but as of Brassica version 1.0.0, it too is disallowed.
+The latter is easier to imagine, but as of Brassica version 1.1.0, it too is disallowed.
 
 ### Multiple results
 
@@ -1419,7 +1454,7 @@ But a more flexible solution is to use explicit feature backreferences:
   `[i u] a$High#second / [y w] e$High#second`.
 
 Of course, one might want the result to have high tone when *either* of the input graphemes have high tone.
-As of Brassica version 1.0.0, this is not possible in a single rule,
+As of Brassica version 1.1.0, this is not possible in a single rule,
   but it can be accomplished by transfering high tone to the first vowel beforehand:
 
 ```brassica

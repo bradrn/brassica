@@ -33,7 +33,7 @@
 --     * Each word is a sequence of t'Grapheme's
 --
 -- For more details on the syntax and semantics of sound changes,
--- refer to the [reference guide](https://github.com/bradrn/brassica/blob/v1.0.0/docs/Reference.md).
+-- refer to the [reference guide](https://github.com/bradrn/brassica/blob/v1.1.0/docs/Reference.md).
 module Brassica.SoundChange.Types
        (
        -- * Words and graphemes
@@ -121,7 +121,7 @@ data LexemeType
 -- to 'Matched' or 'Replacement' positions respectively.
 --
 -- For details on the syntax and semantics of each kind of lexeme,
--- refer to the [reference guide](https://github.com/bradrn/brassica/blob/v1.0.0/docs/Reference.md).
+-- refer to the [reference guide](https://github.com/bradrn/brassica/blob/v1.1.0/docs/Reference.md).
 data Lexeme category (a :: LexemeType) where
     Grapheme :: Grapheme -> Lexeme category a
     Category :: category a -> Lexeme category a
@@ -275,10 +275,12 @@ data Sporadicity
 -- change how it is applied.
 data Flags = Flags
   { highlightChanges :: Bool         -- ^ Whether results from this sound change can be highlighted in a GUI
+  , highlightSpecificRule :: Bool     -- ^ Whether to highlight words changed by this rule in particular (when the appropriate option is set)
   , applyDirection   :: Direction    -- ^ Direction in which to apply the rule
   , applyOnceOnly    :: Bool         -- ^ Whether to apply the rule only once to a word
   , sporadic         :: Sporadicity  -- ^ Whether the rule should be applied sporadically, and if so, how
   , nonOverlappingTarget :: Bool     -- ^ Whether the rule should apply non-iteratively (avoiding environments which overlap with targets)
+  , persistent       :: Maybe String -- ^ Whether to continue applying the rule persistently (with a label to disable the rule eventually)
   } deriving (Show, Generic, NFData)
 
 -- | A default selection of flags which are appropriate for most
@@ -299,31 +301,35 @@ data Flags = Flags
 defFlags :: Flags
 defFlags = Flags
     { highlightChanges = True
+    , highlightSpecificRule = False
     , applyDirection = LTR
     , applyOnceOnly = False
     , sporadic = ApplyAlways
     , nonOverlappingTarget = False
+    , persistent = Nothing
     }
 
 -- | A single sound change rule.
 --
 -- In Brassica sound-change syntax with all elements specified, this would be
--- @-flags target / replacement \/ environment1 \/ environment2 \/ … \/ exception@.
+-- @-flags target / replacement \/ environment1 \/ environment2 \/ … \/\/ exception1 \/ exception2 \/ …@.
 data Rule c = Rule
   { target      :: [Lexeme c 'Matched]
   , replacement :: [Lexeme c 'Replacement]
   , environment :: [Environment c]
-  , exception   :: Maybe (Environment c)
+  , exception   :: [Environment c]
   , flags       :: Flags
   , plaintext   :: String  -- ^ Rule text before parsing (displayed e.g. for debugging purposes)
+  , loc         :: Int     -- ^ Line number of rule in original source file (1-indexed!)
   } deriving (Generic)
 
 deriving instance (forall a. Show (c a)) => Show (Rule c)
 deriving instance (forall a. NFData (c a)) => NFData (Rule c)
 
--- | A filter, constraining the output to not match the given elements.
--- (The 'String' is the plaintext, as with 'Rule'.)
-data Filter c = Filter String [Lexeme c 'Matched]
+-- | A filter, constraining the output to not match the given
+-- elements.  (The 'String' is the plaintext and the 'Int' is the line
+-- number, as with 'Rule'.)
+data Filter c = Filter String Int [Lexeme c 'Matched]
     deriving (Generic)
 
 deriving instance (forall a. Show (c a)) => Show (Filter c)
@@ -350,7 +356,7 @@ deriving instance (forall a. NFData (c a), NFData decl) => NFData (Statement c d
 -- @"\<declaration\>"@ for all 'DeclS' inputs.
 plaintext' :: Statement c decl -> String
 plaintext' (RuleS r) = plaintext r
-plaintext' (FilterS (Filter p _)) = p
+plaintext' (FilterS (Filter p _ _)) = p
 plaintext' ReportS = "intermediate result"
 plaintext' (DeclS _) = "<declaration>"
 
@@ -412,11 +418,13 @@ data CategoryDefinition
 -- something for later use.
 data Directive
     = Categories  -- ^ Category definition block
+        Int   -- ^ Line number
         Bool  -- ^ Whether category was introduced with @new@
         Bool  -- ^ Whether category was introduced with @noreplace@
         [CategoryDefinition]
     | ExtraGraphemes [String]
       -- ^ Extra graphemes declaration: @extra …@
+    | DisablePersistent String
     deriving (Show, Eq, Ord, Generic, NFData)
 
 -- | A list of graphemes, replacing v'Categories' in expanded sound

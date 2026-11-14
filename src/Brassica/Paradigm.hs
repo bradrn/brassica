@@ -14,12 +14,14 @@ module Brassica.Paradigm
        , Grammeme(..)
        , AbstractGrammeme(..)
        , Condition(..)
+       , Expr(..)
        , Feature(..)
        , FeatureName(..)
        , Statement(..)
        , Paradigm
        -- * Parsing and pretty-printing
        , parseParadigm
+       , parseStems
        , formatNested
        -- * Paradigm application
        , applyParadigm

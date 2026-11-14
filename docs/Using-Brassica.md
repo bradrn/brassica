@@ -1,4 +1,3 @@
-<!-- -*-GFM-*- -->
 
 # Using Brassica
 
@@ -28,6 +27,10 @@ The command-line interface is best suited for batch processing of large wordlist
 Invoke it with the `--help` argument to see documentation.
 Most options have counterparts in the graphical interface, to which they behave similarly.
 
+(Note: if you have installed the Flatpak distribution for Linux,
+  you will need to explicitly pass `--command brassica` to `flatpak run`
+  if you want to run the command-line interface.)
+
 A Haskell library is provided to allow for embedding into other programs.
 It is documented at the Hackage link above.
 The library allows sound changes to be written as Haskell programs,
@@ -47,8 +50,6 @@ For normal usage,
   enter your sound change rules in the leftmost textbox,
   and your input words in the textbox second from the left.
 Then press the ‘Apply’ button to view the result of applying your rules to your lexicon.
-Alternately, you can select ‘Report rules applied’:
-  this will display a table showing the evolution of each word as it was modified by the sound changes.
 
 In more detail, the four components of the main window are, from left to right:
 
@@ -92,14 +93,14 @@ Also on desktop only, there are two keyboard shortcuts:
 
 ## Rule application
 
-The most important elements of the control pane are the two buttons at the top.
+The most important elements of the control pane are the three buttons at the top.
 These cause the rules to be applied to the input, and place the results into the output box.
 The **Apply** button simply does the application,
   and displays the output words as specified by the other settings in the control pane.
 (As mentioned above, on desktop pressing Ctrl+Enter does the same thing.)
 By contrast, **Report rules applied** displays not only the input and output words,
-  but every sound change which applied to the input to produce the output,
-  alongside all the intermediate forms.
+  but a table showing the evolution of each word,
+  including every sound change which applied to it and all the intermediate forms.
 
 Another way to apply rules is by selecting the **View results live** checkbox
   (near the bottom of the control pane).
@@ -107,6 +108,19 @@ When this is selected, the rules will be re-applied to the input lexicon
   whenever either textbox is modified,
   and whenever any controls are changed.
 This can sometimes be slow so this checkbox is disabled by default.
+
+Below ‘View results live’, there is another checkbox labelled **Highlight unused rules**.
+When this is selected, the editor will highlight
+  all sound changes which were *not* triggered by any of the input words
+  in the course of their evolution.
+On the desktop the highlight is a grey background;
+  on the web it is a grey underline.
+
+Sometimes rule application can result in an error.
+In this case the error message will be shown in the output box,
+  and the offending rule will be underlined in red.
+In live mode, the output box will be greyed out rather than the error message interrupting; 
+  if you wish to see the error message you can still do that by pressing ‘Apply’.
 
 ## Output highlighting
 
@@ -129,6 +143,10 @@ The exception is sound changes which are flagged with `-x`:
   these are ignored by sound change highlighting.
 (This is useful for rules for romanisation and similar,
   which are not ‘meaningful’ sound changes but will often affect many words.)
+  
+When **Specific rule (-h) applied** is selected,
+  Brassica expects some sound changes to be annotated with the flag `-h`.
+It will then highlight all words which were affected by those sound changes.
   
 ## Input and output format
 

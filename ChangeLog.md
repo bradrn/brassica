@@ -1,5 +1,62 @@
 # Brassica changelog
 
+## 1.1.0
+
+### Behaviour
+
+- Bugfixes:
+  - The first element of categories is now treated consistently
+      accross both category blocks and inline categories.
+  - Combining optional elements with the Kleene star no longer causes an infinite loop
+  - Highlighting ‘any rule applied’ with ‘input→output’ format now works correctly
+- Improvements to paradigm builder:
+  - Stem alternations are now supported with new `~n` syntax
+  - Paradigm classes can be specified for individual words with new `#paradigm` syntax
+  - Feature mappings and `when` conditions can now include multiple alternatives
+  - Blank lines are now allowed in paradigm specifications
+- Kleene star can now produce multiple results, no longer restricted to greedy matching (resolving https://github.com/bradrn/brassica/issues/7)
+- Epenthesis rules with environments matching replacements no longer yield an infinite loop (resolving https://github.com/bradrn/brassica/issues/10)
+- New option to highlight only words affected by specific rules, selected with new flag `-h`
+- New flag `-pstart <name>` to create persistent rules, disabled with new directive `pstop <name>`
+- Allow specifying multiple exceptions in a single rule
+- New checkbox / command-line option to highlight unused rules in the rules editor
+- ‘Input→output’ format and ‘Report rules applied’ both now show unchanged words explicitly
+- Syntax errors are now highlighted in the rules editor
+- In live mode, output box is greyed out rather than being interrupted with error messages
+- On desktop and web, results are now computed asynchronously (i.e. without causing the UI to freeze)
+
+### Code
+
+- New flag `highlightSpecificRule` added to `Brassica.SoundChanges.Types.Flags`
+- `Brassica.SoundChanges.Apply.getChangedOutputs` and `Brassica.SoundChanges.Apply.getChangedReports`
+    now take an extra parameter of new type `Brassica.SoundChanges.Apply.HighlightMode`,
+    as does the constructor `Brassica.SoundChange.Frontend.Internal.DifferentToInput`
+- New function `Brassica.SoundChanges.Apply.rulesNotApplied`
+- Method of reporting rules to frontend is now selected by new type `Brassica.SoundChange.Frontend.Internal.ReportMode`,
+    with corresponding changes in `Brassica.SoundChange.Frontend.Internal.ApplicationMode`
+    and `Brassica.SoundChange.Frontend.Internal.ApplicationOutput`
+- Changed `Brassica.SoundChange.Types.Rule` to admit multiple exceptions
+- New field for line number in `Brassica.SoundChange.Types.Rule`,
+    `Brassica.SoundChange.Types.Filter`, `Brassica.SoundChanges.Types.Directive`
+- Persistent rules:
+  new flag `persistent` in `Brassica.SoundChange.Types.Flags`,
+  and new directive `DisablePersistent` in same module
+- Changes to paradigm builder:
+  - New constructors `Stem` and `Class` in `Brassica.Paradigm.Types`
+  - New type `Brassica.Paradigm.Expr`, now used in `Statement` and `Feature` in the same module
+  - Constructor `Brassica.Paradigm.Always` removed (it can be replaced by `All []`)
+  - `Brassica.Paradigm.Feature` now takes a `String` rather than a `FeatureName`
+  - `Brassica.Paradigm.applyParadigm` now takes a list of stems with paradigm specification
+      rather than a single root
+  - New function `Brassica.Paradigm.parseStems` to parse stems with paradigm specifications
+- New field in constructor `Brassica.SoundChange.Apply.Internal.SuccessEpenthesis`
+- Web communication protocol now uses JSON as with desktop:
+  - `ToJSON` and `FromJSON` instances added for `Brassica.SoundChange.Tokenise.Component`
+  - `Enum` instances removed from types in `Brassica.SoundChange.Frontend.Internal` as now unnecessary
+  - JSON server implementation moved from CLI to `Brassica.SoundChange.Frontend.Internal`;
+      CLI `Server` and web `BrassicaInterop` modules are both now just a thin wrapper over this module
+
+
 ## 1.0.0
 
 ### Behaviour

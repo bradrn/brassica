@@ -34,8 +34,9 @@ Each statement can be:
 - a [sound change](#sound-change-rules);
 - a [category definition block](#category-definition-block);
 - a [filter](#filters);
-- an [extra graphemes declaration](#extra-graphemes); or
-- a [report instruction](#reporting).
+- an [extra graphemes declaration](#extra-graphemes);
+- a [report instruction](#reporting); or
+- a [persistent rule end](#persistent-rules).
 
 Additionally, **comments** may be specified as text after a semicolon.
 Commented text is ignored when processing sound changes.
@@ -84,6 +85,10 @@ This highlighting occurs for all words which satisfy one of the following condit
     and the sound change was not flagged with `-x`.
 - At least one grapheme in the word was replaced by a category definition block.
 
+There is also an option to highlight output words when ‘Specific rule (-h) applied’.
+This is similar to the previous option, but only considers sound changes flagged with `-h`:
+  any other sound changes are considered irrelevant for highlighting purposes.
+
 ## Sound changes
 
 ### Sound change syntax
@@ -91,8 +96,8 @@ This highlighting occurs for all words which satisfy one of the following condit
 A sound change rule has the following syntax
   (using [EBNF as defined in the W3C XML standard](https://www.w3.org/TR/REC-xml/#sec-notation)):
 ```ebnf
-SoundChange ::= Flag* Lexeme* ("/" | "→" | "->") Lexeme* ("/" Environment)* ("//" Environment)?
-Flag ::= "-ltr" | "-rtl" | "-1" | "-?" | "-??" | "-x" | "-no"
+SoundChange ::= Flag* Lexeme* ("/" | "→" | "->") Lexeme* ("/" Environment)* ("//" Environment ("/" Environment)*)?
+Flag ::= "-ltr" | "-rtl" | "-1" | "-?" | "-??" | "-x" | "-no" | "-pstart" [a-zA-Z0-9]+
 Environment ::= Lexeme* "_" Lexeme*
 ```
 The components of a sound change are named as follows:
@@ -171,7 +176,7 @@ Simplifying slightly, for the usual case of left-to-right application, rule appl
 
 1. Add word boundary graphemes `#` to the beginning and end of the word.
 2. Initialise the current position to the beginning of the word.
-3. If the sound change has an exception, and that exception matches the current position, go to the next position.
+3. If the sound change has any exception which matches the current position, go to the next position.
 4. For each environment in the sound change, or for the environment `_` if no environment is specified:
     1. Match each lexeme before the underscore to the input word in sequence, from left to right.
     2. Match each lexeme in the target to the input word, in the same manner.
@@ -535,8 +540,8 @@ Each wildcard `^l` in the replacement
   followed by producing the graphemes which result from `l`.
   
 A **Kleene star** lexeme takes the form `l*`, where `l` is again any lexeme.
-This matches zero or more repetitions of `l`.
-As many repetititions as possible are matched.
+This matches zero or more repetitions of `l`,
+  returning multiple results unless further lexemes prevent some from matching.
 This lexeme never fails to match.
 
 A **list of matched Kleene stars** is maintained by the target.
@@ -559,6 +564,23 @@ Note that the wildcard and Kleene star are opposites in important ways:
 ; eta → etá
 ; etap → etáp
 ; etaymbs → etáymbs
+```
+
+```brassica
+[e o] / [i u] / _ [C V]* i
+
+; meka → meka (no change)
+; mei → mii
+; meki → miki
+; moski → muski
+; moaki → muaki
+```
+
+```brassica
+-rtl -Stress / +Stress / _ C C* -Stress C C* +Stress
+
+; anstarchatapé → ánstarchátapé
+; anstarchatápe → anstárchatápe
 ```
 
 ```brassica
@@ -602,7 +624,7 @@ Instead, the feature values are taken from predefined categories, as follows:
     the first elements of all these categories, then their second elements, and so on.
   The order of graphemes within a correspondence set is not explicitly specified,
     but is guaranteed to be consistent both within a feature and across features.
-  (As of Brassica 1.0.0 they are arranged in ascending alphabetical order of the category names.)
+  (As of Brassica 1.1.0 they are arranged in ascending alphabetical order of the category names.)
 
 The **values** of a feature are taken to cross-cut their correspondence sets.
 A feature has two values if it has two elements in each correspondence,
@@ -845,7 +867,7 @@ The correspondence set of that autosegmental grapheme contains
 
 Note that, as with other kinds of definitions,
   no more than one autosegmental definition can be given for any given grapheme.
-An attempt to create nested autosegmental definitions will cause an error, as of Brassica 1.0.0.
+An attempt to create nested autosegmental definitions will cause an error, as of Brassica 1.1.0.
 
 For a concrete example, consider:
 ```
@@ -935,3 +957,32 @@ This will cause Brassica to record all output words at that point in the rules f
 These intermediate results will be displayed
   if selecting ‘Input→output’ format in a graphical interface,
   or `--show-input` in the CLI.
+
+### Persistent rules
+
+A sound change can be made **persistent** by prefixing it with the special flag `-pstart <name>`,
+  where the `<name>` consists of one or more alphanumeric characters.
+A persistent rule will be re-applied after every subsequent rule,
+  until a category block or the special declaration `pstop <name>` is encountered.
+
+Multiple persistent rules can be defined at the same time.
+After each subsequent sound change they will be re-applied in the same order that they were defined.
+A `pstop <name>` declaration disables only those persistent rule(s) which were defined with that name.
+
+```brassica
+-pstart glide i / y / _ V
+-pstart hiatus V / / V _
+
+h / / V _ V
+sh / s i~
+
+pstop glide
+
+y / / [e i] _
+
+; kiha → kya
+; keha → ke
+; kiya → ki
+; keya → ke
+; kesha → kesya
+```

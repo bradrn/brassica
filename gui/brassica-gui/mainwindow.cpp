@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "brassicaprocess.h"
 #include "finddialog.h"
 #include "paradigmwindow.h"
 #include "settingsdialog.h"
@@ -22,13 +23,18 @@
 #include <qmessagebox.h>
 #include <qnamespace.h>
 #include <qradiobutton.h>
+#include <qtextcursor.h>
 
-MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
+MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , settings()
-    , proc(proc)
+    , m_live(false)
 {
-    prev = new QJsonValue(QJsonValue::Null);
+    proc = new BrassicaProcess(this);
+    if (!proc->startupCorrect()) {
+        qFatal("MainWindow: cannot create Brassica child process! error code %d",
+               proc->errorState());
+    }
 
     setWindowTitle("Brassica");
 
@@ -39,13 +45,17 @@ MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
     setupMenuBar();
     applySettings();
 
-    connect(applyBtn      , &QPushButton::clicked  , this, [this] { applySoundChanges(false, false); });
-    connect(reportRulesBtn, &QPushButton::clicked  , this, [this] { applySoundChanges(false, true); } );
+    connect(applyBtn      , &QPushButton::clicked  , this, [this] { applySoundChanges(false, BrassicaProcess::NoReport); });
+    connect(reportRulesBtn, &QPushButton::clicked  , this, [this] { applySoundChanges(false, BrassicaProcess::ReportApplied); } );
 
     QShortcut *applyShortcut1 = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Return), this);
     QShortcut *applyShortcut2 = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Enter ), this);
-    connect(applyShortcut1, &QShortcut::activated, this, [this] { applySoundChanges(false, false); });
-    connect(applyShortcut2, &QShortcut::activated, this, [this] { applySoundChanges(false, false); });
+    connect(applyShortcut1, &QShortcut::activated, this, [this] { applySoundChanges(false, BrassicaProcess::NoReport); });
+    connect(applyShortcut2, &QShortcut::activated, this, [this] { applySoundChanges(false, BrassicaProcess::NoReport); });
+
+    connect(proc, &BrassicaProcess::rulesResult, this, &MainWindow::rulesResult);
+    connect(proc, &BrassicaProcess::notAppliedResult, this, &MainWindow::setHighlights);
+    connect(proc, &BrassicaProcess::errorResult, this, &MainWindow::errorResult);
 
     QShortcut *toggleShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Tab), this);
     connect(toggleShortcut, &QShortcut::activated, this, &MainWindow::toggleCursor);
@@ -60,32 +70,28 @@ MainWindow::MainWindow(BrassicaProcess *proc, QWidget *parent)
     connect(synchroniseScrolls, &QCheckBox::toggled, this, [this](bool checked) {
         if (checked) updateOutputFromWordsSlider(wordsEditVScroll->value());
     });
+    connect(reportRulesNotApplied, &QCheckBox::toggled, this, &MainWindow::highlightUnusedRules);
 
     connect(mdfBtn   , &QRadioButton::toggled, this, &MainWindow::reselectCheckboxes);
     connect(mdfAltBtn, &QRadioButton::toggled, this, &MainWindow::reselectCheckboxes);
 
     // live highlighting
-    connect(rulesEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
-    connect(wordsEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, false); });
-    connect(nohighlightBtn   , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
-    connect(diffhighlightBtn , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
-    connect(inputhighlightBtn, &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
-    connect(rawBtn           , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
-    connect(mdfBtn           , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
-    connect(mdfAltBtn        , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
-    connect(mdfoutBtn        , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
-    connect(mdfetymoutBtn    , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
-    connect(rawoutBtn        , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
-    connect(inoutBtn         , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
-    connect(inoutBtnPreserve , &QRadioButton::toggled, this, [this] { applySoundChanges(true, false); });
+    connect(rulesEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(wordsEdit, &QPlainTextEdit::textChanged, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(nohighlightBtn   , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(diffhighlightBtn , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(inputhighlightBtn, &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(specifichighlightBtn, &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(rawBtn           , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(mdfBtn           , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(mdfAltBtn        , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(mdfoutBtn        , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(mdfetymoutBtn    , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(rawoutBtn        , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(inoutBtn         , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
+    connect(inoutBtnPreserve , &QRadioButton::toggled, this, [this] { applySoundChanges(true, BrassicaProcess::NoReport); });
 
-    connect(viewLive, &QRadioButton::toggled, this, [this](bool checked) { if (checked) applySoundChanges(false, false); });
-}
-
-MainWindow::~MainWindow()
-{
-    delete prev;
-    // proc is deleted in main()
+    connect(viewLive, &QRadioButton::toggled, this, [this](bool checked) { if (checked) applySoundChanges(false, BrassicaProcess::NoReport); });
 }
 
 void MainWindow::setupWidgets(QWidget *central)
@@ -108,6 +114,13 @@ void MainWindow::setupWidgets(QWidget *central)
     rulesLayout->addWidget(rulesLbl);
     rulesLayout->addWidget(rulesEdit);
 
+    highlightFormat = QTextCharFormat();
+    highlightFormat.setBackground(QColor(200, 200, 200));
+
+    errorFormat = QTextCharFormat();
+    errorFormat.setFontUnderline(true);
+    errorFormat.setUnderlineStyle(QTextCharFormat::SpellCheckUnderline);
+
     QLabel *wordsLbl = new QLabel("Input lexicon:");
     wordsEdit = new QPlainTextEdit;
     wordsLayout->addWidget(wordsLbl);
@@ -120,6 +133,9 @@ void MainWindow::setupWidgets(QWidget *central)
 
     reportRulesBtn = new QPushButton("Report rules applied");
     midLayout->addWidget(reportRulesBtn);
+
+    applyProgress = new QProgressBar();
+    midLayout->addWidget(applyProgress);
 
     QGroupBox *highlightBox = new QGroupBox("Output highlighting");
     QVBoxLayout *highlightLayout = new QVBoxLayout(highlightBox);
@@ -134,6 +150,9 @@ void MainWindow::setupWidgets(QWidget *central)
 
     inputhighlightBtn = new QRadioButton("Any rule applied");
     highlightLayout->addWidget(inputhighlightBtn);
+
+    specifichighlightBtn = new QRadioButton("Specific rule (-h) applied");
+    highlightLayout->addWidget(specifichighlightBtn);
 
     QGroupBox *inputFormatBox = new QGroupBox("Input lexicon format");
     QVBoxLayout *inputFormatLayout = new QVBoxLayout(inputFormatBox);
@@ -173,6 +192,9 @@ void MainWindow::setupWidgets(QWidget *central)
 
     viewLive = new QCheckBox("View results live");
     midLayout->addWidget(viewLive);
+
+    reportRulesNotApplied = new QCheckBox("Highlight unused rules");
+    midLayout->addWidget(reportRulesNotApplied);
 
     synchroniseScrolls = new QCheckBox("Synchronise scroll positions");
     synchroniseScrolls->setChecked(true);
@@ -234,14 +256,14 @@ void MainWindow::setupMenuBar()
     QMenu *helpMenu = menuBar()->addMenu("&Help");
     helpMenu->addAction("Open online help", this, [this] {
         QDesktopServices::openUrl(
-            QUrl("https://github.com/bradrn/brassica/blob/v1.0.0/docs")
+            QUrl("https://github.com/bradrn/brassica/blob/v1.1.0/docs")
             );
     });
     helpMenu->addAction("About Brassica", this, [this] {
         QMessageBox::about(
             this,
             "About Brassica",
-            "Brassica 1.0.0.\nCopyright Brad Neimann © 2020-2024\nWebsite: https://bradrn.com/brassica"
+            "Brassica 1.1.0.\nCopyright Brad Neimann © 2020-2026\nWebsite: https://bradrn.com/brassica"
             );
     });
     helpMenu->addAction("About Qt", this, [this] { QMessageBox::aboutQt(this); });
@@ -368,9 +390,10 @@ void MainWindow::closeEvent(QCloseEvent *event)
     event->accept();
 }
 
-void MainWindow::applySoundChanges(bool live, bool reportRules)
+void MainWindow::applySoundChanges(bool live, BrassicaProcess::ReportMode reportRules)
 {
-    if (live && !viewLive->isChecked()) return;
+    if ((live && !viewLive->isChecked()) || blockLiveUpdate) return;
+    m_live = live;
 
     QString rules      = rulesEdit     ->toPlainText();
     QString words      = wordsEdit     ->toPlainText();
@@ -383,7 +406,8 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
 
     BrassicaProcess::HighlightMode checkedHl = BrassicaProcess::NoHighlight;
     if (diffhighlightBtn->isChecked()) checkedHl = BrassicaProcess::DifferentToLastRun;
-    else if (inputhighlightBtn->isChecked()) checkedHl = BrassicaProcess::DifferentToInput;
+    else if (inputhighlightBtn->isChecked()) checkedHl = BrassicaProcess::DifferentToInputAllChanged;
+    else if (specifichighlightBtn->isChecked()) checkedHl = BrassicaProcess::DifferentToInputSpecificRule;
 
     BrassicaProcess::OutputMode outMode = BrassicaProcess::WordsOnlyOutput;
     if (mdfoutBtn->isChecked()) outMode = BrassicaProcess::MDFOutput;
@@ -391,21 +415,122 @@ void MainWindow::applySoundChanges(bool live, bool reportRules)
     else if (inoutBtn->isChecked()) outMode = BrassicaProcess::WordsWithProtoOutput;
     else if (inoutBtnPreserve->isChecked()) outMode = BrassicaProcess::WordsWithProtoOutputPreserve;
 
-    QString output = proc->parseTokeniseAndApplyRules(
+    applyProgress->setRange(0,0);
+    bool posted = proc->parseTokeniseAndApplyRules(
         rules,
         words,
         reportRules,
         infmt,
         checkedHl,
         outMode,
-        prev,
-        multiResultSep->text());
+        multiResultSep->text(),
+        // Timeout of 3 s
+        3000000);
+    if (live && !posted) requeueLive = true;
+}
 
+
+void MainWindow::rulesResult(QString output)
+{
+    applyProgress->setRange(0,100);
+    outputEdit->setEnabled(true);
     blockScrollTrackingEvent = true;
     outputEdit->setHtml("<pre style=\"font-family: inherit\">" + output + "</pre>");
 
     blockScrollTrackingEvent = false;
     updateOutputFromWordsSlider(wordsEditVScroll->value());
+
+    this->m_errors = QList<int>();
+    repopulateExtraSelections();
+
+    blockLiveUpdate = true;
+    highlightUnusedRules(reportRulesNotApplied->isChecked());
+    blockLiveUpdate = false;
+
+    runQueued();
+}
+
+void MainWindow::errorResult(QString output, QList<int> errors)
+{
+    applyProgress->setRange(0,100);
+    if (m_live) {
+        outputEdit->setEnabled(false);
+    } else {
+        outputEdit->setEnabled(true);
+        outputEdit->setHtml("<pre style=\"font-family: inherit\">" + output + "</pre>");
+    }
+
+    blockLiveUpdate = true;
+    if (m_errors != errors) {
+        this->m_errors = errors;
+        repopulateExtraSelections();
+    }
+    blockLiveUpdate = false;
+
+    runQueued();
+}
+
+void MainWindow::runQueued()
+{
+    if (viewLive->isChecked() && requeueLive) {
+        requeueLive = false;
+        applySoundChanges(true, BrassicaProcess::NoReport);
+    }
+}
+
+void MainWindow::setHighlights(QList<int> highlights) {
+    if (m_highlights != highlights) {
+        this->m_highlights = highlights;
+        repopulateExtraSelections();
+    }
+}
+
+void MainWindow::repopulateExtraSelections() {
+    auto extraSelections = QList<QTextEdit::ExtraSelection>();
+
+    auto h = m_highlights.cbegin();
+    auto hend = m_highlights.cend();
+    auto e = m_errors.cbegin();
+    auto eend = m_errors.cend();
+
+    // note 1-based line indexing!
+    int lastline = 1;
+    int nextline = 1;
+    int pos = 0;  // position of the beginning of the current line
+
+    QTextCharFormat curFormat;
+
+    QString rules = rulesEdit->toPlainText();
+    QTextCursor cursor = QTextCursor(rulesEdit->document());
+
+    while (true) {
+        // get next line to highlight and its format
+        if ((h != hend) && ((e == eend) || ((*h) < (*e)))) {
+            nextline = *h; ++h; curFormat = highlightFormat;
+        } else if (e != eend) {
+            nextline = *e; ++e; curFormat = errorFormat;
+        } else {
+            break;
+        }
+
+        // seek to the position of that line
+        while (lastline < nextline) {
+            pos = rules.indexOf('\n', pos)+1;
+            if (pos == -1) goto endloop;
+            ++lastline;
+        }
+
+        // create cursor selecting that line
+        QTextCursor thisCursor = cursor;
+        thisCursor.setPosition(pos);
+        thisCursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+
+        // add it to the extraSelections with the correct format
+        extraSelections.append({thisCursor, curFormat});
+    }
+
+endloop:
+    rulesEdit->setExtraSelections(extraSelections);
 }
 
 void MainWindow::openRules()
@@ -526,6 +651,34 @@ void MainWindow::updateWordsFromOutputSlider(int value)
     }
 }
 
+
+void MainWindow::highlightUnusedRules(bool enable)
+{
+    if (!enable) {
+        setHighlights(QList<int>());
+        return;
+    }
+
+    QString rules      = rulesEdit     ->toPlainText();
+    QString words      = wordsEdit     ->toPlainText();
+
+    //QString output = proc->applyRules(categories, rules, words);
+
+    BrassicaProcess::InputLexiconFormat infmt = BrassicaProcess::Raw;
+    if (mdfBtn->isChecked()) infmt = BrassicaProcess::MDFStandard;
+    else if (mdfAltBtn->isChecked()) infmt = BrassicaProcess::MDFAlternate;
+
+    proc->parseTokeniseAndApplyRules(
+        rules,
+        words,
+        BrassicaProcess::ReportNotApplied,
+        infmt,
+        BrassicaProcess::NoHighlight,
+        BrassicaProcess::WordsOnlyOutput,
+        multiResultSep->text(),
+        3000000);
+}
+
 void MainWindow::reselectCheckboxes()
 {
     if (mdfBtn->isChecked() || mdfAltBtn->isChecked()) {
@@ -579,7 +732,7 @@ void MainWindow::findNext(QString substring,
 
 void MainWindow::showParadigmBuilder()
 {
-    ParadigmWindow *pw = new ParadigmWindow(proc, this);
+    ParadigmWindow *pw = new ParadigmWindow(this);
     pw->show();
 }
 

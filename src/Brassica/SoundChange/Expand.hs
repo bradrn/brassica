@@ -4,6 +4,7 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
 
 -- |
@@ -43,11 +44,11 @@ module Brassica.SoundChange.Expand
 import Prelude hiding (lookup)
 import Control.DeepSeq (NFData)
 import Control.Monad (foldM, unless)
-import Control.Monad.State.Strict (StateT, evalStateT, lift, get, put, gets)
+import Control.Monad.State.Strict (StateT, evalStateT, lift, get, gets, modify)
 import Data.Bifunctor (first, second)
 import Data.Containers.ListUtils (nubOrd)
 import Data.List (transpose, foldl', stripPrefix)
-import Data.Maybe (mapMaybe, catMaybes)
+import Data.Maybe (mapMaybe)
 import Data.Traversable (for)
 import GHC.Generics (Generic)
 
@@ -259,13 +260,14 @@ expandRule cs r = Rule
     <*> traverse expandEnvironment (exception r)
     <*> pure (flags r)
     <*> pure (plaintext r)
+    <*> pure (loc r)
   where
     expandEnvironment (e1, e2) = (,)
         <$> traverse (expandLexeme cs) e1
         <*> traverse (expandLexeme cs) e2
 
 expandFilter :: Categories -> Filter CategorySpec -> Either ExpandError (Filter Expanded)
-expandFilter cs (Filter p f) = Filter p <$> traverse (expandLexeme cs) f
+expandFilter cs (Filter p l f) = Filter p l <$> traverse (expandLexeme cs) f
 
 -- | Extend a set of previously defined t'Categories' to give the
 -- resulting state after a v'Categories' directive.
@@ -321,6 +323,12 @@ extendCategories cs' (overwrite, defs) =
     mkAuto :: String -> String -> [String] -> (String, Either (Expanded 'AnyPart) AutosegmentDef)
     mkAuto f g gs = (g, Right $ AutosegmentDef f gs)
 
+data ExpansionState = ExpansionState
+    { categories :: Categories
+    , extras :: [String]
+    , persistents :: [(String, Rule Expanded)]
+    } deriving (Show)
+
 -- | Expand a set of 'SoundChanges'. Expansion proceeds from beginning
 -- to end as follows:
 --
@@ -337,37 +345,55 @@ extendCategories cs' (overwrite, defs) =
 --       currently defined graphemes. They are replaced with a
 --       'GraphemeList' only if no categories are defined in the
 --       'SoundChanges'.
+--
+-- On an error, returns the appropriate 'ExpandError' together with
+-- the line number of the offending statement (if it has one).
 expandSoundChanges
     :: SoundChanges CategorySpec Directive
-    -> Either ExpandError (SoundChanges Expanded GraphemeList)
-expandSoundChanges scs = fmap catMaybes $ flip evalStateT (M.empty, []) $ traverse go scs
+    -> Either (Maybe Int, ExpandError) (SoundChanges Expanded GraphemeList)
+expandSoundChanges scs = fmap concat $ flip evalStateT initState $ traverse go scs
   where
     noCategories = any (\case DeclS (Categories {}) -> True; _ -> False) scs
 
+    initState = ExpansionState M.empty [] []
+
     go  :: Statement CategorySpec Directive
         -> StateT
-            (Categories, [String])
-            (Either ExpandError)
-            (Maybe (Statement Expanded GraphemeList))
+            ExpansionState
+            (Either (Maybe Int, ExpandError))
+            [Statement Expanded GraphemeList]
     go (RuleS r) = do
-        cs <- gets fst
-        lift $ Just . RuleS <$> expandRule cs r
-    go (FilterS f) = do
-        cs <- gets fst
-        lift $ Just . FilterS <$> expandFilter cs f
-    go ReportS = pure (Just ReportS)
+        ExpansionState{..} <- get
+        st <- lift $ first (Just $ loc r,) (expandRule categories r)
+        case persistent (flags st) of
+            Nothing -> pure ()
+            Just label ->
+                modify $ \s -> s
+                    { persistents = (label, st) : persistents
+                    }
+        -- NB. 'persistents' here doesn't contain current rule
+        pure $ RuleS <$> (st : reverse (snd <$> persistents))
+    go (FilterS f@(Filter _ l _)) = do
+        cs <- gets categories
+        lift $ pure . FilterS <$> first (Just l,) (expandFilter cs f)
+    go ReportS = pure [ReportS]
     go (DeclS (ExtraGraphemes extra)) = do
-        (cs, _) <- get
-        put (cs, extra)
+        modify $ \s -> s { extras = extra }
         pure $
             if noCategories
-            then Just $ DeclS $ GraphemeList True extra
-            else Nothing
-    go (DeclS (Categories overwrite noreplace defs)) = do
-        (cs, extra) <- get
-        cs' <- lift $ extendCategories cs (overwrite, defs)
-        put (cs', extra)
-        pure $ Just $ DeclS $ GraphemeList noreplace $ extra ++ mapMaybe grapheme (values cs')
+            then [DeclS $ GraphemeList True extra]
+            else []
+    go (DeclS (Categories l overwrite noreplace defs)) = do
+        ExpansionState{..} <- get
+        cs' <- lift $ first (Just l,) (extendCategories categories (overwrite, defs))
+        modify $ \s -> s
+            { categories = cs'
+            , persistents = []  -- invalidate persistent rules if categories change
+            }
+        pure $ pure $ DeclS $ GraphemeList noreplace $ extras ++ mapMaybe grapheme (values cs')
+    go (DeclS (DisablePersistent label)) = do
+        modify $ \s -> s { persistents = filter ((/=label) . fst) (persistents s) }
+        pure []
 
     grapheme [Grapheme g] = Just g
     grapheme _ = Nothing

@@ -2,3 +2,7 @@ packages:      ./brassica.cabal
                ./gui/brassica-interop-wasm/brassica-interop-wasm.cabal
 with-compiler: wasm32-wasi-ghc
 with-hc-pkg:   wasm32-wasi-ghc-pkg
+allow-newer:   all:base, all:template-haskell, all:ghc-bignum
+
+package *
+  shared: True

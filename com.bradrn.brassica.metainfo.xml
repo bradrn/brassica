@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.bradrn.brassica</id>
+  <metadata_license>FSFAP</metadata_license>
+  <project_license>BSD-3-Clause</project_license>
+  <name>brassica</name>
+  <summary>Featureful sound change applier</summary>
+  <developer id="com.bradrn"><name>Brad Neimann</name></developer>
+  <description>
+    <p>Brassica is an advanced sound change applier with features including multigraphs, syntax highlighting, flexible category operations and feature support.</p>
+  </description>
+  <url type="homepage">https://bradrn.com/brassica</url>
+  <launchable type="desktop-id">com.bradrn.brassica.desktop</launchable>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/bradrn/brassica/v1.1.0/docs/screenshot.png</image>
+      <caption>Screenshot of Brassica with sample sound changes and lexicon</caption>
+    </screenshot>
+    </screenshots>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="1.1.0" date="1970-01-01"/>
+  </releases>
+</component>

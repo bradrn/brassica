@@ -22,9 +22,11 @@ module Brassica.SoundChange.Apply
        , applyChanges
        , Log(..)
        , LogItem(..)
+       , rulesNotApplied
        -- * Reporting results
        , getOutput
        , getReports
+       , HighlightMode(..)
        , getChangedOutputs
        , getChangedReports
        , reportAsText

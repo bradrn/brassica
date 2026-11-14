@@ -1,5 +1,8 @@
-module Brassica.Paradigm.Parse (parseParadigm) where
+{-# LANGUAGE LambdaCase #-}
+module Brassica.Paradigm.Parse (parseParadigm, parseStems) where
 
+import Control.Category ((>>>))
+import Data.Maybe (fromMaybe)
 import Control.Monad (void)
 import Data.Char (isSpace)
 import Data.Void (Void)
@@ -9,7 +12,6 @@ import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
 import Brassica.Paradigm.Types
-import Data.Maybe (fromMaybe)
 
 type Parser = Parsec Void String
 
@@ -20,6 +22,9 @@ space1' = void $ takeWhile1P (Just "whitespace") ((&&) <$> isSpace <*> (/='\n'))
 
 sc :: Parser ()
 sc = L.space space1' (L.skipLineComment "*") empty
+
+eolf :: Parser ()
+eolf = void (some eol) <|> eof
 
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
@@ -39,7 +44,9 @@ morphValue :: Parser String
 morphValue = lexeme (takeWhile1P (Just "letter") $ (&&) <$> (not.isSpace) <*> (/=')'))
 
 process :: Parser Process
-process = slot <* char '.' <*> morphValue
+process =
+    Stem <$> lexeme (char '~' *> L.decimal)
+    <|> (try (slot <* char '.') <*> morphValue)
 
 oneOrMany :: Parser p -> Parser [p]
 oneOrMany p = between (symbol "(") (symbol ")") (many p) <|> fmap pure p
@@ -52,31 +59,39 @@ grammeme =
     Concrete <$> affix
     <|> Abstract . AbstractGrammeme <$> name
 
-condition :: Parser Condition
+parseExpr :: Parser a -> Parser (Expr a)
+parseExpr p = Any <$> ((All <$> some atom) `sepBy1` symbol "/")
+  where
+    atom = (Pred <$> p)
+        <|> between (symbol "(") (symbol ")") (parseExpr p)
+
+condition :: Parser (Expr Condition)
 condition = do
     _ <- symbol "when"
-    between (symbol "(") (symbol ")") $
-        try (Is . FeatureName <$> name <* symbol "is" <*> grammeme)
-        <|> Not . FeatureName <$> name <* symbol "not" <*> grammeme
+    parseExpr $ between (symbol "(") (symbol ")") $
+        try (Is <$> featureName <* symbol "is" <*> grammeme)
+        <|> Not <$> featureName <* symbol "not" <*> grammeme
+  where
+    featureName = (Class <$ lexeme (char '#')) <|> (FeatureName <$> name)
 
 feature :: Parser Feature
 feature = do
-    c <- fromMaybe Always <$> optional condition
+    c <- fromMaybe (All []) <$> optional condition
     globalSlot <- optional $ try $ slot <* space1'
     case globalSlot of
         Nothing -> do
             n <- optional $ try $ name <* symbol "="
             gs <- some grammeme
-            _ <- optional eol
-            return $ Feature c (FeatureName <$> n) gs
+            eolf
+            return $ Feature c n gs
         Just globalSlot' -> do
             n <- optional $ try $ name <* symbol "="
             gs <- some $ oneOrMany $ process <|> (globalSlot' <$> morphValue)
-            _ <- optional eol
-            return $ Feature c (FeatureName <$> n) (Concrete <$> gs)
+            eolf
+            return $ Feature c n (Concrete <$> gs)
 
-mapping :: Parser ([AbstractGrammeme], Affix)
-mapping = (,) <$> manyTill (AbstractGrammeme <$> name) (symbol ">") <*> affix <* optional eol
+mapping :: Parser (Expr AbstractGrammeme, Affix)
+mapping = (,) <$> parseExpr (AbstractGrammeme <$> name) <* symbol ">" <*> some process <* eolf
 
 statement :: Parser Statement
 statement = sc *>
@@ -86,6 +101,11 @@ statement = sc *>
 -- | Parse a 'String' in Brassica paradigm syntax into a 'Paradigm'.
 -- Returns 'Left' if the input string is malformed.
 --
--- For details on the syntax, refer to <https://github.com/bradrn/brassica/blob/v1.0.0/docs/Paradigm-Builder.md>.
+-- For details on the syntax, refer to <https://github.com/bradrn/brassica/blob/v1.1.0/docs/Paradigm-Builder.md>.
 parseParadigm :: String -> Either (ParseErrorBundle String Void) Paradigm
 parseParadigm = runParser (many statement) ""
+
+parseStems :: String -> (Maybe String, [String])
+parseStems = words >>> \case
+    ('#':p):ws -> (Just p, ws)
+    ws -> (Nothing, ws)

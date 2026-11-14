@@ -37,21 +37,14 @@ ninja
 
 ### Deployment
 
-On Linux, the preferred deployment method is using [AppImages](https://appimage.org/).
-First download [linuxdeploy](https://github.com/linuxdeploy/linuxdeploy) and [linuxdeploy-plugin-qt](https://github.com/linuxdeploy/linuxdeploy-plugin-qt).
-Then run `cabal build`, `cmake` and `make` as described above.
-Then, to build the AppImage, run:
+On Linux, the preferred deployment method is using [Flatpak](https://flatpak.org/).
+First download `flatpak` and `flatpak-builder`.
+Then run:
 ```
-linuxdeploy-x86_64.AppImage --executable ./brassica-gui --appdir AppDir -d ../brassica-gui/brassica.desktop -i ../brassica-gui/brassica.png --plugin qt
-cp ./brassica AppDir/usr/bin
-linuxdeploy-x86_64.AppImage --appdir AppDir --output appimage
+flatpak-builder --user --force-clean --repo repo build com.bradrn.brassica.yaml
+flatpak build-bundle repo brassica.flatpak com.bradrn.brassica
 ```
-(You may need to `export QMAKE=/usr/bin/qmake6` if you’re using a distribution such as Debian where Qt 5 is the default.)
-
-Similarly the CLI can be deployed to an AppImage with something like:
-```
-linuxdeploy-x86_64.AppImage --executable brassica --appdir AppDirCLI path/to/brassica-gui/brassica.desktop -i path/to/brassica-gui/brassica.png --output appimage
-```
+The bundle will then be in `brassica.flatpak`.
 
 On Windows, first copy `brassica.exe`, `brassica-pb.exe` and `brassica-gui.exe` into `.\deploy`, and `.\examples` into `.\deploy\examples`.
 Then use [`windeployqt`](https://doc.qt.io/qt-6/windows-deployment.html) on `brassica-gui.exe` to copy over the relevant files for Qt.

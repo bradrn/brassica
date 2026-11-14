@@ -3,6 +3,7 @@
 
 #include <QJsonDocument>
 #include <QProcess>
+#include <qjsonvalue.h>
 
 class BrassicaProcess : public QObject
 {
@@ -10,7 +11,6 @@ class BrassicaProcess : public QObject
 
 public:
     BrassicaProcess(QObject *parent = nullptr);
-    ~BrassicaProcess();
 
     bool startupCorrect();
     QProcess::ProcessError errorState();
@@ -21,11 +21,16 @@ public:
         MDFStandard,
         MDFAlternate
     };
-    enum HighlightMode
-    {
-        NoHighlight,
-        DifferentToLastRun,
-        DifferentToInput
+    enum ReportMode {
+        NoReport,
+        ReportApplied,
+        ReportNotApplied
+    };
+    enum HighlightMode {
+      NoHighlight,
+      DifferentToLastRun,
+      DifferentToInputAllChanged,
+      DifferentToInputSpecificRule
     };
     enum OutputMode
     {
@@ -36,25 +41,42 @@ public:
         WordsWithProtoOutputPreserve
     };
 
-    QString parseTokeniseAndApplyRules(QString rules,
+    bool parseTokeniseAndApplyRules(QString rules,
         QString words,
-        bool reportRules,
+        ReportMode reportRules,
         InputLexiconFormat inFmt,
         HighlightMode hlMode,
         OutputMode outMode,
-        QJsonValue *&prev, QString sep);
-    QString parseAndBuildParadigm(QString paradigm, QString roots, bool separateLines);
+        QString sep,
+        int timeout /* microseconds */);
+    bool parseAndBuildParadigm(QString paradigm, QString roots, bool separateLines, int timeout);
 
 private:
     QProcess *proc;
     bool valid;
     QProcess::ProcessError _errorState;  // if any
 
-    QJsonDocument request(QJsonDocument req);
+    bool reqInProgress = false;
+
+    bool request(QJsonDocument req);
 
     QString toJson(InputLexiconFormat val);
+    QJsonValue toJson(ReportMode val);
     QString toJson(HighlightMode val);
     QString toJson(OutputMode val);
+
+    QByteArray currentResponse;
+
+    QJsonValue prev;
+
+private slots:
+    void procReadyRead();
+
+signals:
+    void rulesResult(QString output);
+    void paradigmResult(QString output);
+    void notAppliedResult(QList<int> highlights);
+    void errorResult(QString output, QList<int> errors);
 };
 
 #endif // BRASSICAPROCESS_H
